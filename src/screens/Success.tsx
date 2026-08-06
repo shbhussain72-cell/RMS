@@ -1,0 +1,183 @@
+import { useEffect } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { headcount, useStore } from '../store'
+
+const SUPERVISOR = '/figma/success-supervisor-account.svg'
+const INFO_FILLED = '/figma/success-info-filled.svg'
+const STATUS_DOT = '/figma/success-status-dot.svg'
+const HEADER_ORNAMENT = '/figma/success-header-ornament.png'
+const HEADER_MASK = '/figma/success-header-mask.svg'
+/** The exact same deep-green gradient as the City Selection queue loader (`LOADER_BG` in
+ *  CitySelection.tsx) — solid, not a translucent tint, so it reads identically to that screen. */
+const LOADER_BG = 'linear-gradient(160deg,#0a2318 0%,#15402f 55%,#1f5a44 100%)'
+
+export default function Success() {
+  const { id } = useParams()
+  const nav = useNavigate()
+  const location = useLocation()
+  // Carried through from the Modify Reservation "Edit registration" flow so "Done" continues to the
+  // Post Registration Details form still tagged as an edit (which then returns to Modify Reservation).
+  const fromModify = (location.state as { fromModify?: boolean } | null)?.fromModify === true
+  const flow = useStore((s) => s.flow)
+  const members = headcount(flow) || 10
+
+  // Lock the page behind the modal so it can't be scrolled while the "Registration successful" popup
+  // is open (a modal should freeze its backdrop). The viewport scroller here is <html>, so overflow
+  // must be locked on documentElement — body alone doesn't stop it. Restored on unmount / tap Done.
+  useEffect(() => {
+    const html = document.documentElement
+    const prevHtml = html.style.overflow
+    const prevBody = document.body.style.overflow
+    html.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    return () => { html.style.overflow = prevHtml; document.body.style.overflow = prevBody }
+  }, [])
+
+  return (
+    <>
+      {/* ============ Overlay ============ */}
+      {/* fixed inset-0 → a uniform full-viewport backdrop (z-40 covers the page chrome below) using
+          the same deep-green loader gradient as City Selection's queue screens, solid — not a black
+          scrim, and not a translucent tint of the form underneath. */}
+      <div className="fixed inset-0 z-40" style={{ background: LOADER_BG }} />
+
+      {/* ============ Modal card ============ */}
+      <div className="fixed left-1/2 top-1/2 z-50 h-[440px] w-[calc(100%-32px)] max-w-[400px] -translate-x-1/2 -translate-y-1/2 overflow-clip rounded-[30px] bg-white">
+        {/* Green header */}
+        <div className="absolute left-0 top-0 h-[125px] w-full overflow-clip bg-[#1d543f]">
+          {/* ornament texture */}
+          <div className="absolute left-[-480px] top-[-71px]">
+            <div className="flex h-[4270.95px] w-[4398.656px] items-center justify-center">
+              <div className="rotate-[38.31deg]">
+                <div
+                  className="relative h-[2698.578px] w-[3473.78px] opacity-10"
+                  style={{
+                    WebkitMaskImage: `url("${HEADER_MASK}")`,
+                    maskImage: `url("${HEADER_MASK}")`,
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskSize: '1317.46px 785px',
+                    maskSize: '1317.46px 785px',
+                    WebkitMaskPosition: '1934.318px 1870.467px',
+                    maskPosition: '1934.318px 1870.467px',
+                  }}
+                >
+                  <img src={HEADER_ORNAMENT} alt="" className="absolute inset-0 block size-full max-w-none object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* supervisor icon in white circle */}
+          <div className="absolute left-[154px] top-[14px] size-[50px] overflow-clip rounded-[59.524px] bg-white">
+            <div className="absolute left-[10.71px] top-[10.71px] size-[28.571px]">
+              <img src={SUPERVISOR} alt="" className="absolute inset-0 block size-full max-w-none" />
+            </div>
+          </div>
+
+          {/* title */}
+          <p
+            className="absolute left-[calc(50%+0.5px)] top-[94px] flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center whitespace-nowrap text-center text-[24px] tracking-[0.2px] text-white"
+            style={{ fontFamily: 'Marcellus, serif' }}
+          >
+            <span className="leading-[32px]">Registration successful</span>
+          </p>
+        </div>
+
+        {/* Row: Registration status */}
+        <div className="absolute left-[14px] top-[141px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
+            <p
+              className="absolute left-0 top-[10px] flex h-[20px] w-[177.057px] -translate-y-1/2 flex-col justify-center text-[14px] leading-[normal] text-[#757e78]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
+            >
+              Registration status
+            </p>
+          </div>
+          <div className="absolute right-0 top-[8px] h-[32px] w-[101px] overflow-clip rounded-[60px] bg-[#e4f1e9]">
+            <div className="absolute left-1/2 top-[7px] flex -translate-x-1/2 items-center gap-[4px]">
+              <div className="relative size-[8px] shrink-0">
+                <img src={STATUS_DOT} alt="" className="absolute inset-0 block size-full max-w-none" />
+              </div>
+              <p
+                className="whitespace-nowrap text-[12px] tracking-[0.6px] text-[#1f5a44]"
+                style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 600 }}
+              >
+                <span className="leading-[18px]">Registered</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Row: City selection open on */}
+        <div className="absolute left-[14px] top-[189px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[142px] -translate-y-1/2 overflow-clip">
+            <p
+              className="absolute left-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
+            >
+              City selection open on
+            </p>
+          </div>
+          <p
+            className="absolute right-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-right text-[12px] tracking-[0.6px] text-[#23302a]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
+          >
+            <span className="leading-[18px]">15 June 2026, 09:00 AM IST</span>
+          </p>
+        </div>
+
+        {/* Row: Members included */}
+        <div className="absolute left-[14px] top-[237px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
+            <p
+              className="absolute left-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
+            >
+              Members included
+            </p>
+          </div>
+          <p
+            className="absolute right-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-right text-[12px] tracking-[0.6px] text-[#23302a]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
+          >
+            <span className="leading-[18px]">{members}</span>
+          </p>
+        </div>
+
+        {/* Blue info banner */}
+        <div className="absolute left-[14px] right-[14px] top-[296px] h-[52px] overflow-clip rounded-[13px] bg-[#e1eef1]">
+          <div className="absolute left-[36.74px] top-[8px] flex w-[309.259px] flex-col items-start">
+            <p
+              className="w-full text-[12px] leading-[18px] text-[#8a938e]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}
+            >
+              You will be notified once city allocation begins. No further action is needed for now
+            </p>
+          </div>
+          <div className="absolute left-[12px] top-[9.88px] size-[16.245px]">
+            <img src={INFO_FILLED} alt="" className="absolute inset-0 block size-full max-w-none" />
+          </div>
+        </div>
+
+        {/* Done button */}
+        <button
+          type="button"
+          onClick={() => nav(`/miqaats/${id}/preferred-city`, fromModify ? { state: { fromModify: true } } : undefined)}
+          className="absolute left-[14px] right-[14px] top-[375px] block h-[48px] cursor-pointer rounded-[9999px]"
+          style={{ backgroundImage: 'linear-gradient(171.7241071729248deg, rgb(31, 90, 68) 0%, rgb(21, 64, 47) 100%)' }}
+        >
+          <div className="absolute inset-[0_0.33px_0_0] rounded-[9999px] shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.18),0px_2px_6px_0px_rgba(21,64,47,0.06)]" />
+          <div className="absolute left-1/2 top-[10px] flex -translate-x-1/2 items-center">
+            <p
+              className="whitespace-nowrap text-center text-[16px] tracking-[0.4px] text-[#f8f4ea]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}
+            >
+              <span className="leading-[24px]">Done</span>
+            </p>
+          </div>
+        </button>
+      </div>
+    </>
+  )
+}

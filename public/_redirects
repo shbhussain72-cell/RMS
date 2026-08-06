@@ -1,0 +1,3 @@
+# SPA fallback — every unknown path serves index.html so React Router can handle
+# client-side routes (e.g. /miqaats/ashara-1448/people) instead of 404ing.
+/*    /index.html   200

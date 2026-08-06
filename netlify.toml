@@ -1,0 +1,17 @@
+# Netlify deploy config for the Mumin (Miqaat registration) Vite + React SPA.
+# Static site, no backend — everything is client-side (localStorage).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback: let React Router resolve deep links instead of returning 404.
+# Netlify serves real static files (assets, /raza-letter.pdf) first; this only
+# applies when no file matches.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

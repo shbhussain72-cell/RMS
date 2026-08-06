@@ -1,0 +1,425 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-cream-50 font-sans text-ink antialiased;
+    margin: 0;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+}
+
+/* Fluid side padding — applied to the desktop content column */
+:root {
+  --content-px: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+@media (min-width: 640px) {
+  /* Main content area: inset from viewport edges by the clamp value */
+  .sm-content-px { padding-inline: var(--content-px); }
+  /* Full-bleed: break out of a sm-content-px parent while keeping inner content on the same grid */
+  .sm-full-bleed {
+    margin-inline: calc(-1 * var(--content-px));
+    width: calc(100% + 2 * var(--content-px));
+  }
+}
+
+@layer utilities {
+  /* hide scrollbar for horizontal chip rows */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  /* Slim, unobtrusive scrollbar for the chat's scroll areas (default bar is too chunky).
+   * WebKit/Blink pseudo-elements give the exact 6px width in Chromium/Safari; the standard
+   * `scrollbar-width: thin` is applied only as a Firefox fallback via @supports below — setting it
+   * unconditionally makes Blink ignore the pseudo-element sizing and fall back to a ~10px bar. */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cdd6d0;
+    border-radius: 999px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #b3bdb6;
+  }
+  /* Firefox fallback (no ::-webkit-scrollbar). The -moz-appearance query only matches Firefox, so
+   * Blink never sees `scrollbar-width` and keeps the 6px pseudo-element bar above. */
+  @supports (-moz-appearance: none) {
+    .thin-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #cdd6d0 transparent;
+    }
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Sticky footer CTA gradient — transparent at top, fading to cream */
+.sticky-cta {
+  background: linear-gradient(to bottom, rgba(248,244,234,0) 0px, #F8F4EA 28px);
+}
+@media (min-width: 640px) {
+  /* On desktop the card is removed, so extend the fade to fill the full footer height */
+  .sticky-cta {
+    background: linear-gradient(to bottom, rgba(248,244,234,0) 0px, #F8F4EA 80px);
+  }
+}
+
+/* Ashara banner overlay — diagonal dark-green gradient (matches SVG spec) */
+.ashara-banner-gradient {
+  background: linear-gradient(102deg, rgba(10,58,44,0.86) 0%, rgba(10,58,44,0.55) 48%, rgba(10,58,44,0.18) 100%);
+}
+@media (min-width: 640px) {
+  .ashara-banner-gradient {
+    background: linear-gradient(101deg, rgba(10,58,44,0.86) 0%, rgba(10,58,44,0.55) 48%, rgba(10,58,44,0.18) 100%);
+  }
+}
+
+/* Notification panel: fades + slides in from above */
+@keyframes notifPanelIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.notif-panel-in {
+  animation: notifPanelIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Shared transient toast — slides up + fades in (see components/figma/Toast.tsx). */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.toast-in { animation: toastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Checkbox check-in pop — used by the desktop Add-people table checkboxes only. */
+@keyframes checkPop {
+  0%   { transform: scale(0.6); }
+  60%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Step indicator success micro-interactions (components/figma/StepIndicator.tsx).
+   Subtle, ease-out, 200–260ms — fired once when a step flips to "done". */
+@keyframes stepPop {
+  0%   { transform: scale(0.95); }
+  55%  { transform: scale(1.05); }
+  100% { transform: scale(1);    }
+}
+@keyframes stepCheckIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes stepCountIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.step-pop      { animation: stepPop 260ms cubic-bezier(0, 0, 0.2, 1); }
+.step-check-in { animation: stepCheckIn 240ms cubic-bezier(0, 0, 0.2, 1); }
+.step-count-in { animation: stepCountIn 220ms cubic-bezier(0, 0, 0.2, 1); }
+
+/* "pending acceptance" notice: slides down into view, then eases out */
+@keyframes noticeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 80px;
+  }
+}
+
+/* "Reserve all" CTA (City Selection) — a premium gold glow that gently breathes (soft lift + scale +
+   pulsing halo) plus a light sweep across the button, so it draws the eye once a city is picked and
+   there's still an actionable "reserve everyone" step. The class is removed once everyone is reserved,
+   so the animation stops on its own. */
+@keyframes reserveAllGlow {
+  0%, 100% {
+    box-shadow: 0 4px 14px -6px rgba(21, 64, 47, 0.3), 0 0 0 0 rgba(197, 168, 77, 0);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 10px 22px -8px rgba(21, 64, 47, 0.34), 0 0 20px 3px rgba(197, 168, 77, 0.6);
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+@keyframes reserveAllShine {
+  0% { left: -35%; }
+  55%, 100% { left: 135%; }
+}
+.reserve-all-glow {
+  position: relative;
+  overflow: hidden;
+  animation: reserveAllGlow 2.4s ease-in-out infinite;
+}
+.reserve-all-glow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 22%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0) 100%);
+  /* Static skew (not animated) — only `left` animates, so the sheared band's shape stays constant
+     and `overflow: hidden` on the button clips it cleanly to the pill instead of poking past it. */
+  transform: skewX(-20deg);
+  animation: reserveAllShine 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Taller notice cards (no max-height clip) — fade + slide in only */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* City Selection — swap-pending state. When a group already holds a reservation and the user picks a
+   DIFFERENT city, the "Swap to <city>" destination slides down beneath the current allocation (nothing
+   is swapped until confirmed). The block is keyed by the target city id so it replays per selection. */
+@keyframes swapIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.swap-in { animation: swapIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+/* A brief one-shot gold wash on the swap-pending row/card so the eye lands on what changed. */
+@keyframes swapRowGlow {
+  0% { background-color: rgba(226, 205, 150, 0.35); }
+  100% { background-color: rgba(226, 205, 150, 0); }
+}
+.swap-row-glow { animation: swapRowGlow 900ms ease-out both; }
+
+/* City Selection — reservation success tooltip. Sits above the floating bottom CTA (right-aligned).
+   Reserve-all plays one per member in sequence: each animates in, holds briefly, then eases out
+   before the next appears. */
+@keyframes reserveTipIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes reserveTipOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+.reserve-tip-in  { animation: reserveTipIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.reserve-tip-out { animation: reserveTipOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+
+/* First-time walkthrough — tooltip fades + scales in on each step change */
+@keyframes tourTipIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.tour-tip { animation: tourTipIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .tour-tip { animation: none; }
+}
+
+/* Event Timeline feature — sheet slide-up + popover fade */
+@keyframes etSheet {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes etFade {
+  from { opacity: 0; transform: translateY(6px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes etPanel {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Interaction & hover spec — one easing curve everywhere.
+   Cards: lift + shadow + border-darken together (never one alone).
+   Images zoom, frames stay still. Arrows travel on hover.
+   Durations: .16s buttons/icons · .2s card lift · .6s image zoom.
+   ───────────────────────────────────────────────────────────── */
+:root { --ix-ease: cubic-bezier(.22, .68, .24, 1); }
+
+/* Action cards (large image-left) */
+.ix-card-lg {
+  transition:
+    transform .2s var(--ix-ease),
+    box-shadow .2s var(--ix-ease),
+    border-color .2s var(--ix-ease);
+}
+.ix-card-lg:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -26px rgba(15, 70, 50, .3);
+  border-color: #d9c98a;
+}
+
+/* Event cards (compact registered/scheduled) */
+.ix-card-sm {
+  transition:
+    transform .2s var(--ix-ease),
+    box-shadow .2s var(--ix-ease),
+    border-color .2s var(--ix-ease);
+}
+.ix-card-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -18px rgba(15, 70, 50, .28);
+  border-color: #dccaa0;
+}
+
+/* Image zoom — the frame (overflow-hidden) stays put, the image scales. */
+.ix-zoom { transition: transform .6s var(--ix-ease); will-change: transform; }
+.ix-card-lg:hover .ix-zoom,
+.ix-card-sm:hover .ix-zoom { transform: scale(1.05); }
+
+/* Urgent action card — permanent gold border + red→gold top accent bar. */
+.ix-urgent { border-color: #d4af5a !important; }
+.ix-urgent-bar { background: linear-gradient(90deg, #c0392b 0%, #d9a441 100%); }
+
+/* Arrow slide — every icon-slide is translateX(3px), same easing. */
+.ix-arrow { transition: transform .16s var(--ix-ease); }
+.ix-slide:hover .ix-arrow { transform: translateX(3px); }
+
+/* Buttons */
+.ix-btn {
+  transition:
+    transform .16s var(--ix-ease),
+    background-color .16s var(--ix-ease),
+    border-color .16s var(--ix-ease),
+    color .16s var(--ix-ease);
+}
+.ix-btn-green:hover { background-color: #0a3325; }
+.ix-btn-gold:hover { transform: translateY(-1px); }
+.ix-btn-outline:hover { border-color: #c2a04e; background-color: #f7f4ec; }
+/* Outline button on the hero photo → brighten border, darken the glass fill a touch more (base fill
+   is already a dark tint for legibility over busy photo backgrounds — hover shouldn't lighten it). */
+.ix-btn-hero:hover { border-color: #ffffff; background-color: rgba(0, 0, 0, .5); }
+
+/* Header controls */
+.ix-hdr { transition: background-color .16s var(--ix-ease), color .16s var(--ix-ease); }
+.ix-bell:hover { background-color: rgba(255, 255, 255, .12); }
+.ix-chip:hover { background-color: rgba(255, 255, 255, .07); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ix-card-lg, .ix-card-sm, .ix-zoom, .ix-arrow, .ix-btn, .ix-hdr { transition: none; }
+  .ix-card-lg:hover, .ix-card-sm:hover, .ix-btn-gold:hover { transform: none; }
+  .ix-card-lg:hover .ix-zoom, .ix-card-sm:hover .ix-zoom, .ix-slide:hover .ix-arrow { transform: none; }
+}
+
+/* ─── Ask Help / AI-mode floater — Google "AI Mode"-style CTA ─────────────────
+   A clean white pill with a gradient border that rotates around the stroke, plus
+   a glow that ramps up on hover. The rotation is driven by spinning a real
+   element with `transform: rotate()` (universally supported + composited) rather
+   than animating a conic-gradient angle via @property — the latter did not
+   interpolate reliably in-app (the angle stayed at 0deg). Brand palette:
+   deep green → green → teal → gold → bronze → green. */
+@keyframes ai-cta-rot {
+  from { transform: translate(-50%, -50%) rotate(0turn); }
+  to   { transform: translate(-50%, -50%) rotate(1turn); }
+}
+
+/* In @layer components so Tailwind's positioning utilities (e.g. `fixed` on the floater) still
+   win over the `position: relative` base here — otherwise un-layered CSS would clobber `.fixed`
+   and the floater would scroll with the page instead of pinning to the viewport corner. */
+@layer components {
+  .ai-cta {
+    --ai-ring: conic-gradient(from 0deg,
+      #15402f, #2e7d5b, #4d93a9, #7cc0b3, #E3CD96, #C9A45C, #a8843e, #15402f);
+    position: relative;
+    display: inline-flex;
+    isolation: isolate;
+    border-radius: 9999px;
+    transition: transform .2s var(--ix-ease, ease);
+  }
+  /* Soft glow behind everything — real element (not a negative-z pseudo, which would paint over
+     the white fill and tint it). Blurred + hidden until hover, so it only reads as a halo. */
+  .ai-cta__glow {
+    position: absolute;
+    inset: -2px;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--ai-ring);
+    filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  /* Ring = the visible border. Clips the spinning gradient to a rounded shape; its padding is the
+     stroke thickness (1.5px → 2.5px on hover). */
+  .ai-cta__ring {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    padding: 1.5px;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px -10px rgba(21, 64, 47, .4);
+    transition: padding .2s ease, box-shadow .2s ease;
+  }
+  /* The rotating colour source — a large square conic gradient spun by transform, clipped by the
+     ring. Only the padding gap around the pill shows, so it reads as a rotating gradient stroke. */
+  .ai-cta__spin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 320%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: var(--ai-ring);
+    animation: ai-cta-rot 6s linear infinite;
+  }
+  /* The clean white pill on top — covers the centre so the gradient shows only as the border. */
+  .ai-cta__pill {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 49px;
+    padding: 0 20px;
+    border-radius: 9999px;
+    background: #ffffff;
+    color: #2b3a34;
+  }
+  .ai-cta:hover { transform: translateY(-1px); }
+  .ai-cta:hover .ai-cta__ring { padding: 2.5px; box-shadow: 0 12px 26px -12px rgba(21, 64, 47, .45); }
+  .ai-cta:hover .ai-cta__glow { opacity: .6; }
+  .ai-cta:hover .ai-cta__spin { animation-duration: 2.2s; } /* speed up so it visibly circles */
+}
+
+/* Modify Reservation — dependent-transfer CTA. While the button is hovered, the swap icon's two
+   arrows shuttle in opposite directions (top arrow slides the way it points, bottom the other way)
+   and back, reading as an exchange/transfer rather than a spin. Static otherwise. Applied per-arrow
+   via `group-hover:animate-[transferArrow{Fwd,Back}_...]`. Values are in the icon's 24-unit user
+   space (~0.67px each on the 16px render), so the motion stays subtle. */
+@keyframes transferArrowFwd {
+  from { transform: translateX(0); }
+  to   { transform: translateX(3px); }
+}
+@keyframes transferArrowBack {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-cta__spin { animation: none; }
+  .ai-cta:hover { transform: none; }
+}

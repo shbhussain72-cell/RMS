@@ -267,6 +267,23 @@ async function runLang(browser, lang, port) {
   check(`${lang}: orphan RECOVERS when the element returns`, recovered && !recovered.orphaned,
     `orphaned=${recovered?.orphaned}`)
 
+  // AMBIGUOUS TEXT — unique-at-creation is not unique-at-load.
+  //
+  // `moved` breaks the structural path so resolution reaches the text fallback; `duplicated`
+  // adds a second element with identical text. The fallback must then find TWO matches and
+  // orphan rather than pick one. Picking would silently pin to an element the reviewer never
+  // annotated — the same invisible failure class as the reorder mis-pin.
+  await setMode('moved')
+  await setMode('duplicated')
+  const ambiguous = await rowState(page, plainR.id)
+  check(`${lang}: AMBIGUOUS text match orphans rather than picking`,
+    ambiguous && ambiguous.orphaned, `orphaned=${ambiguous?.orphaned} by=${ambiguous?.by}`)
+  // And the id/tour anchored ones are untouched by the ambiguity — it is not a global failure.
+  const ambId = await rowState(page, idR.id)
+  check(`${lang}: AMBIGUOUS — stronger anchors unaffected`, ambId && !ambId.orphaned, `by=${ambId?.by}`)
+  await setMode('duplicated')
+  await setMode('moved')
+
   // UNRENDERED — all targets conditionally removed.
   await setMode('unrendered')
   const unId = await rowState(page, idR.id)

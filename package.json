@@ -10,14 +10,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "npm run build:lsd && vite",
-    "build": "npm run build:lsd && npm run check:lsd && tsc -b && vite build",
+    "build": "npm run build:lsd && npm run check:lsd && tsc -b && vite build && node scripts/check-dev-only.mjs",
     "preview": "vite preview",
     "audit:lsd": "node scripts/audit-lsd.mjs --write",
     "shoot": "npm run build && node scripts/shoot.mjs",
     "sweep:logical": "node scripts/logical-props.cjs",
     "census:centring": "node scripts/centring-census.cjs",
     "census:mirror": "node scripts/mirror-census.cjs",
-    "check:remarks": "node scripts/check-remarks.mjs"
+    "check:remarks": "node scripts/check-remarks.mjs",
+    "check:devonly": "node scripts/check-dev-only.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

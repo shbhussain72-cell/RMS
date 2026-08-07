@@ -37,7 +37,7 @@ import { useRemarks } from './RemarksProvider'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
-export type BreakMode = 'deleted' | 'reordered' | 'unrendered' | 'moved'
+export type BreakMode = 'deleted' | 'reordered' | 'unrendered' | 'moved' | 'duplicated'
 
 export default function RemarksFixture() {
   if (!import.meta.env.DEV) return null
@@ -78,7 +78,7 @@ function RemarksFixtureInner() {
           </button>
         </div>
         <div className="mt-[6px] flex flex-wrap gap-[4px]" dir="ltr">
-          {(['deleted', 'reordered', 'unrendered', 'moved'] as BreakMode[]).map((m) => (
+          {(['deleted', 'reordered', 'unrendered', 'moved', 'duplicated'] as BreakMode[]).map((m) => (
             <button
               key={m} type="button" data-rmk={`mode-${m}`} onClick={() => toggle(m)}
               className={`rounded-[5px] px-[6px] py-[2px] text-[10px] font-bold ${modes[m] ? 'bg-[#b23b3b] text-white' : 'bg-[#f0ece1] text-[#5a6660]'}`}
@@ -129,7 +129,22 @@ function Targets({ modes }: { modes: Record<BreakMode, boolean> }) {
     </p>
   )
 
-  const rows = modes.reordered ? [plain, withTour, withId] : [withId, withTour, plain]
+  /**
+   * A second element with the SAME text as `plain`.
+   *
+   * Unique-at-creation is not unique-at-load. On its own this changes nothing — the original
+   * still resolves structurally. Combined with `moved`, which breaks the structural path, it
+   * makes the text fallback AMBIGUOUS, and an ambiguous text match must orphan rather than
+   * pick one. Picking would silently move the pin to an element the reviewer never annotated,
+   * which is the same class of failure as the reorder mis-pin and just as invisible.
+   */
+  const twin = modes.duplicated ? (
+    <p key="twin" className="rounded-[6px] bg-[#f7f2ea] px-[6px] py-[3px] text-[12px] text-[#23302a]">
+      Plain target, structural only
+    </p>
+  ) : null
+
+  const rows = modes.reordered ? [plain, withTour, withId, twin] : [withId, withTour, plain, twin]
   const body = <div className="flex flex-col gap-[5px]">{rows}</div>
 
   // `moved` wraps the whole board in an extra element, which changes every descendant's
@@ -144,7 +159,9 @@ function Targets({ modes }: { modes: Record<BreakMode, boolean> }) {
  * Threading test scaffolding through the app-wide context would put it in the same object the
  * real UI consumes, and every consumer would re-render whenever a fixture toggle changed.
  */
-const EMPTY: Record<BreakMode, boolean> = { deleted: false, reordered: false, unrendered: false, moved: false }
+const EMPTY: Record<BreakMode, boolean> = {
+  deleted: false, reordered: false, unrendered: false, moved: false, duplicated: false,
+}
 
 function useModes() {
   return useState<Record<BreakMode, boolean>>(EMPTY)

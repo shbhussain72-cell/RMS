@@ -116,18 +116,15 @@ export default function Success() {
         </div>
 
         {/* Row: City selection open on */}
-        <div className="absolute start-[14px] top-[189px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[142px] -translate-y-1/2 overflow-clip">
-            <p
-              className="absolute start-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
-            >
-              
-              {t('City selection open on')}
-            </p>
-          </div>
+        <div className="absolute start-[14px] top-[189px] flex h-[48px] end-[14px] items-center justify-between gap-[12px] border-b border-solid border-[#e7dfc9] bg-white">
           <p
-            className="absolute end-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-end text-[12px] tracking-[0.6px] text-[#23302a]"
+            className="min-w-0 flex-1 text-[14px] leading-[normal] text-[#757e78]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
+          >
+            {t('City selection open on')}
+          </p>
+          <p
+            className="shrink-0 text-end text-[12px] tracking-[0.6px] text-[#23302a]"
             style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
           >
             <span className="leading-[18px]"><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></span>
@@ -135,14 +132,13 @@ export default function Success() {
         </div>
 
         {/* Row: Members included */}
-        <div className="absolute start-[14px] top-[237px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
-            <p
-              className="absolute start-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Members included')} />
-          </div>
+        <div className="absolute start-[14px] top-[237px] flex h-[48px] end-[14px] items-center justify-between gap-[12px] border-b border-solid border-[#e7dfc9] bg-white">
           <p
-            className="absolute end-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-end text-[12px] tracking-[0.6px] text-[#23302a]"
+            className="min-w-0 flex-1 text-[14px] leading-[normal] text-[#757e78]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Members included')} />
+
+          <p
+            className="shrink-0 text-end text-[12px] tracking-[0.6px] text-[#23302a]"
             style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
           >
             <span className="leading-[18px]">{members}</span>
@@ -150,15 +146,14 @@ export default function Success() {
         </div>
 
         {/* Blue info banner */}
-        <div className="absolute start-[14px] end-[14px] top-[296px] h-[52px] overflow-clip rounded-[13px] bg-[#e1eef1]">
-          <div className="absolute start-[36.74px] top-[8px] flex w-[309.259px] flex-col items-start">
-            <p
-              className="w-full text-[12px] leading-[18px] text-[#8a938e]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }} {...tx('You will be notified once city allocation begins. No further action is needed for now')} />
-          </div>
-          <div className="absolute start-[12px] top-[9.88px] size-[16.245px]">
-            <img src={INFO_FILLED} alt="" className="absolute inset-0 block size-full max-w-none" />
-          </div>
+        {/* Flex row rather than two absolutely-positioned boxes: the text box was a fixed
+            309px starting 36.74px in, which needs 346px inside a card that is 330px wide at
+            390px viewport — 16px of copy clipped before translation even enters into it. */}
+        <div className="absolute start-[14px] end-[14px] top-[296px] flex min-h-[52px] items-start gap-[8px] rounded-[13px] bg-[#e1eef1] px-[12px] py-[8px]">
+          <img src={INFO_FILLED} alt="" className="mt-[2px] size-[16.245px] shrink-0" />
+          <p
+            className="min-w-0 flex-1 text-[12px] leading-[18px] text-[#8a938e]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }} {...tx('You will be notified once city allocation begins. No further action is needed for now')} />
         </div>
 
         {/* Done button */}

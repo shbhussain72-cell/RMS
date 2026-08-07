@@ -99,7 +99,7 @@ function SectionDivider({ children }: { children: ReactNode }) {
   return (
     <div className="relative h-[18px] w-full">
       <div className="absolute start-0 end-[261.5px] top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
-      <p className="absolute start-[calc(50%+0.5px)] top-[calc(50%-2px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
+      <p className="absolute left-[calc(50%+0.5px)] top-[calc(50%-2px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
         style={{ ...FMU, fontWeight: 700 }}>{children}</p>
       <div className="absolute start-[261.47px] end-0 top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
     </div>

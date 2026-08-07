@@ -143,7 +143,7 @@ function Hero({
   return (
     <div className="relative w-full overflow-clip rounded-[20px] bg-gradient-to-b from-[#0e2d21] via-[#15402f] to-[#1f5a44] [--tw-gradient-via-position:50%] sm:rounded-[24px]">
       <div
-        className="absolute bottom-[32.41%] start-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
+        className="absolute bottom-[32.41%] left-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(22.627 0 0 22.627 160 160)'><stop stop-color='rgba(227,205,150,0.28)' offset='0'/><stop stop-color='rgba(227,205,150,0)' offset='0.62'/></radialGradient></defs></svg>\")",
@@ -824,7 +824,7 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
               ) : (
                 <div className="absolute start-[16px] size-[42px] rounded-[74.118px] bg-[#f8f4ea]" style={{ top: base }}>
                   <p
-                    className="absolute start-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
+                    className="absolute left-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
                     style={{ fontFamily: '"Segoe UI Symbol", system-ui, sans-serif', fontWeight: 400 }}
                   >
                     ❖

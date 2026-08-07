@@ -113,13 +113,26 @@ const PROBE = () => {
     if (s.textOverflow === 'ellipsis') continue
     // 2px tolerance: sub-pixel rounding routinely produces a 1px difference that is
     // invisible and unfixable, and flagging it would bury the real cases.
-    if (el.scrollWidth > el.clientWidth + 2) {
-      out.push({
-        kind: 'CLIPPED', where: describe(el),
-        detail: `scrollWidth ${el.scrollWidth} > clientWidth ${el.clientWidth} with overflow-x:${s.overflowX}`,
-        text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
-      })
-    }
+    if (el.scrollWidth <= el.clientWidth + 2) continue
+    // The objective is "no clipped or sheared TEXT". Decorative overflow is routine and
+    // deliberate — Success.tsx clips a 3474px masked ornament down to a 358px header on
+    // purpose, and reporting that sends you editing artwork instead of copy. So confirm a
+    // text-bearing descendant actually escapes the content box before calling it a bug.
+    const box = el.getBoundingClientRect()
+    const overflowing = [...el.querySelectorAll('*')].find((d) => {
+      if (d.children.length) return false                 // leaf elements only
+      const t = (d.textContent || '').trim()
+      if (t.length < 2) return false
+      const r = d.getBoundingClientRect()
+      if (r.width < 1) return false
+      return r.right > box.right + 2 || r.left < box.left - 2
+    })
+    if (!overflowing) continue
+    out.push({
+      kind: 'CLIPPED', where: describe(el),
+      detail: `scrollWidth ${el.scrollWidth} > clientWidth ${el.clientWidth} with overflow-x:${s.overflowX}`,
+      text: (overflowing.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+    })
   }
 
   // ── overlapping interactive elements ──────────────────────────────────────

@@ -2333,22 +2333,31 @@ export default function ManageReservations() {
                   </>
                 )}
 
-                {/* Empty state — registered, city selection not yet open, nothing to modify */}
-                {!isLinked && changeOptions.length === 0 && miqaat.id !== 'ashara-1448' && (
+                {/* Empty state — registered, city selection not yet open, nothing to modify.
+                    Previously also excluded `miqaat.id !== 'ashara-1448'`, which is why the whole
+                    right-hand panel rendered BLANK on the flagship fixture: with no linked
+                    dependents and no change options, every branch in this panel was false and the
+                    section had nothing to draw. The real precondition was never the miqaat id — it
+                    was whether we know the open DATE, since that miqaat's deadlineLabel carries no
+                    "opens on" clause and the sentence would have ended mid-phrase. So the date
+                    sentence is gated on the date, and the panel always has content. */}
+                {!isLinked && changeOptions.length === 0 && (
                   <div className="flex min-h-[70vh] items-center justify-center">
                     <div className="flex w-full max-w-[620px] flex-col items-center rounded-[20px] border-2 border-dashed border-[#dcd4bf] bg-[#fdfbf5] px-[40px] py-[56px] text-center">
                       <span className="flex size-[92px] items-center justify-center rounded-full" style={{ background: '#f2ead5' }}>
                         <MosqueIcon color="#1f5a44" size={44} />
                       </span>
                       <h3 className="mt-[24px] text-[34px] leading-[40px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('City not opened yet')} />
-                      <p className="mt-[14px] max-w-[440px] text-[19px] leading-[28px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                        <span {...tx('City selection opens on')} />{' '}
-                        <strong className="font-bold text-[#23302a]">
-                          {cityOpenParts ? <DateLine value={cityOpenParts[0]} hijri={false} /> : null}
-                          {cityOpenParts?.[1] ? <> {t('at')} <TimeLine value={cityOpenParts[1]} /></> : null}
-                        </strong>
-                        <span {...tx('. Once it opens, you will be able to choose your preferred city.')} />
-                      </p>
+                      {cityOpenParts ? (
+                        <p className="mt-[14px] max-w-[440px] text-[19px] leading-[28px] text-[#5a6660]" style={{ fontFamily: FONT }}>
+                          <span {...tx('City selection opens on')} />{' '}
+                          <strong className="font-bold text-[#23302a]">
+                            <DateLine value={cityOpenParts[0]} hijri={false} />
+                            {cityOpenParts[1] ? <> {t('at')} <TimeLine value={cityOpenParts[1]} /></> : null}
+                          </strong>
+                          <span {...tx('. Once it opens, you will be able to choose your preferred city.')} />
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 )}

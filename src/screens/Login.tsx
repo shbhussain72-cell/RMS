@@ -113,14 +113,13 @@ export default function Login() {
           {/* Physical `right`, not logical `end` — the toggle must not change corner
               when the language does. Same for the desktop panel below. */}
           <LanguageToggle className="absolute end-[16px] top-[14px] z-20" />
-          <div
-            className="absolute left-1/2 top-[-3.47%] bottom-[7.95%] w-[320px] -translate-x-1/2 rounded-[9999px]"
+          <div className="absolute start-0 end-0 top-[-3.47%] bottom-[7.95%] mx-auto w-[320px] rounded-[9999px]"
             style={{
               backgroundImage:
                 "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(22.627 0 0 22.627 160 160)'><stop stop-color='rgba(227,205,150,0.28)' offset='0'/><stop stop-color='rgba(227,205,150,0)' offset='0.62'/></radialGradient></defs></svg>\")",
             }}
           />
-          <div className="absolute left-1/2 top-[30px] flex w-[215px] -translate-x-1/2 flex-col items-center gap-[7px]">
+          <div className="absolute start-0 end-0 top-[30px] mx-auto flex w-[215px] flex-col items-center gap-[7px]">
             <img alt="" className="block h-[89px] w-[56.434px] object-cover" src={imgItsCrest} />
             <div className="flex w-full flex-col items-center gap-[8px]">
               <div className="flex w-full flex-col items-center text-center" style={{ fontFamily: FONT_SERIF }}>

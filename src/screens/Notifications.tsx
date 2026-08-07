@@ -138,7 +138,7 @@ export default function Notifications() {
 
       {/* Success toast */}
       {toastMsg && (
-        <div className="fixed bottom-[40px] left-1/2 z-[80] flex -translate-x-1/2 items-center gap-[8px] rounded-full bg-[#1f5a44] px-[18px] py-[11px] shadow-[0_10px_30px_-8px_rgba(21,64,47,0.5)]">
+        <div className="fixed bottom-[40px] start-0 end-0 z-[80] mx-auto flex w-fit items-center gap-[8px] rounded-full bg-[#1f5a44] px-[18px] py-[11px] shadow-[0_10px_30px_-8px_rgba(21,64,47,0.5)]">
           <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
             <path d="M4 10.5l3.5 3.5L16 5.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

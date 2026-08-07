@@ -58,8 +58,7 @@ function SectionHeading({ label }: { label: string }) {
           is the mirror image of that bug: the fade would run outward from the centre instead
           of into it. */}
       <div className="absolute start-0 end-1/2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r rtl:bg-gradient-to-l from-[#e3cd96] to-[rgba(227,205,150,0)]" />
-      <p
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
+      <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
         style={{ fontFamily: MUL, fontWeight: 700 }}
         {...tx(label)}
       />
@@ -151,8 +150,7 @@ function Hero({
   )
   return (
     <div className="relative w-full overflow-clip rounded-[20px] bg-gradient-to-b from-[#0e2d21] via-[#15402f] to-[#1f5a44] [--tw-gradient-via-position:50%] sm:rounded-[24px]">
-      <div
-        className="absolute bottom-[32.41%] left-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
+      <div className="absolute bottom-[32.41%] left-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(22.627 0 0 22.627 160 160)'><stop stop-color='rgba(227,205,150,0.28)' offset='0'/><stop stop-color='rgba(227,205,150,0)' offset='0.62'/></radialGradient></defs></svg>\")",
@@ -381,7 +379,7 @@ function AboutVideoCard() {
             </div>
           </div>
         </div>
-        <div className="absolute left-1/2 top-[65.44px] size-[66px] -translate-x-1/2 rounded-[33px] bg-[rgba(248,244,234,0.92)] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.3)]">
+        <div className="absolute start-0 end-0 top-[65.44px] mx-auto size-[66px] rounded-[33px] bg-[rgba(248,244,234,0.92)] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.3)]">
           <div className="absolute start-[21.5px] top-[20px] size-[26px]">
             <img src={VIDEO_PLAY} alt="" className="absolute inset-0 block size-full max-w-none" />
           </div>
@@ -832,8 +830,7 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
                 </div>
               ) : (
                 <div className="absolute start-[16px] size-[42px] rounded-[74.118px] bg-[#f8f4ea]" style={{ top: base }}>
-                  <p
-                    className="absolute left-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
+                  <p className="absolute left-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
                     style={{ fontFamily: '"Segoe UI Symbol", system-ui, sans-serif', fontWeight: 400 }}
                   >
                     ❖

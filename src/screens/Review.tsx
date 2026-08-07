@@ -38,8 +38,7 @@ const agePad = (age: number) => String(age).padStart(2, '0')
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div className="relative shrink-0 overflow-clip rounded-full bg-[#1f5a44]" style={{ width: size, height: size }}>
-      <span
-        className="absolute left-1/2 top-[calc(50%-0.5px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-white"
+      <span className="absolute left-1/2 top-[calc(50%-0.5px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-white"
         style={{ ...FMU, fontWeight: 700, fontSize: Math.round(size * 0.39), lineHeight: `${Math.round(size * 0.5)}px` }}
       >
         {initials(name)}
@@ -127,7 +126,7 @@ function EditButton({ onClick }: { onClick: () => void }) {
 function StatTile({ value, numColor, line1, line2 }: { value: number; numColor: string; line1: string; line2: string }) {
   return (
     <div className="relative h-[82px] flex-1 overflow-clip rounded-[8px] border border-solid border-[#e7dfc9] bg-[#fffdf8]">
-      <div className="absolute left-1/2 top-1/2 flex w-[64px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[2px] text-center">
+      <div className="absolute start-0 end-0 top-1/2 mx-auto flex w-[64px] -translate-y-1/2 flex-col items-center gap-[2px] text-center">
         <p className="text-[18px] leading-[20px]" style={{ ...FMU, fontWeight: 700, color: numColor }}>{String(value).padStart(2, '0')}</p>
         <p className="whitespace-nowrap text-[14px] leading-[20px] text-[#5a6660]" style={{ ...FMU, fontWeight: 700 }}>{line1}<br />{line2}</p>
       </div>

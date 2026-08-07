@@ -1,29 +1,18 @@
 {
-  "_comment": "Sites where a PHYSICAL horizontal inset is allowed. See scripts/centring-census.cjs and scripts/centring.test.mjs. Each entry is file + the positioning tokens of its className. Remove an entry when the site is converted to a direction-neutral mechanism; add one only with a reason.",
+  "_comment": "Sites where a PHYSICAL horizontal inset is allowed. Each entry is file + the positioning tokens of its className. REASONS ARE DOCUMENTED IN docs/centring-exceptions.md - read it before adding or removing an entry. Enforced by scripts/centring.test.mjs.",
   "_generated": "node scripts/centring-census.cjs --write-exceptions",
   "exceptions": [
-    "src/components/figma/AppBar.tsx  -translate-x-1/2 left-1/2",
-    "src/components/figma/InvitePopups.tsx  -translate-x-1/2 left-1/2",
-    "src/components/figma/InvitedMembers.tsx  -translate-x-1/2 left-1/2",
-    "src/components/figma/NotificationPanel.tsx  -translate-x-1/2 left-1/2",
     "src/screens/CitySelection.tsx  -translate-x-1/2 left-1/2",
     "src/screens/EventJourney.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/EventJourney.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/EventJourney.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/InviteMehmaan.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/Login.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/Login.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/MiqaatDetail.tsx  -translate-x-1/2 left-1/2",
     "src/screens/MiqaatDetail.tsx  -translate-x-1/2 left-1/2",
     "src/screens/MiqaatDetail.tsx  -translate-x-1/2 left-[calc(50%+0.62px)]",
     "src/screens/MiqaatDetail.tsx  -translate-x-1/2 left-[calc(50%-0.94px)]",
-    "src/screens/Notifications.tsx  -translate-x-1/2 left-1/2",
-    "src/screens/Review.tsx  -translate-x-1/2 left-1/2",
     "src/screens/Review.tsx  -translate-x-1/2 left-1/2",
     "src/screens/Review.tsx  -translate-x-1/2 left-[calc(50%+0.5px)]",
     "src/screens/Roster.tsx  -translate-x-1/2 left-1/2",
     "src/screens/Success.tsx  -translate-x-1/2 left-1/2",
     "src/screens/Success.tsx  -translate-x-1/2 left-1/2",
     "src/screens/Success.tsx  -translate-x-1/2 left-1/2"
-  ]
+  ],
+  "_reasons": "docs/centring-exceptions.md"
 }

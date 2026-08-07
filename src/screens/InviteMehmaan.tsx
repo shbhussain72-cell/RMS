@@ -42,11 +42,10 @@ function initials(name: string) {
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div
-      className="relative shrink-0 overflow-clip rounded-full bg-[#1f5a44]"
+      className="relative flex shrink-0 items-center justify-center overflow-clip rounded-full bg-[#1f5a44]"
       style={{ width: size, height: size }}
     >
-      <span
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-white"
+      <span className="font-bold text-white"
         style={{ ...FMU, fontSize: Math.round(size * 0.39) }}
       >
         {initials(name)}

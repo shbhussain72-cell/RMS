@@ -260,8 +260,7 @@ function TimelineRail({ milestones, gap }: { milestones: MilestoneWithDates[]; g
             {/* left rail: dashed connector (behind) + milestone dot */}
             <div className="relative flex w-[18px] shrink-0 items-center justify-center">
               <span
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 w-0 -translate-x-1/2 border-s-2 border-dashed border-[#d8d2c2]"
+                aria-hidden className="pointer-events-none absolute start-0 end-0 mx-auto w-0 border-s-2 border-dashed border-[#d8d2c2]"
                 style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : -gap }}
               />
               <span className="relative z-[1] size-[16px] shrink-0 rounded-full" style={{ background: mil.color }} />
@@ -280,12 +279,11 @@ function TimelineRail({ milestones, gap }: { milestones: MilestoneWithDates[]; g
 function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
   const { t, tx } = useT()
   return (
-    <div
-      className="pointer-events-none absolute left-1/2 top-full z-50 mt-[10px] w-[224px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+    <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-[10px] w-[224px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
       role="tooltip"
     >
       {/* arrow */}
-      <span className="absolute left-1/2 top-[-5px] size-[10px] -translate-x-1/2 rotate-45 border-l border-t border-[#ece6d6] bg-white" />
+      <span className="absolute start-0 end-0 top-[-5px] mx-auto size-[10px] rotate-45 border-l border-t border-[#ece6d6] bg-white" />
       <div className="relative rounded-[12px] border border-[#ece6d6] bg-white p-[13px] shadow-[0_16px_40px_-14px_rgba(21,64,47,0.4)]">
         <div className="flex items-center gap-[8px]">
           <span className="flex size-[22px] shrink-0 items-center justify-center rounded-[7px]" style={{ background: `${m.color}1f` }}>

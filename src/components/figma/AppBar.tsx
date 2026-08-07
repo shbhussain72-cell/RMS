@@ -165,7 +165,7 @@ export default function AppBar({
           className="ix-hdr ix-bell relative z-10 me-[14px] flex size-[38px] shrink-0 items-center justify-center rounded-[11px]"
           aria-label={t('Notifications')}
         >
-          <BellIcon className="absolute left-1/2 top-1/2 size-[24px] -translate-x-1/2 -translate-y-1/2 text-white" />
+          <BellIcon className="size-[24px] text-white" />
           {notificationCount > 0 && (
             <span className="absolute end-[-4px] top-[-4px] flex size-[18px] items-center justify-center rounded-full bg-[#b23b3b] text-[10px] font-bold leading-none text-white" style={{ fontFamily: FONT_SANS }} data-numeric>
               {notificationCount}

@@ -42,7 +42,7 @@ function RazaIssuedBanner({ issued }: { issued: boolean }) {
  * layout (same web table + mobile cards) so it reads consistently.
  */
 export default function RazaView() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -88,7 +88,7 @@ export default function RazaView() {
         <StickyFooter
           caption={miqaat.title}
           title={`${memberTotal} Members`}
-          button="Go Home"
+          button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />
       )}
@@ -99,8 +99,8 @@ export default function RazaView() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: 'Raza' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: t('Raza') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}

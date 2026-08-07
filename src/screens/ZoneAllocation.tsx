@@ -30,7 +30,7 @@ function ChangeZoneButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function ZoneAllocation() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -75,7 +75,7 @@ export default function ZoneAllocation() {
         <StickyFooter
           caption={miqaat.title}
           title={`${memberTotal} Members`}
-          button="Go Home"
+          button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />
       )}
@@ -86,8 +86,8 @@ export default function ZoneAllocation() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: 'Zone Allocation' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: t('Zone Allocation') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}

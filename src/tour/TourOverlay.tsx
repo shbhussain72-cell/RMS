@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTour } from './TourProvider'
+import { useT } from '../i18n'
 
 const FONT_SERIF = 'Marcellus, Georgia, serif'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
@@ -62,6 +63,7 @@ function computePos(
 }
 
 export default function TourOverlay() {
+  const { tx, t } = useT()
   const { active, step, stepIndex, stepCount, showProgress, next, prev, skip, finish } = useTour()
   const isLast = stepIndex === stepCount - 1
   const isFirst = stepIndex === 0
@@ -160,7 +162,7 @@ export default function TourOverlay() {
   const multiStep = stepCount > 1
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000]" role="dialog" aria-modal="true" aria-label="Product walkthrough">
+    <div className="fixed inset-0 z-[1000]" role="dialog" aria-modal="true" aria-label={t('Product walkthrough')}>
       {/* Interaction blocker — swallows clicks so the background can't be used while a tip is shown. */}
       <div className="absolute inset-0" onClick={(e) => e.stopPropagation()} />
 
@@ -213,18 +215,12 @@ export default function TourOverlay() {
           </div>
         )}
 
-        <h3 className="text-[19px] leading-[24px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-          {step.title}
-        </h3>
-        <p className="mt-[7px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-          {step.description}
-        </p>
+        <h3 className="text-[19px] leading-[24px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx(step.title)} />
+        <p className="mt-[7px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx(step.description)} />
 
         {step.note && (
-          <div className="mt-[12px] rounded-[10px] border-l-[3px] border-[#c9a45c] bg-[#f8f4ea] px-[12px] py-[9px]">
-            <p className="text-[13px] leading-[18px] text-[#1f5a44]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }}>
-              {step.note}
-            </p>
+          <div className="mt-[12px] rounded-[10px] border-s-[3px] border-[#c9a45c] bg-[#f8f4ea] px-[12px] py-[9px]">
+            <p className="text-[13px] leading-[18px] text-[#1f5a44]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(step.note)} />
           </div>
         )}
 
@@ -235,10 +231,7 @@ export default function TourOverlay() {
               type="button"
               onClick={skip}
               className="text-[13px] font-semibold text-[#8a938e] transition-colors hover:text-[#5a6660]"
-              style={{ fontFamily: FONT_SANS }}
-            >
-              Skip
-            </button>
+              style={{ fontFamily: FONT_SANS }} {...tx('Skip')} />
           ) : (
             <span />
           )}
@@ -248,10 +241,7 @@ export default function TourOverlay() {
                 type="button"
                 onClick={prev}
                 className="flex h-[38px] items-center justify-center rounded-full border border-[#1f5a44] px-[16px] text-[13px] font-bold text-[#1f5a44] transition-colors hover:bg-[#f7f4ec]"
-                style={{ fontFamily: FONT_SANS }}
-              >
-                Previous
-              </button>
+                style={{ fontFamily: FONT_SANS }} {...tx('Previous')} />
             )}
             <button
               type="button"

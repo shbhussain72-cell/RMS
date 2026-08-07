@@ -374,7 +374,7 @@ const outlineBtn = 'border border-solid border-[#1f5a44] bg-transparent text-[#1
 /** Registered / in-progress miqaat — horizontal image-left card (image-top on mobile). */
 function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false, onAskHelp }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string; wide?: boolean; onAskHelp?: (init: AskHelpInit) => void }) {
   const { nav, ended, razaIssued, bypassApproved, hasCity, hasZone, locValue, dateText, goDetail, primary, cells } = useCard(m, confirmedCityName, confirmedZoneName, onAskHelp)
-  const { tx, isLsd } = useT()
+  const { t, tx, isLsd } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Resuming this reservation must make its journey active BEFORE navigating, so City/Zone/Manage
   // open on the right event (another event may currently be the active one being edited).
@@ -436,7 +436,7 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
             <Countdown cells={cells} tone={tone} compact ended={ended} />
           </div>
 
-          <LocationRow label={hasZone ? 'City & Zone' : 'City'} value={locValue} allocated={hasCity || hasZone} />
+          <LocationRow label={hasZone ? t('City & Zone') : t('City')} value={locValue} allocated={hasCity || hasZone} />
         </div>
 
         {/* Every card in the "Registered" section is an owned reservation → always Modify + primary.
@@ -1131,7 +1131,7 @@ export default function MiqaatList() {
         {/* Requested — a missed registration/city/zone window the user has asked to reopen */}
         {requestedMiqaats.length > 0 && (
           <div className="mt-[30px]">
-            <SectionHeader title={t('Requested')} subtitle="Miqaats where you've asked to reopen a missed step — awaiting admin approval." />
+            <SectionHeader title={t('Requested')} subtitle={t('Miqaats where you\'ve asked to reopen a missed step — awaiting admin approval.')} />
             <div className="mt-[16px] px-[16px] sm:px-0">
               <div className={`grid grid-cols-1 items-stretch gap-[16px] sm:gap-[20px] ${requestedMiqaats.length > 1 ? 'sm:grid-cols-2' : ''}`}>
                 {requestedMiqaats.map((m) => (
@@ -1145,7 +1145,7 @@ export default function MiqaatList() {
         {/* Miqaats Current & Upcoming — compact rows */}
         {upcomingMiqaats.length > 0 && (
           <div className="mt-[34px]">
-            <SectionHeader title={t('Miqaats Current & Upcoming')} subtitle="View all current and upcoming Miqaats in one place." />
+            <SectionHeader title={t('Miqaats Current & Upcoming')} subtitle={t('View all current and upcoming Miqaats in one place.')} />
             <div className="mt-[16px] px-[16px] pb-[8px] sm:px-0">
               <div data-tour="miqaat-cards" className="grid grid-cols-1 items-stretch gap-[16px] sm:grid-cols-2 sm:gap-[20px]">
                 {upcomingMiqaats.map((m) => (

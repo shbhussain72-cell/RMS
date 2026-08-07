@@ -10,6 +10,7 @@ import { useAskHelpChat } from './useAskHelpChat'
 import { useStore } from '@/store'
 import { RegisterGlyph, CityGlyph, ZoneGlyph, TrackGlyph, SparkleGlyph } from './icons'
 import type { AskHelpInit, ChatOption } from './types'
+import { useT } from '../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
@@ -49,8 +50,8 @@ function TrackStepper({ currentIndex, approved }: { currentIndex: number; approv
   return (
     <div className="relative">
       {/* Connector rail behind the nodes: full gray track + a green overlay up to the current step. */}
-      <div className="pointer-events-none absolute left-[31px] right-[31px] top-[11px] h-[2px] rounded-full bg-[#e6e0d2]" />
-      <div className="pointer-events-none absolute left-[31px] top-[11px] h-[2px] rounded-full bg-[#2e7d5b]" style={{ width: `calc((100% - 62px) * ${frac})` }} />
+      <div className="pointer-events-none absolute start-[31px] end-[31px] top-[11px] h-[2px] rounded-full bg-[#e6e0d2]" />
+      <div className="pointer-events-none absolute start-[31px] top-[11px] h-[2px] rounded-full bg-[#2e7d5b]" style={{ width: `calc((100% - 62px) * ${frac})` }} />
       <div className="relative flex items-start justify-between">
         {TRACK_STEPS.map((label, i) => {
           const done = i < currentIndex
@@ -90,13 +91,14 @@ type TrackedRequest = ReturnType<typeof useAskHelpChat>['trackedRequests'][numbe
 /** A single Track My Requests entry: a compact tappable row that expands into a full status card
  *  (REQ id + date, category badge, progress stepper, and From → To). */
 function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expanded: boolean; onToggle: () => void }) {
+  const { t, tx, td } = useT()
   // Whether the register request's member list is revealed (tap "View members" to expand it inline).
   const [showMembers, setShowMembers] = useState(false)
   // Demo-only: flip this request to "Approved" so the presenter can advance to the post-approval step.
   const approveReopenRequest = useStore((s) => s.approveReopenRequest)
   return (
     <div className="overflow-hidden rounded-[14px] border border-solid border-[#e7dfc9] bg-white">
-      <button type="button" onClick={onToggle} className="flex w-full items-center gap-[8px] px-[13px] py-[11px] text-left transition-colors hover:bg-[#faf7ef]">
+      <button type="button" onClick={onToggle} className="flex w-full items-center gap-[8px] px-[13px] py-[11px] text-start transition-colors hover:bg-[#faf7ef]">
         <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
           <span className="min-w-0 truncate text-[13.5px] font-bold text-[#23302a]" style={{ fontFamily: FONT_SANS }}>{r.title}</span>
           <span className="text-[11.5px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>{r.summary}</span>
@@ -105,7 +107,7 @@ function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expande
           className={`shrink-0 rounded-full px-[8px] py-[2px] text-[10px] font-bold ${r.approved ? 'bg-[#eaf3ed] text-[#1f5a44]' : 'bg-[#fdf1dc] text-[#a9740f]'}`}
           style={{ fontFamily: FONT_SANS }}
         >
-          {r.approved ? 'Approved' : 'Pending approval'}
+          {r.approved ? t('Approved') : t('Pending approval')}
         </span>
         <svg viewBox="0 0 24 24" fill="none" className={`size-[16px] shrink-0 text-[#9aa1a8] transition-transform ${expanded ? 'rotate-180' : ''}`}>
           <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -131,7 +133,7 @@ function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expande
             <div className="mt-[16px]">
               <div className="flex items-start justify-between gap-[8px]">
                 <div>
-                  <p className="text-[11px] font-semibold text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>Members</p>
+                  <p className="text-[11px] font-semibold text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx('Members')} />
                   <p className="mt-[2px] text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT_SANS }}>
                     {r.memberCount ? `${r.memberCount} member${r.memberCount === 1 ? '' : 's'}` : '—'}
                   </p>
@@ -152,12 +154,12 @@ function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expande
                   {r.requestMembers.map((mem, i) => (
                     <li key={`${mem.name}-${i}`} className="flex flex-col gap-[4px] rounded-[9px] bg-[#f7f4ec] px-[10px] py-[8px]">
                       <div className="flex items-center justify-between gap-[8px]">
-                        <span className="min-w-0 truncate text-[12.5px] font-semibold text-[#23302a]" style={{ fontFamily: FONT_SANS }}>{mem.name}</span>
+                        <span className="min-w-0 truncate text-[12.5px] font-semibold text-[#23302a]" style={{ fontFamily: FONT_SANS }} {...td(mem.name)} />
                         <RoleBadge kind={mem.badge} />
                       </div>
                       {mem.linkedToName && (
                         <span className="text-[11px] leading-[15px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }}>
-                          Reserves with {mem.linkedToName} · {mem.linkedRole === 'caregiver' ? 'Caregiver' : 'Guardian'}
+                          Reserves with {mem.linkedToName} · {mem.linkedRole === 'caregiver' ? t('Caregiver') : t('Guardian')}
                         </span>
                       )}
                     </li>
@@ -168,7 +170,7 @@ function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expande
           ) : (
             <div className="mt-[16px] grid grid-cols-2 gap-[12px]">
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>From</p>
+                <p className="text-[11px] font-semibold text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx('From')} />
                 <p className="mt-[2px] text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT_SANS }}>{r.fromLabel || '—'}</p>
               </div>
               <div className="min-w-0">
@@ -202,6 +204,7 @@ function TrackRequestRow({ r, expanded, onToggle }: { r: TrackedRequest; expande
  *  InvitationPopup / InvitationBanner all portal). Mobile: full-screen takeover. Desktop: a tall
  *  right-docked panel (ClickUp-Brain style) floating over Home without blocking the page. */
 export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpInit; onToast: (msg: string) => void; onClose: () => void }) {
+  const { tx, t } = useT()
   const chat = useAskHelpChat(init, onToast, onClose)
   const scrollRef = useRef<HTMLDivElement>(null)
   // Which Track My Requests row is expanded into its full status card (null = all collapsed).
@@ -239,7 +242,7 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
               <button
                 type="button"
                 onClick={chat.goBack}
-                aria-label="Back"
+                aria-label={t('Back')}
                 className="flex size-[30px] items-center justify-center rounded-full text-[#5a6660] transition-colors hover:bg-[#f0ece1]"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="size-[17px]">
@@ -251,11 +254,11 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
               <SparkleGlyph className="size-[17px]" />
             </span>
             <div className="leading-tight">
-              <p className="text-[15px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>Miqaat Assistant</p>
-              <p className="text-[11px] text-[#8a938e]" style={{ fontFamily: FONT_SANS }}>Ask about registration, city &amp; zone</p>
+              <p className="text-[15px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Miqaat Assistant')} />
+              <p className="text-[11px] text-[#8a938e]" style={{ fontFamily: FONT_SANS }} {...tx('Ask about registration, city & zone')} />
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-[30px] items-center justify-center rounded-full text-[#5a6660] transition-colors hover:bg-[#f0ece1]">
+          <button type="button" onClick={onClose} aria-label={t('Close')} className="flex size-[30px] items-center justify-center rounded-full text-[#5a6660] transition-colors hover:bg-[#f0ece1]">
             <svg viewBox="0 0 24 24" fill="none" className="size-[16px]">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -270,16 +273,10 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                 <span className="flex size-[56px] items-center justify-center rounded-[18px] bg-gradient-to-br from-[#eaf3ed] to-[#dcefe3] text-[#1f5a44]">
                   <SparkleGlyph className="size-[30px]" />
                 </span>
-                <h2 className="mt-[16px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                  How can I help?
-                </h2>
-                <p className="mt-[8px] max-w-[300px] text-[13.5px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }}>
-                  Get help registering for a Miqaat, or request a change to your allocated city or zone.
-                </p>
+                <h2 className="mt-[16px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('How can I help?')} />
+                <p className="mt-[8px] max-w-[300px] text-[13.5px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }} {...tx('Get help registering for a Miqaat, or request a change to your allocated city or zone.')} />
               </div>
-              <p className="mb-[10px] mt-[22px] text-[11px] font-bold uppercase tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>
-                What would you like help with?
-              </p>
+              <p className="mb-[10px] mt-[22px] text-[11px] font-bold uppercase tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx('What would you like help with?')} />
               <QuickReplyRow options={categoryOptions} onPick={handleCategoryPick} variant="grid" />
             </div>
           ) : (
@@ -306,10 +303,7 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                     onClick={chat.membersContinue}
                     disabled={chat.selectedMemberIds.length === 0 && chat.addedMembers.length === 0}
                     className="h-[46px] rounded-full bg-[#1f5a44] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)] transition-opacity disabled:opacity-40"
-                    style={{ fontFamily: FONT_SANS }}
-                  >
-                    Continue
-                  </button>
+                    style={{ fontFamily: FONT_SANS }} {...tx('Continue')} />
                 </div>
               )}
 
@@ -327,9 +321,10 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                       // (e.g. the registrant after cancelling their own city). Each allocated member
                       // shows their city; the rest sit under "Not allocated yet".
                       (() => {
+                        const { t } = useT()
                         const notAllocated = chat.memberOptions.filter((o) => !o.allocated)
                         const allocated = chat.memberOptions.filter((o) => o.allocated)
-                        const allocatedLabel = chat.category === 'zone' ? 'Zone allocated' : 'City allocated'
+                        const allocatedLabel = chat.category === 'zone' ? 'Zone allocated' : t('City allocated')
                         return (
                           <div className="flex flex-col gap-[14px]">
                             {notAllocated.length > 0 && (
@@ -366,10 +361,7 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                       type="button"
                       onClick={chat.confirmHandoffPreview}
                       className="h-[46px] rounded-full bg-[#1f5a44] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]"
-                      style={{ fontFamily: FONT_SANS }}
-                    >
-                      Continue
-                    </button>
+                      style={{ fontFamily: FONT_SANS }} {...tx('Continue')} />
                   )}
 
                   {chat.step === 'handoff' && (
@@ -402,10 +394,7 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                     type="button"
                     onClick={onClose}
                     className="h-[46px] rounded-full bg-[#1f5a44] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]"
-                    style={{ fontFamily: FONT_SANS }}
-                  >
-                    Done
-                  </button>
+                    style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
                 </div>
               )}
 
@@ -415,22 +404,16 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                     // Tagged → can't cancel here; send them to Modify Reservation to change it first.
                     <>
                       <button type="button" onClick={chat.goModifyReservation} className="flex h-[46px] w-full items-center justify-center gap-[7px] rounded-full bg-[#1f5a44] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]" style={{ fontFamily: FONT_SANS }}>
-                        Modify Reservation
+                        <span {...tx('Modify Reservation')} />
                         <svg viewBox="0 0 16 16" fill="none" className="size-[15px]"><path d="M3 8h9M9 5l3 3-3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </button>
-                      <button type="button" onClick={onClose} className="h-[46px] w-full rounded-full border border-[#d8e0da] bg-white text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }}>
-                        Done
-                      </button>
+                      <button type="button" onClick={onClose} className="h-[46px] w-full rounded-full border border-[#d8e0da] bg-white text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
                     </>
                   ) : (
                     // Untagged → confirm the cancellation right here.
                     <>
-                      <button type="button" onClick={chat.confirmCancel} className="h-[46px] w-full rounded-full bg-[#c0392b] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(192,57,43,0.5)]" style={{ fontFamily: FONT_SANS }}>
-                        Yes, cancel reservation
-                      </button>
-                      <button type="button" onClick={onClose} className="h-[46px] w-full rounded-full border border-[#d8e0da] bg-white text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }}>
-                        Keep reservation
-                      </button>
+                      <button type="button" onClick={chat.confirmCancel} className="h-[46px] w-full rounded-full bg-[#c0392b] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(192,57,43,0.5)]" style={{ fontFamily: FONT_SANS }} {...tx('Yes, cancel reservation')} />
+                      <button type="button" onClick={onClose} className="h-[46px] w-full rounded-full border border-[#d8e0da] bg-white text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }} {...tx('Keep reservation')} />
                     </>
                   )}
                 </div>
@@ -443,12 +426,10 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                   {chat.trackedRequests.length > 0 && (
                     <button type="button" onClick={chat.pickTrack} className="flex h-[46px] w-full items-center justify-center gap-[7px] rounded-full bg-[#1f5a44] text-[14px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]" style={{ fontFamily: FONT_SANS }}>
                       <TrackGlyph className="size-[17px]" />
-                      Track my request
+                      <span {...tx('Track my request')} />
                     </button>
                   )}
-                  <button type="button" onClick={onClose} className={`h-[46px] w-full rounded-full text-[14px] font-bold ${chat.trackedRequests.length > 0 ? 'border border-[#d8e0da] bg-white text-[#1f5a44]' : 'bg-[#1f5a44] text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]'}`} style={{ fontFamily: FONT_SANS }}>
-                    Done
-                  </button>
+                  <button type="button" onClick={onClose} className={`h-[46px] w-full rounded-full text-[14px] font-bold ${chat.trackedRequests.length > 0 ? 'border border-[#d8e0da] bg-white text-[#1f5a44]' : 'bg-[#1f5a44] text-white shadow-[0_8px_20px_-8px_rgba(21,64,47,0.5)]'}`} style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
                 </div>
               )}
             </div>

@@ -1,8 +1,63 @@
 # Handoff
 
-Last updated: 2026-08-01
+Last updated: 2026-08-06
 
 Latest commit on `master`: **`7f6b65b`** *("City Selection: clear staged zone when its city goes away; bulk zone on mobile")*, on top of **`f879815`** *("City Selection: Set all → Same zone for all")*, on top of **`d8db8df`** *("City/Zone Selection: Raza copy, bulk zone, current-city state, untruncated Now pill")*, on top of **`e78c140`** *("Change requests: per-member origin/destination, per-group cards, partial cancel")*, on top of **`fd33a11`** *("Miqaat detail: mobile footer never duplicates the hero's own CTA")*, on top of **`083de99`** *("Modify Reservation city+zone: request-mode wording, closed-window gating, preferred-city fix")*, on top of **`8f1afc1`** *("Modify Reservation: city-only switch card, HostCityCard mobile compact layout")*, on top of **`1fa5889`** *("Mobile fixes: host-card action stacking, Edit-registration overflow, confirmed-state footer")*, on top of **`0e7457c`** *("Araz view/edit state, Modify Reservation zone+city/zone reroute, detail-page footer & hero polish")*. **Working tree is clean, `tsc -b` clean.** The five sections immediately below document these (`fd33a11`, then `083de99`, then `8f1afc1`, then `1fa5889`, then `0e7457c`); the `8b92d54` / `a8f2f6a` sections follow. **Nothing has been pushed to a git remote** (no remote configured) — deployment is via the Vercel CLI directly (see the 2026-07-22 Vercel section below); run `vercel --prod --yes` if the live site needs redeploying.
+
+## Changes 2026-08-06 — English ⇄ Lisan ud-Dawat (LSD) language layer, driven live by the wordlist Excel
+
+**New feature, not a fix.** The app had NO i18n of any kind — every string was hardcoded in JSX. This session added the smallest layer that works, plus the Excel→UI pipeline, and converted the first two screens. Uncommitted (no git repo in this working copy). `tsc -b` clean, `npm run build` clean.
+
+New files: `scripts/build-lsd-dict.mjs`, `src/i18n/index.tsx`, `src/i18n/LanguageToggle.tsx`, `src/i18n/CoveragePanel.tsx`, `src/i18n/lsd.json` (generated), `src/vite-env.d.ts`, `public/fonts/KanzalLulu-Regular.ttf`.
+Touched: `vite.config.ts`, `package.json`, `src/index.css`, `src/main.tsx`, `src/components/figma/AppBar.tsx`, `src/screens/Login.tsx`, `src/screens/MiqaatList.tsx`. New devDependency: `xlsx` (SheetJS) — the only one added.
+
+### A. The pipeline — `RMS_Mumineen_LSD_wordlist_v2.xlsx` is the single source of truth
+`npm run build:lsd` reads sheet `Word List` (`Page | English name | LSD name`, 572 rows) and emits `src/i18n/lsd.json` as `{ "<english>": { lsd, page } }`. Chained into BOTH `npm run dev` and `npm run build`, so the dictionary can never go stale. **`src/i18n/lsd.json` is a generated artifact — never hand-edit it** (it carries a `"//"` banner key saying so; the loader skips that key).
+
+Keyed on the English string itself — the wordlist's English column is globally unique and maps 1:1, so no message ids and no parallel English catalogue. Both sides normalise identically: **whitespace collapsed + trimmed, casing preserved** (casing is meaningful here — `LIVE`, `OPTIONAL`, `RAZA STATUS`). Matching is **exact only**, by product decision: a near-miss is reported as a gap rather than silently fuzzy-matched.
+
+### B. ⚠️ Live Excel → running UI (the thing to not break)
+`vite.config.ts` gained a dev-only `lsdWordlistWatcher` plugin: it watches the xlsx, re-runs `buildLsdDict()` on save, and `src/i18n/index.tsx`'s `import.meta.hot.accept('./lsd.json')` swaps the dictionary **in place** — the page re-renders with new strings without a reload, keeping screen, scroll and app state.
+
+Three details that are load-bearing, all learned the hard way:
+- **`buildLsdDict()` throws, it does not `process.exit`.** Only the CLI wrapper exits. A bad spreadsheet edit must not kill the dev server — verified: a blanked English key logs `[lsd] wordlist rejected — dictionary left unchanged`, keeps the last good dictionary, and the server keeps serving.
+- **No shebang in `build-lsd-dict.mjs`.** `vite.config.ts` imports it and Vite bundles its config with esbuild; an inlined `#!/usr/bin/env node` is a syntax error there and the config silently fails to load.
+- **Excel saves atomically** (temp file + rename, then a brief lock), so the watcher handles `change`/`add`/`unlink`, re-adds the path after unlink, debounces 200 ms, and retries the read 6×250 ms.
+
+### C. Rendering LSD — `dir` is on the element, not just the root
+`useT()` returns `t()` (bare string, for attributes like `placeholder`) and `tx()` (spread onto the element that ALREADY wraps the text — `<p {...tx('Login to Continue')} />`). `tx` supplies `children` + `dir="rtl"` + `lang="gu-Arab"`. **No wrapper `<span>` is introduced** — this app positions text absolutely in places and an inserted node would shift layout.
+
+- `lang` is `gu-Arab` (Lisan ud-Dawat is Gujarati in Arabic script; there is no registered `lsd` subtag).
+- **The `!important` in `index.css` is not lazy.** Every text node here carries an inline `style={{ fontFamily }}` from the Figma port; inline styles beat class selectors, so without it LSD text renders in Mulish/Marcellus. It is scoped to `html[data-lang='lsd'] [dir='rtl']` only.
+- 169 wordlist values mix Latin tokens into Arabic (`Login كرو`); `unicode-bidi: isolate` + per-element `dir` is what keeps them from mirroring. 53 contain ornate brackets `﴿…﴾` (U+FD3E/FD3F) — rendered literally, **no substitution engine** (that delimiter's convention is unresolved).
+- **English mode removes `data-lang` and `dir` entirely** rather than setting `ltr`, so toggling back leaves the DOM exactly as before.
+- Root `dir="rtl"` mirrors the whole layout in LSD (desktop Login's panels swap sides). That is standard RTL behaviour and was explicitly accepted by the user.
+
+### D. Coverage reporting — the point is finding wordlist gaps
+Dev-only tracking in `src/i18n/index.tsx` records every hit and miss; `CoveragePanel` (bottom-LEFT — the Ask Help dock owns bottom-right) shows the counts and the untranslated list, and `window.__lsdCoverage.report()/.download()/.reset()` gives the same data headlessly. All of it compiles out of production via `import.meta.env.DEV`.
+
+**Only static UI copy is routed through the lookup — never data.** City names, event titles and countdown-derived strings (`3d 7h left`) are rendered as-is; routing them would flood the report with false gaps. See `LocationRow`, where only the `Not allocated` placeholder is keyed.
+
+### E. Screens converted so far: Login, MiqaatList (Home)
+56 distinct strings routed, 43 resolved, **13 with no wordlist entry** (they fall back to English and are listed in `lsd-coverage.json`). The gaps are mostly casing/punctuation drift between the Excel and the code, and are the user's to reconcile in the xlsx — **do not "fix" either side in code**:
+`ITS id` (wordlist has `ITS ID`) · `Register Now` (has `Register now`) · `City & Zone` (has `City & zone`) · `Raza status` (has `RAZA STATUS`) · `View details` (has `View details →`) · plus `Status`, `Pending approval`, `City opens in`, `Request Sent`, `Registration has closed.`, `This Miqaat can no longer be registered for.`, `ITS ID must be exactly 8 digits`, and the Requested-section subtitle.
+
+### E2. 255 English rows appended to the wordlist (2026-08-06, later)
+The master list grew from 571 → **826 entries**: 249 strings harvested by a filtered static scan of every screen/component, plus 6 more taken from the runtime coverage of the converted screens (those are carried inside ternaries — `hasZone ? 'City & Zone' : 'City'` — so a pattern scan cannot see them). **Every appended row has a BLANK LSD cell** — inventing Lisan ud-Dawat is not ours to do, and a blank cell behaves exactly like an absent row (English fallback + `*`), so nothing regressed.
+
+The `Page` column on new rows holds the **source screen name** (`AddPeople`, `QuestionnaireFields`, …) rather than a design-PDF page number — that is how you find and filter them. Backup at `RMS_Mumineen_LSD_wordlist_v2.BACKUP-2026-08-06.xlsx`. A single blank spacer row sits at row 573 between the original data and the appended block; `buildLsdDict` skips fully-blank rows, so it is harmless.
+
+⚠️ **The scan has a known blind spot**: strings assembled in ternaries or held under uncommon object keys (`status:`, `sub:`) are invisible to it. The reliable way to find those is to CONVERT a screen and read the runtime coverage panel — which is exactly how the extra 6 were found. Expect more to surface as the remaining screens are converted.
+
+### E3. Layout mirroring reverted; "remove" directive; wordlist split in two (2026-08-06, final)
+- **`<html>` no longer gets `dir="rtl"`.** It did originally and it mirrored the whole pixel-exact Figma layout (panels swapped sides, every `left-[…]`/`ml-` reversed). Direction is now applied ONLY per-element by `tx()`, on the nodes holding translated text — which is all the bidi algorithm needs for mixed Arabic/Latin runs. Alignment survives because `dir` only decides `text-align: start`, so explicit `text-center`/`text-right` classes are untouched. ⚠️ Do not "restore" the root `dir` — its removal was an explicit product decision. (The two `dir="rtl"` attributes in `MiqaatList.tsx`/`MiqaatDetail.tsx` are PRE-EXISTING, on the Amiri-rendered Arabic event titles.)
+- **`remove` directive**: an LSD cell whose entire content is `remove` (case-insensitive, trimmed) means "drop this string from the UI in LSD mode" — `resolve()` returns empty text and counts it as RESOLVED, so it is never reported as a gap or given a `*`. Consequence: a string whose intended LSD really is the Latin word "remove" cannot be expressed. 0 rows use it today.
+- **Empty LSD cell = English fallback + `*`**, identical to a row that doesn't exist. Unchanged, now explicit in `resolve()`.
+- **The wordlist is now TWO sheets**, merged at build time: `Word List` (612 — buttons, labels, headings) and `Placeholders` (214 — cities, names, ITS, zones, instructions). `buildLsdDict` reads both, skips a missing one, and tags each entry with `list: 'permanent' | 'placeholder'` for the coverage report. **The app looks strings up by text and does not care which sheet a row is in — moving a row between sheets in Excel re-files it for humans and changes nothing at runtime.** The split was a heuristic first pass (seed-derived city/person/event names, `placeholder=` attributes, ≥60-char instructions); expect to re-file some rows by hand.
+- Backups: `RMS_Mumineen_LSD_wordlist_v2.BACKUP-2026-08-06.xlsx` (pre-append) and `…BACKUP-pre-split.xlsx` (pre-split).
+
+### F. Outstanding
+Of all 572 entries only **342 appear verbatim anywhere in `src/`**. The other 230 split into composite `/`-joined rows (`City selection / Request or change your allocated city` — two UI strings in one cell, can never match), CSS-uppercased mismatches, and seed data rather than UI copy. Remaining screens are unconverted — **MiqaatDetail is the next one**, then the register flow (AddPeople/Review), then City/Zone Selection.
 
 ## Changes 2026-08-01 — Change requests (3 real bugs), request-card redesign, per-group cards + partial cancel, city/zone polish (`e78c140`, `d8db8df`, `f879815`, `7f6b65b`)
 

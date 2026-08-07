@@ -173,7 +173,7 @@ function Chevron({ color = '#1f5a44' }: { color?: string }) {
 
 // ── ZoneHCard (horizontal zone chip) ───────────────────────────────────────────
 function ZoneHCard({ zone, selected, onSelect }: { zone: Zone; selected: boolean; onSelect: () => void }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const isFull = zone.left <= 0
   return (
     <button type="button" onClick={!isFull ? onSelect : undefined}
@@ -185,7 +185,7 @@ function ZoneHCard({ zone, selected, onSelect }: { zone: Zone; selected: boolean
       }}>
       <span className="text-[15px] leading-[20px] text-[#23302a] text-start font-bold" style={{ fontFamily: FONT }} {...td(zone.name)} />
       <span className="text-[14px] leading-[18px] mt-[4px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>
-        {isFull ? 'Full' : `${age2(zone.left)} left`}
+        {isFull ? t('Full') : `${age2(zone.left)} left`}
       </span>
     </button>
   )
@@ -393,7 +393,7 @@ function MoveGroupCard({
           <LocBox label={t('Current')} line={currentLine} sublabel={currentSublabel} />
           <LocBox
             label={t('New')}
-            line={newAlloc ? newAlloc.zoneName : 'Choose zone'}
+            line={newAlloc ? newAlloc.zoneName : t('Choose zone')}
             sublabel={newAlloc ? newAlloc.cityName : undefined}
             accent={!!newAlloc}
             highlight={promptNew}
@@ -444,7 +444,7 @@ function AssignGuardianSheet({ dependent, currentGuardianId, onClose, onAssign, 
             className="flex h-[52px] w-full items-center justify-center gap-[8px] rounded-[14px] transition-colors"
             style={{ background: selId ? '#1f5a44' : '#a9c4b6' }}>
             <PersonAddIcon />
-            <span className="text-[16px] font-bold text-white" style={{ fontFamily: FONT }}>{onRemove ? 'Update guardian' : 'Add guardian'}</span>
+            <span className="text-[16px] font-bold text-white" style={{ fontFamily: FONT }}>{onRemove ? 'Update guardian' : t('Add guardian')}</span>
           </button>
         </>
       )}
@@ -508,6 +508,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((z) => {
+          const { t } = useT()
           const isFull = z.left <= 0
           const selected = z.id === activeZoneId
           return (
@@ -516,7 +517,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
               style={{ borderColor: selected ? '#d9c98a' : '#e7dfc9', background: selected ? '#fffdf5' : 'white', opacity: isFull ? 0.5 : 1 }}>
               <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(z.name)} />
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(z.left) }}>
-                {isFull ? 'Full' : `${age2(z.left)} left`}
+                {isFull ? t('Full') : `${age2(z.left)} left`}
               </span>
             </button>
           )
@@ -559,6 +560,7 @@ function AllCitiesSheet({ cities, activeCityId, addedOf, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((c) => {
+          const { t } = useT()
           const isFull = c.left <= 0
           const selected = c.id === activeCityId
           return (
@@ -570,7 +572,7 @@ function AllCitiesSheet({ cities, activeCityId, addedOf, onSelect, onClose }: {
                 {!isFull && <span className="mt-[2px] flex items-center gap-[5px] text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}><PeopleMini /> {addedOf(c.id)} added</span>}
               </span>
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f7a4d' }}>
-                {isFull ? 'Not available' : 'Available'}
+                {isFull ? t('Not available') : t('Available')}
               </span>
             </button>
           )
@@ -588,7 +590,7 @@ function ConfirmPopup({ others, cityOnly, onConfirm, onClose }: {
   onConfirm: () => void
   onClose: () => void
 }) {
-     const { tx } = useT()
+     const { t, tx } = useT()
   const hasOthers = others.length > 0
   return (
     <BottomSheet
@@ -609,7 +611,7 @@ function ConfirmPopup({ others, cityOnly, onConfirm, onClose }: {
           </span>
         </span>
         <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-          {cityOnly ? 'Send City Change Request' : 'Send Zone Change Request'}
+          {cityOnly ? t('Send City Change Request') : t('Send Zone Change Request')}
         </h2>
         <p className="mt-[10px] max-w-[332px] text-[15px] font-semibold leading-[21px] text-[#2c3a34]" style={{ fontFamily: FONT }}>
           This {cityOnly ? 'city' : 'zone'} change will be sent to the admin for approval.
@@ -626,7 +628,7 @@ function ConfirmPopup({ others, cityOnly, onConfirm, onClose }: {
 /** Success popup for an IMMEDIATE change (selection window still open — applied on the spot, no
  *  admin request). Centered modal so it reads identically on both breakpoints. */
 function UpdatedPopup({ kind, onDone }: { kind: 'city' | 'zone'; onDone: () => void }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return createPortal(
     <div className="fixed inset-0 z-[120] flex items-center justify-center px-[20px]" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-[rgba(13,31,23,0.55)]" />
@@ -638,7 +640,7 @@ function UpdatedPopup({ kind, onDone }: { kind: 'city' | 'zone'; onDone: () => v
           </svg>
         </span>
         <h2 className="mt-[16px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-          {kind === 'city' ? 'City updated successfully' : 'Zone updated successfully'}
+          {kind === 'city' ? 'City updated successfully' : t('Zone updated successfully')}
         </h2>
         <p className="mt-[8px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
           {kind === 'city' ? 'Your city allocation has been updated.' : 'Your zone allocation has been updated.'}
@@ -701,6 +703,7 @@ function DestCityCell({ cityLabel, cityName, pending }: { cityLabel: string; cit
  *  as `PendingApprovalBadge`'s tone, just with an icon + the remove ✕ still available (an unsent
  *  request can still be un-staged, unlike an already-filed one). */
 function ReservedPill({ onRemove, pending }: { onRemove: () => void; pending?: boolean }) {
+  const { t } = useT()
   const color = pending ? '#9a6a1e' : '#1f7a4d'
   return (
     <div className="flex items-center gap-[8px]">
@@ -719,9 +722,9 @@ function ReservedPill({ onRemove, pending }: { onRemove: () => void; pending?: b
             <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-        {pending ? 'Requested' : 'Selected'}
+        {pending ? t('Requested') : t('Selected')}
       </span>
-      <button type="button" onClick={onRemove} aria-label={pending ? 'Cancel request' : 'Remove reservation'}
+      <button type="button" onClick={onRemove} aria-label={pending ? t('Cancel request') : t('Remove reservation')}
         className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
         <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
       </button>
@@ -733,10 +736,12 @@ function ReservedPill({ onRemove, pending }: { onRemove: () => void; pending?: b
  *  awaiting approval — the row is read-only until that request is cancelled or resolved, so a second,
  *  overlapping request never stacks on top of it. */
 function PendingApprovalBadge() {
+  const { t } = useT()
   return (
     <span className="inline-flex h-[26px] shrink-0 items-center gap-[5px] rounded-full bg-[#fdf1e2] px-[10px] text-[11px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }}>
       <span className="size-[6px] rounded-full bg-[#b8821e]" />
-      Pending approval
+      
+      {t('Pending approval')}
     </span>
   )
 }
@@ -752,14 +757,14 @@ function MembersChip({ count }: { count: number }) {
 
 /** Sidebar zone grid cell — zone name + "N left" / "Full", selected state. */
 function MoveZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: boolean; onClick: () => void }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const isFull = zone.left <= 0
   return (
     <button type="button" disabled={isFull} onClick={!isFull ? onClick : undefined}
       className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
       style={{ border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: selected ? '#fffdf5' : isFull ? '#f6f6f4' : 'white', cursor: isFull ? 'not-allowed' : 'pointer', minHeight: 64 }}>
       <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(zone.name)} />
-      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>{isFull ? 'Full' : `${age2(zone.left)} left`}</span>
+      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>{isFull ? t('Full') : `${age2(zone.left)} left`}</span>
     </button>
   )
 }
@@ -882,7 +887,7 @@ function MoveSidebarCard({
           city={hostLiveCity}
           selected={activeCityId === hostCity.id}
           onSelect={() => onSelectCity(activeCityId === hostCity.id ? null : hostCity)}
-          topLabel="Top preferred city"
+          topLabel={t('Top preferred city')}
           onSwapAll={activeInHost ? swapAll?.onClick : undefined}
           anySwappable={activeInHost && !!swapAll}
           swapAllLabel={swapAll?.verb ?? 'Switch all'}
@@ -1069,7 +1074,7 @@ function MoveDesktopTable({
    *  row shows what was actually requested instead of going blank. */
   pendingRequestForGroup: (g: Group) => ChangeRequest | null
 }) {
-     const { tx, td } = useT()
+     const { t, tx, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -1082,7 +1087,7 @@ function MoveDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', '', 'CURRENT', 'NEW', 'ACTION'].map((h, i) => (
+            {[t('Member'), '', 'CURRENT', t('NEW'), t('ACTION')].map((h, i) => (
               <th key={i} className="px-[12px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -1112,6 +1117,7 @@ function MoveDesktopTable({
                 </tr>
               )}
               {g.members.map((mm, mi) => {
+                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 const isTheDependent = !!dep && mm.member.id === dep.id
@@ -1153,15 +1159,15 @@ function MoveDesktopTable({
                           {isFirst && (
                             groupPending ? (
                               cityOnly ? (
-                                <DestCityCell cityLabel={isRelay ? 'Relay City' : 'Host City'} cityName={groupPendingReq!.toLabel} pending />
+                                <DestCityCell cityLabel={isRelay ? t('Relay City') : t('Host City')} cityName={groupPendingReq!.toLabel} pending />
                               ) : (
                                 <span className="truncate text-[13px] font-bold leading-[17px] text-[#8a938e]" style={{ fontFamily: FONT }}>{groupPendingReq!.toLabel}</span>
                               )
                             ) : cityOnly ? (
                               isAllocated
-                                ? <DestCityCell cityLabel={isRelay ? 'Relay City' : 'Host City'} cityName={groupDest!.cityName} />
+                                ? <DestCityCell cityLabel={isRelay ? t('Relay City') : t('Host City')} cityName={groupDest!.cityName} />
                                 : destCityName
-                                  ? <DestCityCell cityLabel={isRelay ? 'Relay City' : 'Host City'} cityName={destCityName} pending />
+                                  ? <DestCityCell cityLabel={isRelay ? t('Relay City') : t('Host City')} cityName={destCityName} pending />
                                   : <span className="text-[13px] text-[#c2ccc6]" style={{ fontFamily: FONT }}>—</span>
                             ) : isAllocated ? (
                               <div className="flex min-w-0 flex-col justify-center gap-[1px]">
@@ -1206,7 +1212,7 @@ function MoveDesktopTable({
                               <span className="flex items-center gap-[8px]">
                                 <ShieldIcon />
                                 <p className="text-[13px] leading-[17px]" style={{ fontFamily: FONT }}>
-                                  <span className="text-[#5a6660]">{needsCare ? 'Under Care of: ' : 'Guardian: '}</span>
+                                  <span className="text-[#5a6660]">{needsCare ? t('Under Care of:') : t('Guardian:')}</span>
                                   <span className="font-bold text-[#15402f]">{gName}</span>
                                 </p>
                               </span>
@@ -1257,7 +1263,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
   requestFor: (g: Group) => ChangeRequest | null
   onCancel: (g: Group) => void
 }) {
-     const { tx, td } = useT()
+     const { t, tx, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#f0d9a8] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -1270,7 +1276,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
         </colgroup>
         <thead>
           <tr style={{ background: '#fdf8ec' }}>
-            {['Member', '', 'CURRENT', 'REQUESTED', 'ACTION'].map((h, i) => (
+            {[t('Member'), '', 'CURRENT', 'REQUESTED', t('ACTION')].map((h, i) => (
               <th key={i} className="px-[12px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#9a8f7a] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -1361,7 +1367,7 @@ function RequestedCard({ g, current, requestedTo, cityOnly, onCancel }: {
   cityOnly?: boolean
   onCancel: () => void
 }) {
-     const { td } = useT()
+     const { t, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#f0d9a8] bg-[#fffdf8]">
       {g.label && (
@@ -1383,7 +1389,7 @@ function RequestedCard({ g, current, requestedTo, cityOnly, onCancel }: {
         <div className="flex items-center gap-[10px] rounded-[10px] bg-white px-[10px] py-[8px]" style={{ fontFamily: FONT }}>
           <span className="min-w-0 flex-1 truncate text-[13px] text-[#5a6660]">{current}</span>
           <svg viewBox="0 0 16 16" fill="none" className="size-[13px] shrink-0"><path d="M3 8h9M9 5l3 3-3 3" stroke="#c2a04e" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          <span className="min-w-0 flex-1 truncate text-end text-[13px] font-bold text-[#9a6a1e]">{requestedTo || (cityOnly ? 'Requested' : '')}</span>
+          <span className="min-w-0 flex-1 truncate text-end text-[13px] font-bold text-[#9a6a1e]">{requestedTo || (cityOnly ? t('Requested') : '')}</span>
         </div>
       </div>
       <div className="flex items-center justify-between gap-[10px] border-t border-[#f2ead5] px-[14px] py-[10px]">
@@ -1395,7 +1401,8 @@ function RequestedCard({ g, current, requestedTo, cityOnly, onCancel }: {
           style={{ fontFamily: FONT }}
         >
           <svg viewBox="0 0 20 20" fill="none" className="size-[12px]"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
-          Cancel request
+          
+          {t('Cancel request')}
         </button>
       </div>
     </div>
@@ -1426,7 +1433,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay' }) {
-  const { tx, td } = useT()
+  const { t, tx, td } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -1941,7 +1948,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
     <StickyFooter
       caption="Allocation"
       title={`Close in ${fmtHHMMSS(secs)}`}
-      button={allMembersPending ? 'Go back' : windowOpen ? (movedCount > 0 ? `Confirm(${movedCount})` : 'Confirm') : (movedCount > 0 ? `Submit request(${movedCount})` : 'Submit request')}
+      button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? `Confirm(${movedCount})` : t('Confirm')) : (movedCount > 0 ? `Submit request(${movedCount})` : 'Submit request')}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
     />
@@ -1950,7 +1957,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
     <StickyFooter
       caption="Allocation"
       title={`Close in ${fmtHHMMSS(secs)}`}
-      button={allMembersPending ? 'Go back' : windowOpen ? 'Done' : 'Submit request'}
+      button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
     />
@@ -1993,7 +2000,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                   city={hostLiveCity}
                   selected={relayCityId === HOST_CITY.id}
                   onSelect={() => { setRelayCityId(relayCityId === HOST_CITY.id ? null : HOST_CITY.id); setActiveZoneId(null) }}
-                  topLabel="Top preferred city"
+                  topLabel={t('Top preferred city')}
                   onSwapAll={relayCityId === HOST_CITY.id ? selectAll : undefined}
                   anySwappable={relayCityId === HOST_CITY.id && (cityOnlyStage ? !!activeCity : !!activeZone) && selectableMemberIds.length > 1}
                   swapAllLabel={switchAllLabel}
@@ -2082,7 +2089,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
           <div className="mx-[16px] mt-[12px] flex items-center gap-[8px] rounded-[12px] border px-[14px] py-[11px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
             <PinIcon color="#c8842a" size={15} />
             <span className="text-[13.5px] font-semibold leading-[19px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              Selected {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
+              
+              {t('Selected')} {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
               {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
               {' '}— select members below
             </span>
@@ -2122,6 +2130,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
         {/* Mobile: stacked cards */}
         <div className="mx-[16px] mt-[12px] mb-[24px] flex flex-col gap-[14px] sm:hidden">
           {movableEntries.map(({ g, gi }) => {
+            const { t } = useT()
             const dep = dependentOf(g)
             const gName = dep && guardianFor[dep.id] ? family.find((f) => f.id === guardianFor[dep.id])?.name ?? null : null
             // Per-row, not the single representative group's — "Switch to a different city" can
@@ -2138,7 +2147,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                 currentSublabel={rowAlloc.cityTypeLabel}
                 cityOnly={cityOnlyStage}
                 newPlaceholder={isRelay ? 'Choose city' : `Move to ${destCity}`}
-                newSublabel={destType === 'relay' ? 'Relay City' : 'Host City'}
+                newSublabel={destType === 'relay' ? t('Relay City') : t('Host City')}
                 guardianName={gName}
                 onToggleCard={() => toggleGroupMove(gi)}
                 onAssignGuardian={() => { if (dep) setAssignTarget({ dependent: dep, currentGuardianId: guardianFor[dep.id] ?? g.members[0].member.id }) }}
@@ -2211,7 +2220,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                     <span className="inline-flex h-[36px] items-center gap-[8px] rounded-full border px-[15px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
                       <PinIcon color="#c8842a" size={16} />
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        Selected {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
+                        
+                        {t('Selected')} {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
                         {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
                         {' '}— select members below
                       </span>

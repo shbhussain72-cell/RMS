@@ -114,6 +114,7 @@ export function InvitedMembersTable({
                 </tr>
               )}
               {members.map((p, mi) => {
+                const { t } = useT()
                 const isDep = linked && mi > 0
                 const isFirst = mi === 0
                 const isLast = mi === members.length - 1
@@ -131,7 +132,7 @@ export function InvitedMembersTable({
                     {showStatus && (
                       <td className="px-[20px] py-[9px] align-middle">
                         <span className="flex items-center gap-[5px] text-[14px] font-bold text-[#b8821e]" style={FMU}>
-                          <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />Pending
+                          <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />{t('Pending')}
                         </span>
                       </td>
                     )}

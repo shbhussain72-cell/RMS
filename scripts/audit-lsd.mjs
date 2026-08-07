@@ -271,6 +271,18 @@ if (WRITE) {
   } else P('_None._')
   P('')
 
+  P(`## 3b. Sentinel rows \u2014 awaiting a decision (${sentinels.length})`, '')
+  P('These cells hold an INSTRUCTION, not a translation. The wordlist owner wrote a keyword')
+  P('where the LSD text goes; nobody has yet decided what the string should say, so **the app')
+  P('shows English** in the meantime. They are listed apart from the empty rows above because')
+  P('the action needed differs: an empty row needs someone to translate it, a sentinel row')
+  P('needs someone to say what was meant.', '')
+  if (sentinels.length) {
+    P('| Page | English key | Cell contains |', '|---|---|---|')
+    for (const r of sentinels) P(`| ${esc(r.page) || '\u2014'} | ${esc(clip(r.key, 80))} | \`${esc(r.sentinel)}\` |`)
+  } else P('_None._')
+  P('')
+
   P(`## 4. Identity pass-throughs (${identity.length})`, '')
   P('LSD value equals the English key (compared with zero-width direction marks stripped,')
   P('since the build step prefixes U+200F to mixed-script values).')
@@ -282,6 +294,16 @@ if (WRITE) {
   if (identity.length) {
     P('| Page | English key = LSD value |', '|---|---|')
     for (const r of identity) P(`| ${esc(r.page) || '—'} | ${esc(clip(r.key))} |`)
+  } else P('_None._')
+  P('')
+
+  P(`## 4b. Identity by policy \u2014 no action needed (${identityPolicy.length})`, '')
+  P('These also read the same in both languages, and that is **correct**. They are acronyms,')
+  P('units, format masks and agreed loanwords \u2014 see `docs/loanword-policy.md`. They are listed')
+  P('so it is clear they were considered, not overlooked.', '')
+  if (identityPolicy.length) {
+    P('| English key | Why identity is right |', '|---|---|')
+    for (const r of identityPolicy) P(`| ${esc(clip(r.key))} | ${esc(r.reason)} |`)
   } else P('_None._')
   P('')
 

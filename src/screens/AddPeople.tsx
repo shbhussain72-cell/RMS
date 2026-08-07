@@ -135,6 +135,7 @@ function CheckboxButton({ checked, dimmed = false, onToggle }: { checked: boolea
 /* ── invitation status pill ──
    Mehmaan invites land here as "Pending" and flip to "Accepted" once the guest accepts. */
 function StatusPill({ status }: { status: 'pending' | 'accepted' }) {
+  const { t } = useT()
   const accepted = status === 'accepted'
   return (
     <span
@@ -142,7 +143,7 @@ function StatusPill({ status }: { status: 'pending' | 'accepted' }) {
       style={{ fontFamily: FONT_SANS, fontWeight: 700, background: accepted ? '#e4efe7' : '#fdf0d8', color: accepted ? '#276245' : '#9a6b12' }}
     >
       <span className="size-[6px] rounded-full" style={{ background: accepted ? '#2f8f5b' : '#d99b2b' }} />
-      {accepted ? 'Accepted' : 'Pending'}
+      {accepted ? 'Accepted' : t('Pending')}
     </span>
   )
 }
@@ -596,17 +597,18 @@ export default function AddPeople() {
 
   /* ── per-row strip helper ── */
   const stripFor = (m: FamilyMember) => {
+    const { t } = useT()
     const guardian = flow.guardians[m.id]
     const caregiver = flow.caregivers[m.id]
     if (m.needsGuardian) {
       return guardian
-        ? <ResolvedStrip prefix="Guardian: " name={nameOf(guardian)} onChange={() => openSheet(m, 'guardian')} interactive={editing} />
-        : <WarnStrip text="Children under 10 cannot be allocated independently. Assign a guardian." onAssign={() => openSheet(m, 'guardian')} interactive={editing} />
+        ? <ResolvedStrip prefix={t('Guardian:')} name={nameOf(guardian)} onChange={() => openSheet(m, 'guardian')} interactive={editing} />
+        : <WarnStrip text={t('Children under 10 cannot be allocated independently. Assign a guardian.')} onAssign={() => openSheet(m, 'guardian')} interactive={editing} />
     }
     if (m.needsCaregiver) {
       return caregiver
-        ? <ResolvedStrip prefix="Under Care of: " name={nameOf(caregiver)} onChange={() => openSheet(m, 'caregiver')} interactive={editing} />
-        : <WarnStrip text="This member requires medical assistance. Assign a caregiver." onAssign={() => openSheet(m, 'caregiver')} interactive={editing} />
+        ? <ResolvedStrip prefix={t('Under Care of:')} name={nameOf(caregiver)} onChange={() => openSheet(m, 'caregiver')} interactive={editing} />
+        : <WarnStrip text={t('This member requires medical assistance. Assign a caregiver.')} onAssign={() => openSheet(m, 'caregiver')} interactive={editing} />
     }
     return null
   }
@@ -637,7 +639,8 @@ export default function AddPeople() {
       style={{ fontFamily: FONT_SANS }}
     >
       <AddPersonIcon />
-      Add
+      
+      {t('Add')}
     </button>
   )
   const matchFoundBadge = (
@@ -761,9 +764,9 @@ export default function AddPeople() {
             items={[
               { label: 'Home', to: '/miqaats' },
               fromModify
-                ? { label: 'Edit registration', to: `/miqaats/${id}/manage` }
-                : { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-              { label: 'Add people' },
+                ? { label: t('Edit registration'), to: `/miqaats/${id}/manage` }
+                : { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+              { label: t('Add people') },
             ]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
@@ -845,8 +848,9 @@ export default function AddPeople() {
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
               {otherInvites.map((inv) => {
+                const { t } = useT()
                 const gender = inv.gender ?? lookupMember(inv.its)?.gender
-                const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? 'Dependent' : null].filter(Boolean).join(' · ')
+                const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? t('Dependent') : null].filter(Boolean).join(' · ')
                 return (
                   <div key={inv.its} className="w-full rounded-[14px] border border-solid border-[#e7dfc9] bg-[#fffdf8] p-[13px]">
                     <div className="flex items-start gap-[10px]">
@@ -880,8 +884,9 @@ export default function AddPeople() {
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
               {mehmaanInvites.map((inv) => {
+                const { t } = useT()
                 const gender = inv.gender ?? lookupMember(inv.its)?.gender
-                const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? 'Dependent' : null].filter(Boolean).join(' · ')
+                const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? t('Dependent') : null].filter(Boolean).join(' · ')
                 return (
                   <div key={inv.its} className="w-full rounded-[14px] border border-solid border-[#e7dfc9] bg-[#fffdf8] p-[13px]">
                     <div className="flex items-start gap-[10px]">
@@ -924,9 +929,9 @@ export default function AddPeople() {
               items={[
                 { label: 'Home', to: '/miqaats' },
                 fromModify
-                  ? { label: 'Edit registration', to: `/miqaats/${id}/manage` }
-                  : { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-                { label: 'Add people' },
+                  ? { label: t('Edit registration'), to: `/miqaats/${id}/manage` }
+                  : { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+                { label: t('Add people') },
               ]}
               onNavigate={(to) => nav(to)}
               onBack={() => nav(-1)}
@@ -1120,7 +1125,7 @@ export default function AddPeople() {
                 </div>
                 <p className="text-[12px] uppercase leading-[17px] tracking-[0.5px] text-[#a8843e]"
                   style={{ fontFamily: FONT_SANS, fontWeight: 600 }}>
-                  {sheet.kind === 'guardian' ? 'Assign guardian' : 'Assign caregiver'}
+                  {sheet.kind === 'guardian' ? t('Assign guardian') : 'Assign caregiver'}
                 </p>
                 <p className="mt-[5px] text-[16px] leading-[20px] text-[#15402f]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
                   For {sheet.dependent.name}
@@ -1133,6 +1138,7 @@ export default function AddPeople() {
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[16px] pb-[16px] pt-[16px]">
                 <div className="flex flex-col gap-[8px]">
                   {eligibleAdults.map((a) => {
+                    const { t } = useT()
                     const active = pick === a.id
                     const isCurrent = a.id === currentAssignedId
                     return (
@@ -1146,7 +1152,8 @@ export default function AddPeople() {
                             <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(a.name)} />
                             {isCurrent && (
                               <span className="rounded-full bg-[#e4efe7] px-[8px] py-[2px] text-[11px] font-bold text-[#276245]" style={{ fontFamily: FONT_SANS }}>
-                                Current {sheet.kind === 'guardian' ? 'Guardian' : 'Caregiver'}
+                                
+                                {t('Current')} {sheet.kind === 'guardian' ? t('Guardian') : t('Caregiver')}
                               </span>
                             )}
                           </div>
@@ -1169,7 +1176,7 @@ export default function AddPeople() {
                       <path d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M10 11v6M14 11v6M5 7l1 13a1 1 0 001 1h10a1 1 0 001-1l1-13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <span className="text-[15px] font-bold" style={{ fontFamily: FONT_SANS }}>
-                      {sheet.kind === 'guardian' ? 'Remove Guardian' : 'Remove Caregiver'}
+                      {sheet.kind === 'guardian' ? t('Remove Guardian') : 'Remove Caregiver'}
                     </span>
                   </button>
                 )}
@@ -1177,7 +1184,7 @@ export default function AddPeople() {
                   className="flex h-[52px] w-full items-center justify-center gap-[8px] rounded-[14px] bg-[#1f5a44] shadow-[0_6px_22px_-8px_rgba(21,64,47,0.18)] disabled:opacity-50 sm:transition-all sm:duration-200 sm:hover:bg-[#184a37] sm:active:scale-[0.99] sm:disabled:hover:bg-[#1f5a44]">
                   <img src={PERSON_ADD} alt="" className="size-[18px]" />
                   <span className="text-[15px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
-                    {currentAssignedId ? (sheet.kind === 'guardian' ? 'Update guardian' : 'Update caregiver') : (sheet.kind === 'guardian' ? 'Add guardian' : 'Add caregiver')}
+                    {currentAssignedId ? (sheet.kind === 'guardian' ? 'Update guardian' : 'Update caregiver') : (sheet.kind === 'guardian' ? t('Add guardian') : 'Add caregiver')}
                   </span>
                 </button>
               </div>

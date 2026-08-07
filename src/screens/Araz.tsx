@@ -85,11 +85,12 @@ function MembersChip({ count }: { count: number }) {
 
 /** Gold "Add" CTA (plus icon) — opens the ITS-search popup to add a family member to the table. */
 function AddCta({ onClick, disabled = false }: { onClick: () => void; disabled?: boolean }) {
+  const { t } = useT()
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="inline-flex h-[38px] shrink-0 items-center gap-[7px] rounded-full bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[16px] text-[14px] font-bold text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-all duration-200 hover:from-[#e7d3a2] hover:to-[#cfab65] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:from-[#e3cd96] disabled:hover:to-[#c9a45c] disabled:active:scale-100"
       style={{ fontFamily: FONT }}>
-      <PlusIcon /> Add
+      <PlusIcon />  {t('Add')}
     </button>
   )
 }
@@ -97,6 +98,7 @@ function AddCta({ onClick, disabled = false }: { onClick: () => void; disabled?:
 /** Edit ⇄ Cancel toggle — sits to the right of Add. Shown only when a prior Araz submission exists;
  *  Edit (gold outline) unlocks the read-only table, Cancel (red outline) discards unsaved edits. */
 function EditToggle({ editing, onClick }: { editing: boolean; onClick: () => void }) {
+  const { t } = useT()
   return (
     <button type="button" onClick={onClick}
       className={`inline-flex h-[38px] shrink-0 items-center gap-[7px] rounded-full border px-[16px] text-[14px] font-bold transition-all duration-200 active:scale-[0.97] ${
@@ -108,12 +110,14 @@ function EditToggle({ editing, onClick }: { editing: boolean; onClick: () => voi
       {editing ? (
         <>
           <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 5l8 8M13 5l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-          Cancel
+          
+          {t('Cancel')}
         </>
       ) : (
         <>
           <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M11.4 3.3l3.3 3.3M2.75 15.25l.7-3 8.2-8.2a1.2 1.2 0 011.7 0l1.3 1.3a1.2 1.2 0 010 1.7l-8.2 8.2-3 .7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          Edit
+          
+          {t('Edit')}
         </>
       )}
     </button>
@@ -122,11 +126,12 @@ function EditToggle({ editing, onClick }: { editing: boolean; onClick: () => voi
 
 /** Small Host/Relay tag — used only in the compact success-view summary list. */
 function CityKindTag({ type }: { type: 'host' | 'relay' }) {
+  const { t } = useT()
   const host = type === 'host'
   return (
     <span className="inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]"
       style={{ fontFamily: FONT, background: host ? '#f7efd6' : '#e1eef1', color: host ? '#a8843e' : '#2e6a7d' }}>
-      {host ? 'Host City' : 'Relay City'}
+      {host ? t('Host City') : t('Relay City')}
     </span>
   )
 }
@@ -342,7 +347,7 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
               ) : (
                 <button type="button" onClick={() => { onAdd(result); setIts(''); setResult(null); setNoResults(false) }}
                   className="flex h-[46px] items-center justify-center gap-[8px] rounded-full bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[30px] text-[15px] font-bold text-[#194a37] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-opacity active:opacity-80" style={{ fontFamily: FONT }}>
-                  <PlusIcon /> Add
+                  <PlusIcon />  {t('Add')}
                 </button>
               )}
             </div>
@@ -387,7 +392,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
   onOpenRelay: (id: string, rect: DOMRect) => void
   onRemove: (id: string) => void
 }) {
-     const { tx, td } = useT()
+     const { t, tx, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -399,13 +404,14 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', 'Host City', 'Relay City', 'Action'].map((h, i) => (
+            {[t('Member'), t('Host City'), t('Relay City'), 'Action'].map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {members.map((m) => {
+            const { t } = useT()
             const hc = hostCheckedOf(m.id)
             const rc = relayCheckedOf(m.id)
             return (
@@ -423,7 +429,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
                 <td className="px-[16px] py-[10px] align-middle">
                   <button type="button" onClick={() => onSelectHost(m.id)} className="flex items-center gap-[9px] text-start">
                     <RadioDot checked={hc} />
-                    <span className="text-[14px] font-bold" style={{ fontFamily: FONT, color: hc ? '#23302a' : '#a9b1ab' }}>{hc ? hostCityName : 'Host City'}</span>
+                    <span className="text-[14px] font-bold" style={{ fontFamily: FONT, color: hc ? '#23302a' : '#a9b1ab' }}>{hc ? hostCityName : t('Host City')}</span>
                   </button>
                 </td>
                 {/* Relay City — radio; reveals the searchable dropdown once selected (edit only). */}
@@ -757,7 +763,7 @@ export default function Araz() {
   // Read-only view state → an info-only footer (the action lives in the header's Edit toggle). While
   // editing (or on a first-time submission) → the Save/Update CTA.
   const footer = locked ? (
-    <StickyFooter caption="Araz · Preferred City" title={t('Preferences submitted')} button="Go back" onButton={() => nav(-1)} />
+    <StickyFooter caption="Araz · Preferred City" title={t('Preferences submitted')} button={t('Go back')} onButton={() => nav(-1)} />
   ) : (
     <StickyFooter
       caption="Araz · Preferred City"
@@ -838,7 +844,7 @@ export default function Araz() {
                   </div>
                 </div>
                 <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
-                  <StepIndicator steps={[{ label: 'City preference', done: totalAssigned > 0 }, { label: stepMembersLabel, done: totalAssigned > 0 }]} />
+                  <StepIndicator steps={[{ label: t('City preference'), done: totalAssigned > 0 }, { label: stepMembersLabel, done: totalAssigned > 0 }]} />
                 </div>
                 <div className={`mt-[20px] ${locked ? 'pointer-events-none' : ''}`}>
                   {tableMembers.length > 0 ? (

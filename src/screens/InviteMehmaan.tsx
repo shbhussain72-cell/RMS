@@ -350,7 +350,7 @@ export default function InviteMehmaan() {
     <StickyFooter
       caption={miqaat.title}
       title={`${mehmaanInvites.length} invited`}
-      button="Confirm"
+      button={t('Confirm')}
       // Invite Mehmaan is opened from the event's detail-page card, so Confirm returns there (the
       // card then reads "Edit") — not the Add People / registration flow.
       onButton={() => nav(`/miqaats/${id}`)}
@@ -421,9 +421,9 @@ export default function InviteMehmaan() {
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
-              { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-              { label: 'Add people', to: `/miqaats/${id}/people` },
-              { label: 'Invitations' },
+              { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+              { label: t('Add people'), to: `/miqaats/${id}/people` },
+              { label: t('Invitations') },
             ]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
@@ -504,9 +504,9 @@ export default function InviteMehmaan() {
             <Breadcrumb
               items={[
                 { label: 'Home', to: '/miqaats' },
-                { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-                { label: 'Add people', to: `/miqaats/${id}/people` },
-                { label: 'Invite' },
+                { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+                { label: t('Add people'), to: `/miqaats/${id}/people` },
+                { label: t('Invite') },
               ]}
               onNavigate={(to) => nav(to)}
               onBack={() => nav(-1)}

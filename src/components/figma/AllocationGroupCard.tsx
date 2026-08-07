@@ -48,13 +48,14 @@ export function PinIcon({ size = 20, color = '#1f5a44' }: { size?: number; color
 
 /** Host City (gold) / Relay City (teal) pill — tells the user which kind of city a section is. */
 export function CityTypeTag({ type }: { type: 'host' | 'relay' }) {
+  const { t } = useT()
   const host = type === 'host'
   return (
     <span
       className="inline-flex h-[22px] shrink-0 items-center rounded-full px-[10px] text-[11px] font-bold tracking-[0.3px]"
       style={{ fontFamily: FONT, background: host ? '#f7efd6' : '#e1eef1', color: host ? '#a8843e' : '#2e6a7d' }}
     >
-      {host ? 'Host City' : 'Relay City'}
+      {host ? t('Host City') : t('Relay City')}
     </span>
   )
 }
@@ -89,7 +90,7 @@ export function ZoneHeader({ name, count }: { name: string; count: number }) {
 
 /** The reserved group card: linked header + member rows + "Raza status · Pending" strip. */
 export function AllocationGroupCard({ group }: { group: Group }) {
-  const { tx, td } = useT()
+  const { t, tx, td } = useT()
   const linked = !!group.label
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
@@ -122,7 +123,7 @@ export function AllocationGroupCard({ group }: { group: Group }) {
         <span className="text-[15px] text-[#3d3d3a]" style={{ fontFamily: FONT }} {...tx('Raza status')} />
         <span className="flex items-center gap-[7px]">
           <span className="size-[7px] rounded-full" style={{ background: razaIssued ? '#1f7a4d' : '#c8951f' }} />
-          <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: razaIssued ? '#1f7a4d' : '#c8951f' }}>{razaIssued ? 'Issued' : 'Pending'}</span>
+          <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: razaIssued ? '#1f7a4d' : '#c8951f' }}>{razaIssued ? t('Issued') : t('Pending')}</span>
         </span>
       </div>
     </div>
@@ -135,7 +136,7 @@ export function AllocationGroupCard({ group }: { group: Group }) {
  * get no group header. Read-only: Member · Status (role) · Raza status.
  */
 export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#ece4d2] bg-white">
@@ -146,7 +147,7 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {(['Member', 'Raza status'] as const).map((h) => (
+            {([t('Member'), t('Raza status')] as const).map((h) => (
               <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -164,6 +165,7 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
                 </tr>
               )}
               {g.members.map((mm, mi) => {
+                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (
@@ -185,7 +187,7 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
                     </td>
                     <td className="px-[16px] py-[9px] align-middle">
                       <span className="inline-flex items-center gap-[7px] text-[14px] font-bold" style={{ fontFamily: FONT, color: razaIssued ? '#1f7a4d' : '#c8951f' }}>
-                        <span className="size-[7px] rounded-full" style={{ background: razaIssued ? '#1f7a4d' : '#c8951f' }} /> {razaIssued ? 'Issued' : 'Pending'}
+                        <span className="size-[7px] rounded-full" style={{ background: razaIssued ? '#1f7a4d' : '#c8951f' }} /> {razaIssued ? t('Issued') : t('Pending')}
                       </span>
                     </td>
                   </tr>

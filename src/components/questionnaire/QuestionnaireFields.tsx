@@ -153,8 +153,8 @@ function YesNo({ value, onChange, invalid = false }: { value: 'yes' | 'no' | nul
   const { t } = useT()
   return (
     <div className="mt-[8px] grid grid-cols-2 gap-[10px]">
-      <RadioRow label="Yes" active={value === 'yes'} onClick={() => onChange('yes')} invalid={invalid} />
-      <RadioRow label="No" active={value === 'no'} onClick={() => onChange('no')} invalid={invalid} />
+      <RadioRow label={t('Yes')} active={value === 'yes'} onClick={() => onChange('yes')} invalid={invalid} />
+      <RadioRow label={t('No')} active={value === 'no'} onClick={() => onChange('no')} invalid={invalid} />
     </div>
   )
 }
@@ -355,8 +355,8 @@ export function QuestionnaireSummary({ q, idPrefix = '', hideIntro = false, clas
 
       <Section id={sid(10)} number={nextNo()} title={t('Confirmation')}>
         <div className="grid grid-cols-2 gap-[12px]">
-          <AnswerRow label={t('Information accurate')} value={q.confirmAccurate ? 'Confirmed' : 'Not confirmed'} />
-          <AnswerRow label={t('Agreed to guidelines')} value={q.confirmGuidelines ? 'Confirmed' : 'Not confirmed'} />
+          <AnswerRow label={t('Information accurate')} value={q.confirmAccurate ? t('Confirmed') : 'Not confirmed'} />
+          <AnswerRow label={t('Agreed to guidelines')} value={q.confirmGuidelines ? t('Confirmed') : 'Not confirmed'} />
         </div>
       </Section>
     </div>
@@ -489,7 +489,7 @@ export function QuestionnaireSections({ q, onChange, registrant, idPrefix = '', 
           <>
             <div>
               <FieldLabel required {...tx('Number of meals required')} />
-              <TextInput value={q.mealCount} onChange={(v) => set({ mealCount: v.replace(/[^0-9]/g, '') })} placeholder="e.g. 3" invalid={err(!q.mealCount.trim())} />
+              <TextInput value={q.mealCount} onChange={(v) => set({ mealCount: v.replace(/[^0-9]/g, '') })} placeholder={t('e.g. 3')} invalid={err(!q.mealCount.trim())} />
               <FieldError show={err(!q.mealCount.trim())} />
             </div>
             <div>
@@ -566,7 +566,7 @@ export function QuestionnaireSections({ q, onChange, registrant, idPrefix = '', 
                 <CheckRow key={o.value} label={o.label} checked={q.medicalNeeds.includes(o.value)} onClick={() => toggleInList('medicalNeeds', o.value)} invalid={err(q.medicalNeeds.length === 0)} />
               ))}
             </div>
-            <FieldError show={err(q.medicalNeeds.length === 0)} message="Please select at least one option." />
+            <FieldError show={err(q.medicalNeeds.length === 0)} message={t('Please select at least one option.')} />
           </div>
         )}
       </Section>
@@ -618,7 +618,7 @@ export function QuestionnaireSections({ q, onChange, registrant, idPrefix = '', 
           </div>
           <div>
             <FieldLabel required {...tx('Relationship')} />
-            <TextInput value={q.emergencyRelation} onChange={(v) => set({ emergencyRelation: v })} placeholder="e.g. Spouse, Parent, Sibling" invalid={err(!q.emergencyRelation.trim())} />
+            <TextInput value={q.emergencyRelation} onChange={(v) => set({ emergencyRelation: v })} placeholder={t('e.g. Spouse, Parent, Sibling')} invalid={err(!q.emergencyRelation.trim())} />
             <FieldError show={err(!q.emergencyRelation.trim())} />
           </div>
           <div>
@@ -628,14 +628,14 @@ export function QuestionnaireSections({ q, onChange, registrant, idPrefix = '', 
           </div>
           <NewFieldWrap id={`${idPrefix}new-emergencyAltMobile`} active={isNew('emergencyAltMobile')}>
             <FieldLabel isNew={isNew('emergencyAltMobile')} {...tx('Alternate Contact Number (Optional)')} />
-            <TextInput value={q.emergencyAltMobile ?? ''} onChange={(v) => set({ emergencyAltMobile: v.replace(/[^0-9+ ]/g, '') })} placeholder="A backup number, if any" type="tel" />
+            <TextInput value={q.emergencyAltMobile ?? ''} onChange={(v) => set({ emergencyAltMobile: v.replace(/[^0-9+ ]/g, '') })} placeholder={t('A backup number, if any')} type="tel" />
           </NewFieldWrap>
         </div>
       </Section>
 
       <Section id={sid(10)} number={nextNo()} title={t('Confirmation')}>
-        <CheckRow label="I confirm that all the information provided is accurate." checked={q.confirmAccurate} onClick={() => set({ confirmAccurate: !q.confirmAccurate })} invalid={err(!q.confirmAccurate)} />
-        <CheckRow label={<>I agree to follow the Miqaat guidelines and event regulations. <span role="link" tabIndex={0} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-[3px] cursor-pointer text-[#a8843e] underline hover:text-[#8a6c30]">terms and conditions<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg></span></>} checked={q.confirmGuidelines} onClick={() => set({ confirmGuidelines: !q.confirmGuidelines })} invalid={err(!q.confirmGuidelines)} />
+        <CheckRow label={t('I confirm that all the information provided is accurate.')} checked={q.confirmAccurate} onClick={() => set({ confirmAccurate: !q.confirmAccurate })} invalid={err(!q.confirmAccurate)} />
+        <CheckRow label={<>{t('I agree to follow the Miqaat guidelines and event regulations.')} <span role="link" tabIndex={0} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-[3px] cursor-pointer text-[#a8843e] underline hover:text-[#8a6c30]">terms and conditions<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg></span></>} checked={q.confirmGuidelines} onClick={() => set({ confirmGuidelines: !q.confirmGuidelines })} invalid={err(!q.confirmGuidelines)} />
       </Section>
     </div>
     </SectionLayoutCtx.Provider>

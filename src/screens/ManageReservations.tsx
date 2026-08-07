@@ -304,7 +304,7 @@ function GuardianResolution({
   secondChosen: boolean
   onSecondChoose: () => void
 }) {
-     const { td } = useT()
+     const { t, td } = useT()
   const fn = firstNameOf(dependent.name)
   const assigned = !!assignedGuardianName
   return (
@@ -341,7 +341,7 @@ function GuardianResolution({
           onClick={onRequestAssign}
           className="shrink-0 flex items-center gap-[4px] rounded-[10px] border border-[#1f5a44] bg-white px-[12px] h-[34px]"
         >
-          <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>{assigned ? 'Change' : 'Assign'}</span>
+          <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>{assigned ? t('Change') : t('Assign')}</span>
           <svg viewBox="0 0 16 16" fill="none" className="size-[12px]">
             <path d="M6 4l4 4-4 4" stroke="#1f5a44" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -396,7 +396,8 @@ function ChangeCitySheet({
         <>
           <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Change city')} />
           <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            Reserve {fn} in a different city. You can pick a zone there afterwards.
+            
+            {t('Reserve')} {fn} in a different city. You can pick a zone there afterwards.
           </p>
         </>
       )}
@@ -892,7 +893,7 @@ function LinkedReservationCard({
               <path d="M4 8h13l-3-3" stroke="#1f5a44" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-[transferArrowFwd_320ms_ease-in-out_infinite_alternate] motion-reduce:group-hover:animate-none" />
               <path d="M20 16H7l3 3" stroke="#1f5a44" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-[transferArrowBack_320ms_ease-in-out_infinite_alternate] motion-reduce:group-hover:animate-none" />
             </svg>
-            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Transfer {fn} to another guardian</span>
+            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>{t('Transfer')} {fn} to another guardian</span>
           </button>
         </div>
       )}
@@ -1148,7 +1149,7 @@ function MembersTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', 'Role', 'Location', 'Actions'].map((h) => (
+            {[t('Member'), 'Role', 'Location', 'Actions'].map((h) => (
               <th
                 key={h}
                 className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
@@ -1472,7 +1473,7 @@ function RouteLine({ from, to, size }: { from: string; to: string; size: 'hero' 
  * The route-grouping below still stands: a slice can in principle hold more than one route.
  */
 function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eventTitle: string; onCancel: (reqId: string, memberIds: string[]) => void }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const r = slice.req
   const rows = slice.rows
   const count = rows.length
@@ -1559,7 +1560,7 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
       {/* ── Tier 4: provenance + the escape hatch ── */}
       <div className="flex items-center justify-between gap-[10px] border-t border-[#f2ead5] bg-white px-[16px] py-[10px]">
         <span className="min-w-0 text-[12px] leading-[16px] text-[#9a8f7a]" style={{ fontFamily: FONT }}>
-          <span className="block truncate">{requestedOn ? `Requested ${requestedOn}` : 'Requested'}</span>
+          <span className="block truncate">{requestedOn ? `Requested ${requestedOn}` : t('Requested')}</span>
           {/* The card is one slice of a bigger request — say so, so "Cancel request" doesn't read
               as taking down the members shown on the OTHER cards too. */}
           {slice.partOfLarger && (
@@ -1574,7 +1575,8 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
           style={{ fontFamily: FONT }}
         >
           <svg viewBox="0 0 20 20" fill="none" className="size-[13px]"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
-          Cancel request
+          
+          {t('Cancel request')}
         </button>
       </div>
     </div>
@@ -2042,7 +2044,7 @@ export default function ManageReservations() {
         <div className="sm:hidden">
         <div className="ms-[16px] sm:ml-0 mt-[12px]">
           <Breadcrumb
-            items={[{ label: 'Home', to: '/miqaats' }, { label: 'Modify Reservation' }]}
+            items={[{ label: 'Home', to: '/miqaats' }, { label: t('Modify Reservation') }]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
           />
@@ -2091,9 +2093,9 @@ export default function ManageReservations() {
               <span className="flex size-[24px] items-center justify-center rounded-full bg-[#1f5a44]">
                 <LandmarkIcon color="#ffffff" size={13} />
               </span>
-              <span className="text-[13px] text-[#3d3d3a]" style={{ fontFamily: FONT, fontWeight: 500 }}>{hostConfirmed || relayConfirmed ? 'City allocated' : 'City'}</span>
+              <span className="text-[13px] text-[#3d3d3a]" style={{ fontFamily: FONT, fontWeight: 500 }}>{hostConfirmed || relayConfirmed ? t('City allocated') : t('City')}</span>
             </span>
-            <span className="text-[14px] font-bold" style={{ fontFamily: FONT, color: hostConfirmed || relayConfirmed ? '#1f5a44' : '#8a938e' }}>{hostConfirmed || relayConfirmed ? cityName : 'Not allocated'}</span>
+            <span className="text-[14px] font-bold" style={{ fontFamily: FONT, color: hostConfirmed || relayConfirmed ? '#1f5a44' : '#8a938e' }}>{hostConfirmed || relayConfirmed ? cityName : t('Not allocated')}</span>
           </div>
 
           <RazaStatusCard
@@ -2188,7 +2190,7 @@ export default function ManageReservations() {
             {/* ───── LEFT sidebar ───── */}
             <aside className="flex w-[40%] max-w-[600px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[28px] ps-[var(--content-px)] pe-[30px]">
               <Breadcrumb
-                items={[{ label: 'Home', to: '/miqaats' }, { label: 'Modify Reservation' }]}
+                items={[{ label: 'Home', to: '/miqaats' }, { label: t('Modify Reservation') }]}
                 onNavigate={(to) => nav(to)}
                 onBack={() => nav(-1)}
                 activeColor="#a8843e"
@@ -2230,9 +2232,9 @@ export default function ManageReservations() {
                     <span className="flex size-[26px] items-center justify-center rounded-full bg-[#1f5a44]">
                       <LandmarkIcon color="#ffffff" size={14} />
                     </span>
-                    <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT, fontWeight: 500 }}>{cityAllocated ? 'City allocated' : 'City'}</span>
+                    <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT, fontWeight: 500 }}>{cityAllocated ? t('City allocated') : t('City')}</span>
                   </span>
-                  <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: cityAllocated ? '#1f5a44' : '#8a938e' }}>{cityAllocated ? cityName : 'Not allocated'}</span>
+                  <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: cityAllocated ? '#1f5a44' : '#8a938e' }}>{cityAllocated ? cityName : t('Not allocated')}</span>
                 </div>
 
                 <RazaStatusCard
@@ -2372,17 +2374,17 @@ export default function ManageReservations() {
         onClose={() => setShowEntryChooser(false)}
         items={[
           ...(cityChangeOption ? [{
-            key: 'city', label: 'City', desc: `Cancel your city allocation (${cityName}).`,
+            key: 'city', label: t('City'), desc: `Cancel your city allocation (${cityName}).`,
             icon: <PinIcon color="#b8821e" size={22} />, iconBg: '#f3ecd9',
             onClick: () => { setShowEntryChooser(false); setShowCancelCity(true) },
           }] : []),
           ...(registrantZone ? [{
-            key: 'zone', label: 'Zone', desc: `Cancel your zone allocation (${zoneName}).`,
+            key: 'zone', label: t('Zone'), desc: `Cancel your zone allocation (${zoneName}).`,
             icon: <PinIcon color="#2e6a7d" size={22} />, iconBg: '#eef1ef',
             onClick: () => { setShowEntryChooser(false); setShowCancelZone(true) },
           }] : []),
           {
-            key: 'registration', label: 'Registration', desc: 'Cancel your reservation for this Miqaat.',
+            key: 'registration', label: 'Registration', desc: t('Cancel your reservation for this Miqaat.'),
             icon: <CancelIcon size={22} />, iconBg: '#fbeceb', danger: true,
             onClick: () => { setShowEntryChooser(false); handleCancelClick() },
           },

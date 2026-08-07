@@ -48,7 +48,7 @@ function UploadCloudIcon() {
  *  prototype, so a real upload/download is simulated entirely client-side. Shared by Event Details
  *  (Eligibility card) and, in `compact` form, the Registration Questionnaire / "Other Details". */
 export function VisaUploadCard({ miqaatId, compact = false }: { miqaatId: string; compact?: boolean }) {
-  const { tx, td } = useT()
+  const { t, tx, td } = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -156,7 +156,8 @@ export function VisaUploadCard({ miqaatId, compact = false }: { miqaatId: string
       <div>
         <p className="flex items-center text-[13px] font-bold uppercase tracking-[0.6px] text-[#a8843e]" style={{ fontFamily: MUL }} {...tx('Upload your visa')} />
         <p className="mt-[4px] text-[13px] leading-[19px] text-[#6a746e]" style={{ fontFamily: MUL }}>
-          A valid visa copy (PDF) is required to confirm eligibility for this Miqaat.
+          
+          {t('A valid visa copy (PDF) is required to confirm eligibility for this Miqaat.')}
         </p>
         {body}
       </div>
@@ -167,7 +168,8 @@ export function VisaUploadCard({ miqaatId, compact = false }: { miqaatId: string
     <div className="w-full rounded-[18px] border-2 border-solid border-[#e7dfc9] bg-[#fffdf8] p-[16px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]">
       <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 700 }} {...tx('Upload your visa')} />
       <p className="mt-[4px] text-[13px] leading-[19px] text-[#6a746e]" style={{ fontFamily: MUL }}>
-        A valid visa copy (PDF) is required to confirm eligibility for this Miqaat.
+        
+        {t('A valid visa copy (PDF) is required to confirm eligibility for this Miqaat.')}
       </p>
       {body}
     </div>

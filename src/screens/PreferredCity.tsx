@@ -25,6 +25,7 @@ const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
 
 /* Host / Relay pill — driven by the city's real type, never its list position. */
 function CityTypeTag({ type }: { type?: 'host' | 'relay' }) {
+  const { t } = useT()
   const isHost = type === 'host'
   return (
     <span
@@ -35,7 +36,7 @@ function CityTypeTag({ type }: { type?: 'host' | 'relay' }) {
         color: isHost ? '#276245' : '#2e6a7d',
       }}
     >
-      {isHost ? 'Host City' : 'Relay City'}
+      {isHost ? t('Host City') : t('Relay City')}
     </span>
   )
 }
@@ -363,7 +364,7 @@ function InfoBanner() {
 /* ── component ──────────────────────────────────────────────────── */
 
 export default function PreferredCity({ backdrop = false }: { backdrop?: boolean } = {}) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -473,7 +474,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
       <StickyFooter
         caption={`${cities.length} cities selected`}
         title={`1st choice ${cities[0]?.name ?? ''}`}
-        button="Confirm"
+        button={t('Confirm')}
         onButton={handleConfirm}
       />
     </div>
@@ -500,7 +501,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             className="flex h-[48px] flex-1 items-center justify-center rounded-[12px] bg-[#1f5a44] px-[32px] text-[15px] font-bold text-white shadow-[0_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#194a38] sm:flex-none"
             style={FMU}
           >
-            {fromModify ? 'Submit' : 'Continue'}
+            {fromModify ? t('Submit') : t('Continue')}
           </button>
         </div>
       </div>
@@ -513,7 +514,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
         <div className="px-[16px] pb-[24px] pt-[13px] sm:px-0 sm:pt-6">
           <Breadcrumb
-            items={[{ label: 'Home', to: '/miqaats' }, { label: 'Post Registration Details' }]}
+            items={[{ label: 'Home', to: '/miqaats' }, { label: t('Post Registration Details') }]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
           />
@@ -635,7 +636,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             <Breadcrumb
               items={[
                 { label: 'Home', to: '/miqaats' },
-                { label: 'Preferred city' },
+                { label: t('Preferred city') },
               ]}
               onNavigate={(to) => nav(to)}
               onBack={() => nav(-1)}
@@ -699,11 +700,11 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
                 clicking it while no city is picked just surfaces the validation toast below. */}
             <div className="shrink-0">
               <StickyFooter
-                caption={empty ? 'No cities added yet' : `${cities.length} cities selected`}
+                caption={empty ? t('No cities added yet') : `${cities.length} cities selected`}
                 title={empty ? 'Add a city, or skip to continue' : `1st choice ${cities[0]?.name ?? ''}`}
-                button="Confirm"
+                button={t('Confirm')}
                 onButton={handleConfirm}
-                secondary={{ label: 'Skip', onClick: () => nav('/miqaats') }}
+                secondary={{ label: t('Skip'), onClick: () => nav('/miqaats') }}
               />
             </div>
           </section>

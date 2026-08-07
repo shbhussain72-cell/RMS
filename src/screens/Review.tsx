@@ -149,6 +149,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
           </tr>
         </thead>
         {groups.map((g, gi) => {
+          const { t } = useT()
           const isLinked = !!g.label
           const hasConnector = g.members.length > 1
           return (
@@ -158,7 +159,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
                   <td colSpan={2} className="px-[20px] py-[9px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={FMU}>
                       <span className="size-[15px] shrink-0"><LinkIcon /></span>
-                      {g.label!.replace('registered together', 'reserve together')}
+                      {g.label!.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
@@ -197,7 +198,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
 }
 
 export default function Review() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -299,10 +300,10 @@ export default function Review() {
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
-              { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-              { label: 'Add people', to: `/miqaats/${id}/people` },
-              ...(miqaat.hideInviteMehmaan ? [] : [{ label: 'Invitations', to: `/miqaats/${id}/invite` }]),
-              { label: 'Summary' },
+              { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+              { label: t('Add people'), to: `/miqaats/${id}/people` },
+              ...(miqaat.hideInviteMehmaan ? [] : [{ label: t('Invitations'), to: `/miqaats/${id}/invite` }]),
+              { label: t('Summary') },
             ]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
@@ -317,7 +318,7 @@ export default function Review() {
         <div data-tour="review-section" className="mt-[12px] flex gap-[15px] ps-[16px] pe-[16px]">
           <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
           <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
-          <StatTile value={otherInvites.length} numColor="#a8843e" line1="Group" line2="members" />
+          <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />
         </div>
 
         <div className="mt-[24px]"><SectionDivider {...tx('YOUR FAMILY')} /></div>
@@ -369,10 +370,10 @@ export default function Review() {
             <Breadcrumb
               items={[
                 { label: 'Home', to: '/miqaats' },
-                { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-                { label: 'Add people', to: `/miqaats/${id}/people` },
-                ...(miqaat.hideInviteMehmaan ? [] : [{ label: 'Invitations', to: `/miqaats/${id}/invite` }]),
-                { label: 'Summary' },
+                { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+                { label: t('Add people'), to: `/miqaats/${id}/people` },
+                ...(miqaat.hideInviteMehmaan ? [] : [{ label: t('Invitations'), to: `/miqaats/${id}/invite` }]),
+                { label: t('Summary') },
               ]}
               onNavigate={(to) => nav(to)}
               onBack={() => nav(-1)}
@@ -390,7 +391,7 @@ export default function Review() {
             <div data-tour="review-section" className="mt-[4px] flex gap-[12px]">
               <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
               <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
-              <StatTile value={otherInvites.length} numColor="#a8843e" line1="Group" line2="members" />
+              <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />
             </div>
           </aside>
 

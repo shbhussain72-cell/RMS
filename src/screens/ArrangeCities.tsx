@@ -135,6 +135,7 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
       </div>
       <div className="mt-[12px] grid grid-cols-3 gap-[10px]">
         {slots.map((cid, idx) => {
+          const { t } = useT()
           const city = cid ? liveById.get(cid) : undefined
           if (!city) {
             return (
@@ -172,7 +173,7 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
                         : { background: '#e3eef0', color: '#2e6a7d' }
                     }
                   >
-                    {city.type === 'host' ? 'Host' : 'Relay'}
+                    {city.type === 'host' ? t('Host') : 'Relay'}
                   </span>
                   <span className="text-[10.5px] font-bold leading-[13px] text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Change')} />
                 </span>
@@ -320,6 +321,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
         </div>
         <div className="max-h-[230px] overflow-y-auto px-[8px] pb-[10px]">
           {filtered.map((c) => {
+            const { t } = useT()
             const selected = c.id === currentId
             return (
               <button
@@ -340,7 +342,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
                           : { background: '#e3eef0', color: '#2e6a7d' }
                       }
                     >
-                      {c.type === 'host' ? 'Host' : 'Relay'}
+                      {c.type === 'host' ? t('Host') : 'Relay'}
                     </span>
                   </span>
                   <span className="block truncate text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(c.region)} />
@@ -363,14 +365,15 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
 // ── Right panel: view-only member table ────────────────────────────────────────
 
 function StatusCell({ valid }: { valid: boolean }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return valid ? (
     <span className="inline-flex items-center gap-[7px] text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }}>
       <svg viewBox="0 0 18 18" fill="none" className="size-[16px] shrink-0">
         <circle cx="9" cy="9" r="7.25" stroke="#1f7a4d" strokeWidth="1.4" />
         <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      Valid for allocation
+      
+      {t('Valid for allocation')}
     </span>
   ) : (
     <span className="inline-flex items-center gap-[6px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
@@ -383,7 +386,7 @@ function StatusCell({ valid }: { valid: boolean }) {
 /** Desktop members table — same layout/hierarchy as City Selection's table (linked-group band, gold
  *  connectors, role badges), but strictly read-only: no Allocation/Action columns, no CTAs. */
 function MembersViewTable({ groups }: { groups: Group[] }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const displayOrder = groups.map((_, i) => i).sort((a, b) => {
     const valid = (gi: number) => (groups[gi].members.some((mm) => mm.member.notValidForCity) ? 1 : 0)
     return valid(a) - valid(b)
@@ -398,12 +401,13 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', '', 'Status'].map((h, i) => (
+            {[t('Member'), '', t('Status')].map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
         {displayOrder.map((gi) => {
+          const { t } = useT()
           const g = groups[gi]
           const linked = !!g.label
           const hasConnector = g.members.length > 1
@@ -414,7 +418,7 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={3} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', 'reserve together')}
+                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
@@ -466,6 +470,7 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
   return (
     <div className="flex flex-col gap-[12px]">
       {displayOrder.map((gi) => {
+        const { t } = useT()
         const g = groups[gi]
         const linked = !!g.label
         const groupValid = !g.members.some((mm) => mm.member.notValidForCity)
@@ -475,7 +480,7 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
               <div className="flex items-center gap-[8px] bg-[#e1eef1] px-[14px] py-[8px]">
                 <LinkGlyph />
                 <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                  {g.label?.replace('registered together', 'reserve together')}
+                  {g.label?.replace('registered together', t('reserve together'))}
                 </span>
               </div>
             )}
@@ -641,7 +646,7 @@ export default function ArrangeCities() {
 
   const breadcrumb = (
     <Breadcrumb
-      items={[{ label: 'Home', to: '/miqaats' }, { label: 'Edit your layout' }]}
+      items={[{ label: 'Home', to: '/miqaats' }, { label: t('Edit your layout') }]}
       onNavigate={(to) => nav(to)}
       onBack={() => nav(-1)}
       backOnMobile
@@ -669,7 +674,7 @@ export default function ArrangeCities() {
     <StickyFooter
       caption="City arrangement"
       title={t('Save your city layout')}
-      button="Save my layout"
+      button={t('Save my layout')}
       onButton={handleSave}
       buttonDisabled={false}
     />
@@ -701,7 +706,7 @@ export default function ArrangeCities() {
             {/* ───── LEFT sidebar — the configurable city cards ───── */}
             <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
               <Breadcrumb
-                items={[{ label: 'Home', to: '/miqaats' }, { label: 'Edit your layout' }]}
+                items={[{ label: 'Home', to: '/miqaats' }, { label: t('Edit your layout') }]}
                 onNavigate={(to) => nav(to)}
                 onBack={() => nav(-1)}
                 activeColor="#a8843e"

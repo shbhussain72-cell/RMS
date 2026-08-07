@@ -130,12 +130,13 @@ function CityMissingCard({ group }: { group: Group }) {
 /** Small pill distinguishing a Host city (gold) from a Relay city (teal) — matches the
  *  confirmation screen, so the allocated-city tabs read clearly here too. */
 function CityKindTag({ type }: { type?: 'host' | 'relay' }) {
+  const { t } = useT()
   if (!type) return null
   const host = type === 'host'
   return (
     <span className="mt-[6px] inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]"
       style={{ fontFamily: FONT, background: host ? '#f7efd6' : '#e1eef1', color: host ? '#a8843e' : '#2e6a7d' }}>
-      {host ? 'Host City' : 'Relay City'}
+      {host ? t('Host City') : t('Relay City')}
     </span>
   )
 }
@@ -176,7 +177,7 @@ function ZoneHCard({
 }: {
   zone: Zone; selected: boolean; onSelect: () => void
 }) {
-     const { td } = useT()
+     const { t, td } = useT()
   const left = zone.capacity - zone.filled
   const isFull = left <= 0
   return (
@@ -196,7 +197,7 @@ function ZoneHCard({
         className="text-[13px] leading-[18px] mt-[3px] font-bold"
         style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}
       >
-        {isFull ? 'Full' : `${left} left`}
+        {isFull ? t('Full') : `${left} left`}
       </span>
     </button>
   )
@@ -235,6 +236,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((z) => {
+          const { t } = useT()
           const left = z.capacity - z.filled
           const isFull = left <= 0
           const selected = z.id === activeZoneId
@@ -244,7 +246,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
               style={{ borderColor: selected ? '#d9c98a' : '#e7dfc9', background: selected ? '#fffdf5' : 'white', opacity: isFull ? 0.5 : 1, cursor: isFull ? 'not-allowed' : 'pointer' }}>
               <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(z.name)} />
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f7a4d' }}>
-                {isFull ? 'Full' : `${left} left`}
+                {isFull ? t('Full') : `${left} left`}
               </span>
             </button>
           )
@@ -275,7 +277,7 @@ function ReservedZonePill({ onRemove, full = false, isRequest = false }: { onRem
             <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-        {isRequest ? 'Requested' : 'Selected'}
+        {isRequest ? t('Requested') : t('Selected')}
       </span>
       <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label={t('Remove reservation')}
         className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
@@ -359,6 +361,7 @@ function SwapZonePill({ currentZoneName, targetZoneName, onSwap, onRemove, full 
  *  RelaySidebarCard header buttons, placed in the "{City} zones (N)" sidebar card header (not a
  *  separate row above the page). Reserve/Remove and Swap never apply at the same time. */
 function ZoneBulkActionPill({ kind, destName, onClick }: { kind: 'reserve' | 'remove' | 'swap'; destName?: string; onClick: () => void }) {
+  const { t } = useT()
   if (kind === 'swap') {
     return (
       <button type="button" onClick={onClick}
@@ -377,7 +380,7 @@ function ZoneBulkActionPill({ kind, destName, onClick }: { kind: 'reserve' | 're
           : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'
       }`}
       style={{ fontFamily: FONT }}>
-      {kind === 'remove' ? 'Remove all' : 'Select all'}
+      {kind === 'remove' ? t('Remove all') : 'Select all'}
     </button>
   )
 }
@@ -574,7 +577,7 @@ function WhosWhereSheet({
 // ── Success – group card (mobile) ─────────────────────────────────────────────
 
 function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: string }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const linked = !!group.label
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
@@ -611,11 +614,11 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
         style={{ background: statusText ? '#fdf3ea' : '#fff6e5' }}
       >
         <span className="text-[12px] text-[#3d3d3a]" style={{ fontFamily: FONT, fontWeight: 500 }}>
-          {statusText ? 'Status' : 'Raza status'}
+          {statusText ? t('Status') : t('Raza status')}
         </span>
         <span className="flex items-center gap-[5px]">
           <span className="size-[6px] rounded-full" style={{ background: statusText ? '#d2632b' : '#b8821e' }} />
-          <span className="text-[12px] font-bold" style={{ fontFamily: FONT, color: statusText ? '#b23b3b' : '#b8821e' }}>{statusText ?? 'Pending'}</span>
+          <span className="text-[12px] font-bold" style={{ fontFamily: FONT, color: statusText ? '#b23b3b' : '#b8821e' }}>{statusText ?? t('Pending')}</span>
         </span>
       </div>
     </div>
@@ -658,7 +661,7 @@ function CityTabCard({ name, count, active, onClick, type }: { name: string; cou
 
 /** Sidebar zone grid cell — zone name + "N left", selected / full states. */
 function ZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: boolean; onClick: () => void }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const left = zone.capacity - zone.filled
   const isFull = left <= 0
   return (
@@ -666,7 +669,7 @@ function ZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: boole
       className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
       style={{ border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: selected ? '#fffdf5' : isFull ? '#f6f6f4' : 'white', cursor: isFull ? 'not-allowed' : 'pointer', minHeight: 64 }}>
       <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(zone.name)} />
-      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}>{isFull ? 'Full' : `${left} left`}</span>
+      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}>{isFull ? t('Full') : `${left} left`}</span>
     </button>
   )
 }
@@ -752,7 +755,7 @@ function ZoneBrowseDesktopTable({
    *  button is redundant, so show a muted dash instead (mirrors City Selection's Action column). */
   hideReserveCta?: boolean
 }) {
-     const { td } = useT()
+     const { t, td } = useT()
   return (
     <div className={`overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white ${disabled ? 'pointer-events-none' : ''}`}>
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -764,12 +767,13 @@ function ZoneBrowseDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', '', 'Zone', 'Action'].map((h, i) => (
+            {[t('Member'), '', t('Zone'), 'Action'].map((h, i) => (
               <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
         {visibleIdx.map((gi) => {
+          const { t } = useT()
           const g = groups[gi]
           if (!g) return null
           const linked = !!g.label
@@ -781,12 +785,13 @@ function ZoneBrowseDesktopTable({
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={4} className="px-[14px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', 'reserve together')}
+                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
               )}
               {g.members.map((mm, mi) => {
+                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 const auto = isAutoGroup?.(gi) ?? false
@@ -829,7 +834,8 @@ function ZoneBrowseDesktopTable({
                                 <circle cx="9" cy="9" r="7.25" stroke="#1f7a4d" strokeWidth="1.4" />
                                 <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
-                              Auto-allocated
+                              
+                              {t('Auto-allocated')}
                             </span>
                           ) : (() => {
                             const swapTarget = assigned ? (swapTargetFor?.(gi) ?? null) : null
@@ -1316,7 +1322,7 @@ export default function ZoneSelection() {
       <StickyFooter
         caption="Zone confirmed"
         title={`${cityName} · ${totalMembers} members`}
-        button="Done"
+        button={t('Done')}
         onButton={() => nav('/miqaats')}
       />
     )
@@ -1334,7 +1340,7 @@ export default function ZoneSelection() {
             title={t('Zone Confirmed')}
             footerCaption="Zone confirmed"
             reference={flow.referenceNumber ?? 'MIQ-23106'}
-            infoLabel="Raza issues on"
+            infoLabel={t('Raza issues on')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated || totalMembers}
             sections={confirmedSections}
@@ -1378,11 +1384,12 @@ export default function ZoneSelection() {
               style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}
             >
               <span className="size-[5px] rounded-full bg-[#276245]" />
-              Allocated
+              
+              {t('Allocated')}
             </span>
           </div>
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Raza issues on</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{t('Raza issues on')}</span>
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
               <DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" />
             </span>
@@ -1427,7 +1434,8 @@ export default function ZoneSelection() {
                 <svg viewBox="0 0 24 24" fill="none" className="size-[15px] shrink-0">
                   <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#d2632b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Not allocated
+                
+                {t('Not allocated')}
                 <span className="font-normal text-[#8a938e]">· {unallocatedCount} members</span>
               </p>
               <div className="flex flex-col gap-[8px]">
@@ -1450,8 +1458,8 @@ export default function ZoneSelection() {
     <StickyFooter
       dataTour="reserve-confirm"
       caption="Allocate"
-      title={<>Close in <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
-      button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : 'Confirm'}
+      title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
+      button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : t('Confirm')}
       onButton={handleReserve}
     >
       {/* Allocated count + "Who's in which zone" — mobile only (web shows the full table already) */}
@@ -1496,7 +1504,7 @@ export default function ZoneSelection() {
       {/* Breadcrumb (shared component → consistent Home + Go-back) */}
       <div className="mx-[16px] sm:mx-0 mt-[10px] mb-[14px]">
         <Breadcrumb
-          items={[{ label: 'Home', to: '/miqaats' }, { label: 'Zone selection' }]}
+          items={[{ label: 'Home', to: '/miqaats' }, { label: t('Zone selection') }]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}
         />
@@ -1574,7 +1582,7 @@ export default function ZoneSelection() {
                   : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'
               }`}
               style={{ fontFamily: FONT }}>
-              {allZoneGroupsAssigned ? 'Remove all' : 'Select all'}
+              {allZoneGroupsAssigned ? t('Remove all') : 'Select all'}
             </button>
           ) : (
             <button type="button" onClick={swapAllToActiveZone}
@@ -1693,7 +1701,7 @@ export default function ZoneSelection() {
           {/* ───── LEFT sidebar ───── */}
           <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
             <Breadcrumb
-              items={[{ label: 'Home', to: '/miqaats' }, { label: 'Zone selection' }]}
+              items={[{ label: 'Home', to: '/miqaats' }, { label: t('Zone selection') }]}
               onNavigate={(to) => nav(to)}
               onBack={() => nav(-1)}
               activeColor="#a8843e"
@@ -1730,8 +1738,8 @@ export default function ZoneSelection() {
               <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
                 <StepIndicator
                   steps={[
-                    { label: 'City', done: true },
-                    { label: 'Zone', done: activeZone !== null || groupZoneMap.size > 0 },
+                    { label: t('City'), done: true },
+                    { label: t('Zone'), done: activeZone !== null || groupZoneMap.size > 0 },
                     { label: `Members ${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
                   ]}
                 />
@@ -1824,8 +1832,8 @@ export default function ZoneSelection() {
               <StickyFooter
                 dataTour="reserve-confirm"
                 caption="Allocation"
-                title={<>Close in <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
-                button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : 'Confirm'}
+                title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
+                button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : t('Confirm')}
                 onButton={handleReserve}
               />
             </div>

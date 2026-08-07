@@ -107,7 +107,9 @@ const walk = (dir, out = []) => {
     // .ts as well as .tsx: the tour/guide content lives in src/tour/steps.ts and the
     // notification copy in src/data/notifications.ts — both are user-visible strings that
     // a .tsx-only walk silently skipped, which is why the guide was never reported.
-    else if (/\.tsx?$/.test(e.name) && !/\.d\.ts$/.test(e.name)) out.push(p)
+    // Test files are excluded: they quote English strings as FIXTURES ("Colombo",
+    // "Registration") to assert on, and those are assertions about the app, not copy in it.
+    else if (/\.tsx?$/.test(e.name) && !/\.d\.ts$/.test(e.name) && !/\.test\.tsx?$/.test(e.name)) out.push(p)
   }
   return out
 }
@@ -184,7 +186,11 @@ for (const r of [...found.values()].sort((a, b) => a.file.localeCompare(b.file) 
 // Wordlist rows that are unusable regardless of whether they are on screen yet.
 for (const [k, v] of entries) {
   if (found.has(k)) continue
-  if (!v.lsd) problems.push({ text: k, file: '(wordlist)', line: 0, kind: 'BLANK' })
+  // A SENTINEL row is not an untranslated row. The wordlist owner wrote an instruction in
+  // the LSD cell; until it is resolved the string shows English, which is a decision someone
+  // made rather than a gap nobody noticed. Reported separately so the two never merge.
+  if (v.sentinel) problems.push({ text: k, file: '(wordlist)', line: 0, kind: 'SENTINEL' })
+  else if (!v.lsd) problems.push({ text: k, file: '(wordlist)', line: 0, kind: 'BLANK' })
   else if (v.lsd.trim().toLowerCase() !== 'remove' && isLatinOnly(v.lsd)) {
     problems.push({ text: k, file: '(wordlist)', line: 0, kind: 'LATIN' })
   }
@@ -224,6 +230,7 @@ if (regressions.length) {
   if (regressions.length > 40) console.error(`  …and ${regressions.length - 40} more`)
   console.error('\nUNROUTED → wrap in tx()/t()/td().  NO_ROW → add to the xlsx.')
   console.error('BLANK/LATIN → fill the LSD cell in the xlsx.')
+  console.error('SENTINEL → the LSD cell holds an instruction; decide what it should say.')
   if (!REPORT_ONLY) process.exit(1)
 }
 

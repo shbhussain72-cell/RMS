@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import AskHelpChat from './AskHelpChat'
 import { AiSparkGlyph } from './icons'
 import type { AskHelpInit } from './types'
+import { useT } from '../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
@@ -28,6 +29,7 @@ export default function AskHelpDock({
    *  clear its sticky footer + timeline fab. */
   floaterClassName?: string
 }) {
+     const { tx, t } = useT()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function AskHelpDock({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Ask Help"
+          aria-label={t('Ask Help')}
           className={`ai-cta ${floaterClassName}`}
         >
           <span className="ai-cta__glow" aria-hidden="true" />
@@ -53,9 +55,7 @@ export default function AskHelpDock({
             <span className="ai-cta__spin" aria-hidden="true" />
             <span className="ai-cta__pill">
               <AiSparkGlyph className="size-[20px]" />
-              <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }}>
-                Ask Help
-              </span>
+              <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }} {...tx('Ask Help')} />
             </span>
           </span>
         </button>

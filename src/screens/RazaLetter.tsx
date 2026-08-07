@@ -24,8 +24,8 @@ export default function RazaLetter() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: 'Raza' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: t('Raza') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}

@@ -25,7 +25,7 @@ const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
 const GROUPS: NotifGroup[] = ['Today', 'Yesterday', 'Earlier']
 
 export default function Notifications() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const nav = useNavigate()
   const [filter, setFilter] = useState<NotifFilter>('All')
   const readNotifIds = useStore((s) => s.readNotifIds)
@@ -70,7 +70,7 @@ export default function Notifications() {
       {/* Breadcrumb */}
       <div className="ms-[16px] mt-[10px] sm:ml-0">
         <Breadcrumb
-          items={[{ label: 'Home', to: '/miqaats' }, { label: 'Notification' }]}
+          items={[{ label: 'Home', to: '/miqaats' }, { label: t('Notification') }]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}
         />

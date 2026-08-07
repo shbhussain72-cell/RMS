@@ -278,7 +278,7 @@ function TimelineRail({ milestones, gap }: { milestones: MilestoneWithDates[]; g
 
 // ── Calendar hover tooltip (desktop) ──────────────────────────────────────────
 function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-full z-50 mt-[10px] w-[224px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
@@ -296,8 +296,8 @@ function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
         <div className="mt-[10px] flex flex-col gap-[8px]" style={{ fontFamily: MUL }}>
           {m.range ? (
             <>
-              <TipRow heading="Opens" date={<HijriDate date={m.dates[0]} />} time={m.range.startTime} />
-              <TipRow heading="Closes" date={<HijriDate date={m.dates[m.dates.length - 1]} />} time={m.range.endTime} />
+              <TipRow heading={t('Opens')} date={<HijriDate date={m.dates[0]} />} time={m.range.startTime} />
+              <TipRow heading={t('Closes')} date={<HijriDate date={m.dates[m.dates.length - 1]} />} time={m.range.endTime} />
             </>
           ) : (
             <TipRow heading={m.single!.label} date={<HijriDate date={m.labelDate} />} />
@@ -467,7 +467,7 @@ function TimelineHeader() {
 const DESCRIPTION = 'The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.'
 
 export default function EventJourney() {
-  const { tx, tdAuthored } = useT()
+  const { t, tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const m = miqaats.find((x) => x.id === id) ?? miqaats[0]
@@ -505,8 +505,8 @@ export default function EventJourney() {
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
-              { label: 'Miqaat detail page', to: `/miqaats/${m.id}` },
-              { label: 'Event timeline' },
+              { label: t('Miqaat detail page'), to: `/miqaats/${m.id}` },
+              { label: t('Event timeline') },
             ]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}

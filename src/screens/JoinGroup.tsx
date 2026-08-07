@@ -314,7 +314,7 @@ export default function JoinGroup() {
                 {m.roleTag && (
                   <span
                     className={`shrink-0 rounded-full px-[10px] py-[3px] text-[11px] font-semibold ${
-                      m.roleTag === 'Registrant' ? 'bg-[#e8f3ed] text-[#1f5a44]' : 'bg-[#fef3dd] text-[#b07a1f]'
+                      m.roleTag === t('Registrant') ? 'bg-[#e8f3ed] text-[#1f5a44]' : 'bg-[#fef3dd] text-[#b07a1f]'
                     }`}
                     style={FMU}
                   >

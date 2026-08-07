@@ -49,7 +49,7 @@ function PinIcon({ size = 16 }: { size?: number }) {
 /** Right-panel member table — Member | (badge) | status, grouped by reserve-together bands.
  *  When `statusText` is set the rows show that "… – Not Allocated" status instead of the Raza pill. */
 function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusText?: string }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const statusHeader = statusText ? 'Status' : 'Raza Status'
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
@@ -59,30 +59,32 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {['Member', '', statusHeader].map((h, i) => (
+            {[t('Member'), '', statusHeader].map((h, i) => (
               <th key={i} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
         {groups.map((g, gi) => {
+          const { t } = useT()
           const linked = !!g.label
           const hasConnector = g.members.length > 1
           // A group with a member flagged not-valid can never be allocated → show that reason
           // (matches the City Selection table) instead of the generic "… – Not Allocated".
           const groupNotValid = g.members.some((mm) => mm.member.notValidForCity)
-          const rowStatus = statusText ? (groupNotValid ? 'Not valid for allocation' : statusText) : undefined
+          const rowStatus = statusText ? (groupNotValid ? t('Not valid for allocation') : statusText) : undefined
           return (
             <tbody key={gi}>
               {linked && (
                 <tr style={{ borderTop: '1px solid #e7dfc9', background: '#e1eef1' }}>
                   <td colSpan={3} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label!.replace('registered together', 'reserve together')}
+                      <LinkGlyph />{g.label!.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
               )}
               {g.members.map((mm, mi) => {
+                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (
@@ -107,7 +109,7 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
                         </span>
                       ) : (
                         <span className="flex items-center gap-[5px] text-[13px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>
-                          <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />Pending
+                          <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />{t('Pending')}
                         </span>
                       )}
                     </td>

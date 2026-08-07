@@ -38,7 +38,7 @@ function Avatar({ name }: { name: string }) {
 }
 
 function RazaStatusStrip() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
     <div className="flex h-[32px] items-center justify-between rounded-[8px] px-[12px]" style={{ background: razaIssued ? '#e7f1ea' : '#fff6e5' }}>
@@ -47,7 +47,7 @@ function RazaStatusStrip() {
       <span className="flex items-center gap-[6px]">
         <span className="size-[6px] shrink-0 rounded-[3px]" style={{ background: razaIssued ? '#1f7a4d' : '#b8821e' }} />
         <span className="whitespace-nowrap text-[12px] leading-[18px]"
-          style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800, letterSpacing: '0.2px', color: razaIssued ? '#1f7a4d' : '#b8821e' }}>{razaIssued ? 'Issued' : 'Pending'}</span>
+          style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800, letterSpacing: '0.2px', color: razaIssued ? '#1f7a4d' : '#b8821e' }}>{razaIssued ? t('Issued') : t('Pending')}</span>
       </span>
     </div>
   )
@@ -116,7 +116,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
           </colgroup>
           <thead>
             <tr style={{ background: '#faf8f2' }}>
-              {(['Member', 'Raza Status'] as const).map((h) => (
+              {([t('Member'), 'Raza Status'] as const).map((h) => (
                 <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                   style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                   {h}
@@ -220,7 +220,7 @@ export default function Roster() {
         <StickyFooter
           caption={miqaat.title}
           title={`${total} Members`}
-          button="Go Home"
+          button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />
       )}
@@ -233,8 +233,8 @@ export default function Roster() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: pending ? 'Requested' : 'Registered' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: pending ? t('Requested') : 'Registered' },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}
@@ -243,7 +243,7 @@ export default function Roster() {
 
       <h1 className="mx-[16px] sm:mx-0 mt-[20px] text-[20px] leading-[28px] text-[#15402f]"
         style={{ fontFamily: 'Marcellus, Georgia, serif', fontWeight: 400, letterSpacing: '0.2px' }}>
-        {total} {pending ? 'Requested' : 'Registered'} members
+        {total} {pending ? t('Requested') : 'Registered'} members
       </h1>
 
       {/* Pending-approval banner — when opened from a registration request that admin hasn't approved. */}
@@ -279,7 +279,7 @@ export default function Roster() {
             </colgroup>
             <thead>
               <tr style={{ background: '#faf8f2' }}>
-                {(['Member', 'Raza Status'] as const).map((h) => (
+                {([t('Member'), 'Raza Status'] as const).map((h) => (
                   <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                     style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                     {h}
@@ -303,6 +303,7 @@ export default function Roster() {
                     </tr>
                   )}
                   {g.members.map((m, mi) => {
+                    const { t } = useT()
                     const isFirst = mi === 0
                     const isLast = mi === g.members.length - 1
                     return (
@@ -329,7 +330,7 @@ export default function Roster() {
                         <td className="px-[16px] py-[9px]">
                           <span className="flex items-center gap-[6px]">
                             <span className="size-[6px] shrink-0 rounded-[3px]" style={{ background: flow.razaIssued ? '#1f7a4d' : '#b8821e' }} />
-                            <span className="text-[12px] font-bold" style={{ fontFamily: 'Mulish, system-ui, sans-serif', color: flow.razaIssued ? '#1f7a4d' : '#b8821e' }}>{flow.razaIssued ? 'Issued' : 'Pending'}</span>
+                            <span className="text-[12px] font-bold" style={{ fontFamily: 'Mulish, system-ui, sans-serif', color: flow.razaIssued ? '#1f7a4d' : '#b8821e' }}>{flow.razaIssued ? t('Issued') : t('Pending')}</span>
                           </span>
                         </td>
                       </tr>

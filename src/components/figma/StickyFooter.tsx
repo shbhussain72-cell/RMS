@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useT } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -36,6 +37,7 @@ export default function StickyFooter({
    *  slides left on hover, matching the Breadcrumb's "Go back". Hidden on mobile. Defaults label to "Go back". */
   back?: { label?: ReactNode; onClick: () => void }
 }) {
+  const { t } = useT()
   return (
     <div data-tour={dataTour} className="sticky-cta w-full px-[16px] py-2 sm:px-[var(--content-px)] sm:pt-6 sm:pb-4">
       {children}
@@ -59,7 +61,7 @@ export default function StickyFooter({
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <span className="whitespace-nowrap text-[14px] font-bold" style={{ fontFamily: FONT }}>
-                {back.label ?? 'Go back'}
+                {back.label ?? t('Go back')}
               </span>
             </button>
           )}

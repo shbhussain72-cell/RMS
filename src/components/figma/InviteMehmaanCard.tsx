@@ -8,7 +8,7 @@ const FONT_SERIF = 'Marcellus, Georgia, serif'
  *  CTA: "Edit" once at least one guest has been invited (`invited`), else "View" when the quota is
  *  spent (`full`), else "Invite now". */
 export function InviteMehmaanCard({ onClick, full = false, invited = false }: { onClick: () => void; full?: boolean; invited?: boolean }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return (
     <div data-tour="invite-mehmaan" className="relative overflow-hidden rounded-[16px] border border-[#e7dfc9] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.18)]">
       <img src={MEHMAAN_BANNER} alt="" className="pointer-events-none absolute inset-0 size-full object-cover" />
@@ -20,7 +20,7 @@ export function InviteMehmaanCard({ onClick, full = false, invited = false }: { 
         <button type="button" onClick={onClick}
           className="h-[42px] w-[108px] shrink-0 rounded-[14px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] shadow-[0_6px_18px_-6px_rgba(21,64,47,0.22)] transition-all duration-200 hover:from-[#e7d3a2] hover:to-[#cfab65] hover:shadow-[0_10px_26px_-8px_rgba(21,64,47,0.3)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30">
           <span className="text-[14px] leading-none tracking-[0.2px] text-[#1f5a44]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
-            {invited ? 'Edit' : full ? 'View' : 'Invite now'}
+            {invited ? t('Edit') : full ? t('View') : t('Invite now')}
           </span>
         </button>
       </div>

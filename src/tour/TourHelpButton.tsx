@@ -1,4 +1,5 @@
 import { useTour } from './TourProvider'
+import { useT } from '../i18n'
 
 /**
  * "Take a tour" entry point placed in the app headers. Restarts the walkthrough on demand — this is
@@ -6,13 +7,14 @@ import { useTour } from './TourProvider'
  * so the glyph is white.
  */
 export default function TourHelpButton({ className = '' }: { className?: string }) {
+  const { t } = useT()
   const { replayCurrent } = useTour()
   return (
     <button
       type="button"
       onClick={replayCurrent}
-      aria-label="Show walkthrough for this page"
-      title="Show walkthrough for this page"
+      aria-label={t('Show walkthrough for this page')}
+      title={t('Show walkthrough for this page')}
       className={`flex size-[36px] shrink-0 items-center justify-center rounded-[11px] transition-colors hover:bg-[rgba(255,255,255,0.12)] ${className}`}
     >
       <svg viewBox="0 0 24 24" fill="none" className="size-[22px]" aria-hidden="true">

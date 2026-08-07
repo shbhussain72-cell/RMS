@@ -106,7 +106,7 @@ function LinkGlyph({ color = '#2e6a7d' }: { color?: string }) {
 // ── Queue: Waiting ─────────────────────────────────────────────────────────────
 
 function QueueWaiting({ countdown }: { countdown: number }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return (
     <div className="min-h-[100dvh] w-full" style={{ background: LOADER_BG }}>
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-[390px] flex-col items-center justify-center px-[24px] py-[36px] sm:max-w-[520px]">
@@ -123,7 +123,7 @@ function QueueWaiting({ countdown }: { countdown: number }) {
           <p className="mt-[4px] text-[11px] font-bold uppercase tracking-[1.5px] text-[rgba(255,255,255,0.4)]" style={{ fontFamily: FONT }} {...tx('Min · Sec Left')} />
         </div>
         <div className="mt-[22px] flex flex-col gap-[10px] text-[14px] leading-[22px] text-[rgba(255,255,255,0.72)] text-center" style={{ fontFamily: FONT }}>
-          <p>Coming early does <strong className="text-white">not</strong> give you an earlier position.</p>
+          <p>{t('Coming early does')} <strong className="text-white">not</strong> give you an earlier position.</p>
           <p>At the exact start time everyone on this page is assigned a <strong className="text-white">random queue position</strong> — an <strong style={{ color: '#e3cd96' }}>equal chance</strong> for all.</p>
           <p {...tx('Stay on this page and wait for the queue to begin.')} />
         </div>
@@ -141,7 +141,7 @@ function QueueWaiting({ countdown }: { countdown: number }) {
 // ── Queue: Active ──────────────────────────────────────────────────────────────
 
 function QueueActive({ onContinue }: { onContinue: () => void }) {
-  const { tx } = useT()
+  const { t, tx } = useT()
   useEffect(() => {
     const t = setTimeout(onContinue, 5_000)
     return () => clearTimeout(t)
@@ -154,7 +154,7 @@ function QueueActive({ onContinue }: { onContinue: () => void }) {
         <h1 className="mt-[24px] text-[26px] leading-[34px] text-white text-center" style={{ fontFamily: SERIF }} {...tx('Queue started')} />
         <p className="mt-[10px] text-[13px] leading-[20px] text-[rgba(255,255,255,0.68)] text-center" style={{ fontFamily: FONT }} {...tx('Your position has been assigned. Remain on this page while we process entries.')} />
         <p className="mt-[24px] text-[68px] font-bold leading-none text-white" style={{ fontFamily: FONT }}>1,367</p>
-        <p className="mt-[4px] text-[14px] text-[rgba(255,255,255,0.68)]" style={{ fontFamily: FONT }}>people ahead of you</p>
+        <p className="mt-[4px] text-[14px] text-[rgba(255,255,255,0.68)]" style={{ fontFamily: FONT }}>{t('people ahead of you')}</p>
         <div className="mt-[18px] h-[12px] w-full overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
           <div className="h-full rounded-full" style={{ width: '88%', background: 'linear-gradient(90deg,#a8843e,#e3cd96)' }} />
         </div>
@@ -204,7 +204,8 @@ function CityHCard({ city, selected, added, unavailable, onClick }: { city: Live
       <div className={cls} style={style}>
         <span className="text-[15px] font-bold leading-[20px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(city.name)} />
         <span className="relative mt-[3px] inline-flex w-fit items-center gap-[4px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
-          Not available
+          
+          {t('Not available')}
           <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v) }} className="inline-flex cursor-pointer" aria-label={t('Why not available?')}><InfoIcon /></span>
           {showTip && (
             <span className="absolute bottom-[calc(100%+8px)] start-0 z-[60] w-[150px] rounded-[8px] bg-[#23302a] px-[10px] py-[7px] text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)]" style={{ fontFamily: FONT }} {...tx('Capacity is full.')} />
@@ -275,6 +276,7 @@ function ViewAllSheet({
       {/* City list */}
       <div className="flex flex-col gap-[8px]">
         {filtered.map((c) => {
+          const { t } = useT()
           const added = addedOf(c.id)
           const isFull = c.seatsLeft - added <= 0
           const isSelected = selectedCity?.id === c.id
@@ -297,7 +299,7 @@ function ViewAllSheet({
                     only on cities that actually hold members, else a green "Available". */}
                 <p className="mt-[3px] flex items-center gap-[5px] text-[13px] font-bold"
                   style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : (isSelected || added > 0) ? '#5a6660' : '#1f7a4d' }}>
-                  {isFull ? 'Not available' : (isSelected || added > 0) ? <><PeopleMini /> {added} added</> : 'Available'}
+                  {isFull ? t('Not available') : (isSelected || added > 0) ? <><PeopleMini /> {added} added</> : t('Available')}
                 </p>
               </div>
               <div
@@ -391,12 +393,13 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
 /** Small Host/Relay City pill — ported from ZoneSelection.tsx's CityKindTag, for the combined
  *  screen's zone-confirmed summary (grouped by zone, each carrying its own city's type). */
 function CityKindTag({ type }: { type?: 'host' | 'relay' }) {
+  const { t } = useT()
   if (!type) return null
   const host = type === 'host'
   return (
     <span className="mt-[6px] inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]"
       style={{ fontFamily: FONT, background: host ? '#f7efd6' : '#e1eef1', color: host ? '#a8843e' : '#2e6a7d' }}>
-      {host ? 'Host City' : 'Relay City'}
+      {host ? t('Host City') : t('Relay City')}
     </span>
   )
 }
@@ -483,7 +486,7 @@ function AllocateGroupCard({
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', 'reserve together')}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
         </div>
       )}
       <div className="relative">
@@ -573,7 +576,7 @@ function AllocateGroupCard({
                     <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
-                {autoAllocated ? 'Auto-allocated' : isRequest && !locked ? 'Requested' : 'Selected'}
+                {autoAllocated ? t('Auto-allocated') : isRequest && !locked ? t('Requested') : t('Selected')}
               </span>
               {!autoAllocated && !locked && (
                 <button type="button" onClick={(e) => { e.stopPropagation(); (onRemove ?? onSelect)() }} aria-label={t('Remove reservation')}
@@ -592,12 +595,14 @@ function AllocateGroupCard({
                   <circle cx="9" cy="9" r="7.25" stroke="#1f7a4d" strokeWidth="1.4" />
                   <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Valid for allocation
+                
+                {t('Valid for allocation')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-[5px] text-[12.5px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
                 <InfoIcon />
-                Not valid for allocation
+                
+                {t('Not valid for allocation')}
               </span>
             )}
             {/* Action — mirrors the desktop table's Action column exactly, including the two blocked
@@ -746,7 +751,7 @@ export function HostCityCard({
    *  and makes the whole card non-interactive. Defaults false, so every other caller is unaffected. */
   isCurrentCity?: boolean
 }) {
-     const { tx, td } = useT()
+     const { t, tx, td } = useT()
   // Host card always reads "Filling fast" (never the literal seat count) — the specific number
   // otherwise looks mismatched once Arrange My Cities puts a relay city (with its own seat pool)
   // in this slot.
@@ -819,7 +824,8 @@ export function HostCityCard({
           {isCurrentCity && (
             <span className="inline-flex items-center gap-[4px] rounded-full border border-[#d9d2c2] bg-white px-[9px] py-[3px] text-[11px] font-bold text-[#6a726c]" style={{ fontFamily: FONT }}>
               <PinDot />
-              Current
+              
+              {t('Current')}
             </span>
           )}
           {!isCurrentCity && selected && onReserveAll && (
@@ -833,7 +839,7 @@ export function HostCityCard({
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? 'Remove all' : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
             </button>
           )}
           {!isCurrentCity && selected && anySwappable && onSwapAll && (
@@ -850,7 +856,7 @@ export function HostCityCard({
           {!isCurrentCity && <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect() }}
-            aria-label={selected ? (isRequest ? 'Requested' : 'Selected') : (isRequest ? 'Request' : 'Select')}
+            aria-label={selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? 'Request' : 'Select')}
             aria-pressed={selected}
             className="flex size-[22px] shrink-0 items-center justify-center rounded-full transition-colors duration-200"
             style={{ border: selected ? 'none' : '1.5px solid #c2a04e', background: selected ? '#1f5a44' : 'white' }}
@@ -882,7 +888,7 @@ export function HostCityCard({
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? 'Remove all' : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
             </button>
           )}
           {!isCurrentCity && selected && anySwappable && onSwapAll && (
@@ -915,13 +921,13 @@ export function HostCityCard({
               <span className="size-[13px] rounded-full border-[1.5px] border-[#c2a04e]" />
             )}
             <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: selected ? 'white' : '#a8843e' }}>
-              {selected ? (isRequest ? 'Requested' : 'Selected') : (isRequest ? 'Request' : 'Select')}
+              {selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? 'Request' : 'Select')}
             </span>
           </span>
         </div>
       </div>
       <p className="mt-[8px] text-[13px] sm:mt-[12px] sm:text-[14px] font-bold" style={{ fontFamily: FONT, color: accent }}>
-        {fast ? 'Filling fast' : `${city.seatsLeft} seats left`}
+        {fast ? t('Filling fast') : `${city.seatsLeft} seats left`}
       </p>
       <div className="mt-[6px] h-[7px] sm:mt-[8px] sm:h-[9px] w-full overflow-hidden rounded-full" style={{ background: fast ? '#f7dad7' : '#e4efe7' }}>
         <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: accent }} />
@@ -1016,7 +1022,7 @@ function HostGroupCard({
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', 'reserve together')}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
         </div>
       )}
       <div className="relative">
@@ -1271,12 +1277,12 @@ function AllocateDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {(showZoneColumn ? ['Member', '', 'Status', 'City', 'Zone'] : ['Member', '', 'Status', 'Allocation', 'Action']).map((h, i) => (
+            {(showZoneColumn ? [t('Member'), '', t('Status'), t('City'), t('Zone')] : [t('Member'), '', t('Status'), 'Allocation', 'Action']).map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>
                 {/* The ZONE column's bulk action — the zone counterpart of the city card's "Select
                     all". Without it, putting a whole party in one zone meant opening the per-row
                     dropdown once per group. */}
-                {h === 'Zone' && onOpenZoneAllDropdown ? (
+                {h === t('Zone') && onOpenZoneAllDropdown ? (
                   <span className="flex items-center justify-between gap-[10px]">
                     <span>{h}</span>
                     <button
@@ -1293,6 +1299,7 @@ function AllocateDesktopTable({
           </tr>
         </thead>
         {displayOrder.map((gi) => {
+          const { t } = useT()
           const g = groups[gi]
           const linked = !!g.label
           const assignedCity = groupCityMap.get(gi) ?? null
@@ -1323,12 +1330,13 @@ function AllocateDesktopTable({
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', 'reserve together')}
+                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
               )}
               {g.members.map((mm, mi) => {
+                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (
@@ -1372,12 +1380,14 @@ function AllocateDesktopTable({
                             <circle cx="9" cy="9" r="7.25" stroke="#1f7a4d" strokeWidth="1.4" />
                             <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
-                          Valid for allocation
+                          
+                          {t('Valid for allocation')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-[6px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
                           <InfoIcon />
-                          Not valid for allocation
+                          
+                          {t('Not valid for allocation')}
                         </span>
                       )}
                     </td>
@@ -1397,7 +1407,7 @@ function AllocateDesktopTable({
                           {isAssigned ? (
                             <div className="flex items-center justify-between gap-[10px]">
                               <div className="flex flex-col gap-[2px]">
-                                <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host City' : 'Relay City'}</span>
+                                <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? t('Host City') : t('Relay City')}</span>
                                 <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
                               </div>
                               <div className="flex shrink-0 items-center gap-[6px]">
@@ -1413,7 +1423,7 @@ function AllocateDesktopTable({
                                       <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                   )}
-                                  {isAutoGroup?.(gi) ? 'Auto-allocated' : requested ? 'Requested' : 'Selected'}
+                                  {isAutoGroup?.(gi) ? t('Auto-allocated') : requested ? t('Requested') : t('Selected')}
                                 </span>
                                 {!isAutoGroup?.(gi) && !isLockedGroup?.(gi) && (
                                   <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Remove reservation')}
@@ -1477,7 +1487,7 @@ function AllocateDesktopTable({
                         <td rowSpan={g.members.length} className="px-[16px] py-[10px] align-middle">
                           {isAssigned ? (
                             <div className="flex flex-col gap-[2px]">
-                              <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host City' : 'Relay City'}</span>
+                              <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? t('Host City') : t('Relay City')}</span>
                               <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
                             </div>
                           ) : (
@@ -1526,7 +1536,7 @@ function AllocateDesktopTable({
                                     <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 )}
-                                {isAutoGroup?.(gi) ? 'Auto-allocated' : requested ? 'Requested' : 'Selected'}
+                                {isAutoGroup?.(gi) ? t('Auto-allocated') : requested ? t('Requested') : t('Selected')}
                               </span>
                               {!isAutoGroup?.(gi) && !isLockedGroup?.(gi) && (
                                 <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Remove reservation')}
@@ -1615,12 +1625,13 @@ function HostDesktopTable({
                 <Checkbox checked={allChecked} onClick={onSelectAll} />
               </span>
             </th>
-            {['Member', '', 'Status', 'Action'].map((h, i) => (
+            {[t('Member'), '', t('Status'), 'Action'].map((h, i) => (
               <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
         {groups.map((g, gi) => {
+          const { t } = useT()
           const linked = !!g.label
           const holdSec = holds.get(gi)
           const held = holdSec !== undefined
@@ -1631,7 +1642,7 @@ function HostDesktopTable({
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[14px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', 'reserve together')}
+                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
                     </span>
                   </td>
                 </tr>
@@ -1744,7 +1755,7 @@ function WhosInWhichCitySheet({
 // ── Success: mobile group card ─────────────────────────────────────────────────
 
 function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: string }) {
-  const { td } = useT()
+  const { t, td } = useT()
   const linked = !!group.label
   // A group flagged not-valid can never be allocated → show that reason (matches City Selection).
   const groupNotValid = group.members.some((mm) => mm.member.notValidForCity)
@@ -1754,7 +1765,7 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', 'reserve together')}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
         </div>
       )}
       <div className="relative">
@@ -1775,14 +1786,14 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
         ))}
       </div>
       <div className="flex items-center justify-between border-t border-[#f0ebe0] px-[13px] py-[10px]">
-        <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{statusText ? 'Status' : 'Raza status'}</span>
+        <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{statusText ? t('Status') : t('Raza status')}</span>
         {rowStatus ? (
           <span className="flex items-center gap-[5px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
             <span className="size-[6px] rounded-full bg-[#d2632b]" />{rowStatus}
           </span>
         ) : (
           <span className="flex items-center gap-[5px] text-[13px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>
-            <span className="size-[6px] rounded-full bg-[#f59e0b]" />Pending
+            <span className="size-[6px] rounded-full bg-[#f59e0b]" />{t('Pending')}
           </span>
         )}
       </div>
@@ -1825,7 +1836,7 @@ function PhaseBadge() {
 
 /** Relay-city grid cell (desktop sidebar). */
 function RelayGridCard({ city, selected, added, unavailable, onClick }: { city: LiveCity; selected: boolean; added: number; unavailable: boolean; onClick: () => void }) {
-  const { tx, td } = useT()
+  const { t, tx, td } = useT()
   return (
     <div className="group/rc relative">
       <button
@@ -1854,7 +1865,8 @@ function RelayGridCard({ city, selected, added, unavailable, onClick }: { city: 
         <span className="mt-[3px] flex h-[16px] items-center gap-[4px] whitespace-nowrap text-[12px] font-semibold" style={{ fontFamily: FONT }}>
           {unavailable ? (
             <span className="inline-flex items-center gap-[4px] text-[#8a938e]">
-              Not available
+              
+              {t('Not available')}
               <svg viewBox="0 0 20 20" fill="none" className="size-[13px]"><circle cx="10" cy="10" r="7.25" stroke="#b23b3b" strokeWidth="1.4" /><path d="M10 9.2v3.6" stroke="#b23b3b" strokeWidth="1.6" strokeLinecap="round" /><circle cx="10" cy="6.7" r="1" fill="#b23b3b" /></svg>
             </span>
           ) : (selected || added > 0) ? (
@@ -1919,7 +1931,7 @@ function MyPreferredCityCard({
   onSwapAll?: () => void
   anySwappable?: boolean
 }) {
-     const { tx } = useT()
+     const { t, tx } = useT()
   const preferred = cities.filter((c) => c.id !== hostCityId)
   if (preferred.length === 0) return null
   const activeInThisCard = preferred.find((c) => c.id === activeCityId)
@@ -1941,7 +1953,7 @@ function MyPreferredCityCard({
             }`}
             style={{ fontFamily: FONT }}
           >
-            {allGroupsAssigned ? 'Remove all' : 'Select all'}
+            {allGroupsAssigned ? t('Remove all') : 'Select all'}
           </button>
         )}
         {showInlineSwapAll && (
@@ -2039,7 +2051,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
             }`}
             style={{ fontFamily: FONT }}
           >
-            {allGroupsAssigned ? 'Remove all' : 'Select all'}
+            {allGroupsAssigned ? t('Remove all') : 'Select all'}
           </button>
         )}
         {showInlineSwapAll && (
@@ -2971,7 +2983,7 @@ export default function CitySelection() {
 
     const successFooter = (
       <StickyFooter
-        caption="City confirmed"
+        caption={t('City confirmed')}
         title={`${totalAllocated} members allocated`}
         button="Go home"
         onButton={() => nav('/miqaats')}
@@ -2986,8 +2998,8 @@ export default function CitySelection() {
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
             title={t('City Confirmed')}
-            footerCaption="City confirmed"
-            infoLabel="Zone selection open"
+            footerCaption={t('City confirmed')}
+            infoLabel={t('Zone selection open')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated}
             sections={confirmedSections}
@@ -3009,7 +3021,8 @@ export default function CitySelection() {
           <svg viewBox="0 0 16 16" fill="none" className="size-[14px]">
             <path d="M2.5 7.5L8 2.5l5.5 5M4 6.5V13h8V6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Go Home
+          
+          {t('Go Home')}
         </button>
 
         <div className="flex flex-col items-center px-[16px] pt-[24px] pb-[20px] sm:px-0">
@@ -3025,7 +3038,7 @@ export default function CitySelection() {
           <div className="flex items-center justify-between px-[16px] py-[14px] border-b border-[#f0ebe0]">
             <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Registration status')} />
             <span className="inline-flex items-center gap-[5px] rounded-full px-[10px] py-[3px] text-[12px] font-bold" style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}>
-              <span className="size-[6px] rounded-full bg-[#276245]" />Allocated
+              <span className="size-[6px] rounded-full bg-[#276245]" />{t('Allocated')}
             </span>
           </div>
           <div className="flex items-center justify-between px-[16px] py-[14px] border-b border-[#f0ebe0]">
@@ -3043,6 +3056,7 @@ export default function CitySelection() {
         {/* City-grouped member sections */}
         <div className="mx-[16px] sm:mx-0 mt-[20px] mb-[100px]">
           {cityGroups.map(({ city, groupIndices }) => {
+            const { t } = useT()
             const cityMemberCount = groupIndices.reduce((n, gi) => n + groupAllocCount(gi), 0)
             return (
               <div key={city.id} className="mb-[20px]">
@@ -3053,7 +3067,7 @@ export default function CitySelection() {
                   </svg>
                   <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(city.name)} />
                   <span className="inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]" style={{ fontFamily: FONT, background: city.type === 'host' ? '#f7efd6' : '#e1eef1', color: city.type === 'host' ? '#a8843e' : '#2e6a7d' }}>
-                    {city.type === 'host' ? 'Host City' : 'Relay City'}
+                    {city.type === 'host' ? t('Host City') : t('Relay City')}
                   </span>
                   <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {cityMemberCount} members</span>
                 </div>
@@ -3069,12 +3083,13 @@ export default function CitySelection() {
                     </colgroup>
                     <thead>
                       <tr style={{ background: '#faf8f2' }}>
-                        {['Member', 'Role', 'Raza Status'].map((h) => (
+                        {[t('Member'), 'Role', 'Raza Status'].map((h) => (
                           <th key={h} className="px-[16px] py-[12px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     {groupIndices.map((gi) => {
+                      const { t } = useT()
                       const g = groups[gi]
                       if (!g) return null
                       const linked = !!g.label
@@ -3084,11 +3099,12 @@ export default function CitySelection() {
                           {linked && (
                             <tr style={{ borderTop: '1px solid #e7dfc9', background: '#e1eef1' }}>
                               <td colSpan={3} className="px-[16px] py-[8px]">
-                                <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph color="#2e6a7d" />{g.label!.replace('registered together', 'reserve together')}</span>
+                                <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph color="#2e6a7d" />{g.label!.replace('registered together', t('reserve together'))}</span>
                               </td>
                             </tr>
                           )}
                           {g.members.map((mm, mi) => {
+                            const { t } = useT()
                             const isFirst = mi === 0
                             const isLast = mi === g.members.length - 1
                             return (
@@ -3108,7 +3124,7 @@ export default function CitySelection() {
                                 <td className="px-[16px] py-[12px]">{mm.badge ? <RoleBadge kind={mm.badge} /> : null}</td>
                                 <td className="px-[16px] py-[12px]">
                                   <span className="flex items-center gap-[5px] text-[13px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>
-                                    <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />Pending
+                                    <span className="size-[6px] shrink-0 rounded-full bg-[#f59e0b]" />{t('Pending')}
                                   </span>
                                 </td>
                               </tr>
@@ -3223,7 +3239,7 @@ export default function CitySelection() {
             title={t('Zone Confirmed')}
             footerCaption="Zone confirmed"
             reference={flow.referenceNumber ?? 'MIQ-23106'}
-            infoLabel="Raza issues on"
+            infoLabel={t('Raza issues on')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated || totalMembers}
             sections={confirmedSectionsZ}
@@ -3268,7 +3284,7 @@ export default function CitySelection() {
             </span>
           </div>
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Raza issues on</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{t('Raza issues on')}</span>
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
               <DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" />
             </span>
@@ -3307,7 +3323,8 @@ export default function CitySelection() {
                 <svg viewBox="0 0 24 24" fill="none" className="size-[15px] shrink-0">
                   <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#d2632b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Not allocated
+                
+                {t('Not allocated')}
                 <span className="font-normal text-[#8a938e]">· {unallocatedCountZ} members</span>
               </p>
               <div className="flex flex-col gap-[8px]">
@@ -3365,7 +3382,7 @@ export default function CitySelection() {
       dataTour="city-confirm"
       caption={isRequest ? 'Request' : 'Allocation'}
       title={isRequest ? 'Submit for approval' : `Close in ${fmtHHMMSS(allocationTimer)}`}
-      button={isRequest ? 'Request' : 'Done'}
+      button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
     >
@@ -3399,7 +3416,7 @@ export default function CitySelection() {
       dataTour="city-confirm"
       caption={isRequest ? 'Request' : 'Allocation'}
       title={isRequest ? 'Submit for approval' : `Close in ${fmtHHMMSS(allocationTimer)}`}
-      button={isRequest ? 'Request' : 'Done'}
+      button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
     />
@@ -3544,7 +3561,7 @@ export default function CitySelection() {
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? 'Remove all' : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
             </button>
           )}
           {/* Swap all — shown when the user has reservation(s) in another city and picks a different one.
@@ -3575,7 +3592,7 @@ export default function CitySelection() {
           </svg>
           {activeCity ? (
             <p className="text-[13px] font-semibold leading-[18px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
+              {isRequest ? t('Requested') : t('Selected')} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
             </p>
           ) : (
             <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
@@ -3659,7 +3676,7 @@ export default function CitySelection() {
                     allGroupsAssigned={allGroupsAssigned}
                     onSwapAll={swapAllToActiveCity}
                     anySwappable={anySwappable}
-                    topLabel="Top preferred city"
+                    topLabel={t('Top preferred city')}
                     isRequest={isRequest}
                     isCurrentCity={hostIsCurrentCity}
                   />
@@ -3705,9 +3722,9 @@ export default function CitySelection() {
                 <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
                   <StepIndicator
                     steps={[
-                      { label: 'City', done: activeCity !== null || groupCityMap.size > 0 },
+                      { label: t('City'), done: activeCity !== null || groupCityMap.size > 0 },
                       // Same-day-flow (or modify-city-zone): Zone opens alongside City on this combined screen.
-                      ...(showCombined ? [{ label: 'Zone', done: activeCity !== null || groupCityMap.size > 0 }] : []),
+                      ...(showCombined ? [{ label: t('Zone'), done: activeCity !== null || groupCityMap.size > 0 }] : []),
                       { label: `Members ${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
                     ]}
                   />
@@ -3718,7 +3735,7 @@ export default function CitySelection() {
                         <path d="M9 16.4995C7.675 16.4995 6.59375 16.2901 5.75625 15.8714C4.91875 15.4526 4.5 14.912 4.5 14.2495C4.5 14.012 4.55313 13.7933 4.65938 13.5933C4.76563 13.3933 4.925 13.2058 5.1375 13.0308C5.3125 12.9058 5.50313 12.8558 5.70938 12.8808C5.91563 12.9058 6.08125 13.0058 6.20625 13.1808C6.33125 13.3558 6.37813 13.5464 6.34688 13.7526C6.31563 13.9589 6.2125 14.1245 6.0375 14.2495C6.2 14.4495 6.575 14.6245 7.1625 14.7745C7.75 14.9245 8.3625 14.9995 9 14.9995C9.6375 14.9995 10.25 14.9245 10.8375 14.7745C11.425 14.6245 11.8 14.4495 11.9625 14.2495C11.7875 14.1245 11.6844 13.9589 11.6531 13.7526C11.6219 13.5464 11.6688 13.3558 11.7938 13.1808C11.9188 13.0058 12.0844 12.9058 12.2906 12.8808C12.4969 12.8558 12.6875 12.9058 12.8625 13.0308C13.075 13.2058 13.2344 13.3933 13.3406 13.5933C13.4469 13.7933 13.5 14.012 13.5 14.2495C13.5 14.912 13.0813 15.4526 12.2438 15.8714C11.4063 16.2901 10.325 16.4995 9 16.4995ZM9.01875 12.3745C10.2563 11.462 11.1875 10.5464 11.8125 9.62764C12.4375 8.70889 12.75 7.78701 12.75 6.86201C12.75 5.58701 12.3438 4.62451 11.5313 3.97451C10.7188 3.32451 9.875 2.99951 9 2.99951C8.125 2.99951 7.28125 3.32451 6.46875 3.97451C5.65625 4.62451 5.25 5.58701 5.25 6.86201C5.25 7.69951 5.55625 8.57139 6.16875 9.47764C6.78125 10.3839 7.73125 11.3495 9.01875 12.3745ZM8.55 13.8183C8.4 13.7683 8.2625 13.6933 8.1375 13.5933C6.6625 12.4183 5.5625 11.2714 4.8375 10.1526C4.1125 9.03389 3.75 7.93701 3.75 6.86201C3.75 5.97451 3.90937 5.19639 4.22813 4.52764C4.54688 3.85889 4.95625 3.29951 5.45625 2.84951C5.95625 2.39951 6.51875 2.06201 7.14375 1.83701C7.76875 1.61201 8.3875 1.49951 9 1.49951C9.6125 1.49951 10.2313 1.61201 10.8563 1.83701C11.4813 2.06201 12.0438 2.39951 12.5438 2.84951C13.0438 3.29951 13.4531 3.85889 13.7719 4.52764C14.0906 5.19639 14.25 5.97451 14.25 6.86201C14.25 7.93701 13.8875 9.03389 13.1625 10.1526C12.4375 11.2714 11.3375 12.4183 9.8625 13.5933C9.7375 13.6933 9.6 13.7683 9.45 13.8183C9.3 13.8683 9.15 13.8933 9 13.8933C8.85 13.8933 8.7 13.8683 8.55 13.8183ZM9 8.24951C9.4125 8.24951 9.76563 8.10264 10.0594 7.80889C10.3531 7.51514 10.5 7.16201 10.5 6.74951C10.5 6.33701 10.3531 5.98389 10.0594 5.69014C9.76563 5.39639 9.4125 5.24951 9 5.24951C8.5875 5.24951 8.23438 5.39639 7.94063 5.69014C7.64688 5.98389 7.5 6.33701 7.5 6.74951C7.5 7.16201 7.64688 7.51514 7.94063 7.80889C8.23438 8.10264 8.5875 8.24951 9 8.24951Z" fill="#c8842a" />
                       </svg>
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
+                        {isRequest ? t('Requested') : t('Selected')} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
                       </span>
                     </span>
                   )}
@@ -3737,7 +3754,7 @@ export default function CitySelection() {
                       }`}
                       style={{ fontFamily: FONT }}
                     >
-                      {allGroupsAssigned ? 'Remove all' : isRequest ? 'Request all' : 'Select all'}
+                      {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
                     </button>
                   )}
                   {/* Desktop "Swap all" used to live here too, but every case now has its own inline
@@ -3763,7 +3780,7 @@ export default function CitySelection() {
                     activeCity={activeCity}
                     onReserveGroup={reserveGroupToActiveCity}
                     onRemoveGroup={removeGroupCity}
-                    onBlockedCity={() => showToast('Please choose a different city.')}
+                    onBlockedCity={() => showToast(t('Please choose a different city.'))}
                     isAutoGroup={isAutoGroup}
                     isLockedGroup={isLockedGroup}
                     isRequest={isRequest}

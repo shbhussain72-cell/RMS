@@ -13,18 +13,18 @@ Source: `src/i18n/lsd.json`, generated from `RMS_Mumineen_LSD_wordlist_v4.xlsx` 
 
 | Class | Rows | % of dictionary |
 |---|---:|---:|
-| Total entries | 1079 | 100.0% |
-| Corrupted English keys | 4 | 0.4% |
-| Mojibake values | 193 | 17.9% |
+| Total entries | 1078 | 100.0% |
+| Corrupted English keys | 0 | 0.0% |
+| Mojibake values | 190 | 17.6% |
 | Empty values | 5 | 0.5% |
-| Identity pass-throughs | 15 | 1.4% |
-| **Distinct defective rows** | **215** | **19.9%** |
-| **Usable rows** | **864** | **80.1%** |
+| Identity pass-throughs | 7 | 0.6% |
+| **Distinct defective rows** | **202** | **18.7%** |
+| **Usable rows** | **876** | **81.3%** |
 
 Classes overlap — a corrupted key can also hold a mojibake value — so the four counts
 sum to more than the distinct-defective total.
 
-## 1. Corrupted English keys (4)
+## 1. Corrupted English keys (0)
 
 The English column contains Arabic-script characters. The app looks up by English
 string, so these rows can never match anything on screen: the translation is stranded
@@ -41,12 +41,8 @@ Two kinds, same consequence:
 
 | Page | Kind | Key as stored | Marks | Latin remnant |
 |---|---|---|---|---|
-| 61 (8 pages) | arabic-in-key | `Colombo موضع الفصل` | — | Colombo |
-| 7 (41 pages) | arabic-in-key | `موضع الفصل` | — | — |
-| 7 (6 pages) | arabic-in-key | `موضع الفصل registrations may close early once capacity is reached.` | — | registrations may close early once capacity is reached |
-| 1 (38 pages) | invisible-mark | `‏Registration` | U+200F | Registration |
 
-## 2. Mojibake values (193)
+## 2. Mojibake values (190)
 
 Doubled consonants — ثث سس طط ضض صص ظظ — are the signature of a legacy non-Unicode
 Dawat font transcoded byte-by-byte: one glyph in the old encoding becomes two identical
@@ -87,7 +83,6 @@ in the wordlist. Page numbers are included for exactly that purpose.
 | ManageReservations | Cancel your zone selection? | اْثثنو اختيار الموضع هضضاوو؟ | ثث ضض |
 | 84 (7 pages) | Change your zone | ‏اْثثنو zone بدلو | ثث |
 | 27 | Check your group before submitting. You can go back to edit any step. | اْثث نو گروپ جوئي لو. بدلوا واسطے اْثث پاچھا جئي سكو چھو. | ثث |
-| 7 (6 pages) | Children below 10 years of age must be assigned to a parent or guardia… | ‏10 ورس سي ناهنا فرزندو نے اْگل ودھوا ثثظظلا اهنا والدين يا ولي ساتھے … | ثث ظظ |
 | 34 (7 pages) | Choose how you'd like to update your reservation. Only the options app… | ‏اْثث reservation  كئي طرح بدلوا چاهو چھو يھ چنو. | ثث |
 | added | Choose what you'd like to cancel for this reservation. | ‏اْ reservation ما سي اْثث شوںهضضاؤا چاهو چھو يھ اختيار كرو. | ثث ضض |
 | 94 | City Selection has opened. Your responses can no longer be changed | اختيار ‏الشہر كھلي گيو چھے. اْثثنا جوابو هوے بدلي نهيطط سكائسس | ثث سس طط |
@@ -162,7 +157,6 @@ in the wordlist. Page numbers are included for exactly that purpose.
 | 14 | Previous | ثثاححل | ثث |
 | 91 | Raza issues on | ‏رزا تهاسسس: | سس |
 | 3 | Register for an event / Sign up yourself or your family | ‏ميقات واسطے Register كرو / اْثث پوتے يا اْثثنا اهل نے Register كرو | ثث |
-| 7 (5 pages) | Registration closes on 5 June 2026 at 11:59 PM. Complete all group reg… | ‏Registration 5 June 2026 نسس  راتسس 11:59 واجسس بند تھاسے. اْخري تاري… | سس |
 | 2 | Registration has closed. This Miqaat can no longer be Registered for. | ‏Registration بند تھئي گئي چھے. اْ ميقات واسطے هوے Register نهيطط تهئي… | سس طط |
 | 14 | Relationship labels: (You) | ‏رشته نا عجديدن: ﴿اْثث﴾ | ثث |
 | 118 | Relay 7 preferences available | ‏7 احب ريلسس مواضع موجود | سس |
@@ -250,7 +244,6 @@ in the wordlist. Page numbers are included for exactly that purpose.
 | 4 (2 pages) | Zone selection has closed. This window closed before a zone was alloca… | ‏اختيار الموضع بند تھئي گئي چھے. zone ني تعيين تهائي اهنا پہلا اْ وقت … | ثث |
 | 96 (2 pages) | Zone selection is now open for Colombo. Pick your zone before it close… | ‏﴿شہر﴾ واسطے اختيار الموضع هوے كھلي چھے. 21 Jun نا روز بند تھايھ اهنا … | ثث |
 | 51 | people ahead of you | اْثثنا اْگل نا افراد | ثث |
-| 7 (6 pages) | موضع الفصل registrations may close early once capacity is reached. | ‏گنجائش پوري تھئي جاسسس تو موضع الفصل ني ‏Registration جلدي بند تھئي س… | سس |
 
 ## 3. Empty values (5)
 
@@ -264,7 +257,23 @@ Row exists, LSD cell blank. Renders English.
 | 1 | Remember Me |
 | 73 | Your slot is temporarily held while the timer runs. Tap Confirm before it expires to compl… |
 
-## 4. Identity pass-throughs (15)
+## 3b. Sentinel rows — awaiting a decision (5)
+
+These cells hold an INSTRUCTION, not a translation. The wordlist owner wrote a keyword
+where the LSD text goes; nobody has yet decided what the string should say, so **the app
+shows English** in the meantime. They are listed apart from the empty rows above because
+the action needed differs: an empty row needs someone to translate it, a sentinel row
+needs someone to say what was meant.
+
+| Page | English key | Cell contains |
+|---|---|---|
+| — | Children below 10 years of age must be assigned to a parent or guardian before p… | `remove` |
+| — | Host City registrations may close early once capacity is reached. | `remove` |
+| — | Registration closes on 5 June 2026 at 11:59 PM. Complete all group registrations… | `remove` |
+| — | Tickets will only be generated after all required approvals are completed. | `remove` |
+| — | Venue allocation is subject to availability and capacity limits. | `remove` |
+
+## 4. Identity pass-throughs (7)
 
 LSD value equals the English key (compared with zero-width direction marks stripped,
 since the build step prefixes U+200F to mixed-script values).
@@ -275,21 +284,31 @@ owner's decision.
 
 | Page | English key = LSD value |
 |---|---|
-| 96 (2 pages) | 248 KB |
-| calendar | AM |
 | persistent | Home |
-| calendar | IST |
-| 14 (2 pages) | ITS |
-| 1 | ITS ID |
-| 96 (2 pages) | PDF |
-| calendar | PM |
+| Login | ITS id |
 | 2 (22 pages) | Registered |
 | 19 (2 pages) | Soft Diet |
 | 15 (2 pages) | Tap to upload visa (PDF) |
 | countdown | d |
 | countdown | h |
-| 20 | mm/dd/yyyy |
-| 7 (41 pages) | موضع الفصل |
+
+## 4b. Identity by policy — no action needed (9)
+
+These also read the same in both languages, and that is **correct**. They are acronyms,
+units, format masks and agreed loanwords — see `docs/loanword-policy.md`. They are listed
+so it is clear they were considered, not overlooked.
+
+| English key | Why identity is right |
+|---|---|
+| 248 KB | File size: digits plus an SI unit. Neither half is language. |
+| AM | Clock meridiem. Rendered inside an LTR isolate by formatTime(). |
+| IST | Timezone acronym; unambiguous only in its Latin form. |
+| ITS | System name. ITS is the identity platform itself, not a describable noun. |
+| ITS ID | System name + universally-used field label. |
+| PDF | File-format acronym; printed on the file itself. |
+| PM | Clock meridiem. Rendered inside an LTR isolate by formatTime(). |
+| Registration | Loanword (see loanwords.words). Currently stored lower-cased, which is why it reads as an identity pass-through rather than a translation. |
+| mm/dd/yyyy | Date-format mask — an instruction about literal characters to type. |
 
 ## 5. DOM scanner baseline (A/B/C)
 
@@ -309,28 +328,401 @@ button, then committing the totals here. See `artifacts/audit/` for the matching
 screenshots.
 
 <!-- SCANNER_BASELINE_START -->
-
-Captured by `node scripts/scan-baseline.mjs --write` over **25 routes** at **390px and 1440px**
-(50 route visits). Both breakpoints are required: ~87 blocks in this app are
-gated behind `sm:hidden` / `hidden sm:flex`, so a desktop-only pass cannot see the
-mobile markup at all — it is `display:none`, and the scanner correctly ignores nodes
-that are not rendered.
-
-| Class | Meaning | Count |
-|---|---|---:|
-| **A** | translated, not wired | 19 |
-| **B** | key exists, value empty or identity | 3 |
-| **C** | no dictionary key | 20 |
-| | **Distinct English strings on screen** | **42** |
-
-**Known blind spots** — this number is a floor, not a ceiling:
-
-- Interaction-gated UI (modals, bottom sheets, dropdowns, toasts, the tour overlay)
-  is never mounted by a plain navigation, so its copy is not counted.
-- Only two of the four audited widths are scanned.
-- Only one miqaat fixture (`ashara-1448`) and one auth state are exercised.
-
-Full per-string detail incl. routes: `artifacts/audit/dom-scan.json` (regenerated, not committed).
-
+_Not yet captured. Run the app in LSD, walk the routes, export from the panel._
 <!-- SCANNER_BASELINE_END -->
 
+<!-- WORKLIST_START -->
+
+## 6. Strings with no wordlist row (242)
+
+**This is the list to translate.** Each of these is rendered on screen and has no row in
+the wordlist at all, so the app falls back to English. Add a row for each and the string
+starts working with no code change.
+
+Counted once per distinct string. `Seen` is how many places in the code render it — a high
+number means the string appears all over the app, so it is worth doing first.
+
+| Seen | English string | First occurrence |
+|---:|---|---|
+| 21 | 1px solid #f0ebe0 | `src/screens/Araz.tsx:418` |
+| 16 | registered together | `src/screens/ArrangeCities.tsx:421` |
+| 13 | Request | `src/screens/CitySelection.tsx:630` |
+| 10 | 1.5px solid #c5a84d | `src/screens/ArrangeCities.tsx:157` |
+| 10 | 1.5px solid #e7dfc9 | `src/screens/ArrangeCities.tsx:262` |
+| 10 | Select all | `src/screens/AddPeople.tsx:242` |
+| 9 | Enter | `src/screens/AddPeople.tsx:74` |
+| 7 | 1.5px solid #1f5a44 | `src/screens/CitySelection.tsx:628` |
+| 7 | Select | `src/screens/CitySelection.tsx:630` |
+| 6 | Allocation | `src/screens/CitySelection.tsx:1280` |
+| 5 | Action | `src/screens/Araz.tsx:407` |
+| 5 | All | `src/screens/HostCityMove.tsx:496` |
+| 5 | Host city | `src/screens/ArrangeCities.tsx:105` |
+| 5 | Relay city | `src/screens/ArrangeCities.tsx:105` |
+| 5 | Request all | `src/screens/CitySelection.tsx:842` |
+| 4 | 1px solid #e7dfc9 | `src/screens/CitySelection.tsx:3100` |
+| 4 | Araz · Preferred City | `src/screens/Araz.tsx:696` |
+| 4 | Go home | `src/screens/Araz.tsx:696` |
+| 4 | Raza Status | `src/screens/CitySelection.tsx:3086` |
+| 4 | Swap all to | `src/screens/CitySelection.tsx:1967` |
+| 4 | Zone confirmed | `src/screens/CitySelection.tsx:3225` |
+| 4 | translateY(0) | `src/screens/MiqaatList.tsx:1093` |
+| 4 | var(--content-px) | `src/components/figma/AppBar.tsx:146` |
+| 4 | — select members below | `src/screens/HostCityMove.tsx:2095` |
+| 3 | 1.5px dashed #d3c8ac | `src/screens/CitySelection.tsx:639` |
+| 3 | 2px solid #e7dfc9 | `src/screens/ArrangeCities.tsx:83` |
+| 3 | For | `src/screens/AddPeople.tsx:1131` |
+| 3 | Invitation declined | `src/screens/MiqaatList.tsx:1174` |
+| 3 | Other Cities ( | `src/screens/ArrangeCities.tsx:226` |
+| 3 | Switch all | `src/screens/HostCityMove.tsx:870` |
+| 3 | Their city | `src/screens/CitySelection.tsx:660` |
+| 3 | You're selected in | `src/screens/CitySelection.tsx:554` |
+| 3 | calc(50% + 18px) | `src/screens/ArrangeCities.tsx:436` |
+| 3 | · Choose an adult family member | `src/screens/AddPeople.tsx:1134` |
+| 3 | — do you want to swap it? | `src/screens/CitySelection.tsx:554` |
+| 2 | 0.2px | `src/screens/Roster.tsx:50` |
+| 2 | 1.5px solid #c2a04e | `src/screens/CitySelection.tsx:862` |
+| 2 | 1.5px solid #e0cc93 | `src/screens/ArrangeCities.tsx:113` |
+| 2 | 1317.46px 785px | `src/screens/Success.tsx:62` |
+| 2 | 1934.318px 1870.467px | `src/screens/Success.tsx:64` |
+| 2 | 2.5px | `src/screens/Roster.tsx:164` |
+| 2 | CURRENT | `src/screens/HostCityMove.tsx:1090` |
+| 2 | Choose the Relay City radio, then pick a city from the dropdown for each member. | `src/screens/Araz.tsx:793` |
+| 2 | Deselect all | `src/screens/AddPeople.tsx:242` |
+| 2 | Edit Registration Form | `src/screens/EditRegistrationForm.tsx:77` |
+| 2 | Headcount | `src/screens/Review.tsx:319` |
+| 2 | Link | `src/screens/ManageReservations.tsx:337` |
+| 2 | MIQ-23106 | `src/screens/CitySelection.tsx:3241` |
+| 2 | My family | `src/screens/Review.tsx:320` |
+| 2 | Not confirmed | `src/components/questionnaire/QuestionnaireFields.tsx:358` |
+| 2 | People in your reservation | `src/screens/AddPeople.tsx:590` |
+| 2 | Relay | `src/screens/ArrangeCities.tsx:176` |
+| 2 | Role | `src/screens/CitySelection.tsx:3086` |
+| 2 | Selected zone | `src/screens/ZoneSelection.tsx:1609` |
+| 2 | Submit for approval | `src/screens/CitySelection.tsx:3384` |
+| 2 | Submit request | `src/screens/HostCityMove.tsx:1951` |
+| 2 | Submitted | `src/screens/Araz.tsx:715` |
+| 2 | Swap to | `src/screens/CitySelection.tsx:1510` |
+| 2 | This removes | `src/screens/ManageReservations.tsx:981` |
+| 2 | Total | `src/screens/Review.tsx:319` |
+| 2 | Update guardian | `src/screens/AddPeople.tsx:1187` |
+| 2 | before City Selection opens. | `src/screens/EditRegistrationForm.tsx:109` |
+| 2 | brightness(0) invert(1) | `src/screens/CitySelection.tsx:113` |
+| 2 | calc(50% + 34px) | `src/screens/ManageReservations.tsx:708` |
+| 2 | can&apos;t be left without a guardian. Choose one: | `src/screens/ManageReservations.tsx:324` |
+| 2 | cursor-not-allowed opacity-50 | `src/screens/Login.tsx:93` |
+| 2 | linear-gradient(215deg, #0E2D21 0%, #15402F 50%, #1F5A44 100%) | `src/screens/MiqaatDetail.tsx:1038` |
+| 2 | linear-gradient(220deg, #0E2D21 0%, #15402F 50%, #1F5A44 100%) | `src/components/figma/AppBar.tsx:103` |
+| 2 | members below | `src/screens/CitySelection.tsx:3595` |
+| 2 | sm:grid-cols-2 | `src/screens/MiqaatList.tsx:1122` |
+| 2 | to someone staying. so they keep their place. | `src/screens/ManageReservations.tsx:337` |
+| 2 | translateY(-100%) | `src/screens/MiqaatList.tsx:1093` |
+| 2 | zones ( | `src/screens/HostCityMove.tsx:948` |
+| 2 | · Dependent | `src/screens/AddPeople.tsx:1026` |
+| 1 | &apos;s part stays pending until they confirm. | `src/screens/ManageReservations.tsx:1120` |
+| 1 | &apos;s reservation is tied to yours. Link | `src/screens/ManageReservations.tsx:889` |
+| 1 | &apos;s spot is safe. | `src/screens/ManageReservations.tsx:700` |
+| 1 | (Demo) Approve request | `src/chat/AskHelpChat.tsx:193` |
+| 1 | (Demo) Tap the card to view details, or Simulate Approval to continue. | `src/screens/MiqaatList.tsx:659` |
+| 1 | (Demo) Tap to advance the demo. | `src/components/figma/DemoProgressionControl.tsx:58` |
+| 1 | 0 seats | `src/screens/ManageReservations.tsx:136` |
+| 1 | 1px solid #e8d9a8 | `src/screens/ManageReservations.tsx:1103` |
+| 1 | 1px solid #f4f0e6 | `src/screens/ManageReservations.tsx:234` |
+| 1 | 2px solid #c2a04e | `src/screens/CitySelection.tsx:772` |
+| 1 | 2px solid #c9bd9e | `src/components/figma/StepIndicator.tsx:19` |
+| 1 | 2px solid #e3decf | `src/screens/CitySelection.tsx:772` |
+| 1 | A confirmation request goes to | `src/screens/ManageReservations.tsx:1120` |
+| 1 | Accepted | `src/screens/AddPeople.tsx:146` |
+| 1 | Actions | `src/screens/ManageReservations.tsx:1152` |
+| 1 | Add a city, or skip to continue | `src/screens/PreferredCity.tsx:704` |
+| 1 | Add caregiver | `src/screens/AddPeople.tsx:1187` |
+| 1 | After this, booking opens to everyone in | `src/screens/CitySelection.tsx:963` |
+| 1 | Allocate | `src/screens/ZoneSelection.tsx:1460` |
+| 1 | Already in | `src/screens/HostCityMove.tsx:1199` |
+| 1 | Announced later | `src/screens/Araz.tsx:707` |
+| 1 | Araz status | `src/screens/Araz.tsx:714` |
+| 1 | Assign caregiver | `src/screens/AddPeople.tsx:1128` |
+| 1 | At the exact start time everyone on this page is assigned a | `src/screens/CitySelection.tsx:127` |
+| 1 | Cancels | `src/screens/ManageReservations.tsx:1567` |
+| 1 | Choose | `src/screens/CitySelection.tsx:3599` |
+| 1 | Choose the Host City radio for each member in the table below. | `src/screens/Araz.tsx:792` |
+| 1 | Choose the Host City radio for each member in the table. | `src/screens/Araz.tsx:830` |
+| 1 | City Selection is only available for those with | `src/screens/CitySelection.tsx:132` |
+| 1 | City arrangement | `src/screens/ArrangeCities.tsx:675` |
+| 1 | City updated successfully | `src/screens/HostCityMove.tsx:643` |
+| 1 | Complete the newly added question | `src/screens/MiqaatDetail.tsx:548` |
+| 1 | Confirm in | `src/screens/CitySelection.tsx:1687` |
+| 1 | Current allocation · | `src/screens/CitySelection.tsx:530` |
+| 1 | Edit Araz | `src/components/figma/ArazCard.tsx:24` |
+| 1 | Editable until City Selection · | `src/screens/MiqaatDetail.tsx:594` |
+| 1 | Final allocation | `src/screens/Araz.tsx:706` |
+| 1 | Guardian removed | `src/screens/HostCityMove.tsx:2310` |
+| 1 | Hide members | `src/chat/AskHelpChat.tsx:148` |
+| 1 | Invitation accepted | `src/screens/MiqaatList.tsx:1173` |
+| 1 | Invited by | `src/components/figma/InvitationPopup.tsx:76` |
+| 1 | It stays reserved until | `src/screens/ManageReservations.tsx:701` |
+| 1 | Location | `src/screens/ManageReservations.tsx:1152` |
+| 1 | Max | `src/components/figma/VisaUploadCard.tsx:131` |
+| 1 | Members submitted | `src/screens/Araz.tsx:716` |
+| 1 | Move yourself to another zone in | `src/screens/ManageReservations.tsx:488` |
+| 1 | Moving to | `src/screens/ManageReservations.tsx:1518` |
+| 1 | Not allocated yet · | `src/chat/AskHelpChat.tsx:333` |
+| 1 | Not attending? Reassign | `src/screens/ManageReservations.tsx:885` |
+| 1 | Now linked to | `src/screens/ManageReservations.tsx:800` |
+| 1 | Pick one zone and apply it to every selected member | `src/screens/CitySelection.tsx:1294` |
+| 1 | Please complete | `src/screens/EditRegistrationForm.tsx:109` |
+| 1 | REQUESTED | `src/screens/HostCityMove.tsx:1279` |
+| 1 | Raza Issued | `src/screens/RazaView.tsx:26` |
+| 1 | Raza Pending | `src/screens/RazaView.tsx:26` |
+| 1 | Raza has not been issued yet for your group. | `src/screens/RazaView.tsx:31` |
+| 1 | Ready for Registration | `src/screens/Review.tsx:282` |
+| 1 | Refreshing may cause you to lose your queue position. | `src/screens/CitySelection.tsx:168` |
+| 1 | Remove Caregiver | `src/screens/AddPeople.tsx:1179` |
+| 1 | Request to | `src/screens/HostCityMove.tsx:1200` |
+| 1 | Reserves with | `src/chat/AskHelpChat.tsx:162` |
+| 1 | Reviewing the people and details on this registration. Tap | `src/screens/AddPeople.tsx:947` |
+| 1 | Sat, 21 Jun, 2026 | `src/screens/JoinGroup.tsx:94` |
+| 1 | Save Preferences | `src/screens/Araz.tsx:771` |
+| 1 | Search a city to add | `src/screens/PreferredCity.tsx:306` |
+| 1 | Search cities | `src/screens/PreferredCity.tsx:306` |
+| 1 | Select a city for your members first | `src/screens/CitySelection.tsx:1294` |
+| 1 | Select relay city | `src/screens/Araz.tsx:206` |
+| 1 | Some members haven&apos;t been allocated to a | `src/components/figma/ConfirmedView.tsx:212` |
+| 1 | Submit a registration request | `src/screens/Review.tsx:282` |
+| 1 | Submit your preferences | `src/screens/Araz.tsx:770` |
+| 1 | Swap to · | `src/screens/CitySelection.tsx:542` |
+| 1 | There is | `src/screens/CitySelection.tsx:119` |
+| 1 | This | `src/screens/HostCityMove.tsx:617` |
+| 1 | This member has | `src/components/figma/InvitePopups.tsx:75` |
+| 1 | This queue will open on | `src/screens/CitySelection.tsx:116` |
+| 1 | To | `src/chat/AskHelpChat.tsx:177` |
+| 1 | Update caregiver | `src/screens/AddPeople.tsx:1187` |
+| 1 | Update preferences | `src/screens/Araz.tsx:771` |
+| 1 | Update your preferences | `src/screens/Araz.tsx:770` |
+| 1 | Uploading… | `src/components/figma/VisaUploadCard.tsx:128` |
+| 1 | View members | `src/chat/AskHelpChat.tsx:148` |
+| 1 | Was linked to | `src/screens/ManageReservations.tsx:781` |
+| 1 | You need | `src/components/figma/InvitePopups.tsx:117` |
+| 1 | You&apos;re no longer dependent for | `src/screens/ManageReservations.tsx:839` |
+| 1 | You&apos;ve sent a transfer request to | `src/screens/ManageReservations.tsx:941` |
+| 1 | Your city allocation has been updated. | `src/screens/HostCityMove.tsx:646` |
+| 1 | Your family( | `src/screens/Roster.tsx:355` |
+| 1 | Your group has been allocated as shown below. | `src/screens/RazaView.tsx:30` |
+| 1 | Your members ( | `src/screens/ArrangeCities.tsx:695` |
+| 1 | Your preferred Host and Relay City choices have been recorded through the Araz process. T… | `src/screens/Araz.tsx:729` |
+| 1 | Your registered Miqaats that require your attention. | `src/screens/MiqaatList.tsx:1117` |
+| 1 | Your registration is confirmed. You can still update your accommodation, travel, food, an… | `src/screens/EditRegistrationForm.tsx:90` |
+| 1 | Your zone allocation has been updated. | `src/screens/HostCityMove.tsx:646` |
+| 1 | Zone allocated | `src/chat/AskHelpChat.tsx:327` |
+| 1 | a city above to start | `src/screens/CitySelection.tsx:3599` |
+| 1 | a dependent | `src/components/figma/InvitePopups.tsx:78` |
+| 1 | a linked dependent | `src/components/figma/InvitePopups.tsx:75` |
+| 1 | accepts it. | `src/screens/ManageReservations.tsx:941` |
+| 1 | accepts or the request expires. | `src/screens/ManageReservations.tsx:701` |
+| 1 | added. | `src/screens/EditRegistrationForm.tsx:108` |
+| 1 | allocation closes on | `src/components/figma/ConfirmedView.tsx:212` |
+| 1 | allocation opens | `src/components/figma/ConfirmedView.tsx:196` |
+| 1 | and a completed registration. | `src/screens/CitySelection.tsx:132` |
+| 1 | and do not confirm or reserve your final city allocation — final assignments are announce… | `src/screens/Araz.tsx:730` |
+| 1 | and your registration is unchanged. | `src/screens/ManageReservations.tsx:1016` |
+| 1 | awaiting approval | `src/screens/HostCityMove.tsx:2236` |
+| 1 | bg-white/20 text-white | `src/screens/ManageReservations.tsx:1662` |
+| 1 | border-color 200ms ease-out, transform 200ms ease-out | `src/components/figma/Checkbox.tsx:30` |
+| 1 | but only have | `src/components/figma/InvitePopups.tsx:117` |
+| 1 | calc(100% + 8px) | `src/components/figma/NotificationPanel.tsx:252` |
+| 1 | calc(16.666% + 26px) | `src/screens/ManageReservations.tsx:710` |
+| 1 | calc(16.666% + 34px) | `src/screens/ManageReservations.tsx:708` |
+| 1 | calc(16.666% + 40px) | `src/screens/ManageReservations.tsx:709` |
+| 1 | change will be sent to the admin for approval. | `src/screens/HostCityMove.tsx:617` |
+| 1 | cursor-default bg-white | `src/screens/ZoneSelection.tsx:800` |
+| 1 | cursor-pointer opacity-100 | `src/screens/Login.tsx:93` |
+| 1 | cursor-pointer sm:hover:scale-110 sm:active:scale-90 | `src/components/figma/Checkbox.tsx:23` |
+| 1 | equal chance | `src/screens/CitySelection.tsx:127` |
+| 1 | for all. | `src/screens/CitySelection.tsx:127` |
+| 1 | from your reservation. You stay in | `src/screens/ManageReservations.tsx:1016` |
+| 1 | from your reservation. Your registration stays intact. | `src/screens/ManageReservations.tsx:981` |
+| 1 | give you an earlier position. | `src/screens/CitySelection.tsx:126` |
+| 1 | has invited you to join their group for | `src/components/figma/InvitationPopup.tsx:78` |
+| 1 | in a different city. You can pick a zone there afterwards. | `src/screens/ManageReservations.tsx:400` |
+| 1 | is linked to | `src/components/figma/InvitePopups.tsx:78` |
+| 1 | is reserved together with you. Transfer | `src/screens/ManageReservations.tsx:943` |
+| 1 | lg:shrink-0 | `src/screens/MiqaatDetail.tsx:121` |
+| 1 | linear-gradient(135deg,#f3f7f2 0%,#fbf7ec 60%,#f7efd8 100%) | `src/components/figma/ArazCard.tsx:14` |
+| 1 | linear-gradient(180deg,#fef6ea 0%,#fdf1e2 100%) | `src/screens/Araz.tsx:143` |
+| 1 | linear-gradient(90deg,#a8843e,#e3cd96) | `src/screens/CitySelection.tsx:159` |
+| 1 | linear-gradient(to bottom, #15402F 0%, #1F5A44 78%) | `src/screens/MiqaatList.tsx:677` |
+| 1 | linked dependents | `src/components/figma/InvitePopups.tsx:75` |
+| 1 | members · uses | `src/screens/InviteMehmaan.tsx:269` |
+| 1 | new question | `src/screens/EditRegistrationForm.tsx:108` |
+| 1 | opacity 120ms ease, transform 120ms ease | `src/screens/PreferredCity.tsx:189` |
+| 1 | place. | `src/screens/ManageReservations.tsx:885` |
+| 1 | preferences only | `src/screens/Araz.tsx:730` |
+| 1 | preferences submitted | `src/screens/Araz.tsx:717` |
+| 1 | random queue position | `src/screens/CitySelection.tsx:127` |
+| 1 | red · Accepted by | `src/screens/ManageReservations.tsx:772` |
+| 1 | scale(0.97) | `src/screens/PreferredCity.tsx:188` |
+| 1 | terms and conditions | `src/components/questionnaire/QuestionnaireFields.tsx:638` |
+| 1 | then. | `src/components/figma/ConfirmedView.tsx:196` |
+| 1 | this member | `src/screens/ManageReservations.tsx:1567` |
+| 1 | to another attending adult before you withdraw. | `src/screens/ManageReservations.tsx:889` |
+| 1 | to another guardian | `src/screens/ManageReservations.tsx:896` |
+| 1 | to another guardian first, then you can cancel your reservation. | `src/screens/ManageReservations.tsx:943` |
+| 1 | to change your group, guardians, or details. | `src/screens/AddPeople.tsx:947` |
+| 1 | to keep | `src/screens/ManageReservations.tsx:885` |
+| 1 | transform 200ms cubic-bezier(0.2,0,0,1) | `src/screens/PreferredCity.tsx:189` |
+| 1 | transform 260ms cubic-bezier(0.22,1,0.36,1), opacity 240ms ease | `src/screens/MiqaatList.tsx:1298` |
+| 1 | translateY(-10px) | `src/screens/MiqaatList.tsx:1296` |
+| 1 | translateY(-14px) | `src/components/figma/InvitationBanner.tsx:65` |
+| 1 | url(#loc-mask) | `src/screens/PreferredCity.tsx:64` |
+| 1 | valid travel documents | `src/screens/CitySelection.tsx:132` |
+| 1 | w-full justify-between | `src/screens/ZoneSelection.tsx:267` |
+| 1 | who will be added with them. | `src/components/figma/InvitePopups.tsx:78` |
+| 1 | will stay with | `src/screens/ManageReservations.tsx:337` |
+| 1 | xMidYMid slice | `src/screens/CitySelection.tsx:694` |
+| 1 | yet. You can allocate them until the | `src/components/figma/ConfirmedView.tsx:212` |
+| 1 | your attention. | `src/screens/MiqaatDetail.tsx:551` |
+| 1 | your members | `src/screens/CitySelection.tsx:3599` |
+| 1 | · Pending | `src/screens/MiqaatList.tsx:648` |
+| 1 | · Uploaded | `src/components/figma/VisaUploadCard.tsx:102` |
+| 1 | · from | `src/screens/ManageReservations.tsx:1528` |
+| 1 | — an | `src/screens/CitySelection.tsx:127` |
+| 1 | 📍 Host City | `src/screens/MiqaatDetail.tsx:298` |
+
+## 7. Data constants that reach the UI indirectly (289)
+
+These are English strings held in lookup tables and config arrays rather than written
+directly into a screen — country names, status labels, option lists. They **do** appear on
+screen, but through a render site somewhere else.
+
+They are listed separately because they cannot be wired mechanically: wrapping the value in
+a lookup table would translate the key the table is searched by and break the lookup. Each
+needs a person to find the place it is displayed and wrap it there.
+
+- **177** already have a correct translation waiting in the wordlist (no owner action needed — developer work).
+- **112** have no row yet and are included in the translation ask below.
+
+| Seen | English string | Defined at | Wordlist |
+|---:|---|---|---|
+| 39 | Mulish, system-ui, sans-serif | `src/screens/AddPeople.tsx:26` | **needs one** |
+| 33 | India | `src/screens/ArrangeCities.tsx:44` | has translation |
+| 23 | Marcellus, Georgia, serif | `src/screens/AddPeople.tsx:27` | **needs one** |
+| 17 | city_open | `src/screens/CitySelection.tsx:2170` | **needs one** |
+| 14 | Host City | `src/screens/Araz.tsx:686` | has translation |
+| 14 | raza_issued | `src/screens/MiqaatDetail.tsx:1132` | **needs one** |
+| 13 | Relay City | `src/screens/Araz.tsx:686` | has translation |
+| 11 | registered_select | `src/screens/MiqaatDetail.tsx:1134` | **needs one** |
+| 11 | zone_done | `src/screens/MiqaatDetail.tsx:1132` | **needs one** |
+| 10 | Age | `src/screens/Araz.tsx:27` | has translation |
+| 10 | host_allocated | `src/screens/MiqaatDetail.tsx:1133` | **needs one** |
+| 10 | relay_allocated | `src/screens/MiqaatDetail.tsx:1133` | **needs one** |
+| 9 | City selection | `src/screens/CitySelection.tsx:2282` | has translation |
+| 8 | City | `src/screens/HostCityMove.tsx:1931` | has translation |
+| 8 | Male | `src/screens/InviteMehmaan.tsx:228` | has translation |
+| 8 | city_done_waiting_zone | `src/screens/MiqaatDetail.tsx:1133` | **needs one** |
+| 7 | Female | `src/screens/InviteMehmaan.tsx:228` | has translation |
+| 7 | View details | `src/screens/MiqaatList.tsx:334` | has translation |
+| 7 | zone_open | `src/screens/HostCityMove.tsx:1502` | **needs one** |
+| 6 | Done | `src/screens/MiqaatDetail.tsx:640` | has translation |
+| 6 | Zone selection | `src/screens/MiqaatDetail.tsx:655` | has translation |
+| 6 | city_closed | `src/screens/MiqaatDetail.tsx:1242` | **needs one** |
+| 5 | Dependent | `src/screens/JoinGroup.tsx:33` | has translation |
+| 5 | Modify Reservation | `src/screens/CitySelection.tsx:2281` | has translation |
+| 5 | reg_closed | `src/screens/ManageReservations.tsx:1702` | **needs one** |
+| 5 | reg_not_open | `src/screens/MiqaatDetail.tsx:1191` | **needs one** |
+| 4 | Allocated | `src/screens/MiqaatDetail.tsx:648` | has translation |
+| 4 | Colombo | `src/screens/ManageReservations.tsx:1710` | has translation |
+| 4 | Please choose a different city. | `src/screens/CitySelection.tsx:2260` | has translation |
+| 4 | Please select a zone first. | `src/screens/ZoneSelection.tsx:1110` | has translation |
+| 4 | Registrant | `src/screens/JoinGroup.tsx:33` | has translation |
+| 4 | Zone | `src/screens/HostCityMove.tsx:1932` | has translation |
+| 4 | reg_open | `src/screens/ManageReservations.tsx:1702` | **needs one** |
+| 4 | reserved together | `src/screens/CityAllocation.tsx:25` | **needs one** |
+| 4 | zone_closed | `src/screens/CitySelection.tsx:2292` | **needs one** |
+| 3 | Ask Help | `src/screens/MiqaatDetail.tsx:1164` | has translation |
+| 3 | City selection closed | `src/screens/MiqaatDetail.tsx:765` | has translation |
+| 3 | Join group | `src/screens/JoinGroup.tsx:53` | has translation |
+| 3 | Madhya Pradesh | `src/screens/ArrangeCities.tsx:44` | **needs one** |
+| 3 | Manage City Layout | `src/screens/MiqaatDetail.tsx:1170` | has translation |
+| 3 | Not allocated | `src/screens/MiqaatDetail.tsx:1223` | has translation |
+| 3 | Not yet opened | `src/screens/MiqaatDetail.tsx:649` | has translation |
+| 3 | Other | `src/screens/HostCityMove.tsx:63` | has translation |
+| 3 | Please enter a valid 8-digit ITS ID. | `src/screens/AddPeople.tsx:515` | **needs one** |
+| 3 | Please select a city first. | `src/screens/CitySelection.tsx:2259` | **needs one** |
+| 3 | Please select a relay city first. | `src/screens/CitySelection.tsx:2795` | **needs one** |
+| 3 | Raza | `src/screens/MiqaatDetail.tsx:660` | has translation |
+| 3 | Select city | `src/screens/MiqaatDetail.tsx:1169` | has translation |
+| 3 | Select zone | `src/screens/MiqaatDetail.tsx:1172` | has translation |
+| 3 | Tamil Nadu | `src/screens/ArrangeCities.tsx:44` | **needs one** |
+| 3 | United Arab Emirates | `src/screens/ArrangeCities.tsx:47` | **needs one** |
+| 3 | United Kingdom | `src/screens/ArrangeCities.tsx:47` | has translation |
+| 3 | United States | `src/screens/ArrangeCities.tsx:47` | has translation |
+| 3 | Uttar Pradesh | `src/screens/ArrangeCities.tsx:45` | **needs one** |
+| 3 | West Bengal | `src/screens/ArrangeCities.tsx:44` | **needs one** |
+| 2 | (min-width: 640px) | `src/screens/AddPeople.tsx:373` | **needs one** |
+| 2 | All notifications marked as read | `src/screens/Notifications.tsx:51` | **needs one** |
+| 2 | Auto-allocated | `src/screens/MiqaatDetail.tsx:715` | has translation |
+| 2 | Choose city | `src/screens/HostCityMove.tsx:277` | **needs one** |
+| 2 | City & zone | `src/screens/CitySelection.tsx:2281` | has translation |
+| 2 | City selection open | `src/screens/MiqaatDetail.tsx:1169` | has translation |
+| 2 | DAYS | `src/screens/MiqaatList.tsx:353` | has translation |
+| 2 | Earlier | `src/screens/Notifications.tsx:25` | has translation |
+| 2 | Invitation accepted successfully | `src/screens/Notifications.tsx:56` | **needs one** |
+| 2 | Invitation sent. The member will appear here once they accept your re… | `src/screens/AddPeople.tsx:530` | has translation |
+| 2 | MIN | `src/screens/MiqaatList.tsx:355` | has translation |
+| 2 | No reservations to swap. | `src/screens/CitySelection.tsx:2722` | **needs one** |
+| 2 | Not issued yet | `src/screens/MiqaatDetail.tsx:660` | has translation |
+| 2 | Register Now | `src/screens/MiqaatDetail.tsx:1180` | has translation |
+| 2 | Register now | `src/screens/MiqaatList.tsx:335` | has translation |
+| 2 | Registration closes in | `src/screens/MiqaatList.tsx:485` | has translation |
+| 2 | Relay City preference quota reached. | `src/screens/Araz.tsx:621` | **needs one** |
+| 2 | Request received | `src/screens/JoinGroup.tsx:51` | **needs one** |
+| 2 | Requested | `src/screens/MiqaatDetail.tsx:646` | has translation |
+| 2 | Reservation confirmed | `src/screens/MiqaatDetail.tsx:1174` | has translation |
+| 2 | SEC | `src/screens/MiqaatList.tsx:356` | has translation |
+| 2 | Status | `src/components/figma/ConfirmedView.tsx:53` | has translation |
+| 2 | Swap all | `src/screens/CitySelection.tsx:719` | **needs one** |
+| 2 | Switch to | `src/screens/HostCityMove.tsx:667` | **needs one** |
+| 2 | This city is full — choose another. | `src/screens/CitySelection.tsx:2263` | has translation |
+| 2 | This member already has a pending request. Cancel it from Modify Rese… | `src/screens/HostCityMove.tsx:1731` | **needs one** |
+| 2 | Today | `src/screens/Notifications.tsx:25` | has translation |
+| 2 | Yesterday | `src/screens/Notifications.tsx:25` | has translation |
+| 2 | Zone selection closed | `src/screens/MiqaatDetail.tsx:766` | has translation |
+| 2 | linear-gradient(160deg,#0a2318 0%,#15402f 55%,#1f5a44 100%) | `src/screens/CitySelection.tsx:37` | **needs one** |
+| 2 | zone_select | `src/screens/MiqaatList.tsx:340` | **needs one** |
+| 1 | (You) | `src/screens/JoinGroup.tsx:36` | has translation |
+| 1 | (prefers-reduced-motion: reduce) | `src/components/figma/InvitationBanner.tsx:34` | **needs one** |
+| 1 | 2px solid #d9c98a | `src/screens/CitySelection.tsx:194` | **needs one** |
+| 1 | A 4-digit code was sent to your registered mobile number. Enter it to… | `src/screens/JoinGroup.tsx:64` | **needs one** |
+| 1 | A 4-digit code was sent to your registered mobile number. Enter it to… | `src/screens/JoinGroup.tsx:54` | **needs one** |
+| 1 | Accept Guardian | `src/screens/JoinGroup.tsx:63` | **needs one** |
+| 1 | Add a preferred city for at least one member first. | `src/screens/Araz.tsx:646` | **needs one** |
+| 1 | All available | `src/screens/InviteMehmaan.tsx:324` | has translation |
+| 1 | Allocate Your Group | `src/screens/CitySelection.tsx:2283` | has translation |
+| 1 | Allocate at least one member to a city before reserving. | `src/screens/CitySelection.tsx:2828` | **needs one** |
+| 1 | Allocate at least one member to a zone before reserving. | `src/screens/ZoneSelection.tsx:1260` | **needs one** |
+| 1 | Approved | `src/chat/AskHelpChat.tsx:27` | has translation |
+| 1 | Araz | `src/screens/Araz.tsx:759` | has translation |
+| 1 | Assign a guardian/caregiver for the dependent member(s) before select… | `src/screens/AddPeople.tsx:441` | **needs one** |
+| 1 | Backspace | `src/screens/JoinGroup.tsx:181` | **needs one** |
+| 1 | Bus | `src/components/questionnaire/QuestionnaireFields.tsx:30` | has translation |
+| 1 | CITY SELECTION CLOSED | `src/screens/MiqaatList.tsx:387` | has translation |
+| 1 | CITY SELECTION CLOSES IN | `src/screens/MiqaatList.tsx:388` | has translation |
+| 1 | Cancel reservation | `src/chat/AskHelpChat.tsx:228` | has translation |
+| 1 | Cancel your registration for this event | `src/chat/AskHelpChat.tsx:228` | has translation |
+| 1 | Caregiver | `src/components/figma/RoleBadge.tsx:9` | has translation |
+| 1 | Change Host City Zone | `src/screens/HostCityMove.tsx:1666` | **needs one** |
+| 1 | Change Relay City | `src/screens/HostCityMove.tsx:1665` | **needs one** |
+| 1 | Change city & zone | `src/screens/CitySelection.tsx:2283` | **needs one** |
+| 1 | Choose the members to move to the Host City. | `src/screens/HostCityMove.tsx:1941` | **needs one** |
+| 1 | City change | `src/screens/HostCityMove.tsx:1889` | has translation |
+| 1 | City opens in | `src/screens/MiqaatList.tsx:485` | has translation |
+| 1 | City selection cancelled | `src/screens/ManageReservations.tsx:2008` | has translation |
+| 1 | City selection opening soon | `src/screens/MiqaatDetail.tsx:765` | **needs one** |
+| 1 | Close City Selection | `src/components/figma/DemoProgressionControl.tsx:15` | has translation |
+| 1 | Close Registration | `src/components/figma/DemoProgressionControl.tsx:10` | has translation |
+| 1 | Close Zone Selection | `src/components/figma/DemoProgressionControl.tsx:19` | has translation |
+| 1 | Confirm | `src/screens/JoinGroup.tsx:65` | has translation |
+| 1 | Continue | `src/screens/AddPeople.tsx:561` | has translation |
+
+_Truncated to the 120 most-used; run `node scripts/static-sweep.mjs --json` for the rest._
+
+<!-- WORKLIST_END -->

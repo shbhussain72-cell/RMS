@@ -1,5 +1,6 @@
 import RoleBadge from '@/components/figma/RoleBadge'
 import type { ChatOption } from './types'
+import { useT } from '../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const CHECKBOX_BLANK = '/figma/checkbox-blank.svg'
@@ -27,6 +28,7 @@ export default function ChatMemberSelect({
    *  plain neutral row — the real screen does the actual per-member picking. */
   readOnly?: boolean
 }) {
+     const { tx, td } = useT()
   if (readOnly) {
     return (
       <div className="flex flex-col gap-[8px]">
@@ -64,7 +66,7 @@ export default function ChatMemberSelect({
             type="button"
             disabled={o.disabled}
             onClick={() => onToggle(o.value)}
-            className={`flex items-center gap-[11px] rounded-[14px] border border-solid px-[13px] py-[10px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`flex items-center gap-[11px] rounded-[14px] border border-solid px-[13px] py-[10px] text-start transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
               checked ? 'border-[#1f5a44] bg-[#f4faf6]' : 'border-[#e7dfc9] bg-white'
             }`}
             style={{ fontFamily: FONT_SANS }}
@@ -93,15 +95,15 @@ export default function ChatMemberSelect({
             {initials(name)}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13.5px] font-bold text-[#23302a]">{name}</span>
-            <span className="block truncate text-[11.5px] text-[#5a6660]">Added by ITS</span>
+            <span className="block truncate text-[13.5px] font-bold text-[#23302a]" {...td(name)} />
+            <span className="block truncate text-[11.5px] text-[#5a6660]" {...tx('Added by ITS')} />
           </span>
         </div>
       ))}
       {onAddIts && (
         <button type="button" onClick={onAddIts} className="mt-[4px] flex items-center gap-[8px] rounded-[14px] border border-dashed border-[#c3ccc6] px-[13px] py-[11px] text-[13px] font-bold text-[#1f5a44] transition-colors hover:border-[#1f5a44] hover:bg-[#f4faf6]" style={{ fontFamily: FONT_SANS }}>
           <span className="flex size-[22px] items-center justify-center rounded-full bg-[#eaf3ed] text-[16px] leading-none">+</span>
-          Add someone by ITS
+          <span {...tx('Add someone by ITS')} />
         </button>
       )}
     </div>

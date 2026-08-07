@@ -22,6 +22,122 @@
   }
 }
 
+/* ─── Lisan ud-Dawat (LSD) language mode ──────────────────────────────────────
+   Everything here is scoped behind `[data-lang="lsd"]` on <html> (set by
+   src/i18n/index.tsx). In English mode NOTHING below applies, so English
+   typography, direction and layout are byte-for-byte unchanged.
+
+   LAYOUT IS MIRRORED. <html dir="rtl"> carries direction for the whole document in
+   LSD, so flex/grid order, logical properties and text alignment all flip. Surviving
+   PHYSICAL utilities (ml-*, left-*, text-left) will land on the wrong side and must be
+   migrated to logical equivalents, or kept physical on purpose via an `rtl:` variant. */
+
+@font-face {
+  font-family: 'Kanz al-Lulu';
+  src: url('/fonts/KanzalLulu-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  /* `swap` keeps English-fallback text visible while the 495KB face loads, so a
+     slow load never blanks the screen. */
+  font-display: swap;
+}
+
+/* The font applies to the whole document ONLY in LSD mode. Both `font-serif` and
+   `font-sans` are overridden: the wordlist has no notion of the app's serif/sans
+   split, and Kanz al-Lulu is the single authored face for LSD copy. */
+html[data-lang='lsd'] body,
+html[data-lang='lsd'] .font-sans,
+html[data-lang='lsd'] .font-serif {
+  font-family: 'Kanz al-Lulu', 'Mulish', system-ui, sans-serif;
+}
+
+/* Screens set an inline `style={{ fontFamily: … }}` on almost every text node
+   (a Figma-port convention). Inline styles beat class selectors, so `!important`
+   is what actually wins against the inline declaration.
+
+   This applies to EVERY element in LSD mode, not just the ones carrying
+   `dir="rtl"`. Scoping it to `[dir]` used to leave real gaps: a string
+   translated with `t()` and handed to a component as a prop (`<AnswerRow
+   label={t('Assistance needed')} />`) renders in a plain span with no `dir`, so
+   it came out as correct LSD text in the WRONG typeface. Same for anything
+   composed from a translated string rather than spread with `tx()`.
+
+   Forcing the whole subtree is safe because font-family is a per-GLYPH fallback
+   chain: Arabic codepoints resolve to Kanz al-Lulu, and Latin ones — ITS ids,
+   dates, intentional loanwords like `zone` and `PDF` — fall through to Mulish
+   automatically, exactly as before. */
+html[data-lang='lsd'],
+html[data-lang='lsd'] * {
+  font-family: 'Kanz al-Lulu', 'Mulish', system-ui, sans-serif !important;
+}
+
+/* Leading is NOT applied that broadly: Arabic needs more room than Latin at the
+   same size, but forcing 1.9 onto every node would re-space buttons, pills and
+   fixed-height rows across the app. Only elements that actually hold translated
+   text get it. */
+html[data-lang='lsd'] [dir='rtl'] {
+  line-height: 1.9;
+}
+
+/* Mixed Arabic/Latin runs (`Login كرو`, `تمارو password داخل كرو`) resolve
+   correctly under the Unicode bidirectional algorithm as long as the element
+   declares RTL. `isolate` stops a neighbouring LTR run from leaking its
+   direction across the boundary and re-ordering the tokens. */
+html[data-lang='lsd'] [dir='rtl'] {
+  unicode-bidi: isolate;
+}
+
+/* Translated text sits flush against the inline-start edge (the right, in RTL).
+   `text-align: start` rather than a hardcoded `right`, so this stays correct if a
+   node is ever rendered LTR — notably an untranslated English fallback, which
+   `tx()` deliberately marks dir="ltr".
+
+   `:where()` contributes ZERO specificity, so the selector weighs (0,0,1) and any
+   Tailwind alignment utility on the element (`text-center` on a hero heading)
+   still wins. Centred copy stays centred in both languages. */
+html[data-lang='lsd'] :where([dir]) {
+  text-align: start;
+}
+
+/* Flush right means FLUSH: no leading indent, no inherited first-line offset,
+   and no trailing whitespace inside the string turning into a visible gap at the
+   start of the line once the run is reversed. */
+html[data-lang='lsd'] [dir='rtl'] {
+  text-indent: 0;
+  white-space-collapse: collapse;
+}
+
+/* Numerals keep their logical left-to-right order inside an RTL run — an ITS ID,
+   a countdown or a seat count must never read backwards. `isolate` stops the
+   digits from re-ordering against the Arabic text around them. Direction here
+   affects the GLYPHS ONLY; these elements are leaf text nodes, never layout. */
+html[data-lang='lsd'] [dir='rtl'] :where(.tabular-nums, time, [data-numeric]),
+html[data-lang='lsd'] [dir='rtl'].tabular-nums,
+html[data-lang='lsd'] [dir='rtl'][data-numeric],
+/* …and anywhere else in an RTL document. With <html dir="rtl"> every bare text node is
+   RTL, so an untagged date reorders: "Fri, 26 Jun 2026" renders as "2026 Jun 26 ,Fri".
+   Dates, times, ITS IDs, phone numbers, file sizes and countdown digits are DATA, not
+   language — they stay LTR wherever they appear. */
+html[data-lang='lsd'] :where(.tabular-nums, time, [data-numeric], .lsd-ltr) {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* NOTE: the old opt-in `[data-rtl-layout]` container hook is GONE. <html dir="rtl">
+   now carries direction for the whole document (see applyRootLang in
+   src/i18n/index.tsx), so a per-box opt-in was both redundant and, at 36 of 628
+   elements, applied too unevenly to be trusted. */
+
+/* Directional glyphs point the other way in RTL: chevrons, next/back carets and the
+   hover-slide arrow on list rows. Opt out with `.rtl-keep` for any glyph whose meaning
+   is NOT directional (a checkmark, a spinner, a logo). */
+html[data-lang='lsd'] :is(.ix-arrow, [data-icon='chevron'], [data-icon='arrow']):not(.rtl-keep) {
+  transform: scaleX(-1);
+}
+html[data-lang='lsd'] .ix-slide:hover .ix-arrow:not(.rtl-keep) {
+  transform: scaleX(-1) translateX(3px);
+}
+
 /* Fluid side padding — applied to the desktop content column */
 :root {
   --content-px: clamp(1.25rem, 4vw, 2.5rem);

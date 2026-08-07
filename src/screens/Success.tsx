@@ -14,7 +14,7 @@ const HEADER_MASK = '/figma/success-header-mask.svg'
 const LOADER_BG = 'linear-gradient(160deg,#0a2318 0%,#15402f 55%,#1f5a44 100%)'
 
 export default function Success() {
-                                    const { tx } = useT()
+                                    const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -116,7 +116,8 @@ export default function Success() {
               className="absolute start-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
               style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
             >
-              City selection open on
+              
+              {t('City selection open on')}
             </p>
           </div>
           <p

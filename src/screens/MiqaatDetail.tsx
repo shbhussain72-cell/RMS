@@ -112,7 +112,7 @@ function Hero({
    *  banner. `Hero` stays generic/unaware of ashara; the caller decides whether to pass it. */
   demoControl?: ReactNode
 }) {
-  const { tx, tdAuthored, isLsd, dirProps } = useT()
+  const { t, tx, tdAuthored, isLsd, dirProps } = useT()
   // Both CTAs get exactly one equal width — a 2-col grid (`1fr 1fr`), capped on desktop so they
   // stay a sensible size instead of stretching. Single-CTA state stays natural width. Pulled into
   // its own variable so it can be positioned either beside the countdown (the normal case) or
@@ -128,13 +128,13 @@ function Hero({
       {/* When the primary IS "Modify Reservation" (no separate manage secondary), use the SAME dark
           frosted treatment as the secondary Modify-Reservation button for a consistent look — not the
           gold gradient reserved for forward actions (Select city / Register Now …). */}
-      {primaryLabel === 'Modify Reservation' ? (
+      {primaryLabel === t('Modify Reservation') ? (
         <button type="button" onClick={onPrimary} className={`inline-flex h-[50px] min-w-0 items-center justify-center gap-[5px] rounded-full border border-solid border-[rgba(255,255,255,0.7)] bg-[rgba(0,0,0,0.38)] backdrop-blur-[3px] transition-colors hover:bg-[rgba(0,0,0,0.5)] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
           <span className="text-[13px] leading-none text-white">✎</span>
           <span className="truncate text-[14px] font-bold text-white" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       ) : (
-        <button type="button" onClick={onPrimary} data-tour={primaryLabel === 'Register Now' ? 'register-button' : undefined} className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
+        <button type="button" onClick={onPrimary} data-tour={primaryLabel === t('Register Now') ? 'register-button' : undefined} className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
           <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       )}
@@ -532,7 +532,7 @@ function RegistrationFormCard({
   cd: { days: string; hours: string; min: string; sec: string }
   onOpen: () => void
 }) {
-     const { tx } = useT()
+     const { t, tx } = useT()
   const pendingKeys = pendingNewQuestionKeys(m, flow)
   const editable = isFormEditable(flow)
   const lastUpdated = formatFormUpdated(flow.questionnaireUpdatedAt)
@@ -583,14 +583,15 @@ function RegistrationFormCard({
         )}
       </div>
       <p className="mt-[4px] text-[12px] leading-[17px] text-[#8a938e]" style={{ fontFamily: MUL }}>
-        Last updated: {lastUpdated}
+        
+        {t('Last updated:')} {lastUpdated}
       </p>
 
       {editable ? (
         <div className="mt-[12px] flex items-center gap-[7px] rounded-[10px] bg-[#e4f1e9] px-[12px] py-[8px]">
           <span className="size-[7px] shrink-0 rounded-full bg-[#2e7d5b]" />
           <span className="text-[12.5px] font-bold leading-[17px] text-[#2e7d5b]" style={{ fontFamily: MUL }}>
-            Editable until City Selection · {cd.days}d {cd.hours}h {cd.min}m left
+            Editable until City Selection · {cd.days}d {cd.hours}h {cd.min}{t('m left')}
           </span>
         </div>
       ) : (
@@ -602,7 +603,7 @@ function RegistrationFormCard({
             className="mt-[14px] flex h-[44px] w-full items-center justify-center gap-[6px] rounded-[12px] border border-[#e7dfc9] bg-white text-[14px] transition-colors hover:border-[#c2a04e]"
             style={{ fontFamily: MUL, fontWeight: 700, color: '#15402f' }}
           >
-            <EyeIconSmall /> View Responses
+            <EyeIconSmall />  {t('View Responses')}
           </button>
         </>
       )}
@@ -902,7 +903,7 @@ function DesktopRightCard({
   /** Raza issued → render Modify (left link) + primary button (right) in one row instead of stacked. */
   manageInline?: boolean
 }) {
-  const { tx, td } = useT()
+  const { t, tx, td } = useT()
   const showCountdown = countdownStage !== null
 
   return (
@@ -941,10 +942,10 @@ function DesktopRightCard({
             </p>
             <div className="mt-[14px] flex gap-[6px]">
               {[
-                { value: cd.days, unit: 'Days' },
-                { value: cd.hours, unit: 'Hours' },
-                { value: cd.min, unit: 'Min' },
-                { value: cd.sec, unit: 'Sec' },
+                { value: cd.days, unit: t('Days') },
+                { value: cd.hours, unit: t('Hours') },
+                { value: cd.min, unit: t('Min') },
+                { value: cd.sec, unit: t('Sec') },
               ].map((c) => (
                 <div
                   key={c.unit}
@@ -1002,7 +1003,7 @@ function DesktopRightCard({
                 <button
                   type="button"
                   onClick={onAction}
-                  data-tour={actionLabel === 'Register Now' ? 'register-button' : undefined}
+                  data-tour={actionLabel === t('Register Now') ? 'register-button' : undefined}
                   className="mt-[14px] h-[44px] w-full rounded-[12px] bg-[#1f5a44] text-[15px] text-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#15402f]"
                   style={{ fontFamily: MUL, fontWeight: 700 }}
                 >
@@ -1270,7 +1271,7 @@ export default function MiqaatDetail() {
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
-              { label: 'Miqaat detail page' },
+              { label: t('Miqaat detail page') },
             ]}
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
@@ -1334,7 +1335,7 @@ export default function MiqaatDetail() {
               <div className="sm:hidden">
                 <ArazCard
                   onClick={() => { setActiveMiqaat(m.id); nav(`/miqaats/${m.id}/araz`) }}
-                  remainingLabel={flow.araz ? 'Preferences submitted' : `Host ${m.araz.hostQuota} · Relay ${m.araz.relayQuota} preferences available`}
+                  remainingLabel={flow.araz ? t('Preferences submitted') : `Host ${m.araz.hostQuota} · Relay ${m.araz.relayQuota} preferences available`}
                   submitted={!!flow.araz}
                 />
               </div>
@@ -1373,7 +1374,7 @@ export default function MiqaatDetail() {
               {m.araz && !pendingRequest && (
                 <ArazCard
                   onClick={() => { setActiveMiqaat(m.id); nav(`/miqaats/${m.id}/araz`) }}
-                  remainingLabel={flow.araz ? 'Preferences submitted' : `Host ${m.araz.hostQuota} · Relay ${m.araz.relayQuota} preferences available`}
+                  remainingLabel={flow.araz ? t('Preferences submitted') : `Host ${m.araz.hostQuota} · Relay ${m.araz.relayQuota} preferences available`}
                   submitted={!!flow.araz}
                 />
               )}

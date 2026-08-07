@@ -13,7 +13,7 @@ import { useT } from '../i18n'
 const SERIF = 'Marcellus, Georgia, serif'
 
 export default function CityAllocation() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -45,7 +45,7 @@ export default function CityAllocation() {
         <StickyFooter
           caption={miqaat.title}
           title={`${memberTotal} Members`}
-          button="Go Home"
+          button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />
       )}
@@ -56,8 +56,8 @@ export default function CityAllocation() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: 'City Allocation' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: t('City Allocation') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}

@@ -12,7 +12,7 @@ const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
 
 export default function RegistrationQuestionnaire() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -43,8 +43,8 @@ export default function RegistrationQuestionnaire() {
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
-            { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-            { label: 'Registration Questionnaire' },
+            { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+            { label: t('Registration Questionnaire') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}

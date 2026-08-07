@@ -126,14 +126,22 @@ describe('directional CSS', () => {
    * fix was reverted, the codemod re-broke the same four, and only then did it stay fixed.
    * A comment would not have caught the second occurrence. This does.
    */
-  const CLASS_ATTR = /\w*[cC]lassName\s*=\s*(?:"([^"]*)"|\{`([^`]*)`\})/g
+  /**
+   * All FOUR className forms, matching scripts/centring-census.cjs.
+   *
+   * This pattern previously matched only `"…"` and `{`…`}`. It missed single-quoted strings
+   * and `{expr}` — which is where every conditional class in this codebase lives
+   * (`className={active ? 'pl-4' : 'pl-2'}`). A sweep that cannot see conditional classes is
+   * blind to most of the interesting ones.
+   */
+  const CLASS_ATTR = /\w*[cC]lassName\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\}|\{([^}]*)\})/g
 
   it('never combines a logical inset with a physical translate-x', () => {
     const offenders = []
     for (const file of uiFiles) {
       const src = readFileSync(file, 'utf8')
       for (const m of src.matchAll(CLASS_ATTR)) {
-        const cls = m[1] ?? m[2] ?? ''
+        const cls = m[1] ?? m[2] ?? m[3] ?? m[4] ?? ''
         const hasLogicalInset = /(?<![0-9A-Za-z_-])(start|end)-/.test(cls)
         const hasPhysicalTranslateX = /(?<![0-9A-Za-z_-])-?translate-x-/.test(cls)
         if (hasLogicalInset && hasPhysicalTranslateX) {
@@ -145,13 +153,25 @@ describe('directional CSS', () => {
     expect(offenders).toEqual([])
   })
 
-  it('has no physical margin/padding/text-align utilities left in screens', () => {
+  /**
+   * Scoped to EVERY UI root, not just `src/screens/`.
+   *
+   * The Group 4 sweep was specified as `src/screens/`, so this assertion was too — which left
+   * `src/components/figma/` (26 files: AppBar, Breadcrumb, StickyFooter, NotificationPanel —
+   * most of the app's chrome), `src/components/questionnaire/`, `src/chat/` and `src/tour/`
+   * unchecked. Chrome is exactly where directional layout lives, so the narrow scope was
+   * excluding the tree that mattered most.
+   *
+   * The codemod itself always walked all of `src/`, so widening this found zero new
+   * offenders — but it was enforcing a fraction of what had been swept, and the next physical
+   * utility added to a component would not have been caught.
+   */
+  it('has no physical margin/padding/text-align utilities anywhere in UI source', () => {
     const offenders = []
     for (const file of uiFiles) {
-      if (!rel(file).startsWith('src/screens/')) continue
       const src = readFileSync(file, 'utf8')
       for (const m of src.matchAll(CLASS_ATTR)) {
-        const cls = m[1] ?? m[2] ?? ''
+        const cls = m[1] ?? m[2] ?? m[3] ?? m[4] ?? ''
         const bad = cls.match(/(?<![0-9A-Za-z_-])(?:-?m[lr]-|p[lr]-|text-(?:left|right))(?![0-9A-Za-z_-]*:)[0-9A-Za-z_[]/g)
         if (bad) {
           const line = src.slice(0, m.index).split(NEWLINE).length

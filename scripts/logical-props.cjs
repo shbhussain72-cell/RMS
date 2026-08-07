@@ -1,6 +1,30 @@
 /**
- * One-shot codemod: migrate physical Tailwind utilities to logical ones, so the app
- * mirrors correctly under <html dir="rtl">.
+ * Codemod: migrate physical Tailwind utilities to logical ones, so the app mirrors
+ * correctly under <html dir="rtl">.
+ *
+ *   RUN IT AS:  npm run sweep:logical        (or `npm run sweep:logical -- --dry`)
+ *
+ * ⚠ READ THIS BEFORE RUNNING — THIS SCRIPT HAS SHIPPED A BUG TWICE ⚠
+ *
+ * The dangerous case is the CENTRING IDIOM: a physical inset at ~50% paired with
+ * `-translate-x-1/2`. That pair is direction-INDEPENDENT and correct as written. Rewriting
+ * the inset to `start-` while leaving the translate physical yields `right: 50%` under RTL
+ * with a translate that still moves LEFT, so the element lands off-centre by its own width.
+ *
+ * The guard against that (`isCentringOffset`) has failed twice, in different ways:
+ *
+ *   1. It matched the literal token `left-1/2`. This is a Figma port, and the export writes
+ *      optical centring as `left-[calc(50%+0.62px)]`. Three sites walked straight past.
+ *   2. A later edit turned its regex LITERALS into ones containing the text `${V}`, which
+ *      matches nothing. The guard returned false for everything and the codemod re-broke the
+ *      same four sites that had just been fixed.
+ *
+ * Neither failure was visible to `tsc`, to `vite build`, or to reading the diff. Both were
+ * caught only by assertion. So: this script now RUNS THOSE ASSERTIONS ITSELF after writing,
+ * and exits non-zero if they fail. You do not have to know they exist — see the bottom of
+ * this file and `scripts/source-hygiene.test.mjs`.
+ *
+ * It is idempotent: a second run over swept source reports 0 rewrites.
  *
  *   ml-N, mr-N        -> ms-N, me-N
  *   pl-N, pr-N        -> ps-N, pe-N
@@ -20,7 +44,6 @@
  *   · left-1/2, right-1/2  usually optical centring, not a directional offset
  *   · anything already carrying an `rtl:`/`ltr:` variant
  *
- * Usage: node scripts/logical-props.cjs [--dry]
  */
 const fs = require('fs')
 const path = require('path')
@@ -130,6 +153,28 @@ for (const file of walk(path.join(ROOT, 'src'))) {
 }
 
 console.log(`${edits} utility rewrites across ${files} file(s)`)
+console.log(`${skipped.length} centring class string(s) left physical on purpose`)
 console.log(`\n${audit.length} site(s) need a manual RTL decision (translate-x / inset / optical centring):`)
 for (const a of audit.slice(0, 40)) console.log('  ' + a)
 if (audit.length > 40) console.log(`  …and ${audit.length - 40} more`)
+
+// ── mandatory verification ───────────────────────────────────────────────────────────
+//
+// The whole point. This codemod's failures are invisible to tsc and to the build, and the
+// person running it next is not required to know that the assertions exist — so it runs them
+// rather than mentioning them. If the guard has regressed again, this is where you find out.
+if (!DRY) {
+  const { spawnSync } = require('child_process')
+  console.log('\n─── verifying (scripts/source-hygiene.test.mjs + centring census) ───')
+  const r = spawnSync('npx', ['vitest', 'run', 'scripts/source-hygiene.test.mjs', 'scripts/centring.test.mjs'], {
+    cwd: ROOT, stdio: 'inherit', shell: true,
+  })
+  if (r.status !== 0) {
+    console.error('\n✗ HYGIENE ASSERTIONS FAILED — the sweep broke something.')
+    console.error('  The likeliest cause is isCentringOffset() no longer matching. Check that')
+    console.error('  its regexes are built with `new RegExp(V + …)` and not as literals')
+    console.error('  containing the text ${V}, which matches nothing. `git diff` then revert.')
+    process.exit(1)
+  }
+  console.log('\n✓ assertions pass')
+}

@@ -53,26 +53,62 @@ const half = new RegExp(V + '(left|right)-(1/2|\\[50%\\]|\\[calc\\(50%)')
 // Centring translate only — NOT `translate-x-[2px]` hover nudges.
 const transX = new RegExp(V + '-?translate-x-(1/2|\\[50%\\])')
 
-const rows = []
-for (const f of files) {
-  const src = fs.readFileSync(f, 'utf8')
-  for (const m of src.matchAll(CLASSNAME)) {
-    const cls = m[1] ?? m[2] ?? m[3] ?? m[4] ?? ''
-    const hasPhys = physIn.test(cls)
-    const hasLogi = logiIn.test(cls)
-    const hasT = transX.test(cls)
-    if (!hasPhys && !(hasLogi && hasT)) continue
-    const line = src.slice(0, m.index).split('\n').length
-    const kind =
-      hasLogi && hasPhys ? 'MIXED'
-      : hasLogi && hasT ? 'MIXED'
-      : half.test(cls) && hasT ? 'CENTRING'
-      : half.test(cls) ? 'HAIRLINE'
-      : 'OTHER'
-    // Count physical insets in this className: two on one line is two repairs, one site.
-    const insets = (cls.match(new RegExp(V + '(left|right)-', 'g')) || []).length
-    rows.push({ kind, f: f.split(path.sep).join('/'), line, cls, insets })
+/**
+ * Positional SIGNATURE of a className — the inset and translate tokens only, sorted.
+ *
+ * This is what the exception list is keyed on. Keying on line numbers would churn on every
+ * unrelated edit above the site; keying on the whole className would churn on every colour or
+ * spacing tweak. Keying on the positioning tokens means a cosmetic edit is silent and a
+ * POSITIONAL edit forces the site back through review — which is the behaviour worth having.
+ */
+function signature(cls) {
+  const tok = cls.match(new RegExp(V + '(?:left|right|start|end|-?translate-x)-[^\\s]*', 'g')) || []
+  return [...new Set(tok)].sort().join(' ')
+}
+
+function census() {
+  const rows = []
+  for (const f of files) {
+    const src = fs.readFileSync(f, 'utf8')
+    for (const m of src.matchAll(CLASSNAME)) {
+      const cls = m[1] ?? m[2] ?? m[3] ?? m[4] ?? ''
+      const hasPhys = physIn.test(cls)
+      const hasLogi = logiIn.test(cls)
+      const hasT = transX.test(cls)
+      if (!hasPhys && !(hasLogi && hasT)) continue
+      const line = src.slice(0, m.index).split('\n').length
+      const kind =
+        hasLogi && hasPhys ? 'MIXED'
+        : hasLogi && hasT ? 'MIXED'
+        : half.test(cls) && hasT ? 'CENTRING'
+        : half.test(cls) ? 'HAIRLINE'
+        : 'OTHER'
+      // Count physical insets in this className: two on one line is two repairs, one site.
+      const insets = (cls.match(new RegExp(V + '(left|right)-', 'g')) || []).length
+      const file = f.split(path.sep).join('/')
+      rows.push({ kind, f: file, line, cls, insets, sig: `${file}  ${signature(cls)}` })
+    }
   }
+  return rows
+}
+
+module.exports = { census, signature }
+
+// Only print when run directly — `require()`d by scripts/centring.test.mjs, which asserts
+// against the SAME logic rather than a reimplementation of it.
+if (require.main !== module) return
+
+const rows = census()
+
+// Regenerate the exception list. Deliberately NOT automatic: the list is a record of
+// decisions, so refreshing it has to be a thing someone chose to do.
+if (process.argv.includes('--write-exceptions')) {
+  const file = path.join(__dirname, 'centring-exceptions.json')
+  const prev = JSON.parse(fs.readFileSync(file, 'utf8'))
+  prev.exceptions = rows.filter((r) => r.kind === 'CENTRING').map((r) => r.sig).sort()
+  fs.writeFileSync(file, `${JSON.stringify(prev, null, 2)}\n`)
+  console.log(`wrote ${prev.exceptions.length} exception(s) to scripts/centring-exceptions.json`)
+  return
 }
 
 const order = ['CENTRING', 'HAIRLINE', 'MIXED', 'OTHER']

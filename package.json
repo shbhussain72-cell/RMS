@@ -16,7 +16,8 @@
     "shoot": "npm run build && node scripts/shoot.mjs",
     "sweep:logical": "node scripts/logical-props.cjs",
     "census:centring": "node scripts/centring-census.cjs",
-    "census:mirror": "node scripts/mirror-census.cjs"
+    "census:mirror": "node scripts/mirror-census.cjs",
+    "check:remarks": "node scripts/check-remarks.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

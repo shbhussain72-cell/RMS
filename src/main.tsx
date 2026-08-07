@@ -5,6 +5,10 @@ import App from './App'
 import { TourProvider } from './tour/TourProvider'
 import { LangProvider, registerAuthoredNames } from './i18n'
 import CoveragePanel from './i18n/CoveragePanel'
+import { RemarksProvider } from './remarks/RemarksProvider'
+import RemarksLayer from './remarks/RemarksLayer'
+import RemarksPanel from './remarks/RemarksPanel'
+import RemarksFixture from './remarks/RemarksFixture'
 import { miqaats } from './data/seed'
 import './index.css'
 
@@ -21,9 +25,18 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           sets dir/lang/data-lang on <html>, so the setting applies everywhere, not per page.
           Outside TourProvider so the walkthrough's own copy can be translated later too. */}
       <LangProvider>
-        <TourProvider>
-          <App />
-        </TourProvider>
+        {/* Remarks wraps the app so its layer can anchor to anything the app renders, and
+            sits inside LangProvider because every remark records the language it was made
+            in. Dev-only: `import.meta.env.DEV` is statically false in a production build, so
+            the provider renders its children unchanged and the whole tool is tree-shaken. */}
+        <RemarksProvider>
+          <TourProvider>
+            <App />
+          </TourProvider>
+          <RemarksLayer />
+          <RemarksPanel />
+          <RemarksFixture />
+        </RemarksProvider>
         {/* Dev-only; compiles away entirely in a production build. */}
         <CoveragePanel />
       </LangProvider>

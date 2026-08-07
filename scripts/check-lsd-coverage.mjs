@@ -103,7 +103,17 @@ const looksLikeCopy = (s) =>
 const walk = (dir, out = []) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name)
-    if (e.isDirectory()) { if (e.name !== 'i18n') walk(p, out) }
+    // `i18n` and `remarks` are DEV-ONLY INTERNAL TOOLING, not app copy.
+    //
+    // Both are gated behind `import.meta.env.DEV` and never reach a user, so their English
+    // chrome ("Export Markdown", "Enter remark mode") is not a translation gap — it is the
+    // language the tool is written in. Counting it would inflate the outstanding-strings
+    // number that `docs/lsd-gaps.md` and the wordlist owner's worklist are built from, and
+    // send someone off translating a debug panel.
+    //
+    // This is the static twin of `SCANNER_IGNORE_ATTR`, which keeps the same chrome out of
+    // the runtime DOM scan for the same reason.
+    if (e.isDirectory()) { if (e.name !== 'i18n' && e.name !== 'remarks') walk(p, out) }
     // .ts as well as .tsx: the tour/guide content lives in src/tour/steps.ts and the
     // notification copy in src/data/notifications.ts — both are user-visible strings that
     // a .tsx-only walk silently skipped, which is why the guide was never reported.

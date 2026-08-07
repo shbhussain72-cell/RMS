@@ -1,4 +1,5 @@
 import { useStore, journeyFor, type DemoPhase, type RegistrationFlow } from '../../store'
+import { useT } from '../../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
@@ -30,6 +31,7 @@ const NEXT: Record<NonTerminalPhase, { label: string; next: DemoPhase; ready: (f
  * Safe to drop into an already-clickable card (stops propagation) or a plain banner alike.
  */
 export function DemoProgressionControl({ miqaatId, className = '' }: { miqaatId: string; className?: string }) {
+  const { tx } = useT()
   const phase = useStore((s) => s.stageOverrides[miqaatId])
   const flow = useStore((s) => journeyFor(s.flow, s.registrations, miqaatId))
   const setStagePhase = useStore((s) => s.setStagePhase)
@@ -50,7 +52,7 @@ export function DemoProgressionControl({ miqaatId, className = '' }: { miqaatId:
         className="inline-flex h-[38px] items-center justify-center whitespace-nowrap rounded-full border border-dashed border-[rgba(227,205,150,0.7)] bg-[rgba(0,0,0,0.45)] px-[16px] text-[13px] tracking-[0.2px] text-[#e3cd96] backdrop-blur-[3px]"
         style={{ fontFamily: FONT_SANS, fontWeight: 700 }}
       >
-        ▶ {step.label}
+        ▶ <span {...tx(step.label)} />
       </button>
       <p className="text-[11px] leading-[14px] text-[rgba(255,255,255,0.85)]" style={{ fontFamily: FONT_SANS }}>
         (Demo) Tap to advance the demo.

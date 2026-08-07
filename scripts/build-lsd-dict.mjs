@@ -107,13 +107,6 @@ const RLM = '‏'
 const hasArabicScript = (s) => /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/.test(s)
 const startsWithMark = (s) => /^[‎‏؜⁦-⁩]/.test(s)
 
-/**
- * An LSD cell holding exactly this word means "delete this string from the LSD UI", not
- * "translate it to the English word remove". Kept in sync with REMOVE_DIRECTIVE in
- * src/i18n/index.tsx, which acts on it at render time.
- */
-export const REMOVE_TOKEN = 'remove'
-
 const normVal = (v) => {
   const s = String(v ?? '').trim()
   if (!s || startsWithMark(s)) return s
@@ -121,6 +114,43 @@ const normVal = (v) => {
   const mixed = hasArabicScript(s) && /[A-Za-z0-9]/.test(s)
   return mixed ? RLM + s : s
 }
+
+/**
+ * SENTINELS — words a wordlist owner writes in an LSD cell to say something ABOUT the
+ * string rather than to translate it.
+ *
+ * The only one so far is `remove`. It is not Lisan al-Dawat for anything; it is an
+ * instruction.
+ *
+ * ⚠️  A sentinel must NEVER reach `lsd.json` as a value. It did, briefly, and that is a
+ * whole class of bug: every consumer that reads `entry.lsd` — the renderer, the coverage
+ * scanner, the audit script, any future export — would have to know the sentinel list and
+ * special-case it, and the first one that forgot would print the English word "remove" to a
+ * user as though it were copy. Recognising it HERE, once, at the boundary where the
+ * spreadsheet becomes data, means nothing downstream can get it wrong.
+ *
+ * A sentinel row is therefore emitted as an EMPTY value plus a `sentinel` tag: empty means
+ * "no usable LSD copy", which the runtime already handles by falling back to English, and
+ * the tag is what lets the report distinguish "nobody has translated this yet" from
+ * "somebody deliberately wrote an instruction here that we have not acted on".
+ */
+export const SENTINELS = new Set(['remove'])
+
+/**
+ * Classify one raw LSD cell.
+ *
+ * Split out as a pure function so the sentinel rule is unit-testable without a spreadsheet
+ * — see scripts/build-lsd-dict.test.mjs.
+ *
+ * @returns {{ value: string, sentinel: string|null }}
+ */
+export function classifyValue(raw) {
+  const trimmed = String(raw ?? '').trim()
+  const token = trimmed.toLowerCase()
+  if (SENTINELS.has(token)) return { value: '', sentinel: token }
+  return { value: normVal(trimmed), sentinel: null }
+}
+
 
 /**
  * Read the xlsx and write src/i18n/lsd.json.
@@ -153,7 +183,7 @@ export async function buildLsdDict({ retries = 0, retryDelayMs = 250 } = {}) {
   const blankEnglish = []
   const emptyLsd = []
   const conflicts = []
-  const removeDirectives = []
+  const sentinelRows = []
   const perSheet = {}
   let totalRows = 0
   let skippedEmptyRows = 0
@@ -176,30 +206,30 @@ export async function buildLsdDict({ retries = 0, retryDelayMs = 250 } = {}) {
       const rowNo = i + 2 // +1 for the header, +1 for 1-based spreadsheet rows
       const where = `${sheet.name}!${rowNo}`
       const english = normKey(row[EN_COL])
-      const lsd = normVal(row[LSD_COL])
+      const { value: lsd, sentinel } = classifyValue(row[LSD_COL])
+      const rawLsd = String(row[LSD_COL] ?? '').trim()
       const page = normKey(row[PAGE_COL])
 
-      if (!english && !lsd) { skippedEmptyRows++; return } // fully blank spacer row
+      if (!english && !rawLsd) { skippedEmptyRows++; return } // fully blank spacer row
       if (!english) { blankEnglish.push(where); return }
-      if (!lsd) emptyLsd.push(`${where}: "${english}"`)
-
-      const isRemove = lsd.toLowerCase() === REMOVE_TOKEN
-      if (isRemove) removeDirectives.push(`${where}: "${english}"`)
+      if (sentinel) sentinelRows.push({ where, english, sentinel, page })
+      else if (!lsd) emptyLsd.push(`${where}: "${english}"`)
 
       const prev = dict[english]
-      const prevRemove = prev ? prev.lsd.toLowerCase() === REMOVE_TOKEN : false
+      const prevSentinel = prev ? prev.sentinel ?? null : null
 
-      // "remove" is a DIRECTIVE, not a translation, so a row carrying it does not
-      // "disagree" with a row carrying real LSD text — it OVERRULES it. Treating the pair as
-      // a 1:1 violation is what made the build red after the wordlist owner marked several
-      // already-translated guidelines for deletion: both statements were true at once.
-      // Whichever order the rows appear in, remove wins and the string leaves the UI.
-      if (prev && prev.lsd !== lsd && !isRemove && !prevRemove) {
+      // A sentinel row does not "disagree" with a translation row for the same key — it
+      // says something ABOUT it. Counting the pair as a 1:1 violation is what made the build
+      // red once the wordlist owner annotated several already-translated guidelines: both
+      // statements were true at once. The sentinel takes precedence (it is the newer, more
+      // deliberate statement) and the string falls back to English until the instruction is
+      // resolved, so no translation is silently discarded — the row is still in the xlsx.
+      if (prev && prev.lsd !== lsd && !sentinel && !prevSentinel) {
         conflicts.push(`${where}: "${english}" → "${prev.lsd}" vs "${lsd}"`)
       }
-      if (prevRemove && !isRemove) { kept++; return } // keep the standing removal
+      if (prevSentinel && !sentinel) { kept++; return } // keep the standing sentinel
 
-      dict[english] = { lsd, page, list: sheet.list, ...(isRemove ? { remove: true } : {}) }
+      dict[english] = { lsd, page, list: sheet.list, ...(sentinel ? { sentinel } : {}) }
       kept++
     })
     perSheet[sheet.name] = kept
@@ -228,7 +258,7 @@ export async function buildLsdDict({ retries = 0, retryDelayMs = 250 } = {}) {
     rows: rows.length,
     skippedEmptyRows,
     emptyLsd,
-    removeDirectives,
+    sentinelRows,
     perSheet,
     withLatin: Object.values(dict).filter((e) => /[A-Za-z]/.test(e.lsd)).length,
     withOrnate: Object.values(dict).filter((e) => e.lsd.includes('﴾') || e.lsd.includes('﴿')).length,
@@ -244,8 +274,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`\n  source : RMS_Mumineen_LSD_wordlist_v4.xlsx → ${sheetSummary}`)
     console.log(`  rows   : ${r.rows} data rows${r.skippedEmptyRows ? ` (${r.skippedEmptyRows} blank rows skipped)` : ''}`)
     console.log(`  entries: ${r.count}`)
-    if (r.removeDirectives.length) {
-      console.log(`  removed: ${r.removeDirectives.length} string(s) marked "remove" — they render as nothing in LSD`)
+    if (r.sentinelRows.length) {
+      // Loud on purpose. A sentinel is an unresolved instruction from the wordlist owner,
+      // not a translation, and the string is showing English until somebody acts on it.
+      console.warn(`
+  ⚠ ${r.sentinelRows.length} row(s) contain a SENTINEL, not a translation — these fall back to English:`)
+      for (const row of r.sentinelRows) console.warn(`      ${row.where}: "${row.english}" → "${row.sentinel}"`)
+      console.warn(`      (sentinels recognised: ${[...SENTINELS].join(', ')})`)
     }
     console.log(`  notes  : ${r.withLatin} entries mix Latin tokens into LSD, ${r.withOrnate} contain ornate brackets ﴿…﴾`)
     if (r.emptyLsd.length) {

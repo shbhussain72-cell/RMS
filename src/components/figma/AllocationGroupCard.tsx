@@ -1,7 +1,9 @@
 import type { Group } from '../../lib/group'
+import { isolateRuns } from '../Bidi'
 import RoleBadge from './RoleBadge'
 import { useStore } from '../../store'
 import { genderByIts } from '../../data/seed'
+import { useT, tNow } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -10,8 +12,8 @@ const initials = (name: string) =>
 
 function familyMeta(relation: string, age: number, its: string) {
   const g = genderByIts(its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(age).padStart(2, '0')} · ITS ${its}`
-  return relation ? `${relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
+  return isolateRuns(relation ? `${relation} · ${base}` : base)
 }
 
 function Avatar({ name, size = 48 }: { name: string; size?: number }) {
@@ -59,11 +61,12 @@ export function CityTypeTag({ type }: { type: 'host' | 'relay' }) {
 
 /** "📍 City · Host City · N members" — section header above a city's groups (optional trailing action). */
 export function CityHeader({ name, count, type, action }: { name: string; count?: number; type?: 'host' | 'relay'; action?: React.ReactNode }) {
+  const { td } = useT()
   return (
     <div className="flex items-center justify-between gap-[10px]">
       <div className="flex items-center gap-[8px] min-w-0">
         <PinIcon size={20} />
-        <span className="text-[20px] font-bold text-[#23302a] truncate" style={{ fontFamily: FONT }}>{name}</span>
+        <span className="text-[20px] font-bold text-[#23302a] truncate" style={{ fontFamily: FONT }} {...td(name)} />
         {type && <CityTypeTag type={type} />}
         {count !== undefined && (
           <span className="text-[15px] text-[#8a938e] shrink-0" style={{ fontFamily: FONT }}>· {count} members</span>
@@ -86,6 +89,7 @@ export function ZoneHeader({ name, count }: { name: string; count: number }) {
 
 /** The reserved group card: linked header + member rows + "Raza status · Pending" strip. */
 export function AllocationGroupCard({ group }: { group: Group }) {
+  const { tx, td } = useT()
   const linked = !!group.label
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
@@ -100,13 +104,11 @@ export function AllocationGroupCard({ group }: { group: Group }) {
         {group.members.map((mm, mi) => (
           <div key={mm.member.id} className="relative flex items-center gap-[14px] py-[8px]">
             {linked && group.members.length > 1 && (
-              <span className="pointer-events-none absolute left-[23px] w-[2px] bg-[#f0b94e]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[23px] w-[2px] bg-[#f0b94e]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
             )}
             <div className="relative shrink-0"><Avatar name={mm.member.name} /></div>
             <div className="flex-1 min-w-0">
-              <p className="text-[17px] font-bold text-[#23302a] leading-[22px]" style={{ fontFamily: FONT }}>
-                {mm.member.name}
-              </p>
+              <p className="text-[17px] font-bold text-[#23302a] leading-[22px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
               <p className="text-[13px] text-[#7a847e] mt-[3px]" style={{ fontFamily: FONT }}>
                 {familyMeta(mm.member.relation, mm.member.age, mm.member.its)}
               </p>
@@ -117,7 +119,7 @@ export function AllocationGroupCard({ group }: { group: Group }) {
       </div>
       <div className="mx-[16px] border-t border-[#efe9da]" />
       <div className="m-[14px] flex items-center justify-between rounded-[10px] px-[16px] h-[44px]" style={{ background: razaIssued ? '#e7f1ea' : '#fdf2d9' }}>
-        <span className="text-[15px] text-[#3d3d3a]" style={{ fontFamily: FONT }}>Raza status</span>
+        <span className="text-[15px] text-[#3d3d3a]" style={{ fontFamily: FONT }} {...tx('Raza status')} />
         <span className="flex items-center gap-[7px]">
           <span className="size-[7px] rounded-full" style={{ background: razaIssued ? '#1f7a4d' : '#c8951f' }} />
           <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: razaIssued ? '#1f7a4d' : '#c8951f' }}>{razaIssued ? 'Issued' : 'Pending'}</span>
@@ -133,6 +135,7 @@ export function AllocationGroupCard({ group }: { group: Group }) {
  * get no group header. Read-only: Member · Status (role) · Raza status.
  */
 export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
+  const { td } = useT()
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#ece4d2] bg-white">
@@ -144,7 +147,7 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {(['Member', 'Raza status'] as const).map((h) => (
-              <th key={h} className="px-[16px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
+              <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -167,13 +170,13 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
                   <tr key={mm.member.id} style={{ borderTop: linked ? undefined : '1px solid #f0ebe0', background: 'white' }}>
                     <td className="relative px-[16px] py-[9px]">
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[2px]">
-                            <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                            <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                             {mm.badge && <RoleBadge kind={mm.badge} />}
                           </div>
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member.relation, mm.member.age, mm.member.its)}</p>

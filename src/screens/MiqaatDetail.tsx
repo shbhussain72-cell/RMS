@@ -418,7 +418,7 @@ const GUIDELINES_NOTE =
 /** Guidelines & Rules card — view-only written guidelines: a small clipped text preview sits on the
  *  card, and tapping it opens a larger popup with the full text. There is no download affordance. */
 function GuidelinesCard() {
-                            const { tx, removed } = useT()
+                            const { tx } = useT()
   const [open, setOpen] = useState(false)
   return (
     <>
@@ -439,7 +439,7 @@ function GuidelinesCard() {
           <div className="pointer-events-none absolute inset-0 px-[16px] pt-[14px]">
             <p className="text-[13px] leading-[18px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
             <ol className="mt-[8px] list-decimal space-y-[5px] ps-[18px]">
-              {GUIDELINES_RULES.filter((r) => !removed(r)).map((r, i) => (
+              {GUIDELINES_RULES.map((r, i) => (
                 <li key={i} className="text-[11.5px] leading-[16px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(r)} />
               ))}
             </ol>
@@ -456,7 +456,7 @@ function GuidelinesCard() {
 
 /** Larger view-only popup with the full written guidelines. Read-only text — no download/print. */
 function GuidelinesPreviewPopup({ onClose }: { onClose: () => void }) {
-                                                                        const { tx, t, removed } = useT()
+                                                                        const { tx, t } = useT()
   return createPortal(
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-[16px]"
@@ -478,7 +478,7 @@ function GuidelinesPreviewPopup({ onClose }: { onClose: () => void }) {
           <h3 className="text-[20px] leading-[26px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
           <p className="mt-[8px] text-[13.5px] leading-[20px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(GUIDELINES_INTRO)} />
           <ol className="mt-[16px] list-decimal space-y-[12px] ps-[20px]">
-            {GUIDELINES_RULES.filter((r) => !removed(r)).map((r, i) => (
+            {GUIDELINES_RULES.map((r, i) => (
               <li key={i} className="ps-[4px] text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL }} {...tx(r)} />
             ))}
           </ol>

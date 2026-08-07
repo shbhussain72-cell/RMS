@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { Iso, isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
@@ -15,6 +16,8 @@ import StepIndicator from '../components/figma/StepIndicator'
 import ConfirmedView, { UnallocatedNotice, OpensLaterNotice, notAllocatedLabel, type ConfirmStage, type OpensLaterInfo } from '../components/figma/ConfirmedView'
 import Toast, { useToast } from '../components/figma/Toast'
 import { useStore, journeyFor, DEMO_PHASE_ORDER, type RankedCity } from '../store'
+import { useT, tNow } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -26,7 +29,7 @@ type ViewState = 'queue-waiting' | 'queue-active' | 'browse' | 'success' | 'succ
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
-const ITS_CREST = '/figma/its-crest-header.png'
+const ITS_CREST = '/miqaat-logo.png'
 /** Seconds a host-city group stays on hold after "Reserve" before the user must confirm. */
 const HOLD_SEC = 30
 /** The deep-green loader backdrop (Self-Allocation / People-Ahead queue screens). Reused by the
@@ -70,8 +73,8 @@ function familyMeta(m: FamilyMember) {
   // Prefer the member's own gender (invited Mehmaan/Others carry it); genderByIts knows only family
   // members. Invited primaries have a blank relation, so omit the leading tag for them.
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(m.age).padStart(2, '0')} · ITS ${m.its}`
-  return m.relation ? `${m.relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
 // ── Shared atoms ───────────────────────────────────────────────────────────────
@@ -103,13 +106,12 @@ function LinkGlyph({ color = '#2e6a7d' }: { color?: string }) {
 // ── Queue: Waiting ─────────────────────────────────────────────────────────────
 
 function QueueWaiting({ countdown }: { countdown: number }) {
+  const { tx } = useT()
   return (
     <div className="min-h-[100dvh] w-full" style={{ background: LOADER_BG }}>
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-[390px] flex-col items-center justify-center px-[24px] py-[36px] sm:max-w-[520px]">
-        <img src={ITS_CREST} alt="ITS" className="mt-[16px] h-[80px] w-[54px] object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
-        <h1 className="mt-[24px] text-center text-[26px] leading-[34px] text-white" style={{ fontFamily: SERIF }}>
-          Self Allocation not open yet
-        </h1>
+        <img src={ITS_CREST} alt="" className="mt-[16px] h-[80px] w-[54px] object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+        <h1 className="mt-[24px] text-center text-[26px] leading-[34px] text-white" style={{ fontFamily: SERIF }} {...tx('Self Allocation not open yet')} />
         <p className="mt-[14px] text-[11px] font-bold uppercase tracking-[1.5px] text-[rgba(255,255,255,0.5)] text-center" style={{ fontFamily: FONT }}>
           This queue will open on
         </p>
@@ -118,21 +120,19 @@ function QueueWaiting({ countdown }: { countdown: number }) {
           <p className="mt-[4px] text-[54px] font-bold leading-none text-white" style={{ fontFamily: FONT }}>
             {String(Math.floor(countdown / 60)).padStart(2, '0')}:{String(countdown % 60).padStart(2, '0')}
           </p>
-          <p className="mt-[4px] text-[11px] font-bold uppercase tracking-[1.5px] text-[rgba(255,255,255,0.4)]" style={{ fontFamily: FONT }}>Min · Sec Left</p>
+          <p className="mt-[4px] text-[11px] font-bold uppercase tracking-[1.5px] text-[rgba(255,255,255,0.4)]" style={{ fontFamily: FONT }} {...tx('Min · Sec Left')} />
         </div>
         <div className="mt-[22px] flex flex-col gap-[10px] text-[14px] leading-[22px] text-[rgba(255,255,255,0.72)] text-center" style={{ fontFamily: FONT }}>
           <p>Coming early does <strong className="text-white">not</strong> give you an earlier position.</p>
           <p>At the exact start time everyone on this page is assigned a <strong className="text-white">random queue position</strong> — an <strong style={{ color: '#e3cd96' }}>equal chance</strong> for all.</p>
-          <p>Stay on this page and wait for the queue to begin.</p>
+          <p {...tx('Stay on this page and wait for the queue to begin.')} />
         </div>
         <div className="mt-[18px] w-full rounded-[10px] px-[16px] py-[12px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
           <p className="text-[13px] leading-[20px] text-[rgba(255,255,255,0.7)]" style={{ fontFamily: FONT }}>
-            <strong className="text-white">Note:</strong> City Selection is only available for those with <strong className="text-white">valid travel documents</strong> and a completed registration.
+            <strong className="text-white" {...tx('Note:')} /> City Selection is only available for those with <strong className="text-white">valid travel documents</strong> and a completed registration.
           </p>
         </div>
-        <p className="mt-[24px] text-[12px] italic text-[rgba(255,255,255,0.3)] text-center" style={{ fontFamily: FONT }}>
-          Please keep this page open. Refreshing is not required.
-        </p>
+        <p className="mt-[24px] text-[12px] italic text-[rgba(255,255,255,0.3)] text-center" style={{ fontFamily: FONT }} {...tx('Please keep this page open. Refreshing is not required.')} />
       </div>
     </div>
   )
@@ -141,6 +141,7 @@ function QueueWaiting({ countdown }: { countdown: number }) {
 // ── Queue: Active ──────────────────────────────────────────────────────────────
 
 function QueueActive({ onContinue }: { onContinue: () => void }) {
+  const { tx } = useT()
   useEffect(() => {
     const t = setTimeout(onContinue, 5_000)
     return () => clearTimeout(t)
@@ -149,11 +150,9 @@ function QueueActive({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="min-h-[100dvh] w-full" style={{ background: LOADER_BG }}>
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-[390px] flex-col items-center justify-center px-[24px] py-[36px] sm:max-w-[520px]">
-        <img src={ITS_CREST} alt="ITS" className="mt-[16px] h-[80px] w-[54px] object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
-        <h1 className="mt-[24px] text-[26px] leading-[34px] text-white text-center" style={{ fontFamily: SERIF }}>Queue started</h1>
-        <p className="mt-[10px] text-[13px] leading-[20px] text-[rgba(255,255,255,0.68)] text-center" style={{ fontFamily: FONT }}>
-          Your position has been assigned. Remain on this page while we process entries.
-        </p>
+        <img src={ITS_CREST} alt="" className="mt-[16px] h-[80px] w-[54px] object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+        <h1 className="mt-[24px] text-[26px] leading-[34px] text-white text-center" style={{ fontFamily: SERIF }} {...tx('Queue started')} />
+        <p className="mt-[10px] text-[13px] leading-[20px] text-[rgba(255,255,255,0.68)] text-center" style={{ fontFamily: FONT }} {...tx('Your position has been assigned. Remain on this page while we process entries.')} />
         <p className="mt-[24px] text-[68px] font-bold leading-none text-white" style={{ fontFamily: FONT }}>1,367</p>
         <p className="mt-[4px] text-[14px] text-[rgba(255,255,255,0.68)]" style={{ fontFamily: FONT }}>people ahead of you</p>
         <div className="mt-[18px] h-[12px] w-full overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
@@ -161,19 +160,15 @@ function QueueActive({ onContinue }: { onContinue: () => void }) {
         </div>
         <div className="mt-[10px] flex items-center gap-[6px] rounded-full px-[14px] py-[6px]" style={{ background: 'rgba(0,0,0,0.3)' }}>
           <span className="size-[7px] shrink-0 rounded-full bg-[#e3cd96]" />
-          <span className="text-[12px] font-bold text-white" style={{ fontFamily: FONT }}>Estimated wait &lt; 2 minutes</span>
+          <span className="text-[12px] font-bold text-white" style={{ fontFamily: FONT }} {...tx('Estimated wait < 2 minutes')} />
         </div>
-        <p className="mt-[12px] text-[13px] text-[rgba(255,255,255,0.55)] text-center" style={{ fontFamily: FONT }}>
-          We're moving participants through as capacity becomes available
-        </p>
+        <p className="mt-[12px] text-[13px] text-[rgba(255,255,255,0.55)] text-center" style={{ fontFamily: FONT }} {...tx('We\'re moving participants through as capacity becomes available')} />
         <div className="mt-[18px] w-full rounded-[10px] px-[16px] py-[12px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
           <p className="text-[13px] leading-[20px] text-[rgba(255,255,255,0.7)]" style={{ fontFamily: FONT }}>
-            <strong className="text-white">Do not refresh or close this page.</strong>{' '}Refreshing may cause you to lose your queue position.
+            <strong className="text-white" {...tx('Do not refresh or close this page.')} />{' '}Refreshing may cause you to lose your queue position.
           </p>
         </div>
-        <p className="mt-[20px] text-[12px] italic text-[rgba(255,255,255,0.3)] text-center" style={{ fontFamily: FONT }}>
-          Kindly keep this page open and wait for your turn
-        </p>
+        <p className="mt-[20px] text-[12px] italic text-[rgba(255,255,255,0.3)] text-center" style={{ fontFamily: FONT }} {...tx('Kindly keep this page open and wait for your turn')} />
       </div>
     </div>
   )
@@ -193,6 +188,7 @@ function PeopleMini({ color = '#5a6660' }: { color?: string }) {
  *  aligned whether or not it shows a second line. "N added" appears only on cities
  *  that actually hold members (added > 0) — never "0 added" on every card. */
 function CityHCard({ city, selected, added, unavailable, onClick }: { city: LiveCity; selected: boolean; added: number; unavailable: boolean; onClick: () => void }) {
+  const { tx, t, td } = useT()
   const [showTip, setShowTip] = useState(false)
   const style: React.CSSProperties = {
     border: selected ? '2px solid #d9c98a' : '2px solid #e7dfc9',
@@ -206,12 +202,12 @@ function CityHCard({ city, selected, added, unavailable, onClick }: { city: Live
   if (unavailable) {
     return (
       <div className={cls} style={style}>
-        <span className="text-[15px] font-bold leading-[20px] text-[#8a938e]" style={{ fontFamily: FONT }}>{city.name}</span>
+        <span className="text-[15px] font-bold leading-[20px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(city.name)} />
         <span className="relative mt-[3px] inline-flex w-fit items-center gap-[4px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
           Not available
-          <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v) }} className="inline-flex cursor-pointer" aria-label="Why not available?"><InfoIcon /></span>
+          <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v) }} className="inline-flex cursor-pointer" aria-label={t('Why not available?')}><InfoIcon /></span>
           {showTip && (
-            <span className="absolute bottom-[calc(100%+8px)] left-0 z-[60] w-[150px] rounded-[8px] bg-[#23302a] px-[10px] py-[7px] text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)]" style={{ fontFamily: FONT }}>Capacity is full.</span>
+            <span className="absolute bottom-[calc(100%+8px)] start-0 z-[60] w-[150px] rounded-[8px] bg-[#23302a] px-[10px] py-[7px] text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)]" style={{ fontFamily: FONT }} {...tx('Capacity is full.')} />
           )}
         </span>
       </div>
@@ -219,14 +215,14 @@ function CityHCard({ city, selected, added, unavailable, onClick }: { city: Live
   }
   return (
     <button type="button" onClick={onClick} className={`${cls} cursor-pointer`} style={style}>
-      <span className="text-[15px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{city.name}</span>
+      <span className="text-[15px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(city.name)} />
       {/* Reserved status line: "N added" on the active/member-holding city, else a green "Available". */}
       {(selected || added > 0) ? (
         <span className="mt-[4px] flex items-center gap-[5px] text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }}>
           <PeopleMini /> {added} added
         </span>
       ) : (
-        <span className="mt-[4px] text-[13px] font-semibold text-[#1f7a4d]" style={{ fontFamily: FONT }}>Available</span>
+        <span className="mt-[4px] text-[13px] font-semibold text-[#1f7a4d]" style={{ fontFamily: FONT }} {...tx('Available')} />
       )}
     </button>
   )
@@ -245,6 +241,7 @@ function ViewAllSheet({
   search: string
   onSearch: (v: string) => void
 }) {
+     const { tx, t, td } = useT()
   const filtered = search
     ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
     : cities
@@ -255,13 +252,13 @@ function ViewAllSheet({
       onClose={onClose}
       header={(
         <>
-          <div className="pr-[36px]">
-            <span className="text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>All Relay Cities</span>
+          <div className="pe-[36px]">
+            <span className="text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('All Relay Cities')} />
           </div>
           {/* Search */}
           <div className="mt-[14px] flex items-center gap-[10px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[14px] h-[44px]">
             <input
-              placeholder="Search city names..."
+              placeholder={t('Search city names...')}
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]"
@@ -286,7 +283,7 @@ function ViewAllSheet({
               key={c.id}
               type="button"
               onClick={() => { if (!isFull) { onSelect(c); onClose() } }}
-              className="flex items-center justify-between rounded-[14px] border px-[16px] py-[14px] text-left w-full"
+              className="flex items-center justify-between rounded-[14px] border px-[16px] py-[14px] text-start w-full"
               style={{
                 borderColor: isSelected ? '#d9c98a' : '#e7dfc9',
                 background: isSelected ? '#fffdf5' : 'white',
@@ -295,9 +292,7 @@ function ViewAllSheet({
               }}
             >
               <div>
-                <p className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }}>
-                  {c.name}
-                </p>
+                <p className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(c.name)} />
                 {/* Status line follows the relay-city chips: red "Not available" when full, "N added"
                     only on cities that actually hold members, else a green "Available". */}
                 <p className="mt-[3px] flex items-center gap-[5px] text-[13px] font-bold"
@@ -353,6 +348,7 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
   onSelect: (z: Zone) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const W = 300
   const filtered = search ? zones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase())) : zones
   const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
@@ -363,7 +359,7 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
       <div className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]" style={{ left, top, width: W }}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
-            <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search zone names..."
+            <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search zone names...')}
               className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]" style={{ fontFamily: FONT }} />
             <svg viewBox="0 0 20 20" fill="none" className="size-[16px] shrink-0 text-[#8a938e]"><circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" /><path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
           </div>
@@ -374,18 +370,18 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
             const selected = z.id === selectedZoneId
             return (
               <button key={z.id} type="button" disabled={isFull} onClick={!isFull ? () => onSelect(z) : undefined}
-                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-left transition-colors"
+                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-start transition-colors"
                 style={{ background: selected ? '#eaf3ed' : 'transparent', cursor: isFull ? 'not-allowed' : 'pointer' }}>
-                <span className="truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b0b8b3' : '#23302a' }}>{z.name}</span>
+                <span className="truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b0b8b3' : '#23302a' }} {...td(z.name)} />
                 {isFull
-                  ? <span className="text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Full</span>
+                  ? <span className="text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Full')} />
                   : (selected && (
                       <svg viewBox="0 0 16 16" fill="none" className="size-[16px] shrink-0"><path d="M3 8.5l3 3 7-7.5" stroke="#1f7a4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     ))}
               </button>
             )
           })}
-          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No zones found.</p>}
+          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No zones found.')} />}
         </div>
       </div>
     </>
@@ -464,6 +460,7 @@ function AllocateGroupCard({
   /** Modify-city-zone flow: the group's CURRENT (pre-change) city + zone, shown as a "Now" caption. */
   currentAlloc?: { cityName: string; cityType: 'host' | 'relay'; zoneName: string } | null
 }) {
+     const { tx, t, td } = useT()
   const linked = !!group.label
   const isAssigned = assignedCity !== null
   const foreignName = group.members.find((mm) => mm.member.opensAt)?.member.name ?? ''
@@ -494,22 +491,22 @@ function AllocateGroupCard({
           <div key={mm.member.id} className="relative flex items-center gap-[10px] px-[13px] py-[10px]">
             {/* Connector drawn only in the gaps above/below each avatar (18px radius) → stops at edges. */}
             {linked && group.members.length > 1 && mi !== 0 && (
-              <span className="pointer-events-none absolute left-[31px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
+              <span className="pointer-events-none absolute start-[31px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
             )}
             {linked && group.members.length > 1 && mi !== group.members.length - 1 && (
-              <span className="pointer-events-none absolute left-[31px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
+              <span className="pointer-events-none absolute start-[31px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
             )}
             <div className="relative z-[1] flex min-w-0 flex-1 items-center gap-[10px]">
               <Avatar name={mm.member.name} />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                 <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                 {mi === 0 && currentAlloc && (
                   /* Wraps rather than truncates — this pill IS the reason the screen exists (it's
                      the allocation you're changing away from), and "Colombo · Zon…" hid the very
                      zone name the user needs to compare against. */
                   <span className="mt-[6px] inline-flex max-w-full items-start gap-x-[6px] rounded-[11px] border border-[#e3decf] bg-[#faf7ef] px-[9px] py-[3px]" style={{ fontFamily: FONT }}>
-                    <span className="shrink-0 pt-[1px] text-[10px] font-bold uppercase leading-[15px] tracking-[0.4px] text-[#a08a54]">Now</span>
+                    <span className="shrink-0 pt-[1px] text-[10px] font-bold uppercase leading-[15px] tracking-[0.4px] text-[#a08a54]" {...tx('Now')} />
                     <span className="min-w-0 text-[11.5px] font-bold leading-[15px] text-[#6a726c]">{currentAlloc.cityName}{currentAlloc.zoneName ? ` · ${currentAlloc.zoneName}` : ''}</span>
                   </span>
                 )}
@@ -528,9 +525,9 @@ function AllocateGroupCard({
             <div className="flex items-center gap-[10px]">
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }}>Current allocation · {assignedCity!.type === 'host' ? 'Host city' : 'Relay city'}</p>
-                <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{assignedCity!.name}</p>
+                <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
               </div>
-              <button type="button" onClick={(e) => { e.stopPropagation(); onRemove?.() }} aria-label="Cancel reservation"
+              <button type="button" onClick={(e) => { e.stopPropagation(); onRemove?.() }} aria-label={t('Cancel reservation')}
                 className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
                 <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
               </button>
@@ -541,13 +538,13 @@ function AllocateGroupCard({
                   <svg viewBox="0 0 16 16" fill="none" className="size-[12px] shrink-0"><path d="M8 3v9M4.5 8.5L8 12l3.5-3.5" stroke="#a8843e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Swap to · {swapTarget.type === 'host' ? 'Host city' : 'Relay city'}
                 </p>
-                <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#a8843e]" style={{ fontFamily: FONT }}>{swapTarget.name}</p>
+                <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#a8843e]" style={{ fontFamily: FONT }} {...td(swapTarget.name)} />
               </div>
               <button type="button" onClick={(e) => { e.stopPropagation(); onSwap?.() }}
                 className="shrink-0 inline-flex h-[34px] items-center gap-[6px] rounded-full border border-[#2e6a7d] bg-white px-[16px] text-[13px] font-bold text-[#2e6a7d] transition-colors hover:bg-[#eef5f7] active:scale-[0.97]"
                 style={{ fontFamily: FONT }}>
                 <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                Swap
+                <span {...tx('Swap')} />
               </button>
             </div>
             <p className="text-[11.5px] font-semibold leading-[15px] text-[#23302a]" style={{ fontFamily: FONT }}>
@@ -561,7 +558,7 @@ function AllocateGroupCard({
           <div className="flex items-center justify-between gap-[8px]">
             <div className="min-w-0">
               <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host city' : 'Relay city'}</p>
-              <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{assignedCity!.name}</p>
+              <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
             </div>
             <div className="flex shrink-0 items-center gap-[10px]">
               <span className={`inline-flex items-center gap-[6px] rounded-full border px-[14px] py-[7px] text-[13px] font-bold ${isRequest && !autoAllocated && !locked ? 'border-[#f0d9a8] bg-[#fdf1dc] text-[#a9740f]' : 'border-[#bfe3cd] bg-[#eef7f1] text-[#1f7a4d]'}`} style={{ fontFamily: FONT }}>
@@ -579,7 +576,7 @@ function AllocateGroupCard({
                 {autoAllocated ? 'Auto-allocated' : isRequest && !locked ? 'Requested' : 'Selected'}
               </span>
               {!autoAllocated && !locked && (
-                <button type="button" onClick={(e) => { e.stopPropagation(); (onRemove ?? onSelect)() }} aria-label="Remove reservation"
+                <button type="button" onClick={(e) => { e.stopPropagation(); (onRemove ?? onSelect)() }} aria-label={t('Remove reservation')}
                   className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
                   <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
                 </button>
@@ -609,14 +606,14 @@ function AllocateGroupCard({
               closed ? (
                 // Admin closed THIS city for a member (status stays valid) → "Not Available" + a hint.
                 <div className="flex shrink-0 flex-col items-end gap-[3px]">
-                  <span className="inline-flex h-[30px] items-center rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[14px] text-[12.5px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                  <span className="text-right text-[11px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>Please choose a different city.</span>
+                  <span className="inline-flex h-[30px] items-center rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[14px] text-[12.5px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                  <span className="text-end text-[11px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Please choose a different city.')} />
                 </div>
               ) : activeCityName && !available ? (
                 // City out of seats for this group.
                 <div className="flex shrink-0 flex-col items-end gap-[3px]">
-                  <span className="inline-flex h-[30px] items-center rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[14px] text-[12.5px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                  <span className="text-right text-[11px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>This city is full — choose another.</span>
+                  <span className="inline-flex h-[30px] items-center rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[14px] text-[12.5px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                  <span className="text-end text-[11px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('This city is full — choose another.')} />
                 </div>
               ) : activeCityName && !hideReserveCta ? (
                 // Same "Reserve" pill as the desktop table's Action column — only shown once a city is
@@ -634,9 +631,7 @@ function AllocateGroupCard({
                 // No city picked yet → guide the user to pick one first, instead of a Reserve button
                 // that would just error. Reserve appears once a city is selected above.
                 <span className="shrink-0 inline-flex h-[30px] items-center rounded-full px-[14px] text-[12px] font-semibold"
-                  style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }}>
-                  Select host or relay
-                </span>
+                  style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }} {...tx('Select host or relay')} />
               )
             )}
           </div>
@@ -645,10 +640,10 @@ function AllocateGroupCard({
             both are chosen on this one screen instead of a separate Zone Selection screen. */}
         {showZone && !opensAt && eligible && (
           <div className="mt-[10px] flex items-center justify-between gap-[8px]" onClick={(e) => e.stopPropagation()}>
-            <span className="text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }}>Zone</span>
+            <span className="text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Zone')} />
             <ZoneTrigger
               label={zone?.name ?? null}
-              placeholder="Select a zone"
+              placeholder={t('Select a zone')}
               active={!!zoneDropdownOpen}
               // Zone follows the reserved city → only enabled once THIS member is reserved.
               disabled={!isAssigned}
@@ -751,6 +746,7 @@ export function HostCityCard({
    *  and makes the whole card non-interactive. Defaults false, so every other caller is unaffected. */
   isCurrentCity?: boolean
 }) {
+     const { tx, td } = useT()
   // Host card always reads "Filling fast" (never the literal seat count) — the specific number
   // otherwise looks mismatched once Arrange My Cities puts a relay city (with its own seat pool)
   // in this slot.
@@ -766,7 +762,7 @@ export function HostCityCard({
       onClick={isCurrentCity ? undefined : onSelect}
       onKeyDown={isCurrentCity ? undefined : (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
       aria-pressed={isCurrentCity ? undefined : selected}
-      className={`group/host relative w-full shrink-0 overflow-hidden rounded-[14px] px-[14px] py-[12px] sm:px-[18px] sm:py-[16px] text-left transition-transform duration-200 ease-out ${isCurrentCity ? 'cursor-default' : 'cursor-pointer hover:-translate-y-[1px]'}`}
+      className={`group/host relative w-full shrink-0 overflow-hidden rounded-[14px] px-[14px] py-[12px] sm:px-[18px] sm:py-[16px] text-start transition-transform duration-200 ease-out ${isCurrentCity ? 'cursor-default' : 'cursor-pointer hover:-translate-y-[1px]'}`}
       style={{
         border: isCurrentCity ? '2px solid #e3decf' : selected ? '2px solid #c2a04e' : '2px solid #e7dfc9',
         background: isCurrentCity ? '#faf7ef' : selected ? '#fffdf5' : 'white',
@@ -810,11 +806,11 @@ export function HostCityCard({
             {preferred && (
               <span className="inline-flex items-center gap-[3px] rounded-full bg-[#f7efd6] px-[8px] py-[2px] text-[10px] font-bold uppercase tracking-[0.3px] text-[#a8843e]" style={{ fontFamily: FONT }}>
                 <svg viewBox="0 0 12 12" fill="none" className="size-[10px] shrink-0"><path d="M6 1l1.5 3 3.3.4-2.4 2.3.6 3.3L6 8.7 3 10.3l.6-3.3L1.2 4.4l3.3-.4L6 1z" fill="#c2a04e" /></svg>
-                Preferred
+                <span {...tx('Preferred')} />
               </span>
             )}
           </div>
-          <p className="truncate text-[18px] leading-[23px] sm:text-[20px] sm:leading-[26px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{city.name}</p>
+          <p className="truncate text-[18px] leading-[23px] sm:text-[20px] sm:leading-[26px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(city.name)} />
         </div>
         </div>
         {/* Mobile-only: compact reserve/swap-all pill + radio, vertically centered with the icon row
@@ -872,7 +868,7 @@ export function HostCityCard({
           {isCurrentCity && (
             <span className="flex h-[34px] shrink-0 items-center gap-[7px] rounded-full border-[1.5px] border-[#d9d2c2] bg-white px-[14px]" style={{ fontFamily: FONT }}>
               <PinDot />
-              <span className="text-[13px] font-bold text-[#6a726c]">Already in this city</span>
+              <span className="text-[13px] font-bold text-[#6a726c]" {...tx('Already in this city')} />
             </span>
           )}
           {!isCurrentCity && selected && onReserveAll && (
@@ -938,26 +934,27 @@ export function HostCityCard({
 /** "PHASE 1 · LIVE" badge + info tooltip. Tapping the (i) toggles the tooltip on mobile (where there
  *  is no hover); desktop also opens it on hover. `compact` is the smaller mobile size. */
 function PhaseTag({ compact = false }: { compact?: boolean }) {
+  const { tx, t } = useT()
   const [showTip, setShowTip] = useState(false)
   return (
     <span className="group/ph relative flex shrink-0 items-center gap-[6px]">
       <span className={`inline-flex items-center gap-[5px] rounded-full bg-[#1f5a44] ${compact ? 'h-[22px] px-[9px]' : 'h-[26px] px-[11px]'}`}>
         <span className={`rounded-full ${compact ? 'size-[5px]' : 'size-[6px]'}`} style={{ background: '#86e6ad' }} />
-        <span className={`whitespace-nowrap font-bold uppercase text-white ${compact ? 'text-[10px] tracking-[0.4px]' : 'text-[11px] tracking-[0.6px]'}`} style={{ fontFamily: FONT }}>Phase 1 · Live</span>
+        <span className={`whitespace-nowrap font-bold uppercase text-white ${compact ? 'text-[10px] tracking-[0.4px]' : 'text-[11px] tracking-[0.6px]'}`} style={{ fontFamily: FONT }} {...tx('Phase 1 · Live')} />
       </span>
-      <button type="button" onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v) }} aria-label="Phase 1 info" className="inline-flex text-[#8a938e]">
+      <button type="button" onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v) }} aria-label={t('Phase 1 info')} className="inline-flex text-[#8a938e]">
         <svg viewBox="0 0 20 20" fill="none" className={compact ? 'size-[16px]' : 'size-[18px]'}><circle cx="10" cy="10" r="7.25" stroke="currentColor" strokeWidth="1.4" /><path d="M10 9.2v3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><circle cx="10" cy="6.7" r="1" fill="currentColor" /></svg>
       </button>
-      <span className={`pointer-events-none absolute ${compact ? 'left-0' : 'right-0'} top-[calc(100%+10px)] z-[60] w-[272px] sm:w-[300px] overflow-hidden rounded-[16px] border border-[#d3e3d9] bg-[#e8f1ea] text-left shadow-[0_16px_44px_-12px_rgba(21,64,47,0.3)] transition-opacity duration-200 group-hover/ph:opacity-100 ${showTip ? 'opacity-100' : 'opacity-0'}`} style={{ fontFamily: FONT }}>
+      <span className={`pointer-events-none absolute ${compact ? 'start-0' : 'end-0'} top-[calc(100%+10px)] z-[60] w-[272px] sm:w-[300px] overflow-hidden rounded-[16px] border border-[#d3e3d9] bg-[#e8f1ea] text-start shadow-[0_16px_44px_-12px_rgba(21,64,47,0.3)] transition-opacity duration-200 group-hover/ph:opacity-100 ${showTip ? 'opacity-100' : 'opacity-0'}`} style={{ fontFamily: FONT }}>
         <span className="block px-[18px] pt-[16px] pb-[14px]">
           <span className="inline-flex items-center rounded-full bg-[#1c3f2e] px-[12px] py-[5px]">
-            <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white">Phase 1 · Live</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white" {...tx('Phase 1 · Live')} />
           </span>
-          <span className="mt-[12px] block text-[18px] font-bold leading-[24px] text-[#15402f]">Reserve your slot</span>
-          <span className="mt-[6px] block text-[14px] leading-[20px] text-[#5a6660]">It&apos;s your Jamaat&apos;s. Book your group before 2:00 PM today.</span>
+          <span className="mt-[12px] block text-[18px] font-bold leading-[24px] text-[#15402f]" {...tx('Reserve your slot')} />
+          <span className="mt-[6px] block text-[14px] leading-[20px] text-[#5a6660]" {...tx('It\'s your Jamaat\'s. Book your group before 2:00 PM today.')} />
         </span>
         <span className="block h-px bg-[#d3e3d9]" />
-        <span className="block px-[18px] py-[13px] text-[14px] leading-[20px] text-[#5a6660]">After this, booking opens to everyone in <strong className="font-bold text-[#2e3a34]">Phase2</strong>.</span>
+        <span className="block px-[18px] py-[13px] text-[14px] leading-[20px] text-[#5a6660]">After this, booking opens to everyone in <strong className="font-bold text-[#2e3a34]" {...tx('Phase2')} />.</span>
       </span>
     </span>
   )
@@ -967,10 +964,11 @@ function PhaseTag({ compact = false }: { compact?: boolean }) {
  *  missed-deadline / closed-window flow (`isRequest`) the LIVE badge is dropped (the slot is closed,
  *  not live) — the `SlotClosedCard` below explains the state instead. */
 function ChooseCityHeading({ isRequest = false, showPhase = true }: { isRequest?: boolean; showPhase?: boolean }) {
+  const { tx } = useT()
   return (
     <div className="flex items-center gap-[12px]">
-      <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>Choose a city</h2>
-      {showPhase && !isRequest && <span className="ml-auto"><PhaseTag /></span>}
+      <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Choose a city')} />
+      {showPhase && !isRequest && <span className="ms-auto"><PhaseTag /></span>}
     </div>
   )
 }
@@ -979,20 +977,21 @@ function ChooseCityHeading({ isRequest = false, showPhase = true }: { isRequest?
  *  has closed (reached here via Ask Help to file a request). Maroon "SLOT CLOSED" badge, then the
  *  round-2 explainer + Phase 2 start time. */
 function SlotClosedCard() {
+  const { tx, t } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#eccfca] bg-[#fbeeec]">
       <div className="px-[18px] pt-[16px] pb-[14px]">
         <span className="inline-flex items-center rounded-full bg-[#a2382c] px-[12px] py-[5px]">
-          <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white" style={{ fontFamily: FONT }}>Phase 1 · Slot Closed</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white" style={{ fontFamily: FONT }} {...tx('Phase 1 · Slot Closed')} />
         </span>
-        <p className="mt-[12px] text-[18px] font-bold leading-[24px] text-[#15402f]" style={{ fontFamily: FONT }}>You missed your turn</p>
-        <p className="mt-[6px] text-[14px] leading-[20px] text-[#8a7975]" style={{ fontFamily: FONT }}>
-          Your Jamaat&apos;s booking time is over. You can book again in Round 2, open for everyone.
-        </p>
+        <p className="mt-[12px] text-[18px] font-bold leading-[24px] text-[#15402f]" style={{ fontFamily: FONT }} {...tx('You missed your turn')} />
+        <p className="mt-[6px] text-[14px] leading-[20px] text-[#8a7975]" style={{ fontFamily: FONT }} {...tx('Your Jamaat\'s booking time is over. You can book again in Round 2, open for everyone.')} />
       </div>
       <div className="h-px bg-[#eccfca]" />
       <p className="px-[18px] py-[13px] text-[14px] leading-[20px] text-[#5a4f4c]" style={{ fontFamily: FONT }}>
-        <strong className="font-bold text-[#3a2f2d]">Phase 2</strong> starts Fri, 20 · 6:00 PM.
+        <strong className="font-bold text-[#3a2f2d]" {...tx('Phase 2')} />{' '}
+        <span {...tx('starts')} />{' '}
+        <Iso>{t('Fri')}, 20</Iso>{' · '}<TimeLine value="6:00 PM" />.
       </p>
     </div>
   )
@@ -1009,6 +1008,7 @@ function HostGroupCard({
   onCancel: () => void
   onToggleMember: (memberId: string) => void
 }) {
+     const { tx, t, td } = useT()
   const linked = !!group.label
   const held = holdSec !== undefined
   return (
@@ -1024,13 +1024,13 @@ function HostGroupCard({
           <div key={mm.member.id} onClick={() => onToggleMember(mm.member.id)}
             className="relative flex cursor-pointer items-center gap-[10px] px-[13px] py-[10px]">
             {linked && group.members.length > 1 && (
-              <span className="pointer-events-none absolute left-[58px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[58px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
             )}
             <Checkbox checked={checkedIds.has(memKey(gi, mm.member.id))} onClick={() => onToggleMember(mm.member.id)} />
             <div className="relative flex min-w-0 flex-1 items-center gap-[10px]">
               <Avatar name={mm.member.name} />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                 <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
               </div>
             </div>
@@ -1047,11 +1047,11 @@ function HostGroupCard({
                   <circle cx="9" cy="10" r="6" stroke="#c98a2e" strokeWidth="1.5" />
                   <path d="M9 6.8V10l2.2 1.4M6.6 3.4h4.8" stroke="#c98a2e" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                <span className="truncate">Confirm before time expires</span>
+                <span className="truncate" {...tx('Confirm before time expires')} />
               </span>
               <span className="flex shrink-0 items-center gap-[8px]">
                 <span className="text-[13px] font-extrabold leading-[16px]" style={{ fontFamily: FONT, color: '#9a6712' }}>{fmtClock(holdSec!)}</span>
-                <button type="button" onClick={onCancel} aria-label="Cancel reservation"
+                <button type="button" onClick={onCancel} aria-label={t('Cancel reservation')}
                   className="flex size-[22px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f7d9d4] active:scale-90">
                   <svg viewBox="0 0 20 20" fill="none" className="size-[15px]">
                     <path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="1.9" strokeLinecap="round" />
@@ -1070,17 +1070,14 @@ function HostGroupCard({
       ) : (
         <div className="flex items-center justify-between border-t border-[#f0ebe0] px-[13px] py-[10px]">
           <span className="flex items-center gap-[5px] text-[12px]" style={{ fontFamily: FONT }}>
-            <span className="text-[#5a6660]">Status :</span>
-            <span className="font-bold text-[#1f5a44]">Valid for allocation</span>
+            <span className="text-[#5a6660]" {...tx('Status :')} />
+            <span className="font-bold text-[#1f5a44]" {...tx('Valid for allocation')} />
           </span>
           <button
             type="button"
             onClick={onReserve}
             className="h-[34px] rounded-full px-[20px] text-[13px] font-bold transition-colors"
-            style={{ fontFamily: FONT, border: '1.5px solid #1f5a44', background: 'white', color: '#1f5a44' }}
-          >
-            Reserve
-          </button>
+            style={{ fontFamily: FONT, border: '1.5px solid #1f5a44', background: 'white', color: '#1f5a44' }} {...tx('Reserve')} />
         </div>
       )}
     </div>
@@ -1127,6 +1124,7 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
   onSelect: (c: LiveCity) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
   const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
@@ -1144,7 +1142,7 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
               autoFocus
               value={search}
               onChange={(e) => onSearch(e.target.value)}
-              placeholder="Search city names..."
+              placeholder={t('Search city names...')}
               className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]"
               style={{ fontFamily: FONT }}
             />
@@ -1164,10 +1162,10 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
                 type="button"
                 disabled={!avail}
                 onClick={avail ? () => onSelect(c) : undefined}
-                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-left transition-colors"
+                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-start transition-colors"
                 style={{ background: selected ? '#eaf3ed' : 'transparent', cursor: avail ? 'pointer' : 'not-allowed' }}
               >
-                <span className="truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: avail ? '#23302a' : '#b0b8b3' }}>{c.name}</span>
+                <span className="truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: avail ? '#23302a' : '#b0b8b3' }} {...td(c.name)} />
                 {avail
                   ? (selected && (
                       <svg viewBox="0 0 16 16" fill="none" className="size-[16px] shrink-0">
@@ -1178,7 +1176,7 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
               </button>
             )
           })}
-          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No cities found.</p>}
+          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
       </div>
     </>
@@ -1244,6 +1242,7 @@ function AllocateDesktopTable({
    *  the member so the user sees what they're changing FROM. Omitted in every other flow. */
   currentAllocFor?: (gi: number) => { cityName: string; cityType: 'host' | 'relay'; zoneName: string } | null
 }) {
+     const { tx, t, td } = useT()
   // Ordering: every group that can still be reserved is listed first; groups that read "Not Available"
   // (globally not valid for allocation) always sink to the bottom. This keeps the eligibility reason
   // out of the way — the top of the list reads as "these seats are still open", and the unavailable
@@ -1273,7 +1272,7 @@ function AllocateDesktopTable({
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {(showZoneColumn ? ['Member', '', 'Status', 'City', 'Zone'] : ['Member', '', 'Status', 'Allocation', 'Action']).map((h, i) => (
-              <th key={i} className="px-[16px] py-[11px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>
+              <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>
                 {/* The ZONE column's bulk action — the zone counterpart of the city card's "Select
                     all". Without it, putting a whole party in one zone meant opening the per-row
                     dropdown once per group. */}
@@ -1286,10 +1285,7 @@ function AllocateDesktopTable({
                       onClick={(e) => onOpenZoneAllDropdown(e.currentTarget.getBoundingClientRect())}
                       className={`rounded-full border px-[10px] py-[3px] text-[11px] font-bold normal-case tracking-normal transition-colors ${canSetAllZones ? 'border-[#c2a04e] bg-white text-[#9a6a1e] hover:bg-[#fdf5e6]' : 'cursor-not-allowed border-[#e7dfc9] bg-white text-[#c4c9c6]'}`}
                       style={{ fontFamily: FONT }}
-                      title={canSetAllZones ? 'Pick one zone and apply it to every selected member' : 'Select a city for your members first'}
-                    >
-                      Same zone for all
-                    </button>
+                      title={canSetAllZones ? 'Pick one zone and apply it to every selected member' : 'Select a city for your members first'} {...tx('Same zone for all')} />
                   </span>
                 ) : h}
               </th>
@@ -1342,15 +1338,15 @@ function AllocateDesktopTable({
                       {/* Gold connector — drawn only in the gaps ABOVE/BELOW each avatar (18px = avatar
                           radius), so it stops at the circle's edge and never crosses the avatars. */}
                       {hasConnector && !isFirst && (
-                        <span className="pointer-events-none absolute left-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
+                        <span className="pointer-events-none absolute start-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
                       )}
                       {hasConnector && !isLast && (
-                        <span className="pointer-events-none absolute left-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
+                        <span className="pointer-events-none absolute start-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
                       )}
                       <div className="relative z-[1] flex items-center gap-[10px]" style={{ opacity: dim ? 0.55 : 1 }}>
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                           {isFirst && currentAllocFor && (() => {
                             const cur = currentAllocFor(gi)
@@ -1358,7 +1354,7 @@ function AllocateDesktopTable({
                               /* Wraps rather than truncates — same reasoning as the mobile card's
                                  copy of this pill above. */
                               <span className="mt-[6px] inline-flex max-w-full items-start gap-x-[6px] rounded-[11px] border border-[#e3decf] bg-[#faf7ef] px-[9px] py-[3px]" style={{ fontFamily: FONT }}>
-                                <span className="shrink-0 pt-[1px] text-[10px] font-bold uppercase leading-[15px] tracking-[0.4px] text-[#a08a54]">Now</span>
+                                <span className="shrink-0 pt-[1px] text-[10px] font-bold uppercase leading-[15px] tracking-[0.4px] text-[#a08a54]" {...tx('Now')} />
                                 <span className="min-w-0 text-[11.5px] font-bold leading-[15px] text-[#6a726c]">{cur.cityName}{cur.zoneName ? ` · ${cur.zoneName}` : ''}</span>
                               </span>
                             ) : null
@@ -1402,7 +1398,7 @@ function AllocateDesktopTable({
                             <div className="flex items-center justify-between gap-[10px]">
                               <div className="flex flex-col gap-[2px]">
                                 <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host City' : 'Relay City'}</span>
-                                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{assignedCity!.name}</span>
+                                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
                               </div>
                               <div className="flex shrink-0 items-center gap-[6px]">
                                 <span className={`inline-flex h-[30px] w-fit items-center gap-[5px] rounded-full border px-[12px] text-[12px] font-bold ${requested ? 'border-[#f0d9a8] bg-[#fdf1dc] text-[#a9740f]' : 'border-[#bfe3cd] bg-[#eef7f1] text-[#1f7a4d]'}`} style={{ fontFamily: FONT }}>
@@ -1420,7 +1416,7 @@ function AllocateDesktopTable({
                                   {isAutoGroup?.(gi) ? 'Auto-allocated' : requested ? 'Requested' : 'Selected'}
                                 </span>
                                 {!isAutoGroup?.(gi) && !isLockedGroup?.(gi) && (
-                                  <button type="button" onClick={() => onRemoveGroup(gi)} aria-label="Remove reservation"
+                                  <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Remove reservation')}
                                     className="flex size-[24px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
                                     <svg viewBox="0 0 20 20" fill="none" className="size-[14px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
                                   </button>
@@ -1428,16 +1424,16 @@ function AllocateDesktopTable({
                               </div>
                             </div>
                           ) : !eligible ? (
-                            <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
+                            <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
                           ) : activeCity && closed ? (
                             <div className="flex flex-col gap-[4px]">
-                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>Please choose a different city.</span>
+                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Please choose a different city.')} />
                             </div>
                           ) : activeCity && !available ? (
                             <div className="flex flex-col gap-[4px]">
-                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>This city is full — choose another.</span>
+                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('This city is full — choose another.')} />
                             </div>
                           ) : activeCity && !hideReserveCta ? (
                             <button type="button" onClick={() => onReserveGroup(gi)}
@@ -1453,16 +1449,14 @@ function AllocateDesktopTable({
                             // No city picked yet → guide the user to pick one first, matching the mobile
                             // card's dashed hint (was a faded/disabled "Reserve" button, easy to miss).
                             <span className="inline-flex h-[34px] w-fit items-center rounded-full px-[16px] text-[13px] font-semibold"
-                              style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }}>
-                              Select host or relay
-                            </span>
+                              style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }} {...tx('Select host or relay')} />
                           )}
                         </td>
                         <td rowSpan={g.members.length} className="px-[16px] py-[10px] align-middle">
                           {eligible ? (
                             <ZoneTrigger
                               label={zoneFor?.(gi)?.name ?? null}
-                              placeholder="Select a zone"
+                              placeholder={t('Select a zone')}
                               active={openZoneGi === gi}
                               // Only after THIS member's city is reserved — not merely when a city is
                               // selected on the left. Zone follows the reserved city.
@@ -1484,7 +1478,7 @@ function AllocateDesktopTable({
                           {isAssigned ? (
                             <div className="flex flex-col gap-[2px]">
                               <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host City' : 'Relay City'}</span>
-                              <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{assignedCity!.name}</span>
+                              <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
                             </div>
                           ) : (
                             <span className="text-[14px] text-[#c2ccc6]" style={{ fontFamily: FONT }}>—</span>
@@ -1505,7 +1499,7 @@ function AllocateDesktopTable({
                                   <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                   <span className="truncate">Swap to {swapTarget.name}</span>
                                 </button>
-                                <button type="button" onClick={() => onRemoveGroup(gi)} aria-label="Cancel reservation"
+                                <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Cancel reservation')}
                                   className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
                                   <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
                                 </button>
@@ -1535,7 +1529,7 @@ function AllocateDesktopTable({
                                 {isAutoGroup?.(gi) ? 'Auto-allocated' : requested ? 'Requested' : 'Selected'}
                               </span>
                               {!isAutoGroup?.(gi) && !isLockedGroup?.(gi) && (
-                                <button type="button" onClick={() => onRemoveGroup(gi)} aria-label="Remove reservation"
+                                <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Remove reservation')}
                                   className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
                                   <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
                                 </button>
@@ -1543,19 +1537,19 @@ function AllocateDesktopTable({
                             </div>
                           ) : !eligible ? (
                             // Globally not valid → can't choose any city (status already says why; no city hint).
-                            <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
+                            <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
                           ) : activeCity && closed ? (
                             // Admin closed THIS city for the member (status stays valid) → "Not Available"
                             // pill (matches the other blocked states) + a hint to pick a different city.
                             <div className="flex flex-col gap-[4px]">
-                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>Please choose a different city.</span>
+                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Please choose a different city.')} />
                             </div>
                           ) : activeCity && !available ? (
                             // City out of seats for this group.
                             <div className="flex flex-col gap-[4px]">
-                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Not Available</span>
-                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }}>This city is full — choose another.</span>
+                              <span className="inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border border-[#e3c9c4] bg-[#fbf3f2] px-[16px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Not Available')} />
+                              <span className="text-[11.5px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('This city is full — choose another.')} />
                             </div>
                           ) : activeCity && !hideReserveCta ? (
                             <button type="button" onClick={() => onReserveGroup(gi)}
@@ -1571,9 +1565,7 @@ function AllocateDesktopTable({
                             // No city picked yet → guide the user to pick one first, matching the mobile
                             // card's dashed hint (was a faded/disabled "Reserve" button, easy to miss).
                             <span className="inline-flex h-[34px] w-fit items-center rounded-full px-[16px] text-[13px] font-semibold"
-                              style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }}>
-                              Select host or relay
-                            </span>
+                              style={{ fontFamily: FONT, border: '1.5px dashed #d3c8ac', color: '#a08a5e', background: 'transparent' }} {...tx('Select host or relay')} />
                           )}
                         </td>
                       </>
@@ -1605,6 +1597,7 @@ function HostDesktopTable({
   onCancelHold: (gi: number) => void
   onToggleMember: (gi: number, memberId: string) => void
 }) {
+     const { tx, t, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -1623,7 +1616,7 @@ function HostDesktopTable({
               </span>
             </th>
             {['Member', '', 'Status', 'Action'].map((h, i) => (
-              <th key={i} className="px-[14px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -1655,12 +1648,12 @@ function HostDesktopTable({
                     <td className="relative px-[14px] py-[9px] align-middle">
                       {/* gold profile connector — joins guardian/caregiver avatar to its dependent(s) */}
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                         </div>
                       </div>
@@ -1669,9 +1662,9 @@ function HostDesktopTable({
                       {mm.badge ? <RoleBadge kind={mm.badge} /> : null}
                     </td>
                     <td className="px-[14px] py-[9px] align-middle">
-                      <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Valid for allocation</span>
+                      <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('Valid for allocation')} />
                     </td>
-                    <td onClick={(e) => e.stopPropagation()} className="pl-[14px] pr-[18px] py-[9px] align-middle">
+                    <td onClick={(e) => e.stopPropagation()} className="ps-[14px] pe-[18px] py-[9px] align-middle">
                       {isFirst && (held ? (
                         <div className="flex items-center justify-end gap-[12px]">
                           <div className="min-w-0">
@@ -1686,16 +1679,14 @@ function HostDesktopTable({
                               <div className="h-full rounded-full transition-[width] duration-1000 ease-linear" style={{ width: `${((HOLD_SEC - holdSec!) / HOLD_SEC) * 100}%`, background: '#e8941e' }} />
                             </div>
                           </div>
-                          <button type="button" onClick={() => onCancelHold(gi)} aria-label="Cancel reservation" className="shrink-0">
+                          <button type="button" onClick={() => onCancelHold(gi)} aria-label={t('Cancel reservation')} className="shrink-0">
                             <svg viewBox="0 0 20 20" fill="none" className="size-[20px]">
                               <path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="1.9" strokeLinecap="round" />
                             </svg>
                           </button>
                         </div>
                       ) : (
-                        <button type="button" onClick={() => onReserve(gi)} className="ml-auto flex h-[38px] items-center rounded-full border-[1.5px] border-[#1f5a44] bg-white px-[20px] text-[13px] font-bold text-[#1f5a44] transition-all duration-200 hover:bg-[#eef5f0] hover:shadow-[0_5px_14px_-6px_rgba(31,90,68,0.4)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30" style={{ fontFamily: FONT }}>
-                          Reserve
-                        </button>
+                        <button type="button" onClick={() => onReserve(gi)} className="ms-auto flex h-[38px] items-center rounded-full border-[1.5px] border-[#1f5a44] bg-white px-[20px] text-[13px] font-bold text-[#1f5a44] transition-all duration-200 hover:bg-[#eef5f0] hover:shadow-[0_5px_14px_-6px_rgba(31,90,68,0.4)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30" style={{ fontFamily: FONT }} {...tx('Reserve')} />
                       ))}
                     </td>
                   </tr>
@@ -1718,6 +1709,7 @@ function WhosInWhichCitySheet({
   groupCityMap: Map<number, LiveCity>
   onClose: () => void
 }) {
+     const { t, td } = useT()
   const byCityMap = new Map<string, { city: LiveCity; groupIndices: number[] }>()
   groupCityMap.forEach((city, gi) => {
     if (!byCityMap.has(city.id)) byCityMap.set(city.id, { city, groupIndices: [] })
@@ -1725,19 +1717,17 @@ function WhosInWhichCitySheet({
   })
 
   return (
-    <BottomSheet open title="Who's in which city" onClose={onClose}>
+    <BottomSheet open title={t('Who\'s in which city')} onClose={onClose}>
       <div>
         {[...byCityMap.values()].map(({ city, groupIndices }) => (
           <div key={city.id} className="mb-[16px]">
-            <p className="text-[12px] font-bold uppercase tracking-[0.8px] text-[#8a938e] mb-[8px]" style={{ fontFamily: FONT }}>
-              {city.name}
-            </p>
+            <p className="text-[12px] font-bold uppercase tracking-[0.8px] text-[#8a938e] mb-[8px]" style={{ fontFamily: FONT }} {...td(city.name)} />
             {groupIndices.map((gi) =>
               groups[gi]?.members.map((mm) => (
                 <div key={mm.member.id} className="flex items-center gap-[10px] py-[6px]">
                   <Avatar name={mm.member.name} size={32} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                    <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                     <p className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                   </div>
                   <RoleBadge kind={mm.badge} />
@@ -1754,6 +1744,7 @@ function WhosInWhichCitySheet({
 // ── Success: mobile group card ─────────────────────────────────────────────────
 
 function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: string }) {
+  const { td } = useT()
   const linked = !!group.label
   // A group flagged not-valid can never be allocated → show that reason (matches City Selection).
   const groupNotValid = group.members.some((mm) => mm.member.notValidForCity)
@@ -1770,12 +1761,12 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
         {group.members.map((mm, mi) => (
           <div key={mm.member.id} className="relative flex items-center gap-[10px] px-[13px] py-[10px]">
             {linked && group.members.length > 1 && (
-              <span className="pointer-events-none absolute left-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
             )}
             <div className="relative flex min-w-0 flex-1 items-center gap-[10px]">
               <Avatar name={mm.member.name} />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                 <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
               </div>
             </div>
@@ -1813,11 +1804,12 @@ function MembersChip({ count }: { count: number }) {
 
 /** "PHASE 1 · LIVE" badge + info tooltip (host self-allocation). */
 function PhaseBadge() {
+  const { tx } = useT()
   return (
     <span className="inline-flex items-center gap-[8px]">
       <span className="inline-flex h-[28px] items-center gap-[7px] rounded-full bg-[#1f5a44] px-[13px]">
         <span className="size-[7px] rounded-full" style={{ background: '#86e6ad' }} />
-        <span className="text-[11px] font-bold uppercase tracking-[0.6px] text-white" style={{ fontFamily: FONT }}>Phase 1 · Live</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.6px] text-white" style={{ fontFamily: FONT }} {...tx('Phase 1 · Live')} />
       </span>
       <span className="group/ph relative inline-flex">
         <svg viewBox="0 0 20 20" fill="none" className="size-[18px] text-[#8a938e]">
@@ -1825,9 +1817,7 @@ function PhaseBadge() {
           <path d="M10 9.2v3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           <circle cx="10" cy="6.7" r="1" fill="currentColor" />
         </svg>
-        <span className="pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[60] w-[220px] rounded-[8px] bg-[#23302a] px-[11px] py-[8px] text-[12px] font-medium leading-[16px] text-white opacity-0 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)] transition-opacity duration-200 group-hover/ph:opacity-100" style={{ fontFamily: FONT }}>
-          Phase 1 self-allocation is live. Reserve your group before the timer closes.
-        </span>
+        <span className="pointer-events-none absolute end-0 top-[calc(100%+8px)] z-[60] w-[220px] rounded-[8px] bg-[#23302a] px-[11px] py-[8px] text-[12px] font-medium leading-[16px] text-white opacity-0 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)] transition-opacity duration-200 group-hover/ph:opacity-100" style={{ fontFamily: FONT }} {...tx('Phase 1 self-allocation is live. Reserve your group before the timer closes.')} />
       </span>
     </span>
   )
@@ -1835,13 +1825,14 @@ function PhaseBadge() {
 
 /** Relay-city grid cell (desktop sidebar). */
 function RelayGridCard({ city, selected, added, unavailable, onClick }: { city: LiveCity; selected: boolean; added: number; unavailable: boolean; onClick: () => void }) {
+  const { tx, td } = useT()
   return (
     <div className="group/rc relative">
       <button
         type="button"
         disabled={unavailable}
         onClick={!unavailable ? onClick : undefined}
-        className="flex h-[60px] w-full flex-col justify-center rounded-[12px] px-[12px] text-left transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0 disabled:pointer-events-none"
+        className="flex h-[60px] w-full flex-col justify-center rounded-[12px] px-[12px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0 disabled:pointer-events-none"
         style={{
           border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9',
           background: selected ? '#fffdf5' : unavailable ? '#f6f6f4' : 'white',
@@ -1849,17 +1840,14 @@ function RelayGridCard({ city, selected, added, unavailable, onClick }: { city: 
         }}
       >
         <span className="flex w-full min-w-0 items-center gap-[5px]">
-          <span className="truncate text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: unavailable ? '#8a938e' : '#23302a' }}>{city.name}</span>
+          <span className="truncate text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: unavailable ? '#8a938e' : '#23302a' }} {...td(city.name)} />
           {/* An Arrange My Cities layout can displace the real host city into this grid (another
               city took the host slot) — flag it here, compact enough to not affect the card's
               fixed height/width. */}
           {city.type === 'host' && (
             <span
               className="shrink-0 rounded-full px-[5px] py-[1px] text-[9px] font-bold uppercase leading-[12px] tracking-[0.2px]"
-              style={{ background: '#f7efd6', color: '#a8843e' }}
-            >
-              Host
-            </span>
+              style={{ background: '#f7efd6', color: '#a8843e' }} {...tx('Host')} />
           )}
         </span>
         {/* Reserved status slot — fixed height so adding members never resizes the card */}
@@ -1874,14 +1862,12 @@ function RelayGridCard({ city, selected, added, unavailable, onClick }: { city: 
               <PeopleMini /> {added} added
             </span>
           ) : (
-            <span className="text-[#1f7a4d]">Available</span>
+            <span className="text-[#1f7a4d]" {...tx('Available')} />
           )}
         </span>
       </button>
       {unavailable && (
-        <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-[8px] bg-[#23302a] px-[10px] py-[6px] text-[12px] font-semibold text-white opacity-0 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)] transition-opacity duration-200 group-hover/rc:opacity-100" style={{ fontFamily: FONT }}>
-          Capacity is full.
-        </span>
+        <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-[8px] bg-[#23302a] px-[10px] py-[6px] text-[12px] font-semibold text-white opacity-0 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.4)] transition-opacity duration-200 group-hover/rc:opacity-100" style={{ fontFamily: FONT }} {...tx('Capacity is full.')} />
       )}
     </div>
   )
@@ -1933,6 +1919,7 @@ function MyPreferredCityCard({
   onSwapAll?: () => void
   anySwappable?: boolean
 }) {
+     const { tx } = useT()
   const preferred = cities.filter((c) => c.id !== hostCityId)
   if (preferred.length === 0) return null
   const activeInThisCard = preferred.find((c) => c.id === activeCityId)
@@ -1942,12 +1929,12 @@ function MyPreferredCityCard({
     <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[16px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
       <div className="flex items-center gap-[8px]">
         <PreferredStarIcon />
-        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }}>My Preferred City</p>
+        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('My Preferred City')} />
         {showInlineReserveAll && (
           <button
             type="button"
             onClick={onReserveAll}
-            className={`ml-auto inline-flex h-[34px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
+            className={`ms-auto inline-flex h-[34px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
               allGroupsAssigned
                 ? 'border border-[#e0b0aa] bg-white text-[#c0392b] hover:bg-[#fdf3f2]'
                 : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'
@@ -1961,7 +1948,7 @@ function MyPreferredCityCard({
           <button
             type="button"
             onClick={onSwapAll}
-            className="ml-auto inline-flex h-[34px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[16px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
+            className="ms-auto inline-flex h-[34px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[16px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -2006,6 +1993,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
   onSwapAll?: () => void
   anySwappable?: boolean
 }) {
+     const { tx, t, td } = useT()
   const activeCityInGrid = cities.find((c) => c.id === activeCityId)
   const activeInThisGrid = !!activeCityInGrid
   const showInlineReserveAll = !!onReserveAll && activeInThisGrid
@@ -2044,7 +2032,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
           <button
             type="button"
             onClick={onReserveAll}
-            className={`ml-auto flex h-[34px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
+            className={`ms-auto flex h-[34px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
               allGroupsAssigned
                 ? 'border border-[#e0b0aa] bg-white text-[#c0392b] hover:bg-[#fdf3f2]'
                 : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'
@@ -2058,7 +2046,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
           <button
             type="button"
             onClick={onSwapAll}
-            className="ml-auto inline-flex h-[34px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[16px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
+            className="ms-auto inline-flex h-[34px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[16px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -2067,7 +2055,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
         )}
       </div>
       <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
-        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search city names..." className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
+        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search city names...')} className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
         <svg viewBox="0 0 20 20" fill="none" className="size-[18px] shrink-0 text-[#8a938e]"><circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" /><path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </div>
       <div className="mt-[14px] flex flex-col gap-[8px]">
@@ -2082,9 +2070,9 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
               <button
                 type="button"
                 onClick={() => setExpanded((cur) => (cur === name ? null : name))}
-                className="flex w-full items-center justify-between px-[14px] py-[12px] text-left transition-colors hover:bg-[#fffdf5]"
+                className="flex w-full items-center justify-between px-[14px] py-[12px] text-start transition-colors hover:bg-[#fffdf5]"
               >
-                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{name}</span>
+                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(name)} />
                 <span className="flex items-center gap-[8px]">
                   <span className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{matches.length}</span>
                   <svg viewBox="0 0 16 16" fill="none" className={`size-[13px] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
@@ -2103,7 +2091,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
           )
         })}
         {q && !anyMatch && (
-          <p className="py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No cities found.</p>
+          <p className="py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />
         )}
       </div>
     </div>
@@ -2116,7 +2104,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
 function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null }) {
   if (!tip) return null
   return (
-    <div className="pointer-events-none fixed bottom-[128px] right-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
+    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
       <div
         className={`flex max-w-[calc(100vw-32px)] items-center gap-[9px] rounded-full px-[16px] py-[10px] ${tip.phase === 'in' ? 'reserve-tip-in' : 'reserve-tip-out'}`}
         style={{ background: '#1f5a44', boxShadow: '0 12px 30px -8px rgba(21,64,47,0.5)' }}
@@ -2134,6 +2122,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function CitySelection() {
+  const { tx, t, td } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Where to go after filing a request — the Miqaat detail page when Ask Help was opened from there
@@ -2996,10 +2985,10 @@ export default function CitySelection() {
         {/* ═══════════════════════ DESKTOP — two-panel confirmed ═══════════════════════ */}
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
-            title="City Confirmed"
+            title={t('City Confirmed')}
             footerCaption="City confirmed"
             infoLabel="Zone selection open"
-            infoValue="15 June 2026, 09:00 AM IST"
+            infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated}
             sections={confirmedSections}
             unallocatedNotice={unallocatedNotice}
@@ -3029,24 +3018,22 @@ export default function CitySelection() {
               <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-[26px] leading-[32px] text-[#1f5a44] text-center" style={{ fontFamily: SERIF }}>
-            City Confirmed
-          </h1>
+          <h1 className="text-[26px] leading-[32px] text-[#1f5a44] text-center" style={{ fontFamily: SERIF }} {...tx('City Confirmed')} />
         </div>
 
         <div className="mx-[16px] sm:mx-0 overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
           <div className="flex items-center justify-between px-[16px] py-[14px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Registration status</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Registration status')} />
             <span className="inline-flex items-center gap-[5px] rounded-full px-[10px] py-[3px] text-[12px] font-bold" style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}>
               <span className="size-[6px] rounded-full bg-[#276245]" />Allocated
             </span>
           </div>
           <div className="flex items-center justify-between px-[16px] py-[14px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Zone selection open</span>
-            <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>15 June 2026, 09:00 AM IST</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Zone selection open')} />
+            <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></span>
           </div>
           <div className="flex items-center justify-between px-[16px] py-[14px]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Members allocated</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Members allocated')} />
             <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
               {String(totalAllocated).padStart(2, '0')}
             </span>
@@ -3064,7 +3051,7 @@ export default function CitySelection() {
                     <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{city.name}</span>
+                  <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(city.name)} />
                   <span className="inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]" style={{ fontFamily: FONT, background: city.type === 'host' ? '#f7efd6' : '#e1eef1', color: city.type === 'host' ? '#a8843e' : '#2e6a7d' }}>
                     {city.type === 'host' ? 'Host City' : 'Relay City'}
                   </span>
@@ -3083,7 +3070,7 @@ export default function CitySelection() {
                     <thead>
                       <tr style={{ background: '#faf8f2' }}>
                         {['Member', 'Role', 'Raza Status'].map((h) => (
-                          <th key={h} className="px-[16px] py-[12px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+                          <th key={h} className="px-[16px] py-[12px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -3108,12 +3095,12 @@ export default function CitySelection() {
                               <tr key={mm.member.id} style={{ borderTop: linked ? undefined : '1px solid #e7dfc9', background: 'white' }}>
                                 <td className="relative px-[16px] py-[12px]">
                                   {hasConnector && (
-                                    <span className="pointer-events-none absolute left-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                                    <span className="pointer-events-none absolute start-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                                   )}
                                   <div className="relative flex items-center gap-[10px]">
                                     <Avatar name={mm.member.name} size={32} />
                                     <div className="min-w-0">
-                                      <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                                      <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                                       <p className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                                     </div>
                                   </div>
@@ -3143,7 +3130,7 @@ export default function CitySelection() {
                 <svg viewBox="0 0 24 24" fill="none" className="size-[16px] shrink-0">
                   <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#d2632b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="text-[15px] font-bold text-[#8a4b22]" style={{ fontFamily: FONT }}>Not allocated</span>
+                <span className="text-[15px] font-bold text-[#8a4b22]" style={{ fontFamily: FONT }} {...tx('Not allocated')} />
                 <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {unallocatedCount} members</span>
               </div>
               <div className="flex flex-col gap-[10px]">
@@ -3158,7 +3145,7 @@ export default function CitySelection() {
             <div className="mb-[20px]">
               <div className="mb-[10px] flex items-center gap-[6px]">
                 <svg viewBox="0 0 24 24" fill="none" className="size-[16px] shrink-0"><circle cx="12" cy="12" r="9" stroke="#8a5a1a" strokeWidth="1.75" /><path d="M12 7.5V12l3 2" stroke="#8a5a1a" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className="text-[15px] font-bold text-[#8a5a1a]" style={{ fontFamily: FONT }}>Opening later</span>
+                <span className="text-[15px] font-bold text-[#8a5a1a]" style={{ fontFamily: FONT }} {...tx('Opening later')} />
                 <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {opensLaterList.length} member{opensLaterList.length > 1 ? 's' : ''}</span>
               </div>
               <div className="flex flex-col gap-[10px]">
@@ -3233,11 +3220,11 @@ export default function CitySelection() {
         {/* ═══════════════════════ DESKTOP — two-panel confirmed ═══════════════════════ */}
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
-            title="Zone Confirmed"
+            title={t('Zone Confirmed')}
             footerCaption="Zone confirmed"
             reference={flow.referenceNumber ?? 'MIQ-23106'}
             infoLabel="Raza issues on"
-            infoValue="15 June 2026, 09:00 AM IST"
+            infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated || totalMembers}
             sections={confirmedSectionsZ}
             unallocatedNotice={unallocatedNoticeZ}
@@ -3257,7 +3244,7 @@ export default function CitySelection() {
           <svg viewBox="0 0 16 16" fill="none" className="size-[14px]">
             <path d="M2.5 7.5L8 2.5l5.5 5M4 6.5V13h8V6.5" stroke="#5a6660" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[13px] font-medium text-[#5a6660]">Go Home</span>
+          <span className="text-[13px] font-medium text-[#5a6660]" {...tx('Go Home')} />
         </button>
 
         <div className="flex flex-col items-center mt-[20px] mb-[20px]">
@@ -3266,30 +3253,28 @@ export default function CitySelection() {
               <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-[26px] leading-[34px] text-[#1f5a44]" style={{ fontFamily: SERIF }}>
-            Zone Confirmed
-          </h1>
+          <h1 className="text-[26px] leading-[34px] text-[#1f5a44]" style={{ fontFamily: SERIF }} {...tx('Zone Confirmed')} />
         </div>
 
         <div className="mx-[16px] sm:mx-0 overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white mb-[20px]">
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Registration status</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Registration status')} />
             <span
               className="inline-flex items-center gap-[5px] rounded-full px-[10px] py-[3px] text-[11px] font-bold"
               style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}
             >
               <span className="size-[5px] rounded-full bg-[#276245]" />
-              Allocated
+              <span {...tx('Allocated')} />
             </span>
           </div>
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
             <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Raza issues on</span>
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-              15 June 2026, 09:00 AM IST
+              <DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" />
             </span>
           </div>
           <div className="flex items-center justify-between px-[14px] py-[12px]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Members allocated</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Members allocated')} />
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
               {String(totalAllocated || totalMembers).padStart(2, '0')}
             </span>
@@ -3398,7 +3383,7 @@ export default function CitySelection() {
             onClick={() => setShowWhosInWhichCity(true)}
             className="flex items-center gap-[5px] rounded-full border border-[#23302a] px-[12px] h-[32px]"
           >
-            <span className="text-[12px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Who's in which city</span>
+            <span className="text-[12px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Who\'s in which city')} />
             <svg viewBox="0 0 16 16" fill="none" className="size-[10px]">
               <path d="M4 10l4-4 4 4" stroke="#23302a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -3435,7 +3420,7 @@ export default function CitySelection() {
 
         {/* ═══════════════════════ MOBILE — unchanged single-column flow ═══════════════════════ */}
         <div className="contents sm:hidden">
-        <div className="ml-[16px] sm:ml-0 mt-[12px]">
+        <div className="ms-[16px] sm:ml-0 mt-[12px]">
           <Breadcrumb
             items={cityBreadcrumb}
             onNavigate={(to) => nav(to)}
@@ -3451,7 +3436,7 @@ export default function CitySelection() {
         {/* Choose a city — prominent host card + relay chips (mirrors the web sidebar) */}
         <div data-tour="city-cards" className="mt-[18px] px-[16px] sm:px-0">
           <div className="flex items-center gap-[8px] mb-[12px]">
-            <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Choose a city</span>
+            <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Choose a city')} />
             {!isRequest && !modifyCityZone && <PhaseTag compact />}
           </div>
           {/* Not shown in modify-city-zone mode even when isRequest (Raza issued) — "you missed your
@@ -3481,7 +3466,7 @@ export default function CitySelection() {
             <>
               <div className="mb-[8px] flex items-center gap-[6px]">
                 <PreferredStarIcon />
-                <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>My Preferred City</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('My Preferred City')} />
               </div>
               <div
                 className="mb-[14px] flex gap-[10px] overflow-x-auto pb-[2px]"
@@ -3501,14 +3486,14 @@ export default function CitySelection() {
             </>
           )}
           <div className="mb-[8px] flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>Other Cities</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Other Cities')} />
             <button
               type="button"
               onClick={() => setShowViewAll(true)}
               className="flex items-center gap-[3px] text-[13px] font-bold text-[#23302a]"
               style={{ fontFamily: FONT }}
             >
-              View all
+              <span {...tx('View all')} />
               <svg viewBox="0 0 16 16" fill="none" className="size-[12px]">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -3590,7 +3575,7 @@ export default function CitySelection() {
           </svg>
           {activeCity ? (
             <p className="text-[13px] font-semibold leading-[18px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]">{activeCity.name}</strong> — {isRequest ? 'request' : 'select'} members below
+              {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
             </p>
           ) : (
             <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
@@ -3604,16 +3589,13 @@ export default function CitySelection() {
             phone user had to open each card's own picker in turn. Same sentinel + dropdown. */}
         {showCombined && (
           <div className="mx-[16px] mt-[14px] flex items-center justify-between gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-white px-[12px] py-[10px]">
-            <span className="min-w-0 text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }}>Zone</span>
+            <span className="min-w-0 text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Zone')} />
             <button
               type="button"
               disabled={!canSetAllZones}
               onClick={(e) => { setZoneSearch(''); setZoneDropdown({ gi: ZONE_ALL_GI, rect: e.currentTarget.getBoundingClientRect() }) }}
               className={`shrink-0 rounded-full border px-[12px] py-[5px] text-[12px] font-bold transition-colors ${canSetAllZones ? 'border-[#c2a04e] bg-white text-[#9a6a1e]' : 'cursor-not-allowed border-[#e7dfc9] bg-white text-[#c4c9c6]'}`}
-              style={{ fontFamily: FONT }}
-            >
-              Same zone for all
-            </button>
+              style={{ fontFamily: FONT }} {...tx('Same zone for all')} />
           </div>
         )}
 
@@ -3656,7 +3638,7 @@ export default function CitySelection() {
           <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden" onClick={() => setRelayDropdown(null)}>
 
             {/* ───── LEFT sidebar — host card + relay grid together ───── */}
-            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
               <Breadcrumb
                 items={cityBreadcrumb}
                 onNavigate={(to) => nav(to)}
@@ -3713,7 +3695,7 @@ export default function CitySelection() {
 
             {/* ───── RIGHT panel ───── */}
             <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
                 <div className="flex items-start justify-between gap-[16px]">
                   <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }}>
                     {screenHeading}
@@ -3736,7 +3718,7 @@ export default function CitySelection() {
                         <path d="M9 16.4995C7.675 16.4995 6.59375 16.2901 5.75625 15.8714C4.91875 15.4526 4.5 14.912 4.5 14.2495C4.5 14.012 4.55313 13.7933 4.65938 13.5933C4.76563 13.3933 4.925 13.2058 5.1375 13.0308C5.3125 12.9058 5.50313 12.8558 5.70938 12.8808C5.91563 12.9058 6.08125 13.0058 6.20625 13.1808C6.33125 13.3558 6.37813 13.5464 6.34688 13.7526C6.31563 13.9589 6.2125 14.1245 6.0375 14.2495C6.2 14.4495 6.575 14.6245 7.1625 14.7745C7.75 14.9245 8.3625 14.9995 9 14.9995C9.6375 14.9995 10.25 14.9245 10.8375 14.7745C11.425 14.6245 11.8 14.4495 11.9625 14.2495C11.7875 14.1245 11.6844 13.9589 11.6531 13.7526C11.6219 13.5464 11.6688 13.3558 11.7938 13.1808C11.9188 13.0058 12.0844 12.9058 12.2906 12.8808C12.4969 12.8558 12.6875 12.9058 12.8625 13.0308C13.075 13.2058 13.2344 13.3933 13.3406 13.5933C13.4469 13.7933 13.5 14.012 13.5 14.2495C13.5 14.912 13.0813 15.4526 12.2438 15.8714C11.4063 16.2901 10.325 16.4995 9 16.4995ZM9.01875 12.3745C10.2563 11.462 11.1875 10.5464 11.8125 9.62764C12.4375 8.70889 12.75 7.78701 12.75 6.86201C12.75 5.58701 12.3438 4.62451 11.5313 3.97451C10.7188 3.32451 9.875 2.99951 9 2.99951C8.125 2.99951 7.28125 3.32451 6.46875 3.97451C5.65625 4.62451 5.25 5.58701 5.25 6.86201C5.25 7.69951 5.55625 8.57139 6.16875 9.47764C6.78125 10.3839 7.73125 11.3495 9.01875 12.3745ZM8.55 13.8183C8.4 13.7683 8.2625 13.6933 8.1375 13.5933C6.6625 12.4183 5.5625 11.2714 4.8375 10.1526C4.1125 9.03389 3.75 7.93701 3.75 6.86201C3.75 5.97451 3.90937 5.19639 4.22813 4.52764C4.54688 3.85889 4.95625 3.29951 5.45625 2.84951C5.95625 2.39951 6.51875 2.06201 7.14375 1.83701C7.76875 1.61201 8.3875 1.49951 9 1.49951C9.6125 1.49951 10.2313 1.61201 10.8563 1.83701C11.4813 2.06201 12.0438 2.39951 12.5438 2.84951C13.0438 3.29951 13.4531 3.85889 13.7719 4.52764C14.0906 5.19639 14.25 5.97451 14.25 6.86201C14.25 7.93701 13.8875 9.03389 13.1625 10.1526C12.4375 11.2714 11.3375 12.4183 9.8625 13.5933C9.7375 13.6933 9.6 13.7683 9.45 13.8183C9.3 13.8683 9.15 13.8933 9 13.8933C8.85 13.8933 8.7 13.8683 8.55 13.8183ZM9 8.24951C9.4125 8.24951 9.76563 8.10264 10.0594 7.80889C10.3531 7.51514 10.5 7.16201 10.5 6.74951C10.5 6.33701 10.3531 5.98389 10.0594 5.69014C9.76563 5.39639 9.4125 5.24951 9 5.24951C8.5875 5.24951 8.23438 5.39639 7.94063 5.69014C7.64688 5.98389 7.5 6.33701 7.5 6.74951C7.5 7.16201 7.64688 7.51514 7.94063 7.80889C8.23438 8.10264 8.5875 8.24951 9 8.24951Z" fill="#c8842a" />
                       </svg>
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]">{activeCity.name}</strong> — {isRequest ? 'request' : 'select'} members below
+                        {isRequest ? 'Requested' : 'Selected'} {activeCity.type === 'host' ? 'host' : 'relay'} city <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> — {isRequest ? 'request' : 'select'} members below
                       </span>
                     </span>
                   )}
@@ -3748,7 +3730,7 @@ export default function CitySelection() {
                     <button
                       type="button"
                       onClick={handleSelectAll}
-                      className={`ml-auto flex h-[36px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
+                      className={`ms-auto flex h-[36px] shrink-0 items-center justify-center rounded-full px-[16px] text-[13px] font-bold transition-colors ${
                         allGroupsAssigned
                           ? 'border border-[#e0b0aa] bg-white text-[#c0392b] hover:bg-[#fdf3f2]'
                           : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'

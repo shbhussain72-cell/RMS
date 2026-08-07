@@ -1,6 +1,8 @@
 import BottomSheet from './BottomSheet'
+import { isolateRuns } from '../Bidi'
 import RoleBadge from './RoleBadge'
 import type { LinkedMember } from '../../data/seed'
+import { useT } from '../../i18n'
 
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
 const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
@@ -21,13 +23,14 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
 
 /** Approved member row — avatar 36, name 14/18, meta 12/16 ("{Gender} · Age NN · ITS xxx"), Dependent tag. */
 function DependentRow({ member }: { member: LinkedMember }) {
+  const { t, td, tdText } = useT()
   return (
     <div className="flex items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-white px-[14px] py-[10px]">
       <Avatar name={member.name} size={36} />
       <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{member.name}</p>
+        <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(member.name)} />
         <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-          {member.gender} · Age {String(member.age).padStart(2, '0')} · ITS {member.its}
+          {isolateRuns(`${tdText(member.gender)} · ${t('Age')} ${String(member.age).padStart(2, '0')} · ${t('ITS')} ${member.its}`)}
         </p>
       </div>
       <RoleBadge kind="dependent" />
@@ -48,6 +51,7 @@ export function LinkedDependentPopup({
   onCancel: () => void
   onConfirm: () => void
 }) {
+     const { tx, td } = useT()
   const many = dependents.length > 1
   return (
     <BottomSheet
@@ -56,13 +60,9 @@ export function LinkedDependentPopup({
       footer={
         <div className="flex gap-[12px]">
           <button type="button" onClick={onCancel}
-            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[16px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={FMU}>
-            Cancel
-          </button>
+            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[16px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={FMU} {...tx('Cancel')} />
           <button type="button" onClick={onConfirm}
-            className="flex-1 rounded-[12px] bg-[#1f5a44] py-[14px] text-[16px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)] transition-colors hover:bg-[#184a37]" style={FMU}>
-            Add
-          </button>
+            className="flex-1 rounded-[12px] bg-[#1f5a44] py-[14px] text-[16px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)] transition-colors hover:bg-[#184a37]" style={FMU} {...tx('Add')} />
         </div>
       }
     >
@@ -75,7 +75,7 @@ export function LinkedDependentPopup({
         This member has {many ? 'linked dependents' : 'a linked dependent'}
       </h3>
       <p className="mx-auto mb-[18px] max-w-[340px] text-center text-[14px] font-normal leading-[21px] text-[#5a6660]" style={FMU}>
-        <strong className="font-bold text-[#23302a]">{memberName}</strong> is linked to {many ? `${dependents.length} members` : 'a dependent'} who will be added with them.
+        <strong className="font-bold text-[#23302a]" {...td(memberName)} /> is linked to {many ? `${dependents.length} members` : 'a dependent'} who will be added with them.
       </p>
 
       <div className="mb-[16px] flex flex-col gap-[8px]">
@@ -83,9 +83,7 @@ export function LinkedDependentPopup({
       </div>
 
       <div className="rounded-[12px] bg-[#e1eef1] px-[16px] py-[12px]">
-        <p className="text-center text-[14px] leading-[20px] text-[#2e6a7d]" style={{ ...FMU, fontWeight: 600 }}>
-          All will be added to your list. A seat is only used when each one accepts.
-        </p>
+        <p className="text-center text-[14px] leading-[20px] text-[#2e6a7d]" style={{ ...FMU, fontWeight: 600 }} {...tx('All will be added to your list. A seat is only used when each one accepts.')} />
       </div>
     </BottomSheet>
   )
@@ -99,15 +97,14 @@ export function InviteLimitPopup({
   remaining: number
   onClose: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open
       onClose={onClose}
       footer={
         <button type="button" onClick={onClose}
-          className="w-full rounded-[12px] bg-[#1f5a44] py-[13px] text-[15px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)]" style={FMU}>
-          Okay
-        </button>
+          className="w-full rounded-[12px] bg-[#1f5a44] py-[13px] text-[15px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)]" style={FMU} {...tx('Okay')} />
       }
     >
       <div className="mb-[14px] mt-[8px] flex size-[48px] items-center justify-center rounded-full bg-[rgba(178,59,59,0.08)]">
@@ -115,9 +112,7 @@ export function InviteLimitPopup({
           <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <h3 className="mb-[6px] text-[20px] leading-[26px] text-[#15402f]" style={FM}>
-        Not enough invitations
-      </h3>
+      <h3 className="mb-[6px] text-[20px] leading-[26px] text-[#15402f]" style={FM} {...tx('Not enough invitations')} />
       <p className="text-[14px] font-normal leading-[21px] text-[#5a6660]" style={FMU}>
         You need <strong className="font-semibold text-[#23302a]">{needed} invitation{needed !== 1 ? 's' : ''}</strong> but only have <strong className="font-semibold text-[#23302a]">{remaining} remaining</strong>.
       </p>

@@ -11,6 +11,10 @@ import { account, miqaats, liveCities, zonesByCityId, type Miqaat } from '../dat
 import { buildAllGroups } from '../lib/group'
 import { useStore, journeyFor, type ReopenRequest } from '../store'
 import TourHelpButton from '../tour/TourHelpButton'
+import LanguageToggle from '../i18n/LanguageToggle'
+import { useT } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
+import { Ltr, toArabicDigits } from '../components/Bidi'
 import Toast from '../components/figma/Toast'
 import { DemoProgressionControl } from '../components/figma/DemoProgressionControl'
 import { RazaStatusCard } from '../components/figma/RazaStatusCard'
@@ -22,7 +26,7 @@ import type { AskHelpInit } from '../chat/types'
 const CARD_BG = '/figma/miqaat-card-bg.png'
 const ASHARA_BG = '/figma/ashara-banner-bg.jpg'
 const BELL_ICON = '/figma/bell-icon.svg'
-const CREST = '/figma/its-crest-header.png'
+const CREST = '/miqaat-logo.png'
 const DATE_RANGE = '/figma/icon-date-range-gold.svg'
 const SCHEDULE = '/figma/icon-schedule.svg'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
@@ -90,19 +94,47 @@ function Countdown({ cells, tone, compact, ended }: { cells: { value: string; un
             className={`flex flex-col items-center justify-center rounded-[12px] border border-solid ${compact ? 'h-[56px] w-[54px] shrink-0' : 'h-[64px] flex-1'}`}
             style={{ background: c.tile, borderColor: c.border }}
           >
-            <p className={`font-bold ${compact ? 'text-[20px] leading-[24px]' : 'text-[24px] leading-[28px]'}`} style={{ fontFamily: FONT_SANS, color: c.num }}>
-              {cell.value}
-            </p>
-            <p
-              className={`mt-[1px] font-bold uppercase tracking-[0.6px] ${compact ? 'text-[9px] leading-[12px]' : 'text-[10px] leading-[13px] tracking-[0.7px]'}`}
-              style={{ fontFamily: FONT_SANS, color: c.label }}
-            >
-              {cell.unit}
-            </p>
+            <CountdownValue value={cell.value} compact={compact} color={c.num} />
+            <CountdownUnit unit={cell.unit} compact={compact} color={c.label} />
           </div>
         )
       })}
     </div>
+  )
+}
+
+/**
+ * Countdown digits — Arabic-Indic in LSD, inside an LTR isolate.
+ *
+ * `toArabicDigits` rather than `formatNumber`: the value arrives pre-padded (`'07'`, `'00'`)
+ * and the pad is what stops the tiles resizing as the clock ticks. `formatNumber(7)` would
+ * return `٧` and the tile would jump a character narrower every time the hour rolled over.
+ *
+ * A two-digit number cannot itself be reordered, but it sits in a flex row of four tiles in
+ * an RTL document; the isolate keeps each tile's content independent of its neighbours.
+ */
+function CountdownValue({ value, compact, color }: { value: string; compact?: boolean; color: string }) {
+  const { isLsd } = useT()
+  return (
+    <p
+      className={`font-bold ${compact ? 'text-[20px] leading-[24px]' : 'text-[24px] leading-[28px]'}`}
+      style={{ fontFamily: FONT_SANS, color }}
+    >
+      <Ltr>{isLsd ? toArabicDigits(value) : value}</Ltr>
+    </p>
+  )
+}
+
+/** Countdown unit label (DAYS/HRS/MIN/SEC/HOURS) — split into its own component so it can call
+ *  the translation hook, which `Countdown`'s cells.map callback cannot. */
+function CountdownUnit({ unit, compact, color }: { unit: string; compact?: boolean; color: string }) {
+  const { tx } = useT()
+  return (
+    <p
+      className={`mt-[1px] font-bold uppercase tracking-[0.6px] ${compact ? 'text-[9px] leading-[12px]' : 'text-[10px] leading-[13px] tracking-[0.7px]'}`}
+      style={{ fontFamily: FONT_SANS, color }}
+      {...tx(unit)}
+    />
   )
 }
 
@@ -129,25 +161,59 @@ function ClockGlyph({ className = '' }: { className?: string }) {
 
 /** Shared date + time meta row used by both card variants. */
 function DateTimeRow({ m, className = '' }: { m: Miqaat; className?: string }) {
+  const { dirProps } = useT()
+  // `data-numeric` is deliberately GONE from both spans. That attribute forced
+  // `direction: ltr` on the whole element, which was the app's blunt attempt at this problem:
+  // it kept a pure date readable but flipped the base direction of anything composed, so the
+  // weekday and the Hijri parenthetical would have laid out left-to-right. Direction is now
+  // declared per-run by the formatters, which is both narrower and correct.
   return (
     <div className={`flex flex-wrap items-center gap-x-[16px] gap-y-[4px] ${className}`}>
       <span className="flex items-center gap-[7px] text-[#5a6660]">
         <CalendarGlyph className="size-[15px] shrink-0" />
-        <span className="whitespace-nowrap text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}>{m.dateLabel}</span>
+        {/* `whitespace-nowrap` KEPT deliberately. The LSD line is now much longer than the
+            English one (weekday + Gregorian + bracketed Hijri) and will overflow this card at
+            narrow widths. Dropping the class would fix that, but it is a layout change and
+            layout/overflow belongs to the later session — so this is flagged, not fixed. */}
+        <span className="whitespace-nowrap text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...dirProps}>
+          <DateLine value={m.dateLabel} />
+        </span>
       </span>
       <span className="flex items-center gap-[7px] text-[#5a6660]">
         <ClockGlyph className="size-[15px] shrink-0" />
-        <span className="whitespace-nowrap text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}>{m.timeLabel}</span>
+        <span className="whitespace-nowrap text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...dirProps}>
+          <TimeLine value={m.timeLabel} />
+        </span>
       </span>
     </div>
   )
 }
 
-const EVENT_EMBLEM = '/figma/event-emblem.svg'
+/** Miqaat logo — replaces the old ITS crest (`/figma/event-emblem.svg`) beside event names. */
+const EVENT_EMBLEM = '/miqaat-logo.png'
 
 /** Emblem shown beside every event card's title (user-supplied artwork). Native aspect ratio 36:56. */
+/** True aspect ratio (w/h) of miqaat-logo.png — currently 1774×887, i.e. exactly 2:1.
+ *  Must be updated whenever the artwork is replaced: the box is sized from this number, so a
+ *  stale ratio letterboxes the logo inside a box the wrong shape rather than failing loudly.
+ *  (Previous artwork was 270×191; the retired ITS crest before that was 36×56.) */
+const EMBLEM_RATIO = 1774 / 887
+
 function EventEmblem({ size = 22, className = '' }: { size?: number; className?: string }) {
-  return <img src={EVENT_EMBLEM} alt="" width={size} height={Math.round((size * 56) / 36)} className={`shrink-0 object-contain ${className}`} />
+  // Callers pass `size` as the old crest's nominal WIDTH, and its rendered height was
+  // size × 56/36. That height is what set the vertical rhythm against the event title, so it
+  // is preserved exactly and the width is re-derived from the real ratio. Matches the
+  // height-driven `h-[46px] w-auto` sizing used for the same logo on MiqaatDetail's hero.
+  const height = Math.round((size * 56) / 36)
+  return (
+    <img
+      src={EVENT_EMBLEM}
+      alt=""
+      width={Math.round(height * EMBLEM_RATIO)}
+      height={height}
+      className={`shrink-0 object-contain ${className}`}
+    />
+  )
 }
 
 /** Event title block — emblem + English title, with the Lisan al-Dawat (Arabic script) name
@@ -168,23 +234,44 @@ function CardTitleBlock({
   tone?: 'dark' | 'white'
   className?: string
 }) {
-  const titleColor = tone === 'white' ? '#ffffff' : '#15402f'
+  const { tdAuthored, isLsd } = useT()
   const arabicColor = tone === 'white' ? 'rgba(255,255,255,0.75)' : '#a8843e'
+  // LSD event names are gold and larger than the English ones — the gold that used to
+  // carry the Arabic subtitle now carries the name itself, since the name IS the Arabic.
+  // Two golds so it stays legible on both card backgrounds: light gold on the dark hero,
+  // deep gold on cream/white cards. EN keeps its original ink/white and its original size.
+  const LSD_TITLE_SCALE = 1.3
+  const titleColor = isLsd
+    ? (tone === 'white' ? '#e3cd96' : '#a8843e')
+    : (tone === 'white' ? '#ffffff' : '#15402f')
+  const titleSize = isLsd ? Math.round(size * LSD_TITLE_SCALE) : size
   return (
+    // The whole title block reads right-to-left in LSD, so the logo leads from the right
+    // and the name follows to its left. No `flex-row-reverse` anywhere below — the
+    // container's `direction` already reverses the row, and doing both would cancel out.
     <div className={className}>
       <div className="flex items-center gap-[9px]">
         <EventEmblem size={Math.max(26, Math.round(size * 1.4))} />
-        <h3 className="min-w-0" style={{ fontFamily: FONT_SERIF, fontSize: size, lineHeight: `${Math.round(size * 1.24)}px`, color: titleColor }}>
-          {m.title}
-        </h3>
+        {/* Same heading slot in both languages — only the string, colour and size differ. */}
+        <h3
+          className="min-w-0"
+          style={{ fontFamily: FONT_SERIF, fontSize: titleSize, lineHeight: `${Math.round(titleSize * 1.24)}px`, color: titleColor }}
+          {...tdAuthored(m.title, m.titleArabic)}
+        />
       </div>
-      <p
-        className="mt-[6px] text-left"
-        style={{ fontFamily: 'Amiri, serif', fontSize: arabicSize, lineHeight: `${Math.round(arabicSize * 1.5)}px`, color: arabicColor }}
-        dir="rtl"
-      >
-        {m.titleArabic}
-      </p>
+      {/* In EN this is the Arabic subtitle under the English name. In LSD that name has
+          already moved up into the heading, so keeping this line would print it twice —
+          and showing the English here instead is exactly the bilingual pair we're told to
+          drop. So the subtitle is EN-only. */}
+      {!isLsd && (
+        <p
+          className="mt-[6px] text-start"
+          style={{ fontFamily: 'Amiri, serif', fontSize: arabicSize, lineHeight: `${Math.round(arabicSize * 1.5)}px`, color: arabicColor }}
+          dir="rtl"
+        >
+          {m.titleArabic}
+        </p>
+      )}
     </div>
   )
 }
@@ -199,6 +286,7 @@ function PinBadge() {
 }
 
 function LocationRow({ label, value, allocated }: { label: string; value: string; allocated: boolean }) {
+  const { tx } = useT()
   return (
     <div
       className="mt-[6px] flex h-[40px] items-center justify-between gap-[10px] rounded-[10px] px-[14px]"
@@ -206,14 +294,16 @@ function LocationRow({ label, value, allocated }: { label: string; value: string
     >
       <span className="flex min-w-0 items-center gap-[8px]">
         <PinBadge />
-        <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }}>{label}</span>
+        <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(label)} />
       </span>
+      {/* An allocated value is DATA (a city/zone name) and is never looked up — only the
+          "Not allocated" placeholder is UI copy, so only that goes through the dictionary.
+          Routing data through it would flood the coverage report with false gaps. */}
       <span
-        className="truncate text-right text-[14px] leading-[18px]"
+        className="truncate text-end text-[14px] leading-[18px]"
         style={{ fontFamily: FONT_SANS, fontWeight: allocated ? 800 : 600, color: allocated ? '#1f5a44' : '#8a938e' }}
-      >
-        {value}
-      </span>
+        {...(allocated ? { children: value } : tx(value))}
+      />
     </div>
   )
 }
@@ -269,10 +359,11 @@ function useCard(m: DisplayMiqaat, confirmedCityName?: string, confirmedZoneName
 }
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  const { tx } = useT()
   return (
     <div className="mx-[16px] sm:mx-0">
-      <h2 className="text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>{title}</h2>
-      <p className="mt-[4px] text-[14px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }}>{subtitle}</p>
+      <h2 className="text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx(title)} />
+      <p className="mt-[4px] text-[14px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }} {...tx(subtitle)} />
     </div>
   )
 }
@@ -283,6 +374,7 @@ const outlineBtn = 'border border-solid border-[#1f5a44] bg-transparent text-[#1
 /** Registered / in-progress miqaat — horizontal image-left card (image-top on mobile). */
 function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false, onAskHelp }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string; wide?: boolean; onAskHelp?: (init: AskHelpInit) => void }) {
   const { nav, ended, razaIssued, bypassApproved, hasCity, hasZone, locValue, dateText, goDetail, primary, cells } = useCard(m, confirmedCityName, confirmedZoneName, onAskHelp)
+  const { tx, isLsd } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Resuming this reservation must make its journey active BEFORE navigating, so City/Zone/Manage
   // open on the right event (another event may currently be the active one being edited).
@@ -315,11 +407,14 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
       <div className="relative h-[172px] w-full shrink-0 overflow-hidden sm:h-auto sm:w-[228px]">
         <img src={cardImage(m)} alt="" onError={onImgError} className="ix-zoom absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(13,40,28,0.30) 0%, rgba(13,40,28,0) 46%)' }} />
-        <div className="absolute left-[12px] top-[12px] rounded-[12px] bg-white px-[12px] py-[8px] shadow-[0px_4px_12px_-4px_rgba(0,0,0,0.25)]">
-          <p className="text-[9px] font-bold uppercase leading-[12px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>Raza status</p>
+        {/* The status pill sits over the card photo, which is outside the RTL content
+            column, so it needs its corner switched explicitly: leading edge in both
+            languages — left in EN, right in LSD. */}
+        <div className={`absolute top-[12px] rounded-[12px] bg-white px-[12px] py-[8px] shadow-[0px_4px_12px_-4px_rgba(0,0,0,0.25)] ${isLsd ? 'end-[12px]' : 'start-[12px]'}`}>
+          <p className="text-[9px] font-bold uppercase leading-[12px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx('Raza status')} />
           <span className="mt-[3px] flex items-center gap-[6px]">
             <span className="size-[7px] rounded-full" style={{ background: razaIssued ? '#1f7a4d' : '#c8911f' }} />
-            <span className="text-[13px] leading-none" style={{ fontFamily: FONT_SANS, fontWeight: 800, color: razaIssued ? '#1f7a4d' : '#b8821e' }}>{razaIssued ? 'Issued' : 'Pending'}</span>
+            <span className="text-[13px] leading-none" style={{ fontFamily: FONT_SANS, fontWeight: 800, color: razaIssued ? '#1f7a4d' : '#b8821e' }} {...tx(razaIssued ? 'Issued' : 'Pending')} />
           </span>
         </div>
       </div>
@@ -333,8 +428,8 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
           <DateTimeRow m={m} className="mt-[10px]" />
 
           <div className={`mt-[14px] flex items-center justify-between gap-[10px] ${wide ? 'sm:justify-start sm:gap-[16px]' : ''}`}>
-            <p className="text-[11px] font-bold uppercase leading-[14px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>{selLabel}</p>
-            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }}>{deadlineCompact}</p>
+            <p className="text-[11px] font-bold uppercase leading-[14px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx(selLabel)} />
+            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }} data-numeric>{deadlineCompact}</p>
           </div>
 
           <div className="mt-[8px]">
@@ -350,7 +445,7 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
             (flex-col-reverse keeps the DOM order Modify→primary for the mobile grid). */}
         <div className={`mt-auto grid gap-[14px] pt-[16px] ${showModify ? 'grid-cols-2' : 'grid-cols-1'} ${wide ? 'sm:mt-0 sm:flex sm:w-[220px] sm:shrink-0 sm:flex-col-reverse sm:gap-[10px] sm:pt-0' : ''}`}>
           {showModify && (
-            <button type="button" onClick={stop(() => nav(`/miqaats/${m.id}/manage`))} className={`${btnBase} ix-btn-outline ${outlineBtn}`} style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>Modify Reservation</button>
+            <button type="button" onClick={stop(() => nav(`/miqaats/${m.id}/manage`))} className={`${btnBase} ix-btn-outline ${outlineBtn}`} style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Modify Reservation')} />
           )}
           {primary.askHelp ? (
             // The city/zone selection window has closed on a reservation that's already registered —
@@ -363,16 +458,14 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
                 <circle cx="10" cy="6.4" r="1" fill="#c8911f" />
               </svg>
               <p className="text-[12.5px] leading-[17px] text-[#8a6a1e]" style={{ fontFamily: FONT_SANS }}>
-                <span className="font-bold">{hasCity ? 'Zone' : 'City'} selection has closed.</span>{' '}
+                <span className="font-bold" {...tx(hasCity ? 'Zone selection has closed.' : 'City selection has closed.')} />{' '}
                 {hasCity
                   ? `This window closed on ${deadlineCompact} before a zone was allocated. Your city (${confirmedCityName}) stays confirmed — no further action is available here.`
                   : `This window closed on ${deadlineCompact} before a city was allocated to your group, so this reservation is left unallocated.`}
               </p>
             </div>
           ) : (
-            <button type="button" onClick={stop(primary.onClick)} className={`${btnBase} ${primary.outline ? `ix-btn-outline ${outlineBtn}` : `ix-btn-green ${solidBtn}`}`} style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
-              {primary.label}
-            </button>
+            <button type="button" onClick={stop(primary.onClick)} className={`${btnBase} ${primary.outline ? `ix-btn-outline ${outlineBtn}` : `ix-btn-green ${solidBtn}`}`} style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx(primary.label)} />
           )}
         </div>
       </div>
@@ -383,13 +476,16 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
 /** Current / upcoming miqaat — compact horizontal card for the 2-col dashboard grid. */
 function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: AskHelpInit) => void }) {
   const { nav, cd, ended, s, goDetail, primary, dateText } = useCard(m, undefined, undefined, onAskHelp)
+  const { t, tx } = useT()
   const stop = (fn: () => void) => (e: MouseEvent) => { e.stopPropagation(); fn() }
   const isLive = s === 'live'
   // "Closes in 0d 0h left" reads as a contradiction once the deadline has actually passed — say it
   // closed instead (a reopen-request approval lets the user proceed anyway, but doesn't undo the
   // fact that the window itself closed).
   const leftLabel = isLive ? (ended ? 'Registration closed' : 'Registration closes in') : s === 'registered' ? 'City opens in' : 'Registration open in'
-  const dLeft = isLive && ended ? 'Closed' : `${parseInt(cd.days, 10)}d ${parseInt(cd.hours, 10)}h left`
+  // "Closed" is UI copy; the "3d 7h left" form is composed from live countdown numbers, so it is
+  // rendered as-is rather than keyed (a per-second-changing string can never match a wordlist row).
+  const dLeft = isLive && ended ? t('Closed') : `${parseInt(cd.days, 10)}d ${parseInt(cd.hours, 10)}h left`
   // Absolute deadline date/time (registration open/close, or city-open) shown under the countdown.
   const deadlineDateTime = dateText.replace(' IST', '')
   // "Closes in" reads urgent (red); "Open in" reads informational (teal); registered → green.
@@ -400,7 +496,7 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
   // button). So these cards never show "Modify reservations" — there's nothing to modify yet.
   const primaryBtn = primary.outline ? (
     <button type="button" onClick={stop(primary.onClick)} className="ix-slide ix-btn inline-flex h-[38px] w-full items-center justify-center gap-[5px] whitespace-nowrap px-[6px] text-[14px] text-[#1f5a44] sm:justify-end" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
-      {primary.label}
+      <span {...tx(primary.label)} />
       <svg viewBox="0 0 16 16" fill="none" className="ix-arrow size-[14px]"><path d="M3 8h9M9 5l3 3-3 3" stroke="#1f5a44" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
     </button>
   ) : (
@@ -410,8 +506,8 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
       className={`ix-btn inline-flex h-[38px] w-full items-center justify-center whitespace-nowrap rounded-full px-[20px] text-[13px] ${isGold ? 'ix-btn-gold bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] text-[#15402f] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.30)]' : primary.askHelp ? `ix-btn-outline ${outlineBtn}` : `ix-btn-green ${solidBtn}`}`}
       style={{ fontFamily: FONT_SANS, fontWeight: 700 }}
     >
-      {primary.askHelp && <SparkleGlyph className="mr-[5px] inline-block size-[14px] align-[-2px]" />}
-      {primary.label}
+      {primary.askHelp && <SparkleGlyph className="me-[5px] inline-block size-[14px] align-[-2px]" />}
+      <span {...tx(primary.label)} />
     </button>
   )
 
@@ -437,11 +533,11 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
           <DateTimeRow m={m} className="mt-[9px]" />
           <div className="mt-[11px]">
             <div className="flex flex-wrap items-center gap-[7px] text-[12.5px]" style={{ fontFamily: FONT_SANS }}>
-              <span className="text-[#7a827c]" style={{ fontWeight: 500 }}>{leftLabel}</span>
+              <span className="text-[#7a827c]" style={{ fontWeight: 500 }} {...tx(leftLabel)} />
               <span className="size-[7px] rounded-full" style={{ background: accent }} />
-              <span className="whitespace-nowrap" style={{ fontWeight: 800, color: accent }}>{dLeft}</span>
+              <span className="whitespace-nowrap" style={{ fontWeight: 800, color: accent }} data-numeric>{dLeft}</span>
             </div>
-            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}>{deadlineDateTime}</p>
+            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} data-numeric>{deadlineDateTime}</p>
           </div>
         </div>
         <div className="flex flex-col gap-[10px] sm:w-auto sm:shrink-0 sm:gap-[8px]">
@@ -457,7 +553,8 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
                 <circle cx="10" cy="6.4" r="1" fill="#c8911f" />
               </svg>
               <p className="text-[11.5px] leading-[15px] text-[#8a6a1e]" style={{ fontFamily: FONT_SANS }}>
-                <span className="font-bold">Registration has closed.</span> This Miqaat can no longer be registered for.
+                <span className="font-bold" {...tx('Registration has closed.')} />{' '}
+                <span {...tx('This Miqaat can no longer be registered for.')} />
               </p>
             </div>
           ) : (
@@ -475,6 +572,7 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
  *  the user straight into the now-unlocked screen. */
 function RequestedCard({ m, request, wide = false }: { m: DisplayMiqaat; request: ReopenRequest; wide?: boolean }) {
   const nav = useNavigate()
+  const { tx, isLsd } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   const approveReopenRequest = useStore((s) => s.approveReopenRequest)
   const confirmCity = useStore((s) => s.confirmCity)
@@ -530,11 +628,14 @@ function RequestedCard({ m, request, wide = false }: { m: DisplayMiqaat; request
       <div className="relative h-[172px] w-full shrink-0 overflow-hidden sm:h-auto sm:w-[228px]">
         <img src={cardImage(m)} alt="" onError={onImgError} className="ix-zoom absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(13,40,28,0.30) 0%, rgba(13,40,28,0) 46%)' }} />
-        <div className="absolute left-[12px] top-[12px] rounded-[12px] bg-white px-[12px] py-[8px] shadow-[0px_4px_12px_-4px_rgba(0,0,0,0.25)]">
-          <p className="text-[9px] font-bold uppercase leading-[12px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }}>Status</p>
+        {/* The status pill sits over the card photo, which is outside the RTL content
+            column, so it needs its corner switched explicitly: leading edge in both
+            languages — left in EN, right in LSD. */}
+        <div className={`absolute top-[12px] rounded-[12px] bg-white px-[12px] py-[8px] shadow-[0px_4px_12px_-4px_rgba(0,0,0,0.25)] ${isLsd ? 'end-[12px]' : 'start-[12px]'}`}>
+          <p className="text-[9px] font-bold uppercase leading-[12px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx('Status')} />
           <span className="mt-[3px] flex items-center gap-[6px]">
             <span className="size-[7px] rounded-full" style={{ background: '#c8911f' }} />
-            <span className="text-[13px] leading-none" style={{ fontFamily: FONT_SANS, fontWeight: 800, color: '#b8821e' }}>Pending approval</span>
+            <span className="text-[13px] leading-none" style={{ fontFamily: FONT_SANS, fontWeight: 800, color: '#b8821e' }} {...tx('Pending approval')} />
           </span>
         </div>
       </div>
@@ -553,10 +654,7 @@ function RequestedCard({ m, request, wide = false }: { m: DisplayMiqaat; request
             type="button"
             onClick={(e) => { e.stopPropagation(); approveAndContinue() }}
             className={`${btnBase} ix-btn-green ${solidBtn}`}
-            style={{ fontFamily: FONT_SANS, fontWeight: 700 }}
-          >
-            Simulate Approval
-          </button>
+            style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Simulate Approval')} />
           <p className="text-center text-[11px] leading-[14px] text-[#a29a88]" style={{ fontFamily: FONT_SANS }}>
             (Demo) Tap the card to view details, or Simulate Approval to continue.
           </p>
@@ -567,6 +665,7 @@ function RequestedCard({ m, request, wide = false }: { m: DisplayMiqaat; request
 }
 
 function IdentityHeader() {
+                            const { t, td } = useT()
   const nav = useNavigate()
   const logout = useStore((s) => s.logout)
   const [showLogout, setShowLogout] = useState(false)
@@ -578,36 +677,34 @@ function IdentityHeader() {
       style={{ background: 'linear-gradient(to bottom, #15402F 0%, #1F5A44 78%)', position: 'relative' }}
     >
       {/* Crest — vertically centred (header content center y=32) */}
-      <div className="absolute left-[16px] top-[32px] h-[40px] w-[26px] -translate-y-1/2">
+      <div className="absolute start-[16px] top-[32px] h-[40px] w-[26px] -translate-y-1/2">
         <img
           src={CREST}
-          alt="ITS"
+          alt=""
           className="pointer-events-none absolute inset-0 size-full max-w-none object-contain"
         />
       </div>
       <p
-        className="absolute left-[48px] top-[23px] -translate-y-1/2 whitespace-nowrap text-[12px] leading-[16px] text-white"
+        className="absolute start-[48px] top-[23px] -translate-y-1/2 whitespace-nowrap text-[12px] leading-[16px] text-white"
         style={{ fontFamily: FONT_SANS, fontWeight: 500 }}
       >
         ITS ID {account.its}
       </p>
       <p
-        className="absolute left-[48px] top-[41px] -translate-y-1/2 whitespace-nowrap text-[13px] leading-[18px] tracking-[0.2px] text-white"
-        style={{ fontFamily: FONT_SANS, fontWeight: 600 }}
-      >
-        {account.name}
-      </p>
+        className="absolute start-[48px] top-[41px] -translate-y-1/2 whitespace-nowrap text-[13px] leading-[18px] tracking-[0.2px] text-white"
+        style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...td(account.name)} />
       {/* Bell + Logout */}
-      <div className="absolute right-[17px] top-[32px] -translate-y-1/2 flex items-center gap-[2px]">
+      <div className="absolute end-[17px] top-[32px] -translate-y-1/2 flex items-center gap-[2px]">
+        <LanguageToggle className="me-[6px]" />
         <TourHelpButton />
-        <button type="button" onClick={() => nav('/notifications')} className="relative h-[36px] w-[36px] rounded-[11px]" aria-label="Notifications">
+        <button type="button" onClick={() => nav('/notifications')} className="relative h-[36px] w-[36px] rounded-[11px]" aria-label={t('Notifications')}>
           <img src={BELL_ICON} alt="" className="absolute inset-0 size-full" />
         </button>
         <button
           type="button"
           onClick={() => setShowLogout(true)}
           className="flex h-[36px] w-[36px] items-center justify-center rounded-[11px]"
-          aria-label="Logout"
+          aria-label={t('Logout')}
         >
           <svg viewBox="0 0 24 24" fill="none" className="size-[22px] text-white">
             <path
@@ -628,6 +725,7 @@ function IdentityHeader() {
 
 function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string }) {
   const nav = useNavigate()
+  const { tx, td } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Same rule as the cards: Arrange My Cities comes before Select City (see useCard).
   const cityArranged = useStore((s) => !!journeyFor(s.flow, s.registrations, m.id).cityArrangement)
@@ -722,9 +820,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
         {!registered && (
           <div className="mb-[14px] flex w-fit items-center gap-[7px] rounded-full bg-[#a8843e] px-[13px] py-[5px]">
             <div className="size-[6px] shrink-0 rounded-full bg-white" />
-            <span className="whitespace-nowrap text-[11px] leading-none tracking-[0.8px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
-              New Miqaat
-            </span>
+            <span className="whitespace-nowrap text-[11px] leading-none tracking-[0.8px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('New Miqaat')} />
           </div>
         )}
 
@@ -733,11 +829,11 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
         <div className="mb-[12px] flex flex-wrap items-center gap-x-[20px] gap-y-[5px] sm:gap-x-[22px]">
           <div className="flex items-center gap-[8px]">
             <img src={DATE_RANGE} alt="" className="size-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{m.dateLabel}</span>
+            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric {...td(m.dateLabel)} />
           </div>
           <div className="flex items-center gap-[8px]">
             <img src={SCHEDULE} alt="" className="size-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{m.timeLabel}</span>
+            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric {...td(m.timeLabel)} />
           </div>
         </div>
 
@@ -752,9 +848,9 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
               <div className="flex h-[40px] items-center justify-between rounded-[12px] px-[14px]" style={{ background: hasCity || hasZone ? '#e7f1ea' : '#ffffff' }}>
                 <span className="flex items-center gap-[8px]">
                   <PinBadge />
-                  <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }}>{hasZone ? 'City & zone' : 'City'}</span>
+                  <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(hasZone ? 'City & zone' : 'City')} />
                 </span>
-                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }}>{locValue}</span>
+                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }} {...(hasCity || hasZone ? { children: locValue } : tx(locValue))} />
               </div>
             )}
           </div>
@@ -788,7 +884,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
               className="ix-btn ix-btn-hero inline-flex h-[50px] w-full min-w-0 items-center justify-center gap-[4px] rounded-full border border-[rgba(255,255,255,0.7)] bg-[rgba(0,0,0,0.38)] px-[6px] backdrop-blur-[3px]"
             >
               <span className="shrink-0 text-[12px] leading-none text-white">✎</span>
-              <span className="whitespace-nowrap text-[12px] font-bold text-white" style={{ fontFamily: FONT_SANS }}>Modify Reservation</span>
+              <span className="whitespace-nowrap text-[12px] font-bold text-white" style={{ fontFamily: FONT_SANS }} {...tx('Modify Reservation')} />
             </button>
             <button
               type="button"
@@ -818,6 +914,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
 }
 
 function PageFooter() {
+                        const { tx } = useT()
   return (
     <div
       className="relative mt-[40px] overflow-hidden sm-full-bleed"
@@ -830,7 +927,7 @@ function PageFooter() {
         <div className="mb-[20px] h-[68px] w-[44px]">
           <img
             src={CREST}
-            alt="ITS"
+            alt=""
             className="size-full object-contain brightness-0 invert opacity-90"
           />
         </div>
@@ -848,10 +945,7 @@ function PageFooter() {
       <div className="relative z-10 border-t border-[rgba(255,255,255,0.1)] px-[24px] py-[14px]">
         <p
           className="text-center text-[11px] leading-[16px] text-[rgba(255,255,255,0.45)] sm:text-[12px]"
-          style={{ fontFamily: FONT_SANS }}
-        >
-          ITS Productions | © 2003 - 2026 IDARAT AL-TA'REEF AL-SHAKHSI TRUST | All Rights Reserved | Terms &amp; Conditions
-        </p>
+          style={{ fontFamily: FONT_SANS }} {...tx('ITS Productions | © 2003 - 2026 IDARAT AL-TA\'REEF AL-SHAKHSI TRUST | All Rights Reserved | Terms & Conditions')} />
       </div>
     </div>
   )
@@ -859,6 +953,7 @@ function PageFooter() {
 
 export default function MiqaatList() {
   const headerHidden = useScrollHide()
+  const { tx, t } = useT()
   const flow = useStore((s) => s.flow)
   // Archived journeys for every non-active event — merged in below so each registered event shows
   // its own card, not just whichever one the user last touched.
@@ -1019,7 +1114,7 @@ export default function MiqaatList() {
         {/* Registered — miqaats with an active reservation that need attention */}
         {registeredMiqaats.length > 0 && (
           <div className="mt-[30px]">
-            <SectionHeader title="Registered" subtitle="Your registered Miqaats that require your attention." />
+            <SectionHeader title={t('Registered')} subtitle="Your registered Miqaats that require your attention." />
             <div className="mt-[16px] px-[16px] sm:px-0">
               {/* A single registered reservation spans the full width on web as one horizontal row
                   (image · details+countdown · stacked action buttons on the right). Two or more keep
@@ -1036,7 +1131,7 @@ export default function MiqaatList() {
         {/* Requested — a missed registration/city/zone window the user has asked to reopen */}
         {requestedMiqaats.length > 0 && (
           <div className="mt-[30px]">
-            <SectionHeader title="Requested" subtitle="Miqaats where you've asked to reopen a missed step — awaiting admin approval." />
+            <SectionHeader title={t('Requested')} subtitle="Miqaats where you've asked to reopen a missed step — awaiting admin approval." />
             <div className="mt-[16px] px-[16px] sm:px-0">
               <div className={`grid grid-cols-1 items-stretch gap-[16px] sm:gap-[20px] ${requestedMiqaats.length > 1 ? 'sm:grid-cols-2' : ''}`}>
                 {requestedMiqaats.map((m) => (
@@ -1050,7 +1145,7 @@ export default function MiqaatList() {
         {/* Miqaats Current & Upcoming — compact rows */}
         {upcomingMiqaats.length > 0 && (
           <div className="mt-[34px]">
-            <SectionHeader title="Miqaats Current & Upcoming" subtitle="View all current and upcoming Miqaats in one place." />
+            <SectionHeader title={t('Miqaats Current & Upcoming')} subtitle="View all current and upcoming Miqaats in one place." />
             <div className="mt-[16px] px-[16px] pb-[8px] sm:px-0">
               <div data-tour="miqaat-cards" className="grid grid-cols-1 items-stretch gap-[16px] sm:grid-cols-2 sm:gap-[20px]">
                 {upcomingMiqaats.map((m) => (
@@ -1095,9 +1190,7 @@ export default function MiqaatList() {
           footer={(
             <button type="button" onClick={() => setCancelledOpen(false)}
               className="flex h-[54px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.3)]"
-              style={{ fontFamily: FONT_SANS }}>
-              Done
-            </button>
+              style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
           )}
         >
           <div className="flex flex-col items-center px-[6px] pt-[8px] pb-[4px] text-center">
@@ -1108,10 +1201,8 @@ export default function MiqaatList() {
                 </svg>
               </span>
             </span>
-            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>Reservation Cancelled</h2>
-            <p className="mt-[10px] max-w-[336px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              Your reservation has been cancelled. You can register for this event again anytime.
-            </p>
+            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Reservation Cancelled')} />
+            <p className="mt-[10px] max-w-[336px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Your reservation has been cancelled. You can register for this event again anytime.')} />
           </div>
         </BottomSheet>
       )}
@@ -1125,9 +1216,7 @@ export default function MiqaatList() {
           footer={(
             <button type="button" onClick={() => setRequestSentText(null)}
               className="flex h-[54px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.3)]"
-              style={{ fontFamily: FONT_SANS }}>
-              Done
-            </button>
+              style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
           )}
         >
           <div className="flex flex-col items-center px-[6px] pt-[8px] pb-[4px] text-center">
@@ -1138,7 +1227,7 @@ export default function MiqaatList() {
                 </svg>
               </span>
             </span>
-            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>Request Sent</h2>
+            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Request Sent')} />
             <p className="mt-[10px] max-w-[336px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
               {requestSentText}
             </p>
@@ -1155,9 +1244,7 @@ export default function MiqaatList() {
           footer={(
             <button type="button" onClick={() => setArrangementSavedOpen(false)}
               className="flex h-[54px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.3)]"
-              style={{ fontFamily: FONT_SANS }}>
-              Done
-            </button>
+              style={{ fontFamily: FONT_SANS }} {...tx('Done')} />
           )}
         >
           <div className="flex flex-col items-center px-[6px] pt-[8px] pb-[4px] text-center">
@@ -1168,10 +1255,8 @@ export default function MiqaatList() {
                 </svg>
               </span>
             </span>
-            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>City arrangement saved</h2>
-            <p className="mt-[10px] max-w-[336px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              Your preferred city layout has been updated successfully.
-            </p>
+            <h2 className="mt-[18px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('City arrangement saved')} />
+            <p className="mt-[10px] max-w-[336px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Your preferred city layout has been updated successfully.')} />
           </div>
         </BottomSheet>
       )}
@@ -1182,6 +1267,7 @@ export default function MiqaatList() {
 /** Small confirmation toast for invitation actions (accept/decline) taken from Home. Portalled to
  *  <body> so the sticky header's transform can't trap it. */
 function InviteToast({ message, onClose }: { message: string | null; onClose: () => void }) {
+                                                                                              const { t } = useT()
   const [mounted, setMounted] = useState(!!message)
   const [shown, setShown] = useState(false)
   const [text, setText] = useState(message)
@@ -1218,7 +1304,7 @@ function InviteToast({ message, onClose }: { message: string | null; onClose: ()
           </svg>
         </span>
         <span className="whitespace-nowrap text-[14px] font-bold text-white">{text}</span>
-        <button type="button" onClick={onClose} aria-label="Dismiss" className="ml-[2px] flex size-[20px] items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white">
+        <button type="button" onClick={onClose} aria-label={t('Dismiss')} className="ms-[2px] flex size-[20px] items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white">
           <svg viewBox="0 0 20 20" fill="none" className="size-[13px]"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
         </button>
       </div>

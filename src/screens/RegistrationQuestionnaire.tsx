@@ -6,11 +6,13 @@ import Breadcrumb from '../components/figma/Breadcrumb'
 import { family } from '../data/seed'
 import { useStore, type QuestionnaireAnswers } from '../store'
 import { QuestionnaireSections } from '../components/questionnaire/QuestionnaireFields'
+import { useT } from '../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
 
 export default function RegistrationQuestionnaire() {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -37,7 +39,7 @@ export default function RegistrationQuestionnaire() {
         <AppBar notificationCount={3} onBellClick={() => {}} />
       </div>
 
-      <div className="ml-[16px] mt-[13px] sm:ml-0 sm:mt-6">
+      <div className="ms-[16px] mt-[13px] sm:ml-0 sm:mt-6">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -50,12 +52,8 @@ export default function RegistrationQuestionnaire() {
       </div>
 
       <div className="mx-auto w-full max-w-[640px] px-[16px] pb-[32px] sm:px-0 sm:py-10">
-        <h2 className="mt-[20px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={{ fontFamily: FONT_SERIF }}>
-          Miqaat Event Registration Questionnaire
-        </h2>
-        <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-          Please complete every section below before submitting your registration.
-        </p>
+        <h2 className="mt-[20px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={{ fontFamily: FONT_SERIF }} {...tx('Miqaat Event Registration Questionnaire')} />
+        <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Please complete every section below before submitting your registration.')} />
 
         <div className="mt-[20px]">
           <QuestionnaireSections q={q} onChange={set} registrant={registrant} hideIntro miqaatId={id} />
@@ -65,7 +63,7 @@ export default function RegistrationQuestionnaire() {
             onClick={handleSubmit}
             className="mt-[16px] flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] shadow-[0_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#194a38]"
           >
-            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }}>Submit</span>
+            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }} {...tx('Submit')} />
           </button>
         </div>
       </div>

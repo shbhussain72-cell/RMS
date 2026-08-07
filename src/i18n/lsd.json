@@ -366,10 +366,10 @@
     "list": "permanent"
   },
   "Children below 10 years of age must be assigned to a parent or guardian before proceeding.": {
-    "lsd": "remove",
+    "lsd": "",
     "page": "",
     "list": "permanent",
-    "remove": true
+    "sentinel": "remove"
   },
   "Dubai": {
     "lsd": "‏دبئي",
@@ -392,10 +392,10 @@
     "list": "permanent"
   },
   "Host City registrations may close early once capacity is reached.": {
-    "lsd": "remove",
+    "lsd": "",
     "page": "",
     "list": "permanent",
-    "remove": true
+    "sentinel": "remove"
   },
   "IMPORTANT NOTICE": {
     "lsd": "‏اهم هدايات",
@@ -433,10 +433,10 @@
     "list": "permanent"
   },
   "Registration closes on 5 June 2026 at 11:59 PM. Complete all group registrations and Raza requests before the deadline.": {
-    "lsd": "remove",
+    "lsd": "",
     "page": "",
     "list": "permanent",
-    "remove": true
+    "sentinel": "remove"
   },
   "Relay centres: Mumbai": {
     "lsd": "‏ريلسس مركز: ممبئي",
@@ -449,10 +449,10 @@
     "list": "permanent"
   },
   "Tickets will only be generated after all required approvals are completed.": {
-    "lsd": "remove",
+    "lsd": "",
     "page": "",
     "list": "permanent",
-    "remove": true
+    "sentinel": "remove"
   },
   "TIMELINE": {
     "lsd": "‏وقت نامو",
@@ -460,10 +460,10 @@
     "list": "permanent"
   },
   "Venue allocation is subject to availability and capacity limits.": {
-    "lsd": "remove",
+    "lsd": "",
     "page": "",
     "list": "permanent",
-    "remove": true
+    "sentinel": "remove"
   },
   "Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant all the taufeeq of haziri.": {
     "lsd": "‏فصل فرمايو چھے. مؤمنين نے العشرة المباركة 1448ھ ني رزا طلب كروا ني اذن چھے. الله تعالى سگلا نے حاضري ني توفيق عطا فرماوے.",

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -8,6 +9,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import { liveCities, family, genderByIts, miqaats, type FamilyMember, type LiveCity } from '../data/seed'
 import { buildAllGroups, type Group } from '../lib/group'
 import { useStore, journeyFor } from '../store'
+import { useT, tNow } from '../i18n'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -29,8 +31,8 @@ const initials = (name: string) =>
 
 function familyMeta(m: FamilyMember) {
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(m.age).padStart(2, '0')} · ITS ${m.its}`
-  return m.relation ? `${m.relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
 /** Seed-order index — used to slot a removed preferred city back into its natural relay position. */
@@ -74,6 +76,7 @@ function LinkGlyph({ color = '#2e6a7d' }: { color?: string }) {
 /** Host City slot card — mirrors City Selection's Host card look, but the only action is "Change"
  *  (which city should occupy this card). No selection/reservation happens here. */
 function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOMRect) => void }) {
+  const { tx, td } = useT()
   return (
     <div
       className="w-full rounded-[14px] bg-white px-[18px] py-[16px]"
@@ -83,7 +86,7 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOM
         <svg viewBox="0 0 24 24" fill="none" className="size-[18px] shrink-0">
           <path d="M12 3.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L12 15.5l-4.7 2.45.9-5.23-3.8-3.7 5.25-.76L12 3.5Z" stroke="#c2a04e" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
-        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }}>Top preferred cities</p>
+        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Top preferred cities')} />
       </div>
       <div className="mt-[12px] flex items-center gap-[12px]">
         <span className="flex size-[46px] shrink-0 items-center justify-center rounded-[12px] border" style={{ borderColor: '#e0cc93', background: '#f7efd6' }}>
@@ -101,16 +104,13 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOM
           <p className="text-[14px] font-bold leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }}>
             {city.type === 'host' ? 'Host city' : 'Relay city'}
           </p>
-          <p className="truncate text-[20px] font-bold leading-[26px] text-[#a8843e]" style={{ fontFamily: FONT }}>{city.name}</p>
+          <p className="truncate text-[20px] font-bold leading-[26px] text-[#a8843e]" style={{ fontFamily: FONT }} {...td(city.name)} />
         </div>
         <button
           type="button"
           onClick={(e) => onChange((e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
-          className="ml-auto flex h-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white px-[18px] text-[13px] font-bold text-[#a8843e] transition-colors hover:bg-[#fffdf5]"
-          style={{ fontFamily: FONT, border: '1.5px solid #e0cc93' }}
-        >
-          Change
-        </button>
+          className="ms-auto flex h-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white px-[18px] text-[13px] font-bold text-[#a8843e] transition-colors hover:bg-[#fffdf5]"
+          style={{ fontFamily: FONT, border: '1.5px solid #e0cc93' }} {...tx('Change')} />
       </div>
     </div>
   )
@@ -124,13 +124,14 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
   onAdd: (idx: number, rect: DOMRect) => void
   onClear: (idx: number) => void
 }) {
+     const { tx, t, td } = useT()
   return (
     <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[16px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
       <div className="flex items-center gap-[8px]">
         <svg viewBox="0 0 24 24" fill="none" className="size-[18px] shrink-0">
           <path d="M12 3.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L12 15.5l-4.7 2.45.9-5.23-3.8-3.7 5.25-.76L12 3.5Z" stroke="#c2a04e" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
-        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }}>Your Preferred Cities</p>
+        <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Your Preferred Cities')} />
       </div>
       <div className="mt-[12px] grid grid-cols-3 gap-[10px]">
         {slots.map((cid, idx) => {
@@ -147,21 +148,21 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
                 <svg viewBox="0 0 16 16" fill="none" className="size-[13px]">
                   <path d="M8 3v10M3 8h10" stroke="#a8843e" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
-                <span className="text-[13px] font-bold text-[#a8843e]" style={{ fontFamily: FONT }}>Add</span>
+                <span className="text-[13px] font-bold text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Add')} />
               </button>
             )
           }
           return (
-            <div key={idx} className="relative flex h-[50px] flex-col justify-center rounded-[10px] bg-[#fffdf5] pl-[10px] pr-[26px] py-[6px]" style={{ border: '1.5px solid #c5a84d' }}>
+            <div key={idx} className="relative flex h-[50px] flex-col justify-center rounded-[10px] bg-[#fffdf5] ps-[10px] pe-[26px] py-[6px]" style={{ border: '1.5px solid #c5a84d' }}>
               <button
                 type="button"
                 onClick={(e) => onAdd(idx, (e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
-                className="min-w-0 text-left"
-                title="Change city"
+                className="min-w-0 text-start"
+                title={t('Change city')}
               >
                 {/* City name gets the full cell width on its own line — the type tag sits below (with
                     "Change") instead of inline, so a longer name isn't squeezed and truncated. */}
-                <span className="block w-full truncate text-[13px] font-bold leading-[16px] text-[#23302a]" style={{ fontFamily: FONT }}>{city.name}</span>
+                <span className="block w-full truncate text-[13px] font-bold leading-[16px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(city.name)} />
                 <span className="mt-[3px] flex items-center gap-[5px]">
                   <span
                     className="shrink-0 rounded-full px-[6px] py-[1px] text-[9px] font-bold uppercase leading-[13px] tracking-[0.3px]"
@@ -173,14 +174,14 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
                   >
                     {city.type === 'host' ? 'Host' : 'Relay'}
                   </span>
-                  <span className="text-[10.5px] font-bold leading-[13px] text-[#a8843e]" style={{ fontFamily: FONT }}>Change</span>
+                  <span className="text-[10.5px] font-bold leading-[13px] text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Change')} />
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => onClear(idx)}
                 aria-label={`Remove ${city.name}`}
-                className="absolute right-[4px] top-1/2 flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb]"
+                className="absolute end-[4px] top-1/2 flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb]"
               >
                 <svg viewBox="0 0 20 20" fill="none" className="size-[11px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
               </button>
@@ -200,6 +201,7 @@ function RelayOrderCard({ cities, search, onSearch }: {
   search: string
   onSearch: (v: string) => void
 }) {
+     const { tx, t, td } = useT()
   const [expanded, setExpanded] = useState<string | null>(null)
   const q = search.trim().toLowerCase()
 
@@ -223,10 +225,10 @@ function RelayOrderCard({ cities, search, onSearch }: {
         <p className="text-[20px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>Other Cities ({cities.length})</p>
       </div>
       <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
-        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search city names..." className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
+        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search city names...')} className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
         <svg viewBox="0 0 20 20" fill="none" className="size-[18px] shrink-0 text-[#8a938e]"><circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" /><path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </div>
-      <div className="no-scrollbar mt-[14px] flex max-h-[44vh] flex-col gap-[8px] overflow-y-auto pr-[2px] sm:max-h-none sm:overflow-visible">
+      <div className="no-scrollbar mt-[14px] flex max-h-[44vh] flex-col gap-[8px] overflow-y-auto pe-[2px] sm:max-h-none sm:overflow-visible">
         {countries.map(({ name, cities: countryCities }) => {
           // While searching, every country's list is pre-filtered to matches only, and countries
           // with no matches are hidden entirely (not just collapsed).
@@ -240,9 +242,9 @@ function RelayOrderCard({ cities, search, onSearch }: {
               <button
                 type="button"
                 onClick={() => setExpanded((cur) => (cur === name ? null : name))}
-                className="flex w-full items-center justify-between px-[14px] py-[12px] text-left transition-colors hover:bg-[#fffdf5]"
+                className="flex w-full items-center justify-between px-[14px] py-[12px] text-start transition-colors hover:bg-[#fffdf5]"
               >
-                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{name}</span>
+                <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(name)} />
                 <span className="flex items-center gap-[8px]">
                   <span className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{matches.length}</span>
                   <svg viewBox="0 0 16 16" fill="none" className={`size-[13px] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
@@ -255,10 +257,10 @@ function RelayOrderCard({ cities, search, onSearch }: {
                   {matches.map((c) => (
                     <div
                       key={c.id}
-                      className="flex h-[56px] w-full flex-col justify-center rounded-[12px] px-[12px] text-left"
+                      className="flex h-[56px] w-full flex-col justify-center rounded-[12px] px-[12px] text-start"
                       style={{ border: '1.5px solid #e7dfc9', background: 'white' }}
                     >
-                      <span className="w-full truncate text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{c.name}</span>
+                      <span className="w-full truncate text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(c.name)} />
                     </div>
                   ))}
                 </div>
@@ -267,7 +269,7 @@ function RelayOrderCard({ cities, search, onSearch }: {
           )
         })}
         {q && !anyMatch && (
-          <p className="py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No cities found.</p>
+          <p className="py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />
         )}
       </div>
     </div>
@@ -288,6 +290,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
   onSelect: (c: LiveCity) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
   const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
@@ -305,7 +308,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
               autoFocus
               value={search}
               onChange={(e) => onSearch(e.target.value)}
-              placeholder="Search city names..."
+              placeholder={t('Search city names...')}
               className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]"
               style={{ fontFamily: FONT }}
             />
@@ -323,12 +326,12 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
                 key={c.id}
                 type="button"
                 onClick={() => onSelect(c)}
-                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-left transition-colors hover:bg-[#faf8f2]"
+                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-start transition-colors hover:bg-[#faf8f2]"
                 style={{ background: selected ? '#eaf3ed' : undefined }}
               >
                 <span className="min-w-0">
                   <span className="flex items-center gap-[7px]">
-                    <span className="truncate text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{c.name}</span>
+                    <span className="truncate text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(c.name)} />
                     <span
                       className="shrink-0 rounded-full px-[7px] py-[1px] text-[10px] font-bold uppercase leading-[14px] tracking-[0.3px]"
                       style={
@@ -340,7 +343,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
                       {c.type === 'host' ? 'Host' : 'Relay'}
                     </span>
                   </span>
-                  <span className="block truncate text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{c.region}</span>
+                  <span className="block truncate text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(c.region)} />
                 </span>
                 {selected && (
                   <svg viewBox="0 0 16 16" fill="none" className="size-[16px] shrink-0">
@@ -350,7 +353,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
               </button>
             )
           })}
-          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No cities found.</p>}
+          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
       </div>
     </>
@@ -360,6 +363,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
 // ── Right panel: view-only member table ────────────────────────────────────────
 
 function StatusCell({ valid }: { valid: boolean }) {
+  const { tx } = useT()
   return valid ? (
     <span className="inline-flex items-center gap-[7px] text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }}>
       <svg viewBox="0 0 18 18" fill="none" className="size-[16px] shrink-0">
@@ -371,7 +375,7 @@ function StatusCell({ valid }: { valid: boolean }) {
   ) : (
     <span className="inline-flex items-center gap-[6px] text-[13px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
       <svg viewBox="0 0 20 20" fill="none" className="size-[15px] shrink-0"><circle cx="10" cy="10" r="7.25" stroke="#b23b3b" strokeWidth="1.4" /><path d="M10 9.2v3.6" stroke="#b23b3b" strokeWidth="1.6" strokeLinecap="round" /><circle cx="10" cy="6.7" r="1" fill="#b23b3b" /></svg>
-      Not valid for allocation
+      <span {...tx('Not valid for allocation')} />
     </span>
   )
 }
@@ -379,6 +383,7 @@ function StatusCell({ valid }: { valid: boolean }) {
 /** Desktop members table — same layout/hierarchy as City Selection's table (linked-group band, gold
  *  connectors, role badges), but strictly read-only: no Allocation/Action columns, no CTAs. */
 function MembersViewTable({ groups }: { groups: Group[] }) {
+  const { td } = useT()
   const displayOrder = groups.map((_, i) => i).sort((a, b) => {
     const valid = (gi: number) => (groups[gi].members.some((mm) => mm.member.notValidForCity) ? 1 : 0)
     return valid(a) - valid(b)
@@ -394,7 +399,7 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {['Member', '', 'Status'].map((h, i) => (
-              <th key={i} className="px-[16px] py-[11px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -421,15 +426,15 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
                   <tr key={mm.member.id} className="bg-white" style={{ borderTop: linked ? undefined : '1px solid #f0ebe0' }}>
                     <td className="relative px-[16px] py-[10px] align-middle">
                       {hasConnector && !isFirst && (
-                        <span className="pointer-events-none absolute left-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
+                        <span className="pointer-events-none absolute start-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 0, height: 'calc(50% - 18px)' }} />
                       )}
                       {hasConnector && !isLast && (
-                        <span className="pointer-events-none absolute left-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
+                        <span className="pointer-events-none absolute start-[33px] z-0 w-[2px] bg-[#fac775]" style={{ top: 'calc(50% + 18px)', bottom: 0 }} />
                       )}
                       <div className="relative z-[1] flex items-center gap-[10px]">
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                         </div>
                       </div>
@@ -453,6 +458,7 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
 
 /** Mobile members list — read-only group cards mirroring the table above. */
 function MembersViewCards({ groups }: { groups: Group[] }) {
+  const { td } = useT()
   const displayOrder = groups.map((_, i) => i).sort((a, b) => {
     const valid = (gi: number) => (groups[gi].members.some((mm) => mm.member.notValidForCity) ? 1 : 0)
     return valid(a) - valid(b)
@@ -478,7 +484,7 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
                 <div key={mm.member.id} className="flex items-center gap-[10px] px-[14px] py-[10px]" style={{ borderTop: mi === 0 && !linked ? undefined : mi === 0 ? undefined : '1px solid #f0ebe0' }}>
                   <Avatar name={mm.member.name} size={36} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                    <p className="truncate text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                     <p className="mt-[2px] truncate text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                   </div>
                   {mm.badge ? <RoleBadge kind={mm.badge} /> : null}
@@ -498,6 +504,7 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function ArrangeCities() {
+  const { tx, t } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -661,7 +668,7 @@ export default function ArrangeCities() {
   const footer = (
     <StickyFooter
       caption="City arrangement"
-      title="Save your city layout"
+      title={t('Save your city layout')}
       button="Save my layout"
       onButton={handleSave}
       buttonDisabled={false}
@@ -675,19 +682,13 @@ export default function ArrangeCities() {
 
         {/* ═══════════════ MOBILE — single-column ═══════════════ */}
         <div className="contents sm:hidden">
-          <div className="ml-[16px] mt-[12px]">{breadcrumb}</div>
-          <h1 className="mt-[16px] px-[16px] text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }}>
-            Edit your layout
-          </h1>
-          <p className="mt-[6px] px-[16px] text-[13px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT }}>
-            Choose which city appears in each card. This only sets up how City Selection will look — nothing is reserved here.
-          </p>
+          <div className="ms-[16px] mt-[12px]">{breadcrumb}</div>
+          <h1 className="mt-[16px] px-[16px] text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tx('Edit your layout')} />
+          <p className="mt-[6px] px-[16px] text-[13px] leading-[19px] text-[#7a827c]" style={{ fontFamily: FONT }} {...tx('Choose which city appears in each card. This only sets up how City Selection will look — nothing is reserved here.')} />
           <div className="mt-[16px] px-[16px]">{leftCards}</div>
           <div className="mt-[22px] px-[16px]">
             <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Your members ({totalMembers})</p>
-            <p className="mt-[3px] text-[12.5px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT }}>
-              These members will go through City Selection with this layout.
-            </p>
+            <p className="mt-[3px] text-[12.5px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT }} {...tx('These members will go through City Selection with this layout.')} />
           </div>
           <div className="mx-[16px] mb-[16px] mt-[12px]">
             <MembersViewCards groups={groups} />
@@ -698,7 +699,7 @@ export default function ArrangeCities() {
         <div className="hidden sm:block sm-full-bleed">
           <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
             {/* ───── LEFT sidebar — the configurable city cards ───── */}
-            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
               <Breadcrumb
                 items={[{ label: 'Home', to: '/miqaats' }, { label: 'Edit your layout' }]}
                 onNavigate={(to) => nav(to)}
@@ -706,17 +707,15 @@ export default function ArrangeCities() {
                 activeColor="#a8843e"
                 dense
               />
-              <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>Edit your layout</h2>
+              <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Edit your layout')} />
               {leftCards}
             </aside>
 
             {/* ───── RIGHT panel — read-only member table ───── */}
             <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
                 <div className="flex items-start justify-between gap-[16px]">
-                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-                    Your Members
-                  </h1>
+                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Your Members')} />
                   <span className="inline-flex h-[36px] items-center gap-[7px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[14px] text-[13px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>
                     <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM2 8a2 2 0 114 0 2 2 0 01-4 0zM15.5 17c0-2.21-2.46-4-5.5-4s-5.5 1.79-5.5 4M17 17c0-1.54-1.12-2.87-2.75-3.5M3 17c0-1.54 1.12-2.87 2.75-3.5" stroke="#5a6660" strokeWidth="1.5" strokeLinecap="round" />
@@ -724,9 +723,7 @@ export default function ArrangeCities() {
                     {totalMembers} members
                   </span>
                 </div>
-                <p className="mt-[8px] text-[14px] leading-[20px] text-[#7a827c]" style={{ fontFamily: FONT }}>
-                  These members will go through City Selection with the layout you set on the left. Reservations happen there — not on this screen.
-                </p>
+                <p className="mt-[8px] text-[14px] leading-[20px] text-[#7a827c]" style={{ fontFamily: FONT }} {...tx('These members will go through City Selection with the layout you set on the left. Reservations happen there — not on this screen.')} />
                 <div className="mt-[20px]">
                   <MembersViewTable groups={groups} />
                 </div>

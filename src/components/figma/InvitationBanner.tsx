@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useT } from '../../i18n'
 
 const SERIF = 'Marcellus, Georgia, serif'
 const SANS = 'Mulish, system-ui, sans-serif'
@@ -23,6 +24,7 @@ export function InvitationBanner({
   onView: () => void
   onClose: () => void
 }) {
+     const { tx, t } = useT()
   const [mounted, setMounted] = useState(open)
   const [shown, setShown] = useState(false)
   const reduceMotion = useRef(false)
@@ -70,7 +72,7 @@ export function InvitationBanner({
           tabIndex={0}
           onClick={onView}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onView() } }}
-          className="relative flex cursor-pointer items-start gap-[12px] rounded-[16px] border border-[#e7dfc9] bg-[#fffdf8] px-[16px] py-[14px] pr-[42px] shadow-[0_18px_44px_-16px_rgba(21,64,47,0.34),0_4px_14px_-8px_rgba(21,64,47,0.2)] transition-shadow hover:shadow-[0_22px_50px_-16px_rgba(21,64,47,0.4)]"
+          className="relative flex cursor-pointer items-start gap-[12px] rounded-[16px] border border-[#e7dfc9] bg-[#fffdf8] px-[16px] py-[14px] pe-[42px] shadow-[0_18px_44px_-16px_rgba(21,64,47,0.34),0_4px_14px_-8px_rgba(21,64,47,0.2)] transition-shadow hover:shadow-[0_22px_50px_-16px_rgba(21,64,47,0.4)]"
         >
           {/* Invitation icon — same blue accent as the notification list's Invitation category */}
           <span className="mt-[1px] flex size-[40px] shrink-0 items-center justify-center rounded-[12px] bg-[#ebf2fc]">
@@ -81,14 +83,10 @@ export function InvitationBanner({
           </span>
 
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-              Invitation request received
-            </p>
-            <p className="mt-[4px] text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-              You have received an invitation to join this Miqaat. Review and respond to continue your reservation.
-            </p>
+            <p className="text-[16px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Invitation request received')} />
+            <p className="mt-[4px] text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: SANS, fontWeight: 400 }} {...tx('You have received an invitation to join this Miqaat. Review and respond to continue your reservation.')} />
             <span className="mt-[10px] inline-flex items-center gap-[6px] text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: SANS }}>
-              View invitation
+              <span {...tx('View invitation')} />
               <svg viewBox="0 0 16 16" fill="none" className="size-[13px]">
                 <path d="M5 3l5 5-5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -99,8 +97,8 @@ export function InvitationBanner({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onClose() }}
-            aria-label="Dismiss notification"
-            className="absolute right-[10px] top-[10px] flex size-[26px] items-center justify-center rounded-full text-[#8a938e] transition-colors hover:bg-[#f0ece1] hover:text-[#5a6660]"
+            aria-label={t('Dismiss notification')}
+            className="absolute end-[10px] top-[10px] flex size-[26px] items-center justify-center rounded-full text-[#8a938e] transition-colors hover:bg-[#f0ece1] hover:text-[#5a6660]"
           >
             <svg viewBox="0 0 20 20" fill="none" className="size-[15px]">
               <path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import AppBar from '../components/figma/AppBar'
@@ -9,6 +10,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../components/figma/InvitedMembers'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { headcount, useStore, type Invite } from '../store'
+import { useT } from '../i18n'
 
 const FMU = { fontFamily: 'Mulish, system-ui, sans-serif' } as const
 const FM = { fontFamily: 'Marcellus, serif' } as const
@@ -59,7 +61,7 @@ function GroupCard({ label, members }: { label: string; members: { member: Famil
         {members.map((m, mi) => (
           <div key={m.member.id} className="relative flex items-center gap-[6px] px-[13px] py-[13px]">
             {members.length > 1 && (
-              <span className="pointer-events-none absolute left-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === members.length - 1 ? '50%' : 0 }} />
             )}
             <div className="relative shrink-0"><Avatar name={m.member.name} /></div>
             <div className="min-w-0 flex-1"><RowText member={m.member} /></div>
@@ -72,11 +74,12 @@ function GroupCard({ label, members }: { label: string; members: { member: Famil
 }
 
 function RowText({ member }: { member: FamilyMember }) {
+  const { t, td, tdText } = useT()
   return (
     <div className="flex min-w-0 flex-col items-start gap-[2px]">
-      <p className="w-full text-[14px] leading-[18px] text-[#23302a]" style={{ ...FMU, fontWeight: 700 }}>{member.name}</p>
+      <p className="w-full text-[14px] leading-[18px] text-[#23302a]" style={{ ...FMU, fontWeight: 700 }} {...td(member.name)} />
       <p className="w-full text-[12px] leading-[16px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>
-        {member.relation} · {member.gender} · Age {agePad(member.age)} · ITS {member.its}
+        {tdText(member.relation)} · {tdText(member.gender)} · {t('Age')} {agePad(member.age)} · {t('ITS')} {member.its}
       </p>
     </div>
   )
@@ -91,13 +94,14 @@ function SingleCard({ member }: { member: FamilyMember }) {
   )
 }
 
-function SectionDivider({ children }: { children: string }) {
+// ReactNode, not string: `tx()` may hand this an array (English fallback + gap marker).
+function SectionDivider({ children }: { children: ReactNode }) {
   return (
     <div className="relative h-[18px] w-full">
-      <div className="absolute left-0 right-[261.5px] top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
-      <p className="absolute left-[calc(50%+0.5px)] top-[calc(50%-2px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
+      <div className="absolute start-0 end-[261.5px] top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
+      <p className="absolute start-[calc(50%+0.5px)] top-[calc(50%-2px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
         style={{ ...FMU, fontWeight: 700 }}>{children}</p>
-      <div className="absolute left-[261.47px] right-0 top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
+      <div className="absolute start-[261.47px] end-0 top-[calc(50%-0.5px)] h-px bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
     </div>
   )
 }
@@ -105,6 +109,7 @@ function SectionDivider({ children }: { children: string }) {
 /* ── "Edit" CTA — jumps back to Add People to change the group; shown beside the family header on
    both mobile and desktop so the reviewer can revise their selection without hunting the breadcrumb. */
 function EditButton({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
     <button
       type="button"
@@ -114,7 +119,7 @@ function EditButton({ onClick }: { onClick: () => void }) {
       <svg viewBox="0 0 24 24" fill="none" className="size-[16px]">
         <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#15402f" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className="text-[15px] font-bold text-[#15402f]" style={FMU}>Edit</span>
+      <span className="text-[15px] font-bold text-[#15402f]" style={FMU} {...tx('Edit')} />
     </button>
   )
 }
@@ -132,13 +137,14 @@ function StatTile({ value, numColor, line1, line2 }: { value: number; numColor: 
 
 /* ── desktop group table (MEMBER header + reserve-together sub-headers + gold connectors + badges) ── */
 function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
+  const { tx, t, td, tdText } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
         <colgroup><col style={{ width: '56%' }} /><col /></colgroup>
         <thead>
           <tr className="border-b border-[#ece7da] bg-[#faf8f2]">
-            <th className="px-[20px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={FMU}>Member</th>
+            <th className="px-[20px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={FMU} {...tx('Member')} />
             <th className="px-[20px] py-[10px]" />
           </tr>
         </thead>
@@ -164,14 +170,14 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
                   <tr key={m.member.id} className={isLinked ? '' : 'border-t border-[#ece7da]'} style={{ background: 'white' }}>
                     <td className="relative px-[20px] py-[9px]">
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[37px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[37px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={m.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{m.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                            {m.member.relation} · {m.member.gender} · Age {agePad(m.member.age)} · ITS {m.member.its}
+                            {tdText(m.member.relation)} · {tdText(m.member.gender)} · {t('Age')} {agePad(m.member.age)} · {t('ITS')} {m.member.its}
                           </p>
                         </div>
                       </div>
@@ -191,6 +197,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
 }
 
 export default function Review() {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -288,7 +295,7 @@ export default function Review() {
           MOBILE — unchanged single-column flow.
          ═══════════════════════════════════════════════════════════════════ */}
       <div className="contents sm:hidden">
-        <div className="mt-[12px] flex w-full flex-col items-start gap-[6px] pl-[16px]">
+        <div className="mt-[12px] flex w-full flex-col items-start gap-[6px] ps-[16px]">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -302,24 +309,22 @@ export default function Review() {
           />
         </div>
 
-        <h1 className="mt-[20px] pl-[16px] text-[24px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM}>{miqaat.title}</h1>
-        <p className="mt-[6px] pl-[16px] text-[16px] leading-[22px] text-[#15402f]" style={FM}>Review &amp; Register</p>
-        <p className="mt-[10px] pl-[16px] pr-[16px] text-[14px] leading-[21px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>
-          Check your group before submitting. You can go back to edit any step.
-        </p>
+        <h1 className="mt-[20px] ps-[16px] text-[24px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM}>{miqaat.title}</h1>
+        <p className="mt-[6px] ps-[16px] text-[16px] leading-[22px] text-[#15402f]" style={FM} {...tx('Review & Register')} />
+        <p className="mt-[10px] ps-[16px] pe-[16px] text-[14px] leading-[21px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('Check your group before submitting. You can go back to edit any step.')} />
 
-        <h2 className="mt-[24px] pl-[16px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM}>Participant Count</h2>
-        <div data-tour="review-section" className="mt-[12px] flex gap-[15px] pl-[16px] pr-[16px]">
+        <h2 className="mt-[24px] ps-[16px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Participant Count')} />
+        <div data-tour="review-section" className="mt-[12px] flex gap-[15px] ps-[16px] pe-[16px]">
           <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
           <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
           <StatTile value={otherInvites.length} numColor="#a8843e" line1="Group" line2="members" />
         </div>
 
-        <div className="mt-[24px]"><SectionDivider>YOUR FAMILY</SectionDivider></div>
-        <div className="mt-[14px] flex justify-end pl-[16px] pr-[16px]"><EditButton onClick={goEdit} /></div>
-        <div className="mt-[12px] flex flex-col items-start gap-[12px] pl-[16px] pr-[16px]">
+        <div className="mt-[24px]"><SectionDivider {...tx('YOUR FAMILY')} /></div>
+        <div className="mt-[14px] flex justify-end ps-[16px] pe-[16px]"><EditButton onClick={goEdit} /></div>
+        <div className="mt-[12px] flex flex-col items-start gap-[12px] ps-[16px] pe-[16px]">
           {groups.length === 0 && (
-            <p className="text-[14px] leading-[18px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>No family members selected.</p>
+            <p className="text-[14px] leading-[18px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('No family members selected.')} />
           )}
           {linkedGroups.map((g, i) => (
             <GroupCard key={`g${i}`} label={g.label!} members={g.members} />
@@ -330,23 +335,23 @@ export default function Review() {
         </div>
         {otherGroups.length > 0 && (
           <>
-            <div className="mt-[24px]"><SectionDivider>Group</SectionDivider></div>
-            <div className="mt-[16px] flex flex-col items-start gap-[8px] pl-[16px] pr-[16px]">
+            <div className="mt-[24px]"><SectionDivider {...tx('Group')} /></div>
+            <div className="mt-[16px] flex flex-col items-start gap-[8px] ps-[16px] pe-[16px]">
               <div className="w-full"><InvitedMembersCards groups={otherGroups} /></div>
             </div>
           </>
         )}
-        <div className="mt-[24px]"><SectionDivider>Invite Mehmaan</SectionDivider></div>
-        <div className="mb-[24px] mt-[16px] flex flex-col items-start gap-[8px] pl-[16px] pr-[16px]">
+        <div className="mt-[24px]"><SectionDivider {...tx('Invite Mehmaan')} /></div>
+        <div className="mb-[24px] mt-[16px] flex flex-col items-start gap-[8px] ps-[16px] pe-[16px]">
           {mehmaanInvites.length === 0 ? (
-            <p className="text-[14px] leading-[18px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>No mehmaan invited.</p>
+            <p className="text-[14px] leading-[18px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('No mehmaan invited.')} />
           ) : (
             <div className="w-full"><InvitedMembersCards groups={mehmaanGroups} /></div>
           )}
         </div>
 
-        <div className="mt-[24px]"><SectionDivider>Other Details</SectionDivider></div>
-        <div className="mb-[24px] mt-[16px] flex flex-col items-start gap-[12px] pl-[16px] pr-[16px]">
+        <div className="mt-[24px]"><SectionDivider {...tx('Other Details')} /></div>
+        <div className="mb-[24px] mt-[16px] flex flex-col items-start gap-[12px] ps-[16px] pe-[16px]">
           <QuestionnaireSummary q={flow.questionnaire} idPrefix="rv-" hideIntro />
         </div>
       </div>
@@ -358,7 +363,7 @@ export default function Review() {
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
 
           {/* ───────── LEFT sidebar ───────── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
 
             {/* breadcrumb header — Go back merged in as the leading item */}
             <Breadcrumb
@@ -377,10 +382,8 @@ export default function Review() {
 
             <div>
               <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM}>{miqaat.title}</h1>
-              <p className="mt-[6px] text-[18px] leading-[24px] text-[#15402f]" style={FM}>Review &amp; Register</p>
-              <p className="mt-[12px] max-w-[360px] text-[15px] leading-[22px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>
-                Check your group before submitting. You can go back to edit any step.
-              </p>
+              <p className="mt-[6px] text-[18px] leading-[24px] text-[#15402f]" style={FM} {...tx('Review & Register')} />
+              <p className="mt-[12px] max-w-[360px] text-[15px] leading-[22px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('Check your group before submitting. You can go back to edit any step.')} />
             </div>
 
             {/* Stat cards */}
@@ -393,17 +396,17 @@ export default function Review() {
 
           {/* ───────── RIGHT group panel ───────── */}
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
 
               {/* Your family */}
               <div className="flex items-center justify-between gap-[16px]">
-                <p className="text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM}>Your family</p>
+                <p className="text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Your family')} />
                 <EditButton onClick={goEdit} />
               </div>
               <div className="mt-[16px]">
                 {groups.length === 0 ? (
                   <div className="rounded-[16px] border border-[#e7dfc9] bg-white px-[20px] py-[16px]">
-                    <p className="text-[14px] text-[#5a6660]" style={FMU}>No members selected.</p>
+                    <p className="text-[14px] text-[#5a6660]" style={FMU} {...tx('No members selected.')} />
                   </div>
                 ) : (
                   <FamilyTable groups={groups} />
@@ -413,7 +416,7 @@ export default function Review() {
               {/* Others — members added via Add People (group), kept distinct from Mehmaan guests */}
               {otherGroups.length > 0 && (
                 <>
-                  <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM}>Group</p>
+                  <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Group')} />
                   <div className="mt-[16px]">
                     <InvitedMembersTable groups={otherGroups} />
                   </div>
@@ -423,7 +426,7 @@ export default function Review() {
               {/* Invited Mehmaan */}
               {mehmaanGroups.length > 0 && (
                 <>
-                  <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM}>Invited Mehmaan</p>
+                  <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Invited Mehmaan')} />
                   <div className="mt-[16px]">
                     <InvitedMembersTable groups={mehmaanGroups} />
                   </div>
@@ -431,7 +434,7 @@ export default function Review() {
               )}
 
               {/* Other Details — the filled-in registration questionnaire, view-only */}
-              <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM}>Other Details</p>
+              <p className="mt-[32px] text-[24px] leading-[30px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Other Details')} />
               <div className="mt-[16px]">
                 <QuestionnaireSummary q={flow.questionnaire} idPrefix="rvd-" hideIntro />
               </div>

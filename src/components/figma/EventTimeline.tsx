@@ -8,6 +8,8 @@
  *     to the same full page.
  */
 
+import { useT } from '../../i18n'
+
 const MUL = 'Mulish, system-ui, sans-serif'
 
 function CalendarIcon({ size = 18, color = 'currentColor' }: { size?: number; color?: string }) {
@@ -21,6 +23,7 @@ function CalendarIcon({ size = 18, color = 'currentColor' }: { size?: number; co
 
 /** Desktop — outlined "Event timeline" CTA placed in the Miqaat Detail right card. */
 export function EventTimelineButton({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
     <button
       type="button"
@@ -29,7 +32,7 @@ export function EventTimelineButton({ onClick }: { onClick: () => void }) {
       className="flex h-[48px] w-full items-center justify-center gap-[10px] rounded-[12px] border border-[#1f5a44] bg-white text-[#1f5a44] transition-colors hover:bg-[#f3f7f4]"
       style={{ fontFamily: MUL, fontWeight: 700 }}
     >
-      <span className="text-[15px]">Event timeline</span>
+      <span className="text-[15px]" {...tx('Event timeline')} />
       <CalendarIcon size={18} color="#1f5a44" />
     </button>
   )
@@ -38,6 +41,7 @@ export function EventTimelineButton({ onClick }: { onClick: () => void }) {
 /** Mobile — full-width gold Event-timeline CTA that lives INSIDE the sticky footer (replaces the
  *  floating pill so the detail page has a single floating element — Ask Help — not two). */
 export function EventTimelineFooter({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
     <div className="sticky-cta w-full px-[16px] py-2">
       <button
@@ -47,7 +51,7 @@ export function EventTimelineFooter({ onClick }: { onClick: () => void }) {
         className="flex h-[52px] w-full items-center justify-center gap-[10px] rounded-[16px] bg-[#c6a44a] shadow-[0px_16px_36px_-14px_rgba(21,64,47,0.4)] transition-transform active:scale-[0.99]"
         style={{ fontFamily: MUL }}
       >
-        <span className="text-[15px] font-bold text-[#1a3326]">Event timeline</span>
+        <span className="text-[15px] font-bold text-[#1a3326]" {...tx('Event timeline')} />
         <CalendarIcon size={18} color="#1a3326" />
       </button>
     </div>
@@ -56,8 +60,9 @@ export function EventTimelineFooter({ onClick }: { onClick: () => void }) {
 
 /** Mobile — floating gold pill (look unchanged); navigates to the full Event Journey page. */
 export function EventTimelineFab({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
-    <div className="fixed right-[16px] bottom-[calc(env(safe-area-inset-bottom,0px)+96px)] z-[60] sm:hidden">
+    <div className="fixed end-[16px] bottom-[calc(env(safe-area-inset-bottom,0px)+96px)] z-[60] sm:hidden">
       <button
         type="button"
         onClick={onClick}
@@ -65,7 +70,7 @@ export function EventTimelineFab({ onClick }: { onClick: () => void }) {
         className="flex items-center gap-[8px] rounded-full bg-[#c6a44a] px-[18px] py-[11px] shadow-[0_10px_28px_-8px_rgba(21,64,47,0.45)] transition-transform hover:-translate-y-[1px] active:translate-y-0"
         style={{ fontFamily: MUL }}
       >
-        <span className="text-[15px] font-bold text-[#1a3326]">Event timeline</span>
+        <span className="text-[15px] font-bold text-[#1a3326]" {...tx('Event timeline')} />
         <CalendarIcon size={18} color="#1a3326" />
       </button>
     </div>

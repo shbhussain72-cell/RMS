@@ -1,4 +1,5 @@
 import BottomSheet from './BottomSheet'
+import { useT } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -19,6 +20,7 @@ export default function LeaveCityConfirmSheet({
   onClose: () => void
   onConfirm: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open={open}
@@ -30,14 +32,14 @@ export default function LeaveCityConfirmSheet({
             onClick={onClose}
             className="flex h-[52px] flex-1 items-center justify-center rounded-[14px] border border-[#e7dfc9] bg-white transition-all duration-200 hover:bg-[#faf8f2] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
           >
-            <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT }}>Cancel</span>
+            <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT }} {...tx('Cancel')} />
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="flex h-[52px] flex-1 items-center justify-center gap-[8px] rounded-[14px] bg-[#d2632b] shadow-[0_6px_22px_-8px_rgba(210,99,43,0.4)] transition-all duration-200 hover:bg-[#bb5523] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d2632b]/35"
           >
-            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT }}>Confirm</span>
+            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT }} {...tx('Confirm')} />
           </button>
         </div>
       }
@@ -53,13 +55,9 @@ export default function LeaveCityConfirmSheet({
             </svg>
           </span>
         </span>
-        <h2 className="mt-[16px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>Leave city selection?</h2>
-        <p className="mt-[10px] text-[15px] font-semibold leading-[21px] text-[#23302a]" style={{ fontFamily: FONT }}>
-          Are you sure you want to leave?
-        </p>
-        <p className="mt-[8px] max-w-[340px] text-[15px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-          You&apos;ll lose your place in the queue. Rejoining will require waiting again.
-        </p>
+        <h2 className="mt-[16px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Leave city selection?')} />
+        <p className="mt-[10px] text-[15px] font-semibold leading-[21px] text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Are you sure you want to leave?')} />
+        <p className="mt-[8px] max-w-[340px] text-[15px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('You\'ll lose your place in the queue. Rejoining will require waiting again.')} />
       </div>
     </BottomSheet>
   )

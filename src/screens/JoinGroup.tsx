@@ -6,6 +6,8 @@ import Breadcrumb from '../components/figma/Breadcrumb'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import RoleBadge from '../components/figma/RoleBadge'
 import type { BadgeKind } from '../lib/group'
+import { useT } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
 
 function Overlay({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
@@ -76,12 +78,13 @@ function inits(name: string) {
 
 /** Dark event banner (image + date/time) — shared by the mobile column and the desktop sidebar. */
 function EventBanner() {
+  const { tx } = useT()
   return (
     <div className="relative h-[180px] w-full overflow-hidden rounded-[16px]">
       <img src={CARD_BG} alt="" className="absolute inset-0 size-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-b from-[rgba(10,45,33,0.25)] to-[rgba(10,45,33,0.78)]" />
       <div className="absolute inset-x-0 bottom-0 p-[20px]">
-        <h2 className="text-[22px] leading-[28px] text-white" style={FM}>Eid-e-Ghadeer 1447H</h2>
+        <h2 className="text-[22px] leading-[28px] text-white" style={FM} {...tx('Eid-e-Ghadeer 1447H')} />
         <div className="mt-[6px] flex flex-wrap items-center gap-x-[14px] gap-y-[3px]">
           <div className="flex items-center gap-[5px]">
             <svg viewBox="0 0 16 16" fill="none" className="size-[13px] text-[rgba(255,255,255,0.8)]">
@@ -95,7 +98,7 @@ function EventBanner() {
               <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.25"/>
               <path d="M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/>
             </svg>
-            <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}>06:30 Am IST</span>
+            <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}><TimeLine value="06:30 AM IST" /></span>
           </div>
         </div>
       </div>
@@ -134,10 +137,11 @@ function InfoCard({ type, title, body }: { type: 'invitation' | 'guardian'; titl
  *  standardized member-table spec exactly: avatar 36, name 14/leading-18, meta
  *  12/leading-16, header py-10 / body py-9 (→ ~54px rows), shared RoleBadge. */
 function MemberList() {
+  const { tx, t, td, tdText } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <div className="bg-[#faf8f2] px-[16px] py-[10px]">
-        <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={FMU}>Member</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={FMU} {...tx('Member')} />
       </div>
       {GROUP_MEMBERS.map((m) => (
         <div
@@ -148,9 +152,9 @@ function MemberList() {
             <span className="text-[13px] font-bold leading-none text-white" style={FMU}>{inits(m.name)}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{m.name}</p>
+            <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.name)} />
             <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-              {m.relation} · {m.gender} · Age {String(m.age).padStart(2, '0')} · ITS {m.its}
+              {tdText(m.relation)} · {tdText(m.gender)} · {t('Age')} {String(m.age).padStart(2, '0')} · {t('ITS')} {m.its}
             </p>
           </div>
           {m.roleTag && <RoleBadge kind={KIND[m.roleTag]} />}
@@ -198,6 +202,7 @@ function OtpInput({ otp, onChange }: { otp: string[]; onChange: (v: string[]) =>
 }
 
 export default function JoinGroup() {
+  const { tx, t, td, tdText } = useT()
   const nav = useNavigate()
   const [params] = useSearchParams()
   const type = params.get('type') === 'guardian' ? 'guardian' : 'invitation'
@@ -238,9 +243,7 @@ export default function JoinGroup() {
       <div className="flex items-center gap-[10px] rounded-[18px] border border-[#e7dfc9] bg-[#fffdf8] px-[14px] py-[14px] shadow-[0px_22px_50px_-18px_rgba(21,64,47,0.3),0px_8px_20px_-10px_rgba(21,64,47,0.16)]">
         {/* Desktop-only context label */}
         <div className="hidden sm:flex sm:min-w-0 sm:flex-1 sm:flex-col sm:gap-[2px]">
-          <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#8a938e]" style={FMU}>
-            Eid-e-Ghadeer 1447H
-          </p>
+          <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#8a938e]" style={FMU} {...tx('Eid-e-Ghadeer 1447H')} />
           <p className="text-[15px] font-bold leading-[20px] text-[#1a2a23]" style={FMU}>{FOOTER_TITLE}</p>
         </div>
         {/* Decline */}
@@ -248,10 +251,7 @@ export default function JoinGroup() {
           type="button"
           onClick={() => setShowDecline(true)}
           className="flex-1 rounded-[12px] border border-[#b23b3b] py-[13px] text-[14px] font-semibold text-[#b23b3b] transition-colors hover:bg-[#fdf3f3] sm:flex-none sm:px-[28px]"
-          style={FMU}
-        >
-          Decline Request
-        </button>
+          style={FMU} {...tx('Decline Request')} />
         {/* Accept */}
         <button
           type="button"
@@ -277,7 +277,7 @@ export default function JoinGroup() {
          ═══════════════════════════════════════════════════════════════════ */}
       <div className="contents sm:hidden">
         {/* Breadcrumb */}
-        <div className="ml-[16px] mt-[10px]">
+        <div className="ms-[16px] mt-[10px]">
           <Breadcrumb items={breadcrumbItems} onNavigate={nav} onBack={() => nav(-1)} />
         </div>
 
@@ -291,9 +291,7 @@ export default function JoinGroup() {
           {/* GROUP MEMBERS divider */}
           <div className="mt-[24px] flex items-center gap-[12px]">
             <div className="h-px flex-1 bg-[#e7dabd]" />
-            <p className="shrink-0 text-[11px] font-bold uppercase tracking-[1.5px] text-[#c9a45c]" style={FMU}>
-              Group Members
-            </p>
+            <p className="shrink-0 text-[11px] font-bold uppercase tracking-[1.5px] text-[#c9a45c]" style={FMU} {...tx('Group Members')} />
             <div className="h-px flex-1 bg-[#e7dabd]" />
           </div>
 
@@ -308,9 +306,9 @@ export default function JoinGroup() {
                   <span className="text-[13px] font-bold leading-none text-white" style={FMU}>{inits(m.name)}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={FMU}>{m.name}</p>
+                  <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={FMU} {...td(m.name)} />
                   <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                    {m.relation} · {m.gender} · Age {String(m.age).padStart(2, '0')} · ITS {m.its}
+                    {tdText(m.relation)} · {tdText(m.gender)} · {t('Age')} {String(m.age).padStart(2, '0')} · {t('ITS')} {m.its}
                   </p>
                 </div>
                 {m.roleTag && (
@@ -336,7 +334,7 @@ export default function JoinGroup() {
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
 
           {/* ───────── LEFT sidebar ───────── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
             {/* breadcrumb header — Go back merged in as the leading item */}
             <Breadcrumb items={breadcrumbItems} onNavigate={nav} onBack={() => nav(-1)} activeColor="#a8843e" dense />
 
@@ -349,8 +347,8 @@ export default function JoinGroup() {
 
           {/* ───────── RIGHT group panel ───────── */}
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
-              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM}>Group members</h1>
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
+              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Group members')} />
               <div className="mt-[20px]"><MemberList /></div>
             </div>
 
@@ -363,16 +361,14 @@ export default function JoinGroup() {
       {/* ── OTP overlay ── */}
       {showOtp && (
         <Overlay onClose={() => setShowOtp(false)}>
-          <h2 className="text-[20px] leading-[26px] text-[#15402f]" style={FM}>Confirm it's you</h2>
+          <h2 className="text-[20px] leading-[26px] text-[#15402f]" style={FM} {...tx('Confirm it\'s you')} />
           <p className="mt-[8px] text-[13px] leading-[19px] text-[#5a6660]" style={FMU}>{s.otpDesc}</p>
           <div className="mt-[24px]">
             <OtpInput otp={otp} onChange={setOtp} />
           </div>
           <div className="mt-[14px] text-center">
-            <span className="text-[13px] text-[#8a938e]" style={FMU}>Didn't get it? </span>
-            <button type="button" className="text-[13px] font-semibold text-[#1f5a44]" style={FMU}>
-              Resend code
-            </button>
+            <span className="text-[13px] text-[#8a938e]" style={FMU} {...tx('Didn\'t get it?')} />
+            <button type="button" className="text-[13px] font-semibold text-[#1f5a44]" style={FMU} {...tx('Resend code')} />
           </div>
           <button
             type="button"
@@ -397,16 +393,13 @@ export default function JoinGroup() {
                 <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
             </div>
-            <h2 className="mt-[14px] text-[20px] leading-[26px] text-[#15402f]" style={FM}>Request cancelled</h2>
+            <h2 className="mt-[14px] text-[20px] leading-[26px] text-[#15402f]" style={FM} {...tx('Request cancelled')} />
             <p className="mt-[8px] text-[13px] leading-[19px] text-[#5a6660]" style={FMU}>{s.declineDesc}</p>
             <button
               type="button"
               onClick={handleDeclineDone}
               className="mt-[24px] w-full rounded-[12px] bg-[#1f5a44] py-[13px] text-[14px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)] hover:bg-[#17472f]"
-              style={FMU}
-            >
-              Done
-            </button>
+              style={FMU} {...tx('Done')} />
           </div>
         </Overlay>
       )}
@@ -426,10 +419,7 @@ export default function JoinGroup() {
               type="button"
               onClick={handleSuccessDone}
               className="mt-[24px] w-full rounded-[12px] bg-[#1f5a44] py-[14px] text-[15px] font-bold text-white shadow-[0px_4px_12px_rgba(21,64,47,0.25)] transition-colors hover:bg-[#17472f]"
-              style={FMU}
-            >
-              Done
-            </button>
+              style={FMU} {...tx('Done')} />
           </div>
         </Overlay>
       )}

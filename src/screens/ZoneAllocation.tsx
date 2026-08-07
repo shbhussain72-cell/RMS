@@ -8,18 +8,20 @@ import { family, zonesByCityId, miqaats } from '../data/seed'
 import { buildAllGroups } from '../lib/group'
 import { useStore } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
+import { useT } from '../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
 
 function ChangeZoneButton({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
     <button
       type="button"
       onClick={onClick}
       className="shrink-0 flex h-[36px] items-center gap-[7px] rounded-full border border-[#1f5a44] bg-white px-[14px]"
     >
-      <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Change zone</span>
+      <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('Change zone')} />
       <svg viewBox="0 0 16 16" fill="none" className="size-[13px]">
         <path d="M13 8a5 5 0 11-1.46-3.54M13 2v3h-3" stroke="#1f5a44" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -28,6 +30,7 @@ function ChangeZoneButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function ZoneAllocation() {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -79,7 +82,7 @@ export default function ZoneAllocation() {
     >
       <AppBar notificationCount={3} />
 
-      <div className="ml-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ml-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -91,9 +94,7 @@ export default function ZoneAllocation() {
         />
       </div>
 
-      <h1 className="mt-[14px] px-[16px] sm:px-0 text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-        Zone Allocation
-      </h1>
+      <h1 className="mt-[14px] px-[16px] sm:px-0 text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Zone Allocation')} />
 
       <div className="mx-[16px] sm:mx-0 mt-[20px] pb-[100px] flex flex-col gap-[8px]">
         {cityOrder.map((cid, ci) => {
@@ -136,7 +137,7 @@ export default function ZoneAllocation() {
           <div className="flex h-[18px] items-center">
             <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
             <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-              style={{ fontFamily: FONT, fontWeight: 700 }}>Registration Form</span>
+              style={{ fontFamily: FONT, fontWeight: 700 }} {...tx('Registration Form')} />
             <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
           </div>
           <QuestionnaireSummary q={flow.questionnaire} hideIntro />

@@ -24,7 +24,7 @@ import { isolateRuns } from '../components/Bidi'
 
 export type Lang = 'en' | 'lsd'
 
-interface Entry { lsd: string; page: string }
+interface Entry { lsd: string; page: string; sentinel?: string }
 
 /** localStorage key. Matches the app's existing `rms-*` convention (see rms-tour-seen). */
 const STORAGE_KEY = 'rms-lang'
@@ -209,15 +209,22 @@ function warnUnusableEntry(key: string, value: string): void {
 }
 
 /**
- * A wordlist LSD cell containing exactly this word is a DIRECTIVE, not a translation: it
- * means "this string should not appear in LSD mode at all" — the element renders empty.
- * Matched case-insensitively after trimming.
+ * SENTINEL rows — a wordlist cell holding an instruction instead of a translation.
  *
- * ⚠️ Consequence worth knowing: a string whose intended LSD really is the Latin word
- * "remove" cannot be expressed — it would be deleted instead. No current row relies on
- * that; if one ever does, give it a different casing/spelling or change this token.
+ * The generator (scripts/build-lsd-dict.mjs) recognises these at the spreadsheet boundary
+ * and NEVER lets the token through as a value: it emits an empty `lsd` plus a `sentinel`
+ * tag. So nothing here has to string-match "remove", and no future consumer can forget to.
+ *
+ * A sentinel is treated exactly like an untranslated row — the string falls back to
+ * ENGLISH and stays visible. It is not a delete instruction as far as this layer is
+ * concerned: an unresolved note from the wordlist owner must never silently subtract copy
+ * from the UI. `sentinelFor()` is what the gap report uses to list them separately from
+ * rows that are merely empty, because the two need different action from different people.
  */
-const REMOVE_DIRECTIVE = 'remove'
+export function sentinelFor(english: string): string | null {
+  const entry = ENTRIES.get(normKey(english))
+  return entry?.sentinel ?? null
+}
 
 /**
  * Resolve one English string against the wordlist.
@@ -233,12 +240,6 @@ export function resolve(english: string, lang: Lang): { text: string; hit: boole
   if (!key) return { text: english, hit: false }
   const entry = ENTRIES.get(key)
   if (entry && entry.lsd) {
-    // "remove" = drop this string from the UI entirely. Counts as resolved (the wordlist
-    // answered for it), so it is NOT reported as a gap and gets no missing-marker.
-    if (entry.lsd.trim().toLowerCase() === REMOVE_DIRECTIVE) {
-      recordHit(key)
-      return { text: '', hit: true }
-    }
     // A row can exist and still be unusable: an identity pass-through translates nothing.
     // Reported to the console (dev only) because it is invisible to the miss counter.
     const bare = String(entry.lsd).replace(BIDI_MARKS, '').trim()
@@ -310,34 +311,9 @@ export function lookupLsd(english: string): string | undefined {
   const entry = ENTRIES.get(key)
   if (!entry || !entry.lsd) return undefined
   recordHit(key)
-  return entry.lsd.trim().toLowerCase() === REMOVE_DIRECTIVE ? '' : entry.lsd
+  return entry.lsd
 }
 
-/**
- * Is this string marked for DELETION in LSD?
- *
- * The wordlist owner writes the literal word `remove` in an LSD cell to mean "this string
- * should not appear in LSD at all". `resolve()` honours that by returning an empty string,
- * which blanks the TEXT — but an empty `<li>` still draws its bullet, an empty row still
- * takes its padding, and a separator either side of it still renders. "Remove completely"
- * means the ELEMENT goes, and only the call site can do that.
- *
- * So list-rendering sites filter on this first:
- *
- *   {RULES.filter((r) => !isRemoved(r)).map(…)}
- *
- * Deliberately distinct from `t(x) === ''`, which happens to be true today but conflates
- * two different states: a row marked `remove` (intentional deletion) and a row whose LSD
- * cell is merely EMPTY (an untranslated gap, which must fall back to English and stay
- * visible). Testing the directive directly keeps those apart.
- *
- * Language-independent by design — it reports what the WORDLIST says. Callers that render
- * in both languages gate on `isLsd` themselves; English never removes anything.
- */
-export function isRemoved(english: string): boolean {
-  const entry = ENTRIES.get(normKey(english))
-  return !!entry && String(entry.lsd ?? '').trim().toLowerCase() === REMOVE_DIRECTIVE
-}
 
 /**
  * Inspect a key WITHOUT touching coverage state.
@@ -553,13 +529,7 @@ export function useT() {
     const dirProps: { dir?: 'rtl'; lang?: string } =
       lang === 'lsd' ? { dir: 'rtl', lang: LSD_BCP47 } : {}
 
-    /**
-     * `remove`-directive test, curried to the active language: English never deletes a
-     * string, so call sites can filter unconditionally without an `isLsd` check of their own.
-     */
-    const removed = (english: string): boolean => lang === 'lsd' && isRemoved(english)
-
-    return { lang, isLsd: lang === 'lsd', t, tx, td, tdText, tdAuthored, dirProps, removed }
+    return { lang, isLsd: lang === 'lsd', t, tx, td, tdText, tdAuthored, dirProps }
   }, [lang, version])
 }
 

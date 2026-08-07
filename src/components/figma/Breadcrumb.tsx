@@ -1,3 +1,4 @@
+import { useT } from '../../i18n'
 /**
  * Breadcrumb — pixel-exact from Figma (node 29:3078).
  *
@@ -15,7 +16,7 @@ export type Crumb = { label: string; to?: string };
 function Chevron() {
   return (
     <div className="relative size-[16px] shrink-0 overflow-clip" data-name="chevron-right">
-      <div className="absolute inset-y-[25%] left-[37.5%] right-[37.5%]">
+      <div className="absolute inset-y-[25%] start-[37.5%] end-[37.5%]">
         <svg viewBox="0 0 5 9" fill="none" preserveAspectRatio="none" className="block h-full w-full">
           <path
             d="M0.5 0.5L4.5 4.5L0.5 8.5"
@@ -52,6 +53,7 @@ export default function Breadcrumb({
   /** @deprecated Go-back now always shows on mobile; kept for call-site compatibility. */
   backOnMobile?: boolean;
 }) {
+     const { tx } = useT()
   const textSize = dense ? "text-[13px]" : "text-[14px]";
   return (
     <div
@@ -63,13 +65,13 @@ export default function Breadcrumb({
         <button
           type="button"
           onClick={onBack}
-          className={`group flex shrink-0 items-center gap-[5px] pr-[8px] ${textSize} leading-[1.5] text-[#5a6660] transition-colors duration-150 hover:text-[#15402f] focus-visible:text-[#15402f] focus-visible:outline-none`}
+          className={`group flex shrink-0 items-center gap-[5px] pe-[8px] ${textSize} leading-[1.5] text-[#5a6660] transition-colors duration-150 hover:text-[#15402f] focus-visible:text-[#15402f] focus-visible:outline-none`}
           style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 600 }}
         >
           <svg viewBox="0 0 24 24" className="size-[16px] shrink-0 transition-transform duration-200 group-hover:-translate-x-[2px]" fill="none" aria-hidden="true">
             <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="whitespace-nowrap">Go back</span>
+          <span className="whitespace-nowrap" {...tx('Go back')} />
         </button>
       )}
       {items.map((item, i) => {
@@ -81,7 +83,7 @@ export default function Breadcrumb({
               <button
                 type="button"
                 onClick={() => item.to && onNavigate?.(item.to)}
-                className={`cursor-pointer whitespace-nowrap text-left ${textSize} leading-[1.5] text-[#8a938e] underline-offset-[3px] transition-colors duration-150 hover:text-[#15402f] hover:underline focus-visible:text-[#15402f] focus-visible:outline-none`}
+                className={`cursor-pointer whitespace-nowrap text-start ${textSize} leading-[1.5] text-[#8a938e] underline-offset-[3px] transition-colors duration-150 hover:text-[#15402f] hover:underline focus-visible:text-[#15402f] focus-visible:outline-none`}
                 style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 400 }}
               >
                 {item.label}

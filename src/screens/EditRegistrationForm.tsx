@@ -7,6 +7,7 @@ import { family, miqaats } from '../data/seed'
 import { useStore, type QuestionnaireAnswers } from '../store'
 import { QuestionnaireSections, QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { pendingNewQuestionKeys, isFormEditable } from '../lib/registrationForm'
+import { useT } from '../i18n'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
@@ -31,6 +32,7 @@ function AlertDotIcon() {
 }
 
 export default function EditRegistrationForm() {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -67,7 +69,7 @@ export default function EditRegistrationForm() {
         <AppBar notificationCount={3} onBellClick={() => {}} />
       </div>
 
-      <div className="ml-[16px] mt-[13px] sm:ml-0 sm:mt-6">
+      <div className="ms-[16px] mt-[13px] sm:ml-0 sm:mt-6">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -93,7 +95,8 @@ export default function EditRegistrationForm() {
           <div className="mt-[16px] flex items-start gap-[10px] rounded-[14px] border border-[#e7dfc9] bg-[#f6f4ef] px-[16px] py-[13px]">
             <LockIcon />
             <p className="text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              <strong className="font-bold text-[#23302a]">Form locked.</strong> Reach out to your Miqaat coordinator if something here needs correcting.
+              <strong className="font-bold text-[#23302a]" {...tx('Form locked.')} />{' '}
+              <span {...tx('Reach out to your Miqaat coordinator if something here needs correcting.')} />
             </p>
           </div>
         )}
@@ -117,7 +120,7 @@ export default function EditRegistrationForm() {
                 onClick={goBack}
                 className="mt-[16px] flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] shadow-[0_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#194a38]"
               >
-                <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }}>Save &amp; Close</span>
+                <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }} {...tx('Save & Close')} />
               </button>
             </>
           ) : (
@@ -128,7 +131,7 @@ export default function EditRegistrationForm() {
                 onClick={goBack}
                 className="mt-[16px] flex h-[52px] w-full items-center justify-center rounded-[14px] border border-[#e7dfc9] bg-white transition-colors hover:border-[#c2a04e]"
               >
-                <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }}>Back to Event</span>
+                <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }} {...tx('Back to Event')} />
               </button>
             </>
           )}

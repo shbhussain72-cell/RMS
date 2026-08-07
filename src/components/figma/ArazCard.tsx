@@ -1,3 +1,4 @@
+import { useT } from '../../i18n'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
 
@@ -8,15 +9,14 @@ const FONT_SERIF = 'Marcellus, Georgia, serif'
  * the CTA flips to "View preferences". Self-contained background (CSS gradient — no image asset).
  */
 export function ArazCard({ onClick, remainingLabel, submitted = false }: { onClick: () => void; remainingLabel: string; submitted?: boolean }) {
+  const { tx } = useT()
   return (
     <div className="relative overflow-hidden rounded-[16px] border border-[#e7dfc9] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.18)]" style={{ background: 'linear-gradient(135deg,#f3f7f2 0%,#fbf7ec 60%,#f7efd8 100%)' }}>
       <div className="relative flex flex-col gap-[14px] px-[20px] py-[18px]">
         <div className="flex items-center justify-between gap-[16px]">
           <div className="flex min-w-0 flex-col gap-[8px]">
-            <p className="text-[22px] leading-[24px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>Araz</p>
-            <p className="text-[13px] leading-[18px] text-[#3d4b44]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}>
-              Submit your preferred Host and Relay City selections early. This is a preference only — it does not guarantee your final city allocation.
-            </p>
+            <p className="text-[22px] leading-[24px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Araz')} />
+            <p className="text-[13px] leading-[18px] text-[#3d4b44]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...tx('Submit your preferred Host and Relay City selections early. This is a preference only — it does not guarantee your final city allocation.')} />
           </div>
           <button type="button" onClick={onClick}
             className="h-[42px] w-[120px] shrink-0 rounded-[14px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] shadow-[0_6px_18px_-6px_rgba(21,64,47,0.22)] transition-all duration-200 hover:from-[#e7d3a2] hover:to-[#cfab65] hover:shadow-[0_10px_26px_-8px_rgba(21,64,47,0.3)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30">

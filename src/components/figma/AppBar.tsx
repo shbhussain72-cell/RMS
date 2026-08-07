@@ -7,8 +7,10 @@ import { formNotificationPending } from '../../lib/registrationForm'
 import NotificationPanel from './NotificationPanel'
 import LogoutConfirmSheet from './LogoutConfirmSheet'
 import TourHelpButton from '../../tour/TourHelpButton'
+import LanguageToggle from '../../i18n/LanguageToggle'
+import { useT } from '../../i18n'
 
-const CREST = '/figma/its-crest-header.png'
+const CREST = '/miqaat-logo.png'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
 const initials = (name: string) =>
@@ -45,6 +47,7 @@ export default function AppBar({
   onBellClick?: () => void
 }) {
   const nav = useNavigate()
+  const { t, tx, td, tdText, isLsd } = useT()
   const logout = useStore((s) => s.logout)
   const readNotifIds = useStore((s) => s.readNotifIds)
   const flow = useStore((s) => s.flow)
@@ -69,6 +72,29 @@ export default function AppBar({
     return () => document.removeEventListener('mousedown', handle)
   }, [dropdownOpen, notifOpen])
 
+  /* Signed-in identity — one definition, used by both breakpoints and by both positions
+     of the mobile cluster. The ITS ID label is translated; the digits are not (an ID is
+     not language), so they stay LTR via `data-numeric`. The account NAME goes through
+     `td` because LSD must show no Latin script, data values included.
+
+     The two breakpoints use slightly different type scales in the English design
+     (15/19 + 1px gap on mobile, 14/18 + 2px on desktop); those are passed in rather than
+     unified, so English renders exactly as before. */
+  const renderIdentity = (nameClass: string, gapClass: string) => (
+    <div className={`flex min-w-0 flex-col ${gapClass}`}>
+      <p
+        className="truncate text-[11px] font-bold uppercase leading-[14px] tracking-[0.5px] text-[rgba(255,255,255,0.65)]"
+        style={{ fontFamily: FONT_SANS }}
+        {...(isLsd ? { dir: 'rtl' as const, lang: 'gu-Arab' } : {})}
+      >
+        {tdText('ITS ID')} <span data-numeric>{account.its}</span>
+      </p>
+      <p className={`truncate ${nameClass}`} style={{ fontFamily: FONT_SANS }} {...td(account.name)} />
+    </div>
+  )
+  const identity = renderIdentity('text-[15px] font-semibold leading-[19px] text-white', 'gap-[1px]')
+  const identityDesktop = renderIdentity('text-[14px] font-semibold leading-[18px] text-white', 'gap-[2px]')
+
   return (
     <>
       {/* ── Mobile: green identity header (Figma 1.3.1) — logo · ITS ID/name · bell · logout ── */}
@@ -77,28 +103,28 @@ export default function AppBar({
         style={{ background: 'linear-gradient(220deg, #0E2D21 0%, #15402F 50%, #1F5A44 100%)' }}
         data-name="AppBar"
       >
-        <button type="button" onClick={() => nav('/miqaats')} aria-label="Home" className="h-[42px] w-[27px] shrink-0">
-          <img src={CREST} alt="ITS" className="block h-full w-full object-contain" />
+        <button type="button" onClick={() => nav('/miqaats')} aria-label={t('Home')} className="h-[26px] w-[52px] shrink-0">
+          <img src={CREST} alt="" className="block h-full w-full object-contain" />
         </button>
-        <div className="ml-[12px] flex min-w-0 flex-col gap-[1px]">
-          <p className="truncate text-[11px] font-bold uppercase leading-[14px] tracking-[0.5px] text-[rgba(255,255,255,0.65)]" style={{ fontFamily: FONT_SANS }}>
-            ITS ID {account.its}
-          </p>
-          <p className="truncate text-[15px] font-semibold leading-[19px] text-white" style={{ fontFamily: FONT_SANS }}>
-            {account.name}
-          </p>
-        </div>
+        {/* EN: identity sits beside the crest. LSD: it joins the control cluster on the
+            right — the one deliberate placement change in the app, so that name, ITS ID,
+            language, help, bell and logout read as a single group instead of being split
+            across the bar. Both branches render the same `identity` node, so the two
+            languages cannot drift apart. */}
+        {!isLsd && <div className="ms-[12px] min-w-0">{identity}</div>}
         <div className="min-w-[12px] flex-1" />
-        <TourHelpButton className="mr-[2px]" />
+        {isLsd && <div className="me-[10px] min-w-0">{identity}</div>}
+        <LanguageToggle className="me-[8px]" />
+        <TourHelpButton className="me-[2px]" />
         <button
           type="button"
           onClick={() => { onBellClick?.(); nav('/notifications') }}
           className="relative flex size-[36px] shrink-0 items-center justify-center"
-          aria-label="Notifications"
+          aria-label={t('Notifications')}
         >
           <BellIcon className="size-[26px] text-white" />
           {notificationCount > 0 && (
-            <span className="absolute right-[2px] top-[2px] flex size-[17px] items-center justify-center rounded-full bg-[#b23b3b] text-[10px] font-bold leading-none text-white" style={{ fontFamily: FONT_SANS }}>
+            <span className="absolute end-[2px] top-[2px] flex size-[17px] items-center justify-center rounded-full bg-[#b23b3b] text-[10px] font-bold leading-none text-white" style={{ fontFamily: FONT_SANS }} data-numeric>
               {notificationCount}
             </span>
           )}
@@ -106,8 +132,8 @@ export default function AppBar({
         <button
           type="button"
           onClick={() => setShowLogout(true)}
-          className="ml-[6px] flex size-[28px] shrink-0 items-center justify-center"
-          aria-label="Logout"
+          className="ms-[6px] flex size-[28px] shrink-0 items-center justify-center"
+          aria-label={t('Logout')}
         >
           <LogoutIcon className="size-[24px] text-white" />
         </button>
@@ -121,24 +147,27 @@ export default function AppBar({
         data-name="AppBar-desktop"
       >
         {/* Crest → Home */}
-        <button type="button" onClick={() => nav('/miqaats')} aria-label="Home" className="relative z-10 h-[38px] w-[24px] shrink-0">
-          <img src={CREST} alt="ITS" className="block h-full w-full object-contain" />
+        <button type="button" onClick={() => nav('/miqaats')} aria-label={t('Home')} className="relative z-10 h-[24px] w-[48px] shrink-0">
+          <img src={CREST} alt="" className="block h-full w-full object-contain" />
         </button>
         <div className="relative z-10 flex-1" />
 
+        {/* Language */}
+        <LanguageToggle className="relative z-10 me-[12px]" />
+
         {/* Take a tour */}
-        <TourHelpButton className="ix-hdr relative z-10 mr-[10px]" />
+        <TourHelpButton className="ix-hdr relative z-10 me-[10px]" />
 
         {/* Bell */}
         <button
           type="button"
           onClick={() => { onBellClick?.(); setNotifOpen((v) => !v); setDropdownOpen(false) }}
-          className="ix-hdr ix-bell relative z-10 mr-[14px] flex size-[38px] shrink-0 items-center justify-center rounded-[11px]"
-          aria-label="Notifications"
+          className="ix-hdr ix-bell relative z-10 me-[14px] flex size-[38px] shrink-0 items-center justify-center rounded-[11px]"
+          aria-label={t('Notifications')}
         >
           <BellIcon className="absolute left-1/2 top-1/2 size-[24px] -translate-x-1/2 -translate-y-1/2 text-white" />
           {notificationCount > 0 && (
-            <span className="absolute right-[-4px] top-[-4px] flex size-[18px] items-center justify-center rounded-full bg-[#b23b3b] text-[10px] font-bold leading-none text-white" style={{ fontFamily: FONT_SANS }}>
+            <span className="absolute end-[-4px] top-[-4px] flex size-[18px] items-center justify-center rounded-full bg-[#b23b3b] text-[10px] font-bold leading-none text-white" style={{ fontFamily: FONT_SANS }} data-numeric>
               {notificationCount}
             </span>
           )}
@@ -153,18 +182,11 @@ export default function AppBar({
               {initials(account.name)}
             </span>
           </div>
-          <div className="flex min-w-0 flex-col gap-[2px]">
-            <p className="truncate text-[11px] font-bold uppercase leading-[14px] tracking-[0.5px] text-[rgba(255,255,255,0.65)]" style={{ fontFamily: FONT_SANS }}>
-              ITS ID {account.its}
-            </p>
-            <p className="truncate text-[14px] font-semibold leading-[18px] text-white" style={{ fontFamily: FONT_SANS }}>
-              {account.name}
-            </p>
-          </div>
+          {identityDesktop}
           <button
             type="button"
             onClick={() => { setDropdownOpen((v) => !v); setNotifOpen(false) }}
-            aria-label="Account menu"
+            aria-label={t('Account menu')}
             className="relative z-10 flex size-[28px] items-center justify-center rounded-full transition-colors hover:bg-[rgba(255,255,255,0.15)]"
           >
             <svg viewBox="0 0 24 24" fill="none" className={`size-[16px] text-white transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}>
@@ -179,12 +201,12 @@ export default function AppBar({
             <button
               type="button"
               onClick={() => { setDropdownOpen(false); setShowLogout(true) }}
-              className="flex w-full items-center gap-[10px] px-[16px] py-[13px] text-left transition-colors hover:bg-[#fdf9f4]"
+              className="flex w-full items-center gap-[10px] px-[16px] py-[13px] text-start transition-colors hover:bg-[#fdf9f4]"
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-[16px] shrink-0 text-[#b23b3b]">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span className="text-[14px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT_SANS }}>Logout</span>
+              <span className="text-[14px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT_SANS }} {...tx('Logout')} />
             </button>
           </div>
         )}

@@ -8,6 +8,7 @@ import { family, zonesByCityId, miqaats } from '../data/seed'
 import { buildAllGroups } from '../lib/group'
 import { useStore } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
+import { useT } from '../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -41,6 +42,7 @@ function RazaIssuedBanner({ issued }: { issued: boolean }) {
  * layout (same web table + mobile cards) so it reads consistently.
  */
 export default function RazaView() {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -93,7 +95,7 @@ export default function RazaView() {
     >
       <AppBar notificationCount={3} />
 
-      <div className="ml-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ml-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -105,9 +107,7 @@ export default function RazaView() {
         />
       </div>
 
-      <h1 className="mt-[14px] px-[16px] sm:px-0 text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-        Raza
-      </h1>
+      <h1 className="mt-[14px] px-[16px] sm:px-0 text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Raza')} />
 
       <div className="mx-[16px] sm:mx-0 mt-[16px]">
         <RazaIssuedBanner issued={flow.razaIssued} />
@@ -150,7 +150,7 @@ export default function RazaView() {
           <div className="flex h-[18px] items-center">
             <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
             <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-              style={{ fontFamily: FONT, fontWeight: 700 }}>Registration Form</span>
+              style={{ fontFamily: FONT, fontWeight: 700 }} {...tx('Registration Form')} />
             <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
           </div>
           <QuestionnaireSummary q={flow.questionnaire} hideIntro />

@@ -1,4 +1,6 @@
 import RoleBadge from './RoleBadge'
+import { isolateRuns } from '../Bidi'
+import { useT, tNow } from '../../i18n'
 
 const FMU = { fontFamily: 'Mulish, system-ui, sans-serif' } as const
 
@@ -19,7 +21,7 @@ const BAND_LABEL = 'Guardian + dependent · registered together'
 
 /** Meta line, identical to the family rows — "{Gender} · Age NN · ITS xxx". */
 function meta(p: InvitedPerson): string {
-  return `${p.gender ? `${p.gender} · ` : ''}Age ${String(p.age).padStart(2, '0')} · ITS ${p.its}`
+  return `${p.gender ? `${tNow(p.gender)} · ` : ''}${tNow('Age')} ${String(p.age).padStart(2, '0')} · ${tNow('ITS')} ${p.its}`
 }
 
 const initials = (name: string) =>
@@ -45,10 +47,11 @@ function LinkGlyph() {
 }
 
 function RemoveButton({ onClick }: { onClick: () => void }) {
+  const { tx } = useT()
   return (
     <button type="button" onClick={onClick}
       className="flex items-center gap-[6px] text-[14px] font-bold text-[#b23b3b] transition-opacity duration-200 hover:opacity-75 active:scale-[0.97]" style={FMU}>
-      Remove
+      <span {...tx('Remove')} />
       <svg viewBox="0 0 20 20" fill="none" className="size-[14px]"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
     </button>
   )
@@ -56,13 +59,14 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
 
 /** One member row's name + inline Dependent tag + meta (shared by table + cards). */
 function MemberIdentity({ person, dependent }: { person: InvitedPerson; dependent?: boolean }) {
+  const { td } = useT()
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[2px]">
-        <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{person.name}</p>
+        <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(person.name)} />
         {dependent && <RoleBadge kind="dependent" />}
       </div>
-      <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>{meta(person)}</p>
+      <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>{isolateRuns(meta(person))}</p>
     </div>
   )
 }
@@ -92,7 +96,7 @@ export function InvitedMembersTable({
         <thead>
           <tr className="border-b border-[#ece7da] bg-[#faf8f2]">
             {headers.map((h) => (
-              <th key={h} className="px-[20px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={FMU}>{h}</th>
+              <th key={h} className="px-[20px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={FMU}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -117,7 +121,7 @@ export function InvitedMembersTable({
                   <tr key={p.its} className={`transition-colors duration-200 hover:bg-[#faf9f4] ${linked ? '' : 'border-t border-[#ece7da]'}`} style={{ background: 'white' }}>
                     <td className="relative px-[20px] py-[9px] align-middle">
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[37px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[37px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={p.name} size={36} />
@@ -152,7 +156,7 @@ function CardRow({ person, dependent, linkTop, linkBottom }: { person: InvitedPe
   return (
     <div className="relative flex items-center gap-[10px] py-[8px]">
       {(linkTop || linkBottom) && (
-        <span className="pointer-events-none absolute left-[17px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
+        <span className="pointer-events-none absolute start-[17px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
       )}
       <div className="relative shrink-0"><Avatar name={person.name} size={36} /></div>
       <div className="min-w-0 flex-1"><MemberIdentity person={person} dependent={dependent} /></div>
@@ -171,6 +175,7 @@ export function InvitedMembersCards({
   showStatus?: boolean
   onRemove?: (its: string) => void
 }) {
+     const { tx } = useT()
   return (
     <div className="flex flex-col gap-[8px]">
       {groups.map(({ primary, dependents }) => {
@@ -194,8 +199,8 @@ export function InvitedMembersCards({
               <div className="flex items-center justify-between border-t border-[#f0ebe0] px-[14px] py-[12px]">
                 {showStatus ? (
                   <span className="flex items-center gap-[6px] text-[14px]" style={FMU}>
-                    <span className="text-[#5a6660]">Status :</span>
-                    <span className="font-bold text-[#b8821e]">Pending</span>
+                    <span className="text-[#5a6660]" {...tx('Status :')} />
+                    <span className="font-bold text-[#b8821e]" {...tx('Pending')} />
                   </span>
                 ) : <span />}
                 {onRemove && <RemoveButton onClick={() => onRemove(primary.its)} />}

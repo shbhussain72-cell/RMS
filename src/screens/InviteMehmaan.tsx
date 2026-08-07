@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -9,6 +10,7 @@ import { LinkedDependentPopup, InviteLimitPopup } from '../components/figma/Invi
 import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../components/figma/InvitedMembers'
 import RoleBadge from '../components/figma/RoleBadge'
 import { useStore } from '../store'
+import { useT } from '../i18n'
 
 const INFO_FILLED = '/figma/invite-info-filled.svg'
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
@@ -54,6 +56,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
 }
 
 function PersonRow({ name, age, its, gender, large = false }: { name: string; age: number; its: string; gender?: string; large?: boolean }) {
+  const { t } = useT()
   return (
     <div className="flex min-w-0 flex-1 items-center gap-[12px]">
       <Avatar name={name} size={large ? 52 : 36} />
@@ -62,7 +65,7 @@ function PersonRow({ name, age, its, gender, large = false }: { name: string; ag
           {name}
         </p>
         <p className={`font-normal text-[#5a6660] ${large ? 'text-[13.5px] leading-[19px]' : 'text-[12px] leading-[18px]'}`} style={FMU}>
-          {gender ? `${gender} · ` : ''}Age {age} · ITS {its}
+          {isolateRuns(`${gender ? `${gender} · ` : ''}${t('Age')} ${age} · ${t('ITS')} ${its}`)}
         </p>
       </div>
     </div>
@@ -99,15 +102,16 @@ function LinkGlyph() {
 }
 
 function MemberRow({ name, age, its, gender, badge, linkTop, linkBottom }: { name: string; age: number; its: string; gender?: string; badge?: boolean; linkTop?: boolean; linkBottom?: boolean }) {
+  const { t } = useT()
   return (
     <div className="relative flex items-center gap-[12px] py-[6px]">
       {(linkTop || linkBottom) && (
-        <span className="pointer-events-none absolute left-[18px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
+        <span className="pointer-events-none absolute start-[18px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
       )}
       <div className="relative shrink-0"><Avatar name={name} size={36} /></div>
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{name}</p>
-        <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={FMU}>{gender ? `${gender} · ` : ''}Age {age} · ITS {its}</p>
+        <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={FMU}>{isolateRuns(`${gender ? `${gender} · ` : ''}${t('Age')} ${age} · ${t('ITS')} ${its}`)}</p>
       </div>
       {badge && <RoleBadge kind="dependent" />}
     </div>
@@ -117,6 +121,7 @@ function MemberRow({ name, age, its, gender, badge, linkTop, linkBottom }: { nam
 // ─── main screen ──────────────────────────────────────────────────────────────
 
 export default function InviteMehmaan() {
+  const { tx, t, td, tdText } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -236,13 +241,13 @@ export default function InviteMehmaan() {
       style={FMU}
     >
       <PersonAddIcon />
-      Invite
+      <span {...tx('Invite')} />
     </button>
   )
   const matchFoundBadge = (
     <div className="flex items-center gap-[6px]">
       <CheckCircleIcon />
-      <span className="text-[13px] font-bold text-[#1f7a4d]" style={FMU}>Match found</span>
+      <span className="text-[13px] font-bold text-[#1f7a4d]" style={FMU} {...tx('Match found')} />
     </div>
   )
   const resultCard = result && (
@@ -253,11 +258,11 @@ export default function InviteMehmaan() {
           {matchFoundBadge}
           <div className="mt-[14px] flex items-center gap-[8px] rounded-[10px] bg-[#e1eef1] px-[12px] py-[9px]">
             <LinkGlyph />
-            <span className="text-[12.5px] font-bold text-[#2e6a7d]" style={FMU}>Guardian + dependent · added together</span>
+            <span className="text-[12.5px] font-bold text-[#2e6a7d]" style={FMU} {...tx('Guardian + dependent · added together')} />
           </div>
           <div className="mt-[10px] flex flex-col">
-            <MemberRow name={result.name} age={result.age} its={result.its} gender={result.gender} linkBottom={result.dependents.length > 0} />
-            {result.dependents.map((d, i) => <MemberRow key={d.its} name={d.name} age={d.age} its={d.its} gender={d.gender} badge linkTop linkBottom={i < result.dependents.length - 1} />)}
+            <MemberRow name={result.name} age={result.age} its={result.its} gender={tdText(result.gender)} linkBottom={result.dependents.length > 0} />
+            {result.dependents.map((d, i) => <MemberRow key={d.its} name={d.name} age={d.age} its={d.its} gender={tdText(d.gender)} badge linkTop linkBottom={i < result.dependents.length - 1} />)}
           </div>
           <div className="mt-[16px] flex items-center justify-between gap-[12px] border-t border-[#f0ebe0] pt-[16px]">
             <span className="text-[13px] font-semibold text-[#5a6660]" style={FMU}>
@@ -272,9 +277,9 @@ export default function InviteMehmaan() {
           {matchFoundBadge}
           <div className="mt-[16px] flex flex-col items-center text-center">
             <Avatar name={result.name} size={72} />
-            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={FMU}>{result.name}</p>
+            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={FMU} {...td(result.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={FMU}>
-              {result.gender ? `${result.gender} · ` : ''}Age {result.age} · ITS {result.its}
+              {result.gender ? `${tdText(result.gender)} · ` : ''}{t('Age')} {result.age} · {t('ITS')} {result.its}
             </p>
             <div className="mt-[18px]">{inviteButton}</div>
           </div>
@@ -290,8 +295,8 @@ export default function InviteMehmaan() {
         <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.6" />
         <path d="M13.8 13.8L18 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
-      <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={FMU}>No members found</p>
-      <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={FMU}>Try searching with a different ITS ID or member name.</p>
+      <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={FMU} {...tx('No members found')} />
+      <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={FMU} {...tx('Try searching with a different ITS ID or member name.')} />
     </div>
   )
 
@@ -301,7 +306,7 @@ export default function InviteMehmaan() {
       type="button"
       onClick={performSearch}
       disabled={quotaFull}
-      aria-label="Search"
+      aria-label={t('Search')}
       className="flex size-[48px] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-opacity active:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <svg viewBox="0 0 20 20" fill="none" className="size-[19px] shrink-0 text-[#194a37]">
@@ -322,7 +327,7 @@ export default function InviteMehmaan() {
   const quotaPill = (
     <div className="w-full rounded-[16px] border border-[#c2cdc4] bg-[#e2e6e0] px-[20px] py-[18px]">
       <div className="flex items-center justify-between gap-[10px]">
-        <span className="text-[15px] font-bold text-[#15402f]" style={FM}>Invitation quota</span>
+        <span className="text-[15px] font-bold text-[#15402f]" style={FM} {...tx('Invitation quota')} />
         <span
           className="whitespace-nowrap rounded-full px-[12px] py-[4px] text-[12px] font-bold"
           style={{ ...FMU, background: quotaBadge.bg, color: quotaBadge.color }}
@@ -335,9 +340,7 @@ export default function InviteMehmaan() {
         <span className="text-[30px] leading-none text-[#15402f]" style={{ ...FM, fontWeight: 700 }}>{remaining}</span>
         <span className="text-[14px] text-[#5a6660]" style={FMU}>/ {INVITE_QUOTA} remaining</span>
       </div>
-      <p className="mt-[10px] text-[13px] leading-[19px] text-[#5a6660]" style={FMU}>
-        Each accepted invitation counts toward your Mehmaan quota for this Miqaat.
-      </p>
+      <p className="mt-[10px] text-[13px] leading-[19px] text-[#5a6660]" style={FMU} {...tx('Each accepted invitation counts toward your Mehmaan quota for this Miqaat.')} />
     </div>
   )
 
@@ -363,7 +366,8 @@ export default function InviteMehmaan() {
             <img src={INFO_FILLED} alt="" className="block size-full" />
           </span>
           <p className="text-[13px] font-normal leading-[19px] text-[#2e6a7d]" style={FMU}>
-            Invited Mehmaan stay <strong className="font-bold">Pending</strong> until they accept their invitation. A seat is only used when each one accepts.
+            <span {...tx('Invited Mehmaan stay')} /> <strong className="font-bold" {...tx('Pending')} />{' '}
+            <span {...tx('until they accept their invitation. A seat is only used when each one accepts.')} />
           </p>
         </div>
       </div>
@@ -390,7 +394,7 @@ export default function InviteMehmaan() {
 
       {/* ── Invitation sent toast (shared) ── */}
       {toast && (
-        <div className="fixed bottom-[110px] left-[16px] right-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#1f5a44] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(21,64,47,0.3)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)" />
@@ -413,7 +417,7 @@ export default function InviteMehmaan() {
          ═══════════════════════════════════════════════════════════════════════════ */}
       <div className="contents sm:hidden">
         {/* Breadcrumb */}
-        <div className="ml-[16px] mt-[12px]">
+        <div className="ms-[16px] mt-[12px]">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -428,9 +432,7 @@ export default function InviteMehmaan() {
 
         <div className="px-[16px] pb-[24px]">
           {/* Title */}
-          <h2 className="mt-[20px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM}>
-            Invite Mehmaan
-          </h2>
+          <h2 className="mt-[20px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Invite Mehmaan')} />
 
           {/* ITS input */}
           <div className="relative mt-[16px]">
@@ -444,7 +446,7 @@ export default function InviteMehmaan() {
                   disabled={quotaFull}
                   inputMode="numeric"
                   maxLength={8}
-                  placeholder="Enter 8-digit ITS ID"
+                  placeholder={t('Enter 8-digit ITS ID')}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch() } }}
                   className="h-full w-full bg-transparent px-[11px] text-[16px] font-normal text-[#23302a] outline-none placeholder:font-normal placeholder:text-[#757575] disabled:cursor-not-allowed disabled:opacity-60"
                   style={FMU}
@@ -481,12 +483,8 @@ export default function InviteMehmaan() {
                     <GroupAddIcon />
                   </span>
                 </span>
-                <p className="text-[18px] leading-[22px] text-[#15402f]" style={FM}>
-                  No invitations added yet
-                </p>
-                <p className="max-w-[300px] text-[13.5px] font-normal leading-[20.25px] text-[#5a6660]" style={FMU}>
-                  Start by entering an ITS ID to invite a Mumineen. Invited members will appear here and count toward your available quota.
-                </p>
+                <p className="text-[18px] leading-[22px] text-[#15402f]" style={FM} {...tx('No invitations added yet')} />
+                <p className="max-w-[300px] text-[13.5px] font-normal leading-[20.25px] text-[#5a6660]" style={FMU} {...tx('Start by entering an ITS ID to invite a Mumineen. Invited members will appear here and count toward your available quota.')} />
               </div>
             )}
           </div>
@@ -500,7 +498,7 @@ export default function InviteMehmaan() {
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
 
           {/* ───────── LEFT sidebar ───────── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
 
             {/* breadcrumb header — Go back merged in as the leading item */}
             <Breadcrumb
@@ -518,9 +516,7 @@ export default function InviteMehmaan() {
 
             {/* Invite Mehmaan card */}
             <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-              <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={FM}>
-                Invite Mehmaan
-              </p>
+              <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Invite Mehmaan')} />
               <div className="mt-[16px] flex items-center gap-[10px]">
                 <div className={`group relative h-[48px] flex-1 overflow-clip rounded-[12px] border border-solid transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12 ${lookupError ? 'border-[#b23b3b] bg-[#fff5f5]' : 'border-[#e7dfc9] bg-[#fbfbfb] hover:border-[#d6cbab]'}`}>
                   <input
@@ -529,9 +525,9 @@ export default function InviteMehmaan() {
                     disabled={quotaFull}
                     inputMode="numeric"
                     maxLength={8}
-                    placeholder="Enter 8-digit ITS ID"
+                    placeholder={t('Enter 8-digit ITS ID')}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch() } }}
-                    className="absolute left-[13px] right-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] font-normal text-[#23302a] outline-none placeholder:text-[#9aa39d] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="absolute start-[13px] end-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] font-normal text-[#23302a] outline-none placeholder:text-[#9aa39d] disabled:cursor-not-allowed disabled:opacity-60"
                     style={FMU}
                   />
                 </div>
@@ -557,24 +553,20 @@ export default function InviteMehmaan() {
 
           {/* ───────── RIGHT members panel ───────── */}
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
               {empty ? (
                 <div className="flex min-h-full items-center justify-center">
                   <div className="flex w-full max-w-[640px] flex-col items-center gap-[18px] rounded-[20px] border-2 border-dashed border-[#dcd3bd] bg-[#fdfbf5] px-[40px] py-[56px] text-center">
                     <span className="flex size-[72px] items-center justify-center rounded-full bg-[rgba(201,164,92,0.15)]">
                       <span className="block size-[32px] opacity-80"><GroupAddIcon /></span>
                     </span>
-                    <p className="text-[28px] leading-[34px] text-[#15402f]" style={FM}>No invitations added yet</p>
-                    <p className="max-w-[460px] text-[15px] font-normal leading-[24px] text-[#5a6660]" style={FMU}>
-                      Start by entering an ITS ID to invite a Mumineen. Invited members will appear here and count toward your available quota.
-                    </p>
+                    <p className="text-[28px] leading-[34px] text-[#15402f]" style={FM} {...tx('No invitations added yet')} />
+                    <p className="max-w-[460px] text-[15px] font-normal leading-[24px] text-[#5a6660]" style={FMU} {...tx('Start by entering an ITS ID to invite a Mumineen. Invited members will appear here and count toward your available quota.')} />
                   </div>
                 </div>
               ) : (
                 <>
-                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM}>
-                    Mehmaan members
-                  </h1>
+                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Mehmaan members')} />
                   <div className="mt-[24px]">
                     <InvitedMembersTable groups={invitedGroups} showStatus onRemove={removeGroup} />
                   </div>
@@ -582,9 +574,7 @@ export default function InviteMehmaan() {
                     <span className="block size-[20px] shrink-0">
                       <img src={INFO_FILLED} alt="" className="block size-full" />
                     </span>
-                    <p className="text-[14px] leading-[20px] text-[#2e6a7d]" style={FMU}>
-                      Mehmaan will be added once they accept the invitation.
-                    </p>
+                    <p className="text-[14px] leading-[20px] text-[#2e6a7d]" style={FMU} {...tx('Mehmaan will be added once they accept the invitation.')} />
                   </div>
                 </>
               )}

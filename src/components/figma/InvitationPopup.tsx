@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { miqaats } from '../../data/seed'
+import { useT } from '../../i18n'
 
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
 const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
@@ -20,6 +21,8 @@ export function InvitationPopup({
   onAccept: () => void
   onDecline: () => void
 }) {
+  // Above the early return below — a hook after a conditional `return` breaks the rules of hooks.
+  const { tx, t, td, tdAuthored } = useT()
   const m = miqaats.find((x) => x.id === MIQAAT_ID)
   if (!m) return null
 
@@ -44,18 +47,18 @@ export function InvitationPopup({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="absolute right-[10px] top-[10px] flex size-[28px] items-center justify-center rounded-full bg-black/35 transition-colors hover:bg-black/50"
+            aria-label={t('Close')}
+            className="absolute end-[10px] top-[10px] flex size-[28px] items-center justify-center rounded-full bg-black/35 transition-colors hover:bg-black/50"
           >
             <svg viewBox="0 0 20 20" fill="none" className="size-[14px]">
               <path d="M5 5l10 10M15 5L5 15" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </button>
           <div className="absolute inset-x-0 bottom-0 p-[16px]">
-            <h2 className="text-[19px] leading-[24px] text-white" style={FM}>{m.title}</h2>
+            <h2 className="text-[19px] leading-[24px] text-white" style={FM} {...tdAuthored(m.title)} />
             <div className="mt-[6px] flex flex-wrap items-center gap-x-[14px] gap-y-[3px]">
-              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}>{m.dateLabel}</span>
-              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}>{m.timeLabel}</span>
+              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU} {...td(m.dateLabel)} />
+              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU} {...td(m.timeLabel)} />
             </div>
           </div>
         </div>
@@ -83,18 +86,12 @@ export function InvitationPopup({
             type="button"
             onClick={onDecline}
             className="flex-1 rounded-[12px] border border-[#b23b3b] py-[13px] text-[14px] font-semibold text-[#b23b3b] transition-colors hover:bg-[#fdf3f3]"
-            style={FMU}
-          >
-            Decline
-          </button>
+            style={FMU} {...tx('Decline')} />
           <button
             type="button"
             onClick={onAccept}
             className="flex-1 rounded-[12px] bg-[#1f5a44] py-[13px] text-[14px] font-semibold text-white transition-colors hover:bg-[#17472f]"
-            style={FMU}
-          >
-            Accept invitation
-          </button>
+            style={FMU} {...tx('Accept invitation')} />
         </div>
       </div>
     </div>,

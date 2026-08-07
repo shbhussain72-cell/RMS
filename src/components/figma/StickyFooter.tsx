@@ -53,7 +53,7 @@ export default function StickyFooter({
             <button
               type="button"
               onClick={back.onClick}
-              className="group hidden h-[52px] shrink-0 items-center gap-[5px] pl-[2px] pr-[8px] text-[#5a6660] transition-colors duration-150 hover:text-[#15402f] focus-visible:text-[#15402f] focus-visible:outline-none sm:flex"
+              className="group hidden h-[52px] shrink-0 items-center gap-[5px] ps-[2px] pe-[8px] text-[#5a6660] transition-colors duration-150 hover:text-[#15402f] focus-visible:text-[#15402f] focus-visible:outline-none sm:flex"
             >
               <svg viewBox="0 0 24 24" className="size-[16px] shrink-0 transition-transform duration-200 group-hover:-translate-x-[2px]" fill="none" aria-hidden="true">
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

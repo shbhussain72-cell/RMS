@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import { family, inviteDirectory, genderByIts, miqaats } from '../data/seed'
@@ -9,6 +10,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import StickyFooter from '../components/figma/StickyFooter'
 import { useStore, journeyFor } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
+import { useT, tNow } from '../i18n'
 
 const demo = {
   selectedMemberIds: family.map((m) => m.id),
@@ -36,11 +38,12 @@ function Avatar({ name }: { name: string }) {
 }
 
 function RazaStatusStrip() {
+  const { tx } = useT()
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
     <div className="flex h-[32px] items-center justify-between rounded-[8px] px-[12px]" style={{ background: razaIssued ? '#e7f1ea' : '#fff6e5' }}>
       <span className="whitespace-nowrap text-[12px] leading-[16px] text-[#3d3d3a]"
-        style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}>Raza status</span>
+        style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Raza status')} />
       <span className="flex items-center gap-[6px]">
         <span className="size-[6px] shrink-0 rounded-[3px]" style={{ background: razaIssued ? '#1f7a4d' : '#b8821e' }} />
         <span className="whitespace-nowrap text-[12px] leading-[18px]"
@@ -64,11 +67,11 @@ function LinkGlyph() {
   )
 }
 
-function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; meta: string; badge: BadgeKind; linkTop?: boolean; linkBottom?: boolean }) {
+function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; meta: ReactNode; badge: BadgeKind; linkTop?: boolean; linkBottom?: boolean }) {
   return (
     <div className="relative flex min-h-[62px] items-center gap-[6px] px-[13px] py-[10px]">
       {(linkTop || linkBottom) && (
-        <span className="pointer-events-none absolute left-[30px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
+        <span className="pointer-events-none absolute start-[30px] w-[2px] bg-[#fac775]" style={{ top: linkTop ? 0 : '50%', bottom: linkBottom ? 0 : '50%' }} />
       )}
       <div className="relative shrink-0"><Avatar name={name} /></div>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
@@ -82,15 +85,20 @@ function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; m
   )
 }
 
+// Module scope, so `useT()` is unavailable — see the note on tNow in src/i18n.
+// relation and gender are DATA and go through the lookup too; the age and ITS digits
+// are left alone and stay LTR via the numeric CSS rule.
 const familyMeta = (relation: string, age: number, its: string) => {
   const g = genderByIts(its)
-  return `${relation} · ${g ? `${g} · ` : ''}Age ${String(age).padStart(2, '0')} · ITS ${its}`
+  const rel = relation ? `${tNow(relation)} · ` : ''
+  return isolateRuns(`${rel}${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`)
 }
 
 type InviteRow = { its: string; name: string; age: number }
 
 /** Desktop gold-divider + table for an invite section (reused for "Others" and "Invited Mehmaan"). */
 function InviteTableSection({ label, invites }: { label: string; invites: InviteRow[] }) {
+  const { tx, t, td } = useT()
   if (invites.length === 0) return null
   return (
     <>
@@ -109,7 +117,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
           <thead>
             <tr style={{ background: '#faf8f2' }}>
               {(['Member', 'Raza Status'] as const).map((h) => (
-                <th key={h} className="px-[16px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
+                <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                   style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                   {h}
                 </th>
@@ -124,9 +132,9 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
                     <Avatar name={inv.name} />
                     <div className="min-w-0">
                       <p className="text-[14px] font-bold leading-[18px] text-[#23302a]"
-                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{inv.name}</p>
+                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...td(inv.name)} />
                       <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]"
-                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>Age {inv.age} · ITS {inv.its}</p>
+                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{t('Age')} {inv.age} · {t('ITS')} {inv.its}</p>
                     </div>
                   </div>
                 </td>
@@ -134,7 +142,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
                   <span className="flex items-center gap-[6px]">
                     <span className="size-[6px] shrink-0 rounded-[3px] bg-[#b8821e]" />
                     <span className="text-[12px] font-bold text-[#b8821e]"
-                      style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>Pending</span>
+                      style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...tx('Pending')} />
                   </span>
                 </td>
               </tr>
@@ -148,10 +156,11 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
 
 /** Mobile heading + cards for an invite section (reused for "Others" and "Invited Mehmaan"). */
 function InviteCardsSection({ label, invites }: { label: string; invites: InviteRow[] }) {
+  const { t, td } = useT()
   if (invites.length === 0) return null
   return (
     <>
-      <div className="ml-[16px] mt-[24px] text-[16px] leading-[18px] text-[#23302a]"
+      <div className="ms-[16px] mt-[24px] text-[16px] leading-[18px] text-[#23302a]"
         style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700, letterSpacing: '2.5px' }}>
         {label} ({invites.length})
       </div>
@@ -162,9 +171,9 @@ function InviteCardsSection({ label, invites }: { label: string; invites: Invite
               <Avatar name={inv.name} />
               <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
                 <p className="truncate text-[14px] leading-[18px] text-[#23302a]"
-                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}>{inv.name}</p>
+                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...td(inv.name)} />
                 <p className="text-[12px] leading-[18px] text-[#5a6660]"
-                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>Age {inv.age} · ITS {inv.its}</p>
+                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{t('Age')} {inv.age} · {t('ITS')} {inv.its}</p>
               </div>
             </div>
             <div className="mx-[14px] h-px bg-[#eaeaea]" />
@@ -177,6 +186,7 @@ function InviteCardsSection({ label, invites }: { label: string; invites: Invite
 }
 
 export default function Roster() {
+  const { tx, t, td } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Read THIS event's journey (active or archived) so the roster is correct even when a different
@@ -219,7 +229,7 @@ export default function Roster() {
         <AppBar notificationCount={3} />
       </div>
 
-      <div className="ml-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ml-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -242,12 +252,10 @@ export default function Roster() {
           <div className="flex items-center gap-[7px]">
             <span className="size-[8px] rounded-full" style={{ background: '#c8911f' }} />
             <span className="text-[10.5px] font-bold uppercase tracking-[0.7px] text-[#b8821e]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>Pending approval</span>
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...tx('Pending approval')} />
           </div>
           <p className="mt-[6px] text-[13px] leading-[18px] text-[#7a827c]"
-            style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
-            This registration request is awaiting admin approval — these are the members you requested.
-          </p>
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...tx('This registration request is awaiting admin approval — these are the members you requested.')} />
         </div>
       )}
 
@@ -258,7 +266,7 @@ export default function Roster() {
         <div className="flex h-[18px] items-center">
           <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
           <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}>Your Family</span>
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...tx('Your Family')} />
           <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
         </div>
 
@@ -272,7 +280,7 @@ export default function Roster() {
             <thead>
               <tr style={{ background: '#faf8f2' }}>
                 {(['Member', 'Raza Status'] as const).map((h) => (
-                  <th key={h} className="px-[16px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
+                  <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                     style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                     {h}
                   </th>
@@ -301,14 +309,14 @@ export default function Roster() {
                       <tr key={m.member.id} style={{ borderTop: isLinked ? undefined : '1px solid #f0ebe0', background: 'white' }}>
                         <td className="relative px-[16px] py-[9px]">
                           {hasConnector && (
-                            <span className="pointer-events-none absolute left-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                            <span className="pointer-events-none absolute start-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                           )}
                           <div className="relative flex min-w-0 items-center gap-[10px]">
                             <Avatar name={m.member.name} />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[2px]">
                                 <p className="text-[14px] font-bold leading-[18px] text-[#23302a]"
-                                  style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{m.member.name}</p>
+                                  style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...td(m.member.name)} />
                                 {m.badge && <RoleBadge kind={m.badge} />}
                               </div>
                               <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]"
@@ -334,14 +342,14 @@ export default function Roster() {
         </div>
 
         {/* Others (Add-People group members) and Invited Mehmaan (guests) — kept separate */}
-        <InviteTableSection label="Others" invites={otherInvites} />
-        <InviteTableSection label="Invited Mehmaan" invites={mehmaanInvites} />
+        <InviteTableSection label={t('Others')} invites={otherInvites} />
+        <InviteTableSection label={t('Invited Mehmaan')} invites={mehmaanInvites} />
 
       </div>
 
       {/* ── MOBILE: card layout ── */}
       <div className="sm:hidden">
-        <div className="ml-[16px] mt-[24px] text-[16px] leading-[18px] text-[#23302a]"
+        <div className="ms-[16px] mt-[24px] text-[16px] leading-[18px] text-[#23302a]"
           style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700, letterSpacing: '2.5px' }}>
           Your family({familyCount})
         </div>
@@ -376,8 +384,8 @@ export default function Roster() {
           })}
         </div>
 
-        <InviteCardsSection label="Others" invites={otherInvites} />
-        <InviteCardsSection label="Invited Mehmaan" invites={mehmaanInvites} />
+        <InviteCardsSection label={t('Others')} invites={otherInvites} />
+        <InviteCardsSection label={t('Invited Mehmaan')} invites={mehmaanInvites} />
         <div className="h-[100px]" />
       </div>
 
@@ -388,7 +396,7 @@ export default function Roster() {
         <div className="flex h-[18px] items-center">
           <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
           <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}>Registration Form</span>
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...tx('Registration Form')} />
           <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
         </div>
         <div className="mt-[16px]">

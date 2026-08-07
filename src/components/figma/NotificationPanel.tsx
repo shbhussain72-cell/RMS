@@ -13,6 +13,7 @@ import {
 import { useStore } from '../../store'
 import { InvitationPopup } from './InvitationPopup'
 import { formNotificationPending } from '../../lib/registrationForm'
+import { useT } from '../../i18n'
 
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
 const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
@@ -79,6 +80,7 @@ function renderIcon(icon: Notification['icon']) {
 // ─── shared notification card ─────────────────────────────────────────────────
 
 export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isRead: boolean; onClick?: () => void }) {
+                                                                                                                        const { td } = useT()
   const cfg = CATEGORY_STYLE[notif.category]
   return (
     <div onClick={onClick} className="flex cursor-pointer items-start gap-[12px] px-[16px] py-[13px] transition-colors hover:bg-[#faf8f4]">
@@ -106,7 +108,7 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
             {notif.title}
           </p>
           {notif.hasChevron && (
-            <svg viewBox="0 0 20 20" fill="none" className="ml-[6px] size-[14px] shrink-0 text-[#c0bdb6]">
+            <svg viewBox="0 0 20 20" fill="none" className="ms-[6px] size-[14px] shrink-0 text-[#c0bdb6]">
               <path d="M7.5 5l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
@@ -127,9 +129,7 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
               <span className="text-[7.5px] font-black tracking-tight text-white" style={FMU}>PDF</span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-semibold leading-[16px] text-[#1a2a23]" style={FMU}>
-                {notif.attachment.name}
-              </p>
+              <p className="truncate text-[12px] font-semibold leading-[16px] text-[#1a2a23]" style={FMU} {...td(notif.attachment.name)} />
               <p className="text-[11px] leading-[15px] text-[#8a938e]" style={FMU}>
                 {notif.attachment.meta}
               </p>
@@ -205,6 +205,7 @@ export function FilterChips({
 // ─── desktop dropdown panel ───────────────────────────────────────────────────
 
 export default function NotificationPanel({ onClose }: { onClose: () => void }) {
+                                                                                  const { tx } = useT()
   const nav = useNavigate()
   const [filter, setFilter] = useState<NotifFilter>('All')
   const readNotifIds = useStore((s) => s.readNotifIds)
@@ -258,9 +259,7 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
         {/* ── Sticky header ── */}
         <div className="flex items-center justify-between border-b border-[#f0ece4] px-[20px] pb-[12px] pt-[18px]">
           <div className="flex items-center gap-[8px]">
-            <h3 className="text-[17px] text-[#15402f]" style={FM}>
-              Notifications
-            </h3>
+            <h3 className="text-[17px] text-[#15402f]" style={FM} {...tx('Notifications')} />
             {unread > 0 && (
               <span
                 className="flex size-[20px] items-center justify-center rounded-full bg-[#ef4444] text-[11px] font-bold text-white transition-transform"
@@ -275,10 +274,7 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
             onClick={handleMarkAll}
             disabled={unread === 0}
             className="text-[13px] font-semibold text-[#1f5a44] transition-opacity enabled:hover:opacity-70 disabled:cursor-default disabled:text-[#b6beb9]"
-            style={FMU}
-          >
-            Mark all read
-          </button>
+            style={FMU} {...tx('Mark all read')} />
         </div>
 
         {/* ── Sticky filters ── */}
@@ -317,9 +313,7 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-[14px] font-semibold text-[#5a6660]" style={FMU}>
-                No notifications
-              </p>
+              <p className="text-[14px] font-semibold text-[#5a6660]" style={FMU} {...tx('No notifications')} />
             </div>
           )}
         </div>

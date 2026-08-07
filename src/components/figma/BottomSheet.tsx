@@ -19,6 +19,7 @@
  */
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useT } from '../../i18n'
 
 export default function BottomSheet({
   open,
@@ -42,13 +43,14 @@ export default function BottomSheet({
   /** Wider desktop modal — for content that needs more horizontal room (e.g. a filter-chip row). */
   wide?: boolean;
 }) {
+     const { t } = useT()
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-[110] flex justify-center sm:items-center sm:p-[24px]" data-name="BottomSheet">
       {/* Backdrop */}
       <button
         type="button"
-        aria-label="Close"
+        aria-label={t('Close')}
         onClick={onClose}
         className="absolute inset-0 bg-[rgba(14,45,33,0.45)]"
         style={backdropStyle}
@@ -68,9 +70,9 @@ export default function BottomSheet({
             {/* Close button */}
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t('Close')}
               onClick={onClose}
-              className="absolute right-[14px] top-[14px] z-10 flex size-[28px] items-center justify-center rounded-full bg-[#f0ece1] text-[#5a6660] transition-colors hover:bg-[#e7e1d2]"
+              className="absolute end-[14px] top-[14px] z-10 flex size-[28px] items-center justify-center rounded-full bg-[#f0ece1] text-[#5a6660] transition-colors hover:bg-[#e7e1d2]"
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-[16px]">
                 <path
@@ -87,7 +89,7 @@ export default function BottomSheet({
               <div className="px-[16px] pt-[6px] pb-[10px] sm:pt-[14px]">{header}</div>
             ) : title ? (
               <div
-                className="px-[16px] pr-[52px] pb-[8px] pt-[4px] text-[18px] leading-[24px] text-[#15402f] sm:pt-[14px]"
+                className="px-[16px] pe-[52px] pb-[8px] pt-[4px] text-[18px] leading-[24px] text-[#15402f] sm:pt-[14px]"
                 style={{ fontFamily: "Marcellus, Georgia, serif" }}
               >
                 {title}

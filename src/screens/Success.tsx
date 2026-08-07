@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { headcount, useStore } from '../store'
+import { useT } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
 
 const SUPERVISOR = '/figma/success-supervisor-account.svg'
 const INFO_FILLED = '/figma/success-info-filled.svg'
@@ -12,6 +14,7 @@ const HEADER_MASK = '/figma/success-header-mask.svg'
 const LOADER_BG = 'linear-gradient(160deg,#0a2318 0%,#15402f 55%,#1f5a44 100%)'
 
 export default function Success() {
+                                    const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -44,9 +47,9 @@ export default function Success() {
       {/* ============ Modal card ============ */}
       <div className="fixed left-1/2 top-1/2 z-50 h-[440px] w-[calc(100%-32px)] max-w-[400px] -translate-x-1/2 -translate-y-1/2 overflow-clip rounded-[30px] bg-white">
         {/* Green header */}
-        <div className="absolute left-0 top-0 h-[125px] w-full overflow-clip bg-[#1d543f]">
+        <div className="absolute start-0 top-0 h-[125px] w-full overflow-clip bg-[#1d543f]">
           {/* ornament texture */}
-          <div className="absolute left-[-480px] top-[-71px]">
+          <div className="absolute start-[-480px] top-[-71px]">
             <div className="flex h-[4270.95px] w-[4398.656px] items-center justify-center">
               <div className="rotate-[38.31deg]">
                 <div
@@ -69,32 +72,29 @@ export default function Success() {
           </div>
 
           {/* supervisor icon in white circle */}
-          <div className="absolute left-[154px] top-[14px] size-[50px] overflow-clip rounded-[59.524px] bg-white">
-            <div className="absolute left-[10.71px] top-[10.71px] size-[28.571px]">
+          <div className="absolute start-[154px] top-[14px] size-[50px] overflow-clip rounded-[59.524px] bg-white">
+            <div className="absolute start-[10.71px] top-[10.71px] size-[28.571px]">
               <img src={SUPERVISOR} alt="" className="absolute inset-0 block size-full max-w-none" />
             </div>
           </div>
 
           {/* title */}
           <p
-            className="absolute left-[calc(50%+0.5px)] top-[94px] flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center whitespace-nowrap text-center text-[24px] tracking-[0.2px] text-white"
+            className="absolute start-[calc(50%+0.5px)] top-[94px] flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center whitespace-nowrap text-center text-[24px] tracking-[0.2px] text-white"
             style={{ fontFamily: 'Marcellus, serif' }}
           >
-            <span className="leading-[32px]">Registration successful</span>
+            <span className="leading-[32px]" {...tx('Registration successful')} />
           </p>
         </div>
 
         {/* Row: Registration status */}
-        <div className="absolute left-[14px] top-[141px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
+        <div className="absolute start-[14px] top-[141px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
             <p
-              className="absolute left-0 top-[10px] flex h-[20px] w-[177.057px] -translate-y-1/2 flex-col justify-center text-[14px] leading-[normal] text-[#757e78]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
-            >
-              Registration status
-            </p>
+              className="absolute start-0 top-[10px] flex h-[20px] w-[177.057px] -translate-y-1/2 flex-col justify-center text-[14px] leading-[normal] text-[#757e78]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Registration status')} />
           </div>
-          <div className="absolute right-0 top-[8px] h-[32px] w-[101px] overflow-clip rounded-[60px] bg-[#e4f1e9]">
+          <div className="absolute end-0 top-[8px] h-[32px] w-[101px] overflow-clip rounded-[60px] bg-[#e4f1e9]">
             <div className="absolute left-1/2 top-[7px] flex -translate-x-1/2 items-center gap-[4px]">
               <div className="relative size-[8px] shrink-0">
                 <img src={STATUS_DOT} alt="" className="absolute inset-0 block size-full max-w-none" />
@@ -103,42 +103,39 @@ export default function Success() {
                 className="whitespace-nowrap text-[12px] tracking-[0.6px] text-[#1f5a44]"
                 style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 600 }}
               >
-                <span className="leading-[18px]">Registered</span>
+                <span className="leading-[18px]" {...tx('Registered')} />
               </p>
             </div>
           </div>
         </div>
 
         {/* Row: City selection open on */}
-        <div className="absolute left-[14px] top-[189px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[142px] -translate-y-1/2 overflow-clip">
+        <div className="absolute start-[14px] top-[189px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[142px] -translate-y-1/2 overflow-clip">
             <p
-              className="absolute left-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
+              className="absolute start-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
               style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
             >
               City selection open on
             </p>
           </div>
           <p
-            className="absolute right-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-right text-[12px] tracking-[0.6px] text-[#23302a]"
+            className="absolute end-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-end text-[12px] tracking-[0.6px] text-[#23302a]"
             style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
           >
-            <span className="leading-[18px]">15 June 2026, 09:00 AM IST</span>
+            <span className="leading-[18px]"><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></span>
           </p>
         </div>
 
         {/* Row: Members included */}
-        <div className="absolute left-[14px] top-[237px] h-[48px] right-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute left-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
+        <div className="absolute start-[14px] top-[237px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
+          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
             <p
-              className="absolute left-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }}
-            >
-              Members included
-            </p>
+              className="absolute start-0 top-[10px] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-[14px] leading-[normal] text-[#757e78]"
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Members included')} />
           </div>
           <p
-            className="absolute right-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-right text-[12px] tracking-[0.6px] text-[#23302a]"
+            className="absolute end-0 top-[calc(50%+0.5px)] flex -translate-y-1/2 flex-col justify-center whitespace-nowrap text-end text-[12px] tracking-[0.6px] text-[#23302a]"
             style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 800 }}
           >
             <span className="leading-[18px]">{members}</span>
@@ -146,16 +143,13 @@ export default function Success() {
         </div>
 
         {/* Blue info banner */}
-        <div className="absolute left-[14px] right-[14px] top-[296px] h-[52px] overflow-clip rounded-[13px] bg-[#e1eef1]">
-          <div className="absolute left-[36.74px] top-[8px] flex w-[309.259px] flex-col items-start">
+        <div className="absolute start-[14px] end-[14px] top-[296px] h-[52px] overflow-clip rounded-[13px] bg-[#e1eef1]">
+          <div className="absolute start-[36.74px] top-[8px] flex w-[309.259px] flex-col items-start">
             <p
               className="w-full text-[12px] leading-[18px] text-[#8a938e]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}
-            >
-              You will be notified once city allocation begins. No further action is needed for now
-            </p>
+              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }} {...tx('You will be notified once city allocation begins. No further action is needed for now')} />
           </div>
-          <div className="absolute left-[12px] top-[9.88px] size-[16.245px]">
+          <div className="absolute start-[12px] top-[9.88px] size-[16.245px]">
             <img src={INFO_FILLED} alt="" className="absolute inset-0 block size-full max-w-none" />
           </div>
         </div>
@@ -164,7 +158,7 @@ export default function Success() {
         <button
           type="button"
           onClick={() => nav(`/miqaats/${id}/preferred-city`, fromModify ? { state: { fromModify: true } } : undefined)}
-          className="absolute left-[14px] right-[14px] top-[375px] block h-[48px] cursor-pointer rounded-[9999px]"
+          className="absolute start-[14px] end-[14px] top-[375px] block h-[48px] cursor-pointer rounded-[9999px]"
           style={{ backgroundImage: 'linear-gradient(171.7241071729248deg, rgb(31, 90, 68) 0%, rgb(21, 64, 47) 100%)' }}
         >
           <div className="absolute inset-[0_0.33px_0_0] rounded-[9999px] shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.18),0px_2px_6px_0px_rgba(21,64,47,0.06)]" />
@@ -173,7 +167,7 @@ export default function Success() {
               className="whitespace-nowrap text-center text-[16px] tracking-[0.4px] text-[#f8f4ea]"
               style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}
             >
-              <span className="leading-[24px]">Done</span>
+              <span className="leading-[24px]" {...tx('Done')} />
             </p>
           </div>
         </button>

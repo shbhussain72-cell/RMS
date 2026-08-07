@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -11,6 +12,7 @@ import ConfirmedView, { type ConfirmedSection } from '../components/figma/Confir
 import { liveCities, family, arazExtraFamily, genderByIts, miqaats, type FamilyMember, type LiveCity } from '../data/seed'
 import { type Group, type BadgeKind } from '../lib/group'
 import { useStore, journeyFor, type GroupCityAlloc } from '../store'
+import { useT, tNow } from '../i18n'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -22,8 +24,8 @@ const initials = (name: string) =>
 
 function familyMeta(m: FamilyMember) {
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(m.age).padStart(2, '0')} · ITS ${m.its}`
-  return m.relation ? `${m.relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
 // ── Atoms ────────────────────────────────────────────────────────────────────
@@ -52,8 +54,9 @@ function PlusIcon({ color = '#194a37' }: { color?: string }) {
 }
 
 function RemoveButton({ onClick }: { onClick: () => void }) {
+  const { t } = useT()
   return (
-    <button type="button" onClick={onClick} aria-label="Remove member"
+    <button type="button" onClick={onClick} aria-label={t('Remove member')}
       className="flex size-[30px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
       <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
     </button>
@@ -130,6 +133,7 @@ function CityKindTag({ type }: { type: 'host' | 'relay' }) {
 
 // ── Info banner (prominent — makes the "preference only" distinction unmissable) ──
 function ArazInfoBanner() {
+  const { tx } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border" style={{ borderColor: '#f1d7b6', background: 'linear-gradient(180deg,#fef6ea 0%,#fdf1e2 100%)' }}>
       <div className="flex gap-[14px] px-[18px] py-[16px]">
@@ -141,11 +145,8 @@ function ArazInfoBanner() {
           </svg>
         </span>
         <div className="min-w-0">
-          <p className="text-[17px] leading-[22px] text-[#8a5a12]" style={{ fontFamily: SERIF }}>Preferred City Selection</p>
-          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#7a5a2a]" style={{ fontFamily: FONT, fontWeight: 500 }}>
-            Submit your preferred Host and Relay City choices. Final city allocation will be confirmed
-            during the official allocation phase.
-          </p>
+          <p className="text-[17px] leading-[22px] text-[#8a5a12]" style={{ fontFamily: SERIF }} {...tx('Preferred City Selection')} />
+          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#7a5a2a]" style={{ fontFamily: FONT, fontWeight: 500 }} {...tx('Submit your preferred Host and Relay City choices. Final city allocation will be confirmed during the official allocation phase.')} />
         </div>
       </div>
     </div>
@@ -161,6 +162,7 @@ function QuotaCard({ title, icon, quota, remaining, poolFull, helper }: {
   poolFull: boolean
   helper: string
 }) {
+     const { tx } = useT()
   return (
     <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
       <div className="flex items-center gap-[8px]">
@@ -170,11 +172,11 @@ function QuotaCard({ title, icon, quota, remaining, poolFull, helper }: {
       {/* Quota / Remaining — prominent so the allowance is immediately clear */}
       <div className="mt-[12px] flex items-stretch gap-[10px]">
         <div className="flex-1 rounded-[12px] border border-[#e7dfc9] bg-[#faf8f2] px-[14px] py-[10px]">
-          <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>Quota</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Quota')} />
           <p className="mt-[2px] text-[22px] font-extrabold leading-none text-[#15402f]" style={{ fontFamily: FONT }}>{quota}</p>
         </div>
         <div className="flex-1 rounded-[12px] border px-[14px] py-[10px]" style={{ borderColor: poolFull ? '#e3c9c4' : '#bfe3cd', background: poolFull ? '#fbf3f2' : '#eef7f1' }}>
-          <p className="text-[11px] font-bold uppercase tracking-[0.6px]" style={{ fontFamily: FONT, color: poolFull ? '#b23b3b' : '#1f7a4d' }}>Remaining</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.6px]" style={{ fontFamily: FONT, color: poolFull ? '#b23b3b' : '#1f7a4d' }} {...tx('Remaining')} />
           <p className="mt-[2px] text-[22px] font-extrabold leading-none" style={{ fontFamily: FONT, color: poolFull ? '#b23b3b' : '#1f7a4d' }}>{remaining}</p>
         </div>
       </div>
@@ -215,6 +217,7 @@ function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search,
   onSelect: (c: LiveCity) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
   const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
@@ -225,7 +228,7 @@ function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search,
       <div className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]" style={{ left, top, width: W }}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
-            <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search city names..." className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]" style={{ fontFamily: FONT }} />
+            <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search city names...')} className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]" style={{ fontFamily: FONT }} />
             <svg viewBox="0 0 20 20" fill="none" className="size-[16px] shrink-0 text-[#8a938e]"><circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" /><path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
           </div>
         </div>
@@ -235,19 +238,19 @@ function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search,
             const selected = c.id === selectedCityId
             return (
               <button key={c.id} type="button" disabled={!avail && !selected} onClick={(avail || selected) ? () => onSelect(c) : undefined}
-                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-left transition-colors"
+                className="flex w-full items-center justify-between rounded-[10px] px-[12px] py-[11px] text-start transition-colors"
                 style={{ background: selected ? '#eef5f7' : 'transparent', cursor: (avail || selected) ? 'pointer' : 'not-allowed' }}>
                 <div className="min-w-0">
-                  <span className="block truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: (avail || selected) ? '#23302a' : '#b0b8b3' }}>{c.name}</span>
-                  <span className="block truncate text-[12px] font-semibold" style={{ fontFamily: FONT, color: '#8a938e' }}>{c.region}</span>
+                  <span className="block truncate text-[15px] font-bold" style={{ fontFamily: FONT, color: (avail || selected) ? '#23302a' : '#b0b8b3' }} {...td(c.name)} />
+                  <span className="block truncate text-[12px] font-semibold" style={{ fontFamily: FONT, color: '#8a938e' }} {...td(c.region)} />
                 </div>
                 {selected
                   ? <svg viewBox="0 0 16 16" fill="none" className="size-[16px] shrink-0"><path d="M3 8.5l3 3 7-7.5" stroke="#2e6a7d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  : !avail ? <span className="shrink-0 text-[12px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>Quota full</span> : null}
+                  : !avail ? <span className="shrink-0 text-[12px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }} {...tx('Quota full')} /> : null}
               </button>
             )
           })}
-          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No cities found.</p>}
+          {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
       </div>
     </>
@@ -265,6 +268,7 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
   onAdd: (m: FamilyMember) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const [its, setIts] = useState('')
   const [result, setResult] = useState<FamilyMember | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -287,7 +291,7 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
   const alreadyIn = result ? inTable(result.id) : false
 
   const searchIconButton = (
-    <button type="button" onClick={performSearch} aria-label="Search"
+    <button type="button" onClick={performSearch} aria-label={t('Search')}
       className="flex size-[48px] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-opacity active:opacity-80">
       <svg viewBox="0 0 20 20" fill="none" className="size-[19px] shrink-0 text-[#194a37]">
         <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.8" />
@@ -301,11 +305,9 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
       open={open}
       onClose={onClose}
       header={(
-        <div className="pr-[36px]">
-          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>Add family member</h2>
-          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            Search by ITS ID to add a family member to the preference table.
-          </p>
+        <div className="pe-[36px]">
+          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Add family member')} />
+          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Search by ITS ID to add a family member to the preference table.')} />
         </div>
       )}
     >
@@ -313,8 +315,8 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
         <div className={`relative h-[48px] flex-1 overflow-clip rounded-[12px] border border-solid bg-[#fbfbfb] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12 ${error ? 'border-[#e53e3e]' : 'border-[#e7dfc9]'}`}>
           <input autoFocus value={its} onChange={(e) => onChange(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch() } }}
-            inputMode="numeric" maxLength={8} placeholder="Enter 8-digit ITS ID"
-            className="absolute left-[13px] right-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] leading-normal text-[#23302a] outline-none placeholder:text-[#9aa39d]"
+            inputMode="numeric" maxLength={8} placeholder={t('Enter 8-digit ITS ID')}
+            className="absolute start-[13px] end-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] leading-normal text-[#23302a] outline-none placeholder:text-[#9aa39d]"
             style={{ fontFamily: FONT }} />
         </div>
         {searchIconButton}
@@ -325,17 +327,17 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
         <div className="mt-[12px] w-full rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_10px_28px_-12px_rgba(21,64,47,0.28)]">
           <div className="flex items-center gap-[6px]">
             <svg viewBox="0 0 20 20" fill="none" className="size-[16px] shrink-0"><circle cx="10" cy="10" r="8" stroke="#1f7a4d" strokeWidth="1.6" /><path d="M6.5 10.2l2.3 2.3 4.7-5" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }}>Match found</span>
+            <span className="text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }} {...tx('Match found')} />
           </div>
           <div className="mt-[16px] flex flex-col items-center text-center">
             <Avatar name={result.name} size={72} />
-            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT }}>{result.name}</p>
+            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT }} {...td(result.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={{ fontFamily: FONT }}>{familyMeta(result)}</p>
             <div className="mt-[18px]">
               {alreadyIn ? (
                 <span className="inline-flex h-[46px] items-center gap-[8px] rounded-full border border-[#bfe3cd] bg-[#eef7f1] px-[24px] text-[15px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }}>
                   <svg viewBox="0 0 16 16" fill="none" className="size-[15px]"><path d="M3 8.5l3 3 7-7.5" stroke="#1f7a4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Already in table
+                  <span {...tx('Already in table')} />
                 </span>
               ) : (
                 <button type="button" onClick={() => { onAdd(result); setIts(''); setResult(null); setNoResults(false) }}
@@ -352,8 +354,8 @@ function AddMemberSheet({ open, roster, inTable, onAdd, onClose }: {
       {noResults && (
         <div className="mt-[12px] w-full rounded-[16px] border border-dashed border-[#e0d9c4] bg-[#faf8f2] px-[20px] py-[26px] text-center">
           <svg viewBox="0 0 20 20" fill="none" className="mx-auto size-[22px] text-[#a8a196]"><circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.6" /><path d="M13.8 13.8L18 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-          <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>No members found</p>
-          <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT }}>Try searching with a different ITS ID.</p>
+          <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('No members found')} />
+          <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT }} {...tx('Try searching with a different ITS ID.')} />
         </div>
       )}
 
@@ -385,6 +387,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
   onOpenRelay: (id: string, rect: DOMRect) => void
   onRemove: (id: string) => void
 }) {
+     const { tx, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -397,7 +400,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {['Member', 'Host City', 'Relay City', 'Action'].map((h, i) => (
-              <th key={i} className="px-[16px] py-[11px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -411,14 +414,14 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
                   <div className="flex items-center gap-[10px]">
                     <Avatar name={m.name} size={36} />
                     <div className="min-w-0">
-                      <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{m.name}</p>
+                      <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(m.name)} />
                       <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(m)}</p>
                     </div>
                   </div>
                 </td>
                 {/* Host City — radio; shows the fixed host city name once selected. */}
                 <td className="px-[16px] py-[10px] align-middle">
-                  <button type="button" onClick={() => onSelectHost(m.id)} className="flex items-center gap-[9px] text-left">
+                  <button type="button" onClick={() => onSelectHost(m.id)} className="flex items-center gap-[9px] text-start">
                     <RadioDot checked={hc} />
                     <span className="text-[14px] font-bold" style={{ fontFamily: FONT, color: hc ? '#23302a' : '#a9b1ab' }}>{hc ? hostCityName : 'Host City'}</span>
                   </button>
@@ -434,7 +437,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
                         ? <span className="text-[14px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{relayCityNameOf(m.id)}</span>
                         : <RelayTrigger label={relayCityNameOf(m.id)} active={openRelayMid === m.id} onClick={(rect) => onOpenRelay(m.id, rect)} />
                     ) : (
-                      <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget.getBoundingClientRect())} className="text-[14px] font-bold text-[#a9b1ab]" style={{ fontFamily: FONT }}>Relay City</button>
+                      <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget.getBoundingClientRect())} className="text-[14px] font-bold text-[#a9b1ab]" style={{ fontFamily: FONT }} {...tx('Relay City')} />
                     )}
                   </div>
                 </td>
@@ -468,6 +471,7 @@ function ArazMemberCard({ member, hostChecked, relayChecked, hostCityName, relay
   onOpenRelay: (rect: DOMRect) => void
   onRemove: () => void
 }) {
+     const { tx, td } = useT()
   const assigned = hostChecked || relayChecked
   return (
     <div className="overflow-hidden rounded-[14px] border bg-white transition-all duration-200"
@@ -475,26 +479,26 @@ function ArazMemberCard({ member, hostChecked, relayChecked, hostCityName, relay
       <div className="flex items-center gap-[10px] px-[13px] py-[10px]">
         <Avatar name={member.name} />
         <div className="min-w-0 flex-1">
-          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{member.name}</p>
+          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(member.name)} />
           <p className="mt-[2px] text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}>{familyMeta(member)}</p>
         </div>
         {!readOnly && canRemove && <RemoveButton onClick={onRemove} />}
       </div>
       <div className="flex flex-col gap-[10px] border-t border-[#f0ebe0] px-[13px] py-[11px]">
         {/* Host City radio */}
-        <button type="button" onClick={onSelectHost} className="flex items-center gap-[10px] text-left">
+        <button type="button" onClick={onSelectHost} className="flex items-center gap-[10px] text-start">
           <RadioDot checked={hostChecked} />
-          <span className="text-[12px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>Host City</span>
-          {hostChecked && <span className="ml-auto text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{hostCityName}</span>}
+          <span className="text-[12px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Host City')} />
+          {hostChecked && <span className="ms-auto text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{hostCityName}</span>}
         </button>
         {/* Relay City radio + dropdown */}
         <div className="flex items-center gap-[10px]">
           <button type="button" onClick={(e) => onSelectRelay(e.currentTarget.getBoundingClientRect())} className="flex items-center gap-[10px]">
             <RadioDot checked={relayChecked} />
-            <span className="text-[12px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>Relay City</span>
+            <span className="text-[12px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Relay City')} />
           </button>
           {relayChecked && (
-            <div className="ml-auto">
+            <div className="ms-auto">
               {readOnly
                 ? <span className="text-[15px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{relayLabel}</span>
                 : <RelayTrigger label={relayLabel} active={relayOpen} onClick={onOpenRelay} />}
@@ -508,6 +512,7 @@ function ArazMemberCard({ member, hostChecked, relayChecked, hostCityName, relay
 
 // ── Screen ─────────────────────────────────────────────────────────────────────
 export default function Araz() {
+  const { tx, t, td } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -682,7 +687,7 @@ export default function Araz() {
     return (
       <PhoneScreen statusTone="light" footer={
         <div className="sm:hidden">
-          <StickyFooter caption="Araz · Preferred City" title="Preferences submitted" button="Go home" onButton={goHome} />
+          <StickyFooter caption="Araz · Preferred City" title={t('Preferences submitted')} button="Go home" onButton={goHome} />
         </div>
       }>
         <AppBar notificationCount={3} />
@@ -690,7 +695,7 @@ export default function Araz() {
         {/* ═══════════════ DESKTOP — City-confirmed two-panel layout ═══════════════ */}
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
-            title="Preferences Submitted"
+            title={t('Preferences Submitted')}
             footerCaption="Araz · Preferred City"
             infoLabel="Final allocation"
             infoValue="Announced later"
@@ -713,14 +718,14 @@ export default function Araz() {
             <span className="flex size-[80px] items-center justify-center rounded-full" style={{ background: '#eef7f1' }}>
               <svg viewBox="0 0 48 48" fill="none" className="size-[44px]"><circle cx="24" cy="24" r="20" stroke="#1f7a4d" strokeWidth="2.4" /><path d="M15 24.5l6 6 12-13" stroke="#1f7a4d" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </span>
-            <h1 className="mt-[22px] text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>Preferences submitted</h1>
+            <h1 className="mt-[22px] text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Preferences submitted')} />
             <p className="mt-[12px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
               Your preferred Host and Relay City choices have been recorded through the Araz process. These are
               <strong className="font-bold text-[#15402f]"> preferences only</strong> and do not confirm or reserve your final
               city allocation — final assignments are announced during the official allocation phase.
             </p>
-            <div className="mt-[22px] w-full rounded-[14px] border border-[#e7dfc9] bg-white p-[16px] text-left shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-              <p className="text-[12px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>Your preferences</p>
+            <div className="mt-[22px] w-full rounded-[14px] border border-[#e7dfc9] bg-white p-[16px] text-start shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
+              <p className="text-[12px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Your preferences')} />
               <div className="mt-[10px] flex flex-col gap-[8px]">
                 {tableMembers.map((m) => {
                   const city = pick.get(m.id)
@@ -728,7 +733,7 @@ export default function Araz() {
                   return (
                     <div key={m.id} className="flex items-center justify-between gap-[10px] rounded-[10px] bg-[#faf8f2] px-[12px] py-[9px]">
                       <span className="min-w-0 truncate text-[13px] font-semibold text-[#23302a]" style={{ fontFamily: FONT }}>{m.name.split(' ')[0]}</span>
-                      <span className="flex shrink-0 items-center gap-[8px]"><CityKindTag type={city.type} /><span className="text-[13px] font-bold text-[#15402f]" style={{ fontFamily: FONT }}>{city.name}</span></span>
+                      <span className="flex shrink-0 items-center gap-[8px]"><CityKindTag type={city.type} /><span className="text-[13px] font-bold text-[#15402f]" style={{ fontFamily: FONT }} {...td(city.name)} /></span>
                     </div>
                   )
                 })}
@@ -752,7 +757,7 @@ export default function Araz() {
   // Read-only view state → an info-only footer (the action lives in the header's Edit toggle). While
   // editing (or on a first-time submission) → the Save/Update CTA.
   const footer = locked ? (
-    <StickyFooter caption="Araz · Preferred City" title="Preferences submitted" button="Go back" onButton={() => nav(-1)} />
+    <StickyFooter caption="Araz · Preferred City" title={t('Preferences submitted')} button="Go back" onButton={() => nav(-1)} />
   ) : (
     <StickyFooter
       caption="Araz · Preferred City"
@@ -770,16 +775,16 @@ export default function Araz() {
 
         {/* ═══════════════ MOBILE — single column ═══════════════ */}
         <div className="contents sm:hidden">
-          <div className="ml-[16px] mt-[12px]">
+          <div className="ms-[16px] mt-[12px]">
             <Breadcrumb items={breadcrumbItems} onNavigate={(to) => nav(to)} onBack={() => nav(-1)} backOnMobile />
           </div>
-          <h1 className="mt-[16px] px-[16px] text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }}>Submit Preferred Cities</h1>
+          <h1 className="mt-[16px] px-[16px] text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tx('Submit Preferred Cities')} />
 
           <div className="mt-[16px] px-[16px]"><ArazInfoBanner /></div>
 
           <div className="mt-[18px] flex flex-col gap-[16px] px-[16px]">
-            <QuotaCard title="Host City" icon={HostIcon} quota={quota.hostQuota} remaining={hostRemaining} poolFull={hostRemaining <= 0} helper="Choose the Host City radio for each member in the table below." />
-            <QuotaCard title="Relay City" icon={RelayIcon} quota={quota.relayQuota} remaining={relayRemaining} poolFull={relayRemaining <= 0} helper="Choose the Relay City radio, then pick a city from the dropdown for each member." />
+            <QuotaCard title={t('Host City')} icon={HostIcon} quota={quota.hostQuota} remaining={hostRemaining} poolFull={hostRemaining <= 0} helper="Choose the Host City radio for each member in the table below." />
+            <QuotaCard title={t('Relay City')} icon={RelayIcon} quota={quota.relayQuota} remaining={relayRemaining} poolFull={relayRemaining <= 0} helper="Choose the Relay City radio, then pick a city from the dropdown for each member." />
           </div>
 
           <div className="mx-[16px] mt-[16px] flex items-center justify-between gap-[10px]">
@@ -803,7 +808,7 @@ export default function Araz() {
             ))}
             {tableMembers.length === 0 && (
               <div className="rounded-[14px] border border-dashed border-[#d3c8ac] bg-[#faf8f2] px-[16px] py-[22px] text-center">
-                <p className="text-[13px] font-semibold text-[#8a7a52]" style={{ fontFamily: FONT }}>No members in the table. Tap Add to include a family member.</p>
+                <p className="text-[13px] font-semibold text-[#8a7a52]" style={{ fontFamily: FONT }} {...tx('No members in the table. Tap Add to include a family member.')} />
               </div>
             )}
           </div>
@@ -813,19 +818,19 @@ export default function Araz() {
         <div className="hidden sm:block sm-full-bleed">
           <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
             {/* LEFT sidebar */}
-            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+            <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[20px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
               <Breadcrumb items={breadcrumbItems} onNavigate={(to) => nav(to)} onBack={() => nav(-1)} activeColor="#a8843e" dense />
-              <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }}>Choose your cities</h2>
-              <QuotaCard title="Host City" icon={HostIcon} quota={quota.hostQuota} remaining={hostRemaining} poolFull={hostRemaining <= 0} helper="Choose the Host City radio for each member in the table." />
-              <QuotaCard title="Relay City" icon={RelayIcon} quota={quota.relayQuota} remaining={relayRemaining} poolFull={relayRemaining <= 0} helper="Choose the Relay City radio, then pick a city from the dropdown for each member." />
+              <h2 className="text-[28px] leading-[34px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Choose your cities')} />
+              <QuotaCard title={t('Host City')} icon={HostIcon} quota={quota.hostQuota} remaining={hostRemaining} poolFull={hostRemaining <= 0} helper="Choose the Host City radio for each member in the table." />
+              <QuotaCard title={t('Relay City')} icon={RelayIcon} quota={quota.relayQuota} remaining={relayRemaining} poolFull={relayRemaining <= 0} helper="Choose the Relay City radio, then pick a city from the dropdown for each member." />
             </aside>
 
             {/* RIGHT panel */}
             <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+              <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
                 <ArazInfoBanner />
                 <div className="mt-[20px] flex items-start justify-between gap-[16px]">
-                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }}>Submit Preferred Cities</h1>
+                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Submit Preferred Cities')} />
                   <div className="flex shrink-0 items-center gap-[12px]">
                     <MembersChip count={totalMembers} />
                     <AddCta onClick={() => setAddOpen(true)} disabled={locked} />
@@ -853,7 +858,7 @@ export default function Araz() {
                     />
                   ) : (
                     <div className="rounded-[14px] border border-dashed border-[#d3c8ac] bg-[#faf8f2] px-[16px] py-[28px] text-center">
-                      <p className="text-[14px] font-semibold text-[#8a7a52]" style={{ fontFamily: FONT }}>No members in the table. Use Add to include a family member.</p>
+                      <p className="text-[14px] font-semibold text-[#8a7a52]" style={{ fontFamily: FONT }} {...tx('No members in the table. Use Add to include a family member.')} />
                     </div>
                   )}
                 </div>

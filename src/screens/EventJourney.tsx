@@ -1,9 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import { miqaats, type EventTimeline, type TimelineMilestone } from '../data/seed'
+import { useT } from '../i18n'
+import {
+  HIJRI_MONTHS_EN,
+  HIJRI_MONTHS_LSD,
+  dominantHijriMonth,
+  hijriParts,
+} from '../i18n/hijri'
+import { Iso, toArabicDigits } from '../components/Bidi'
+import { HijriDate, TimeLine } from '../components/DateLine'
 
 /**
  * Event Journey — full page reached from the Miqaat Detail "Event timeline" button
@@ -58,30 +67,19 @@ const withColors = (ms: TimelineMilestone[]): Milestone[] => ms.map((m) => ({ ..
 type Cell = { gDate: Date; hijriDay: number; muted: boolean }
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 const pad2 = (n: number) => String(n).padStart(2, '0')
-
-// ── Hijri (Islamic) calendar conversion ─────────────────────────────────────────
-// "islamic-civil" is ICU's tabular/arithmetic Hijri calendar — deterministic across browsers,
-// unlike "islamic" (Umm al-Qura / sighting-based, which can vary by ICU data version). Every
-// Hijri date below is genuinely computed via Intl, not hand-approximated.
-const HIJRI_FMT = new Intl.DateTimeFormat('en-u-ca-islamic-civil', { day: 'numeric', month: 'numeric', year: 'numeric' })
-const HIJRI_MONTH_FMT = new Intl.DateTimeFormat('en-u-ca-islamic-civil', { month: 'long' })
-
-function hijriParts(date: Date): { day: number; month: number; year: number } {
-  const parts = HIJRI_FMT.formatToParts(date)
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0)
-  return { day: get('day'), month: get('month'), year: get('year') }
-}
-
+/** Same calendar day, comparing the Gregorian parts — milestone matching keys off the real
+ *  date, since Hijri day-of-month numbers repeat every ~29-30 days. */
 function isSameDate(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-/** "DD MonthName YYYY" in the Hijri calendar — used everywhere a milestone date is displayed on
- *  this page (timeline cards + calendar tooltips), not just the calendar grid. */
-function formatHijriDate(date: Date): string {
-  const { day, year } = hijriParts(date)
-  return `${String(day).padStart(2, '0')} ${HIJRI_MONTH_FMT.format(date)} ${year}`
-}
+/** Calendar cell day number — Arabic-Indic in LSD, and always zero-padded so the grid
+ *  columns keep a constant width regardless of script. */
+const dayNum = (n: number, isLsd: boolean) => (isLsd ? toArabicDigits(pad2(n)) : pad2(n))
+
+// ── Hijri (Islamic) calendar conversion ─────────────────────────────
+// Moved to src/i18n/hijri.ts so the miqaat list and this screen cannot drift onto different
+// calendars. See that file for which calendar and the evidence for it.
 
 /** Build a 6-row × 7-col grid for the event's Gregorian month (same container as before the Hijri
  *  conversion) — every milestone is defined against this exact month, so anchoring the grid here
@@ -101,26 +99,6 @@ function buildWeeks(year: number, month: number): Cell[][] {
   const weeks: Cell[][] = []
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
   return weeks
-}
-
-/** The Hijri month/year covering most days of the event's Gregorian month — used only for the
- *  calendar header label. The grid itself (`buildWeeks`) always shows the full Gregorian month
- *  regardless of where the lunar boundary falls, so this is purely cosmetic. */
-function dominantHijriMonth(year: number, month: number): { monthName: string; year: number } {
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const counts = new Map<string, { count: number; monthName: string; year: number }>()
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(year, month, d)
-    const { year: hy } = hijriParts(date)
-    const monthName = HIJRI_MONTH_FMT.format(date)
-    const key = `${hy}-${monthName}`
-    const entry = counts.get(key) ?? { count: 0, monthName, year: hy }
-    entry.count++
-    counts.set(key, entry)
-  }
-  let best = { count: -1, monthName: '', year: 0 }
-  counts.forEach((v) => { if (v.count > best.count) best = v })
-  return { monthName: best.monthName, year: best.year }
 }
 
 /** A milestone with its Gregorian day numbers resolved to real dates (a milestone can span
@@ -221,45 +199,44 @@ function MilestoneIcon({ k, color, size = 18 }: { k: string; color: string; size
 // Label + icon on their own row, value below (full card width) — Hijri month names run longer
 // than the old Gregorian "DD Mon YYYY" strings, so cramming label+value on one inline row left the
 // value too little width and forced an ugly mid-string wrap.
-function DateRow({ label, value }: { label: string; value: string }) {
+function DateRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="text-[13px] leading-[18px]" style={{ fontFamily: MUL }}>
       <div className="flex items-center gap-[8px] text-[#6a746e]">
         <CalGlyph />
         <span>{label} :</span>
       </div>
-      <p className="mt-[2px] pl-[23px] font-semibold text-[#2b3a32]">{value}</p>
+      <p className="mt-[2px] ps-[23px] font-semibold text-[#2b3a32]">{value}</p>
     </div>
   )
 }
 
 // ── Timeline card (left panel / mobile list) ──────────────────────────────────
 function TimelineCard({ m }: { m: MilestoneWithDates }) {
+  const { tx, t } = useT()
   return (
     <div
       className="relative shrink-0 overflow-hidden rounded-[14px] border bg-white"
       style={{ borderColor: '#ece6d6', boxShadow: '0 2px 10px -7px rgba(21,64,47,0.18)' }}
     >
       {/* full-height colour accent — anchored to the card edge so it never looks detached */}
-      <span className="absolute inset-y-0 left-0 w-[4px]" style={{ background: m.color }} />
-      <div className="py-[14px] pl-[18px] pr-[16px]">
+      <span className="absolute inset-y-0 start-0 w-[4px]" style={{ background: m.color }} />
+      <div className="py-[14px] ps-[18px] pe-[16px]">
         {/* icon + title — icon sits in a tinted square, vertically centered with the title */}
         <div className="flex items-center gap-[10px]">
           <span className="flex size-[30px] shrink-0 items-center justify-center rounded-[9px]" style={{ background: `${m.color}1f` }}>
             <MilestoneIcon k={m.key} color={m.color} size={17} />
           </span>
-          <p className="text-[16px] font-bold leading-[21px] text-[#1a2a23]" style={{ fontFamily: MUL }}>
-            {m.title}
-          </p>
+          <p className="text-[16px] font-bold leading-[21px] text-[#1a2a23]" style={{ fontFamily: MUL }} {...tx(m.title)} />
         </div>
         <div className="mt-[11px] flex flex-col gap-[7px]">
           {m.range ? (
             <>
-              <DateRow label="Opens" value={`${formatHijriDate(m.dates[0])} – ${m.range.startTime}`} />
-              <DateRow label="Closes" value={`${formatHijriDate(m.dates[m.dates.length - 1])} – ${m.range.endTime}`} />
+              <DateRow label={t('Opens')} value={<><HijriDate date={m.dates[0]} /> – <TimeLine value={m.range.startTime} /></>} />
+              <DateRow label={t('Closes')} value={<><HijriDate date={m.dates[m.dates.length - 1]} /> – <TimeLine value={m.range.endTime} /></>} />
             </>
           ) : (
-            <DateRow label={m.single!.label} value={formatHijriDate(m.labelDate)} />
+            <DateRow label={m.single!.label} value={<HijriDate date={m.labelDate} />} />
           )}
         </div>
       </div>
@@ -284,7 +261,7 @@ function TimelineRail({ milestones, gap }: { milestones: MilestoneWithDates[]; g
             <div className="relative flex w-[18px] shrink-0 items-center justify-center">
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 w-0 -translate-x-1/2 border-l-2 border-dashed border-[#d8d2c2]"
+                className="pointer-events-none absolute left-1/2 w-0 -translate-x-1/2 border-s-2 border-dashed border-[#d8d2c2]"
                 style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : -gap }}
               />
               <span className="relative z-[1] size-[16px] shrink-0 rounded-full" style={{ background: mil.color }} />
@@ -301,6 +278,7 @@ function TimelineRail({ milestones, gap }: { milestones: MilestoneWithDates[]; g
 
 // ── Calendar hover tooltip (desktop) ──────────────────────────────────────────
 function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
+  const { tx } = useT()
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-full z-50 mt-[10px] w-[224px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
@@ -313,18 +291,16 @@ function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
           <span className="flex size-[22px] shrink-0 items-center justify-center rounded-[7px]" style={{ background: `${m.color}1f` }}>
             <MilestoneIcon k={m.key} color={m.color} size={14} />
           </span>
-          <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={{ fontFamily: MUL }}>
-            {m.title}
-          </p>
+          <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={{ fontFamily: MUL }} {...tx(m.title)} />
         </div>
         <div className="mt-[10px] flex flex-col gap-[8px]" style={{ fontFamily: MUL }}>
           {m.range ? (
             <>
-              <TipRow heading="Opens" date={formatHijriDate(m.dates[0])} time={m.range.startTime} />
-              <TipRow heading="Closes" date={formatHijriDate(m.dates[m.dates.length - 1])} time={m.range.endTime} />
+              <TipRow heading="Opens" date={<HijriDate date={m.dates[0]} />} time={m.range.startTime} />
+              <TipRow heading="Closes" date={<HijriDate date={m.dates[m.dates.length - 1]} />} time={m.range.endTime} />
             </>
           ) : (
-            <TipRow heading={m.single!.label} date={formatHijriDate(m.labelDate)} />
+            <TipRow heading={m.single!.label} date={<HijriDate date={m.labelDate} />} />
           )}
         </div>
       </div>
@@ -332,34 +308,47 @@ function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
   )
 }
 
-function TipRow({ heading, date, time }: { heading: string; date: string; time?: string }) {
+function TipRow({ heading, date, time }: { heading: string; date: ReactNode; time?: string }) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.4px] text-[#9aa39d]">{heading}</p>
       <p className="text-[13px] leading-[17px] text-[#2b3a32]">
         {date}
-        {time ? ` • ${time}` : ''}
+        {time ? <> • <TimeLine value={time} /></> : null}
       </p>
     </div>
   )
 }
 
 // ── Calendar shared bits ──────────────────────────────────────────────────────
-function MonthTitle({ monthLabel, year, size = 'lg' }: { monthLabel: string; year: number; size?: 'lg' | 'sm' }) {
+/**
+ * Calendar header — Hijri month name and year.
+ *
+ * Takes a month INDEX rather than a pre-rendered name so the name can be resolved in the
+ * active language here. Previously the English transliteration was baked in upstream and
+ * shown in both languages, which put `Dhuʻl-Hijjah 1447` on an otherwise fully Arabic
+ * calendar — the Gregorian policy applied to the Hijri calendar, i.e. exactly backwards.
+ */
+function MonthTitle({ monthIndex, year, size = 'lg' }: { monthIndex: number; year: number; size?: 'lg' | 'sm' }) {
   const big = size === 'lg'
+  const { isLsd } = useT()
+  const name = isLsd ? HIJRI_MONTHS_LSD[monthIndex] : HIJRI_MONTHS_EN[monthIndex]
   return (
     <p className="flex items-baseline gap-[8px]" style={{ fontFamily: SERIF }}>
-      <span className={`${big ? 'text-[26px]' : 'text-[19px]'} leading-none text-[#15402f]`}>{monthLabel}</span>
-      <span className={`${big ? 'text-[14px]' : 'text-[12px]'} tracking-[1px] text-[#b48b39]`}>{year}</span>
+      <span className={`${big ? 'text-[26px]' : 'text-[19px]'} leading-none text-[#15402f]`}>{name}</span>
+      <span className={`${big ? 'text-[14px]' : 'text-[12px]'} tracking-[1px] text-[#b48b39]`}>
+        <Iso>{isLsd ? toArabicDigits(String(year)) : year}</Iso>
+      </span>
     </p>
   )
 }
 
 // ── Desktop calendar (spanning blocks + badges + icons + hover tooltips) ──
-function DesktopCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; milestones: MilestoneWithDates[]; monthLabel: string; year: number }) {
+function DesktopCalendar({ flat, milestones, monthIndex, year }: { flat: Cell[]; milestones: MilestoneWithDates[]; monthIndex: number; year: number }) {
+  const { tx, isLsd } = useT()
   return (
     <div className="rounded-[18px] border border-[#ece6d6] bg-white p-[20px]">
-      <MonthTitle monthLabel={monthLabel} year={year} />
+      <MonthTitle monthIndex={monthIndex} year={year} />
       <div className="mt-[16px] grid grid-cols-7">
         {WEEKDAYS.map((d) => (
           <span key={d} className="pb-[10px] text-center text-[13px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }}>
@@ -385,7 +374,7 @@ function DesktopCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[];
                   {/* white day badge */}
                   <span className="flex size-[28px] items-center justify-center rounded-full bg-white shadow-[0_2px_6px_-3px_rgba(0,0,0,0.4)]">
                     <span className="text-[13px] font-bold leading-none" style={{ fontFamily: MUL, color: m.color }}>
-                      {pad2(cell.hijriDay)}
+                      {dayNum(cell.hijriDay, isLsd)}
                     </span>
                   </span>
                   {isLabel && (
@@ -393,9 +382,7 @@ function DesktopCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[];
                       <span className="mt-[1px]">
                         <MilestoneIcon k={m.key} color="#ffffff" size={14} />
                       </span>
-                      <p className="min-w-0 break-words text-[12px] font-semibold leading-[15px] text-white" style={{ fontFamily: MUL }}>
-                        {m.title}
-                      </p>
+                      <p className="min-w-0 break-words text-[12px] font-semibold leading-[15px] text-white" style={{ fontFamily: MUL }} {...tx(m.title)} />
                     </div>
                   )}
                   <CalendarTooltip m={m} />
@@ -405,7 +392,7 @@ function DesktopCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[];
                   className="text-[14px] leading-none"
                   style={{ fontFamily: MUL, fontWeight: 700, color: cell.muted ? '#c7c7bd' : '#23302a' }}
                 >
-                  {pad2(cell.hijriDay)}
+                  {dayNum(cell.hijriDay, isLsd)}
                 </span>
               )}
             </div>
@@ -417,10 +404,11 @@ function DesktopCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[];
 }
 
 // ── Mobile calendar (compact, coloured dots) ──────────────────────────────────
-function MobileCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; milestones: MilestoneWithDates[]; monthLabel: string; year: number }) {
+function MobileCalendar({ flat, milestones, monthIndex, year }: { flat: Cell[]; milestones: MilestoneWithDates[]; monthIndex: number; year: number }) {
+  const { tx, isLsd } = useT()
   return (
     <div className="rounded-[16px] border border-[#ece6d6] bg-white p-[14px]">
-      <MonthTitle monthLabel={monthLabel} year={year} size="sm" />
+      <MonthTitle monthIndex={monthIndex} year={year} size="sm" />
       <div className="mt-[12px] grid grid-cols-7">
         {WEEKDAYS.map((d) => (
           <span key={d} className="pb-[6px] text-center text-[12px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }}>
@@ -437,7 +425,7 @@ function MobileCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; 
                 // event day → circled in the milestone colour
                 <span className="flex size-[30px] items-center justify-center rounded-full" style={{ background: m.color }}>
                   <span className="text-[13px] font-bold leading-none text-white" style={{ fontFamily: MUL }}>
-                    {pad2(cell.hijriDay)}
+                    {dayNum(cell.hijriDay, isLsd)}
                   </span>
                 </span>
               ) : (
@@ -445,7 +433,7 @@ function MobileCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; 
                   className="text-[13px] leading-none"
                   style={{ fontFamily: MUL, fontWeight: 500, color: cell.muted ? '#c7c7bd' : '#23302a' }}
                 >
-                  {pad2(cell.hijriDay)}
+                  {dayNum(cell.hijriDay, isLsd)}
                 </span>
               )}
             </div>
@@ -457,9 +445,7 @@ function MobileCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; 
         {milestones.map((m) => (
           <span key={m.key} className="flex items-center gap-[6px]">
             <span className="size-[9px] rounded-full" style={{ background: m.color }} />
-            <span className="text-[12px] text-[#5a6660]" style={{ fontFamily: MUL }}>
-              {m.title}
-            </span>
+            <span className="text-[12px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(m.title)} />
           </span>
         ))}
       </div>
@@ -469,14 +455,11 @@ function MobileCalendar({ flat, milestones, monthLabel, year }: { flat: Cell[]; 
 
 // ── "Event Journey" heading block (shared, stays fixed above the scrolling list) ──
 function TimelineHeader() {
+  const { tx } = useT()
   return (
     <div className="shrink-0">
-      <p className="text-[12px] font-bold uppercase tracking-[2px] text-[#b48b39]" style={{ fontFamily: MUL }}>
-        Timeline
-      </p>
-      <h2 className="mt-[4px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-        Event Journey
-      </h2>
+      <p className="text-[12px] font-bold uppercase tracking-[2px] text-[#b48b39]" style={{ fontFamily: MUL }} {...tx('Timeline')} />
+      <h2 className="mt-[4px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Event Journey')} />
     </div>
   )
 }
@@ -484,6 +467,7 @@ function TimelineHeader() {
 const DESCRIPTION = 'The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.'
 
 export default function EventJourney() {
+  const { tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const m = miqaats.find((x) => x.id === id) ?? miqaats[0]
@@ -517,7 +501,7 @@ export default function EventJourney() {
         </div>
 
         {/* Breadcrumb */}
-        <div className="ml-[16px] mt-[12px] sm:ml-0">
+        <div className="ms-[16px] mt-[12px] sm:ml-0">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -531,9 +515,7 @@ export default function EventJourney() {
 
         {/* Page heading */}
         <div className="mt-[14px] px-[16px] sm:px-0">
-          <h1 className="text-[28px] leading-[34px] text-[#15402f] sm:text-[40px] sm:leading-[46px]" style={{ fontFamily: SERIF }}>
-            {m.title}
-          </h1>
+          <h1 className="text-[28px] leading-[34px] text-[#15402f] sm:text-[40px] sm:leading-[46px]" style={{ fontFamily: SERIF }} {...tdAuthored(m.title)} />
           <p className="mt-[8px] max-w-[640px] text-[14px] leading-[22px] text-[#5a6660] sm:text-[15px]" style={{ fontFamily: MUL }}>
             {DESCRIPTION}
           </p>
@@ -541,7 +523,7 @@ export default function EventJourney() {
 
         {/* ── MOBILE: calendar then timeline ── */}
         <div className="mt-[18px] flex flex-col gap-[18px] px-[16px] pb-[16px] sm:hidden">
-          <MobileCalendar flat={flat} milestones={milestones} monthLabel={hijri.monthName} year={hijri.year} />
+          <MobileCalendar flat={flat} milestones={milestones} monthIndex={hijri.monthIndex} year={hijri.year} />
           <div>
             <TimelineHeader />
             <div className="mt-[14px]">
@@ -556,14 +538,14 @@ export default function EventJourney() {
           <div className="w-[420px] shrink-0">
             <div className="flex max-h-[560px] flex-col rounded-[20px] border border-[#ece6d6] bg-[#fcfbf6] p-[22px] shadow-[0_8px_28px_-18px_rgba(21,64,47,0.25)]">
               <TimelineHeader />
-              <div ref={listRef} className="thin-scrollbar mt-[16px] min-h-0 flex-1 overflow-y-auto pr-[2px]">
+              <div ref={listRef} className="thin-scrollbar mt-[16px] min-h-0 flex-1 overflow-y-auto pe-[2px]">
                 <TimelineRail milestones={milestones} gap={14} />
               </div>
             </div>
           </div>
           {/* right: calendar */}
           <div className="min-w-0 flex-1">
-            <DesktopCalendar flat={flat} milestones={milestones} monthLabel={hijri.monthName} year={hijri.year} />
+            <DesktopCalendar flat={flat} milestones={milestones} monthIndex={hijri.monthIndex} year={hijri.year} />
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import BottomSheet from './BottomSheet'
+import { useT } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -18,6 +19,7 @@ export default function LogoutConfirmSheet({
   onClose: () => void
   onConfirm: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open={open}
@@ -29,7 +31,7 @@ export default function LogoutConfirmSheet({
             onClick={onClose}
             className="flex h-[52px] flex-1 items-center justify-center rounded-[14px] border border-[#e7dfc9] bg-white transition-colors hover:bg-[#faf8f2]"
           >
-            <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT }}>Cancel</span>
+            <span className="text-[15px] font-bold text-[#15402f]" style={{ fontFamily: FONT }} {...tx('Cancel')} />
           </button>
           <button
             type="button"
@@ -40,7 +42,7 @@ export default function LogoutConfirmSheet({
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M16 17l5-5-5-5M21 12H9" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT }}>Log Out</span>
+            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT }} {...tx('Log Out')} />
           </button>
         </div>
       }
@@ -54,10 +56,8 @@ export default function LogoutConfirmSheet({
             </svg>
           </span>
         </span>
-        <h2 className="mt-[16px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>Log Out?</h2>
-        <p className="mt-[10px] max-w-[320px] text-[15px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-          Are you sure you want to log out of your Miqaat Registration account?
-        </p>
+        <h2 className="mt-[16px] text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Log Out?')} />
+        <p className="mt-[10px] max-w-[320px] text-[15px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Are you sure you want to log out of your Miqaat Registration account?')} />
       </div>
     </BottomSheet>
   )

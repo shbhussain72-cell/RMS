@@ -1,0 +1,50 @@
+{
+  "//": "LOANWORD + IDENTITY POLICY. Read by scripts/audit-lsd.mjs, scripts/build-lsd-dict.mjs and src/i18n/domScan.ts so the same classification holds everywhere and survives regeneration. Human-readable rationale: docs/loanword-policy.md",
+
+  "policy": "keep-latin-and-isolate",
+
+  "loanwords": {
+    "//": "English words that stay Latin INSIDE an LSD sentence. They are already in general spoken use and translating them would read as stilted. Every occurrence must be bidi-isolated so it cannot reorder against the Arabic around it; src/i18n/index.tsx does that automatically for all dictionary values via isolateRuns(), so no call site has to remember.",
+    "words": [
+      "zone",
+      "registration",
+      "reservation",
+      "reserve",
+      "register",
+      "visa",
+      "airport",
+      "upload",
+      "wheelchair",
+      "form",
+      "slot",
+      "pass"
+    ]
+  },
+
+  "identityByPolicy": {
+    "//": "Keys whose LSD value CORRECTLY equals the English. These are class B2: no wordlist action is needed and they must not be reported as gaps. Each carries its reason so the classification can be argued with rather than merely inherited.",
+    "entries": {
+      "ITS": "System name. ITS is the identity platform itself, not a describable noun.",
+      "ITS ID": "System name + universally-used field label.",
+      "PDF": "File-format acronym; printed on the file itself.",
+      "AM": "Clock meridiem. Rendered inside an LTR isolate by formatTime().",
+      "PM": "Clock meridiem. Rendered inside an LTR isolate by formatTime().",
+      "IST": "Timezone acronym; unambiguous only in its Latin form.",
+      "mm/dd/yyyy": "Date-format mask — an instruction about literal characters to type.",
+      "248 KB": "File size: digits plus an SI unit. Neither half is language.",
+      "Registration": "Loanword (see loanwords.words). Currently stored lower-cased, which is why it reads as an identity pass-through rather than a translation."
+    }
+  },
+
+  "needsOwnerDecision": {
+    "//": "Identity pass-throughs that are NOT covered by policy and DO need the wordlist owner. Listed here only so the audit can state plainly that they were considered and rejected as loanwords, rather than silently omitted.",
+    "entries": {
+      "Home": "Ordinary noun; has a natural LSD equivalent.",
+      "Registered": "Verb form. The loanword policy covers the noun 'registration', not this.",
+      "Soft Diet": "Dietary-requirement label; ordinary English, translatable.",
+      "Tap to upload visa (PDF)": "Full sentence. 'upload', 'visa' and 'PDF' stay Latin inside it, but the surrounding instruction must be translated.",
+      "d": "Countdown unit abbreviation (days). Judgement call — an abbreviation, not a loanword. Flagged for the owner rather than assumed.",
+      "h": "Countdown unit abbreviation (hours). Same judgement call as 'd'."
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '@/components/figma/PhoneScreen'
+import { useT } from '../i18n'
+import { isolateRuns } from '../components/Bidi'
 import AppBar from '@/components/figma/AppBar'
 import Breadcrumb from '@/components/figma/Breadcrumb'
 import StickyFooter from '@/components/figma/StickyFooter'
@@ -65,6 +67,7 @@ function RoleBadge({ badge, dash = false }: { badge: BadgeKind; dash?: boolean }
    Shared by the mobile person card AND the desktop table. Interaction states on the
    Assign button are gated behind `sm:` so the mobile experience is never altered. */
 function WarnStrip({ text, onAssign, interactive = true }: { text: string; onAssign: () => void; interactive?: boolean }) {
+  const { tx } = useT()
   return (
     <div role={interactive ? 'button' : undefined} tabIndex={interactive ? 0 : undefined}
       onClick={interactive ? (e) => { e.stopPropagation(); onAssign() } : undefined}
@@ -77,7 +80,7 @@ function WarnStrip({ text, onAssign, interactive = true }: { text: string; onAss
         <button type="button" onClick={(e) => { e.stopPropagation(); onAssign() }}
           className="flex h-[24px] shrink-0 cursor-pointer items-center gap-[4px] rounded-[12px] border border-solid px-[10px] sm:transition-all sm:duration-200 sm:hover:bg-[#fff8ec] sm:hover:shadow-[0_2px_6px_-2px_rgba(21,64,47,0.18)] sm:active:scale-[0.96] sm:focus-visible:outline-none sm:focus-visible:ring-2 sm:focus-visible:ring-[#1f5a44]/30"
           style={{ backgroundColor: '#fffdf8', borderColor: 'rgba(12,61,34,0.2)' }}>
-          <span className="text-[12px] leading-[16px]" style={{ fontFamily: FONT_SANS, fontWeight: 600, color: '#0c3d22' }}>Assign</span>
+          <span className="text-[12px] leading-[16px]" style={{ fontFamily: FONT_SANS, fontWeight: 600, color: '#0c3d22' }} {...tx('Assign')} />
           <img src={ARROW_FWD} alt="" className="size-[12px]" />
         </button>
       )}
@@ -88,18 +91,19 @@ function WarnStrip({ text, onAssign, interactive = true }: { text: string; onAss
 /* ── green resolved strip ──
    The "Change" trailing arrow only renders at sm+ (desktop), so the mobile card is untouched. */
 function ResolvedStrip({ prefix, name, onChange, interactive = true }: { prefix: string; name: string; onChange: () => void; interactive?: boolean }) {
+  const { tx, td } = useT()
   return (
     <div className="flex items-center gap-[8px] rounded-[8px] border border-solid px-[11px] py-[8px]"
       style={{ backgroundColor: '#e5f5e7', borderColor: '#badcc7' }}>
       <img src={SHIELD} alt="" className="size-[20px] shrink-0" />
       <p className="flex-1 text-[12px] leading-[16px]" style={{ fontFamily: FONT_SANS, fontWeight: 400, color: 'rgba(11,119,67,0.9)' }}>
-        {prefix}<span style={{ fontWeight: 700 }}>{name}</span>
+        {prefix}<span style={{ fontWeight: 700 }} {...td(name)} />
       </p>
       {interactive && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onChange() }}
           className="flex shrink-0 cursor-pointer items-center gap-[4px] whitespace-nowrap rounded-[8px] text-[12px] leading-[16px] sm:transition-all sm:duration-200 sm:hover:opacity-80 sm:active:scale-[0.96] sm:focus-visible:outline-none sm:focus-visible:ring-2 sm:focus-visible:ring-[#0b7743]/30"
           style={{ fontFamily: FONT_SANS, fontWeight: 700, color: 'rgba(11,119,67,0.9)' }}>
-          Change
+          <span {...tx('Change')} />
           <svg viewBox="0 0 24 24" className="hidden size-[13px] sm:block" fill="none" aria-hidden="true">
             <path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -145,10 +149,11 @@ function StatusPill({ status }: { status: 'pending' | 'accepted' }) {
 
 /* ── small circular ✕ remove control (Group table rows) ── */
 function RemoveButton({ onClick }: { onClick: () => void }) {
+  const { t } = useT()
   return (
     <button
       type="button"
-      aria-label="Remove from group"
+      aria-label={t('Remove from group')}
       onClick={(e) => { e.stopPropagation(); onClick() }}
       className="flex size-[26px] shrink-0 items-center justify-center rounded-full border border-solid border-[#e6d3cf] bg-white text-[#b4544a] transition-colors hover:border-[#d99c94] hover:bg-[#fdf5f4]"
     >
@@ -163,6 +168,7 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
 function PersonCard({ member, badge, checked, dimmed, selectable = true, onToggle, children }: {
   member: FamilyMember; badge: BadgeKind; checked: boolean; dimmed?: boolean; selectable?: boolean; onToggle: () => void; children?: ReactNode
 }) {
+     const { t, td, tdText } = useT()
   return (
     <div onClick={selectable ? onToggle : undefined}
       className={`w-full rounded-[14px] border border-solid p-[13px] transition-colors ${selectable ? `cursor-pointer ${checked ? 'border-[#d9c98a] bg-[#fffdf5]' : 'border-[#e7dfc9] bg-[#fffdf8]'}` : 'border-[#e7dfc9] bg-white'}`}>
@@ -172,9 +178,9 @@ function PersonCard({ member, badge, checked, dimmed, selectable = true, onToggl
           <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(member.name)}</span>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
-          <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{member.name}</p>
+          <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(member.name)} />
           <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-            {member.relation} · {member.gender} · Age {age2(member.age)} · ITS {member.its}
+            {isolateRuns(`${tdText(member.relation)} · ${tdText(member.gender)} · ${t('Age')} ${age2(member.age)} · ${t('ITS')} ${member.its}`)}
           </p>
         </div>
         <RoleBadge badge={badge} />
@@ -189,26 +195,27 @@ function DesktopRow({ name, meta, status, isLast, selectable = false, plain = fa
   name: string; meta: string; status?: ReactNode; isLast: boolean
   selectable?: boolean; plain?: boolean; checked?: boolean; dimmed?: boolean; onToggle?: () => void
 }) {
+     const { td } = useT()
   return (
     <tr onClick={selectable ? onToggle : undefined}
       className={`transition-colors duration-150 ${selectable ? 'cursor-pointer' : ''} ${plain ? 'bg-white' : (checked ? 'bg-[#fffdf5]' : 'hover:bg-[#faf9f4]')} ${isLast ? '' : 'border-b border-[#ece7da]'}`}>
       {selectable && (
-        <td className="py-[9px] pl-[16px] pr-[12px] align-middle">
+        <td className="py-[9px] ps-[16px] pe-[12px] align-middle">
           <CheckboxButton checked={checked} dimmed={dimmed} onToggle={onToggle ?? (() => {})} />
         </td>
       )}
-      <td className={`py-[9px] ${selectable ? 'pl-0' : 'pl-[16px]'} pr-[16px] align-middle`}>
+      <td className={`py-[9px] ${selectable ? 'ps-0' : 'ps-[16px]'} pe-[16px] align-middle`}>
         <div className="flex items-center gap-[10px]">
           <div className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
             <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(name)}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{name}</p>
-            <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{meta}</p>
+            <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(name)} />
+            <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{isolateRuns(meta)}</p>
           </div>
         </div>
       </td>
-      <td className="py-[9px] pr-[24px] align-middle">{status}</td>
+      <td className="py-[9px] pe-[24px] align-middle">{status}</td>
     </tr>
   )
 }
@@ -218,6 +225,7 @@ function DesktopRow({ name, meta, status, isLast, selectable = false, plain = fa
 function MembersTableShell({ selectable = false, selectAllChecked = false, onSelectAll, children }: {
   selectable?: boolean; selectAllChecked?: boolean; onSelectAll?: () => void; children: ReactNode
 }) {
+     const { tx } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -229,15 +237,15 @@ function MembersTableShell({ selectable = false, selectAllChecked = false, onSel
         <thead>
           <tr className="border-b border-[#ece7da] bg-[#faf8f2]">
             {selectable && (
-              <th className="py-[10px] pl-[16px] pr-[12px] align-middle">
+              <th className="py-[10px] ps-[16px] pe-[12px] align-middle">
                 <span title={selectAllChecked ? 'Deselect all' : 'Select all'}>
                   <CheckboxButton checked={selectAllChecked} onToggle={() => onSelectAll?.()} />
                 </span>
               </th>
             )}
-            <th className={`py-[10px] ${selectable ? 'pl-0' : 'pl-[16px]'} pr-[16px] text-left text-[11px] uppercase leading-[16px] tracking-[0.6px] text-[#8a938e]`}
-              style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>Member</th>
-            <th className="py-[10px] pr-[24px]" />
+            <th className={`py-[10px] ${selectable ? 'ps-0' : 'ps-[16px]'} pe-[16px] text-start text-[11px] uppercase leading-[16px] tracking-[0.6px] text-[#8a938e]`}
+              style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Member')} />
+            <th className="py-[10px] pe-[24px]" />
           </tr>
         </thead>
         <tbody>{children}</tbody>
@@ -247,6 +255,7 @@ function MembersTableShell({ selectable = false, selectAllChecked = false, onSel
 }
 
 export default function AddPeople() {
+  const { tx, t, td, tdText, tdAuthored } = useT()
   const { id } = useParams()
   const miqaat = miqaats.find((m) => m.id === id) ?? miqaats[0]
   const nav = useNavigate()
@@ -386,12 +395,8 @@ export default function AddPeople() {
     <div data-tour="other-details-section">
       <div className="mb-[24px] h-px w-full bg-[#e7dfc9]" />
 
-      <h2 className="text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={{ fontFamily: FONT_SERIF }}>
-        Other Details
-      </h2>
-      <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-        Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.
-      </p>
+      <h2 className="text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={{ fontFamily: FONT_SERIF }} {...tx('Other Details')} />
+      <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.')} />
 
       <div className="mt-[20px]">
         {viewMode
@@ -564,7 +569,7 @@ export default function AddPeople() {
         <svg viewBox="0 0 24 24" fill="none" className="size-[14px]">
           <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }}>Cancel</span>
+        <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }} {...tx('Cancel')} />
       </button>
     ) : (
       <button type="button" onClick={() => setEditing(true)}
@@ -572,7 +577,7 @@ export default function AddPeople() {
         <svg viewBox="0 0 24 24" fill="none" className="size-[15px]">
           <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }}>Edit</span>
+        <span className="text-[14px] font-bold" style={{ fontFamily: FONT_SANS }} {...tx('Edit')} />
       </button>
     )
   ) : null
@@ -613,11 +618,11 @@ export default function AddPeople() {
         <span className="text-[13px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(name)}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
-        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{name}</p>
-        <p className="text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{meta}</p>
+        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(name)} />
+        <p className="text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{isolateRuns(meta)}</p>
       </div>
       {dependent && (
-        <span className="shrink-0 rounded-full bg-[#fbf2d8] px-[10px] py-[3px] text-[11px] font-bold text-[#9f8127]" style={{ fontFamily: FONT_SANS }}>Dependent</span>
+        <span className="shrink-0 rounded-full bg-[#fbf2d8] px-[10px] py-[3px] text-[11px] font-bold text-[#9f8127]" style={{ fontFamily: FONT_SANS }} {...tx('Dependent')} />
       )}
     </div>
   )
@@ -638,7 +643,7 @@ export default function AddPeople() {
   const matchFoundBadge = (
     <div className="flex items-center gap-[6px]">
       <CheckCircleIcon />
-      <span className="text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT_SANS }}>Match found</span>
+      <span className="text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT_SANS }} {...tx('Match found')} />
     </div>
   )
   // Result card mirrors the Invite Mehmaan lookup card: its own white card (drop shadow) with a
@@ -652,12 +657,12 @@ export default function AddPeople() {
           {matchFoundBadge}
           <div className="mt-[14px] flex items-center gap-[8px] rounded-[10px] bg-[#e1eef1] px-[12px] py-[9px]">
             <svg viewBox="0 0 16 16" fill="none" className="size-[14px] shrink-0"><path d="M8.6665 4.00033L9.99984 2.66699C10.6665 2.00033 11.9998 2.00033 12.6665 2.66699L13.3332 3.33366C13.9998 4.00033 13.9998 5.33366 13.3332 6.00033L9.99984 9.33366C9.33317 10.0003 7.99984 10.0003 7.33317 9.33366M7.33317 12.0003L5.99984 13.3337C5.33317 14.0003 3.99984 14.0003 3.33317 13.3337L2.6665 12.667C1.99984 12.0003 1.99984 10.667 2.6665 10.0003L5.99984 6.66699C6.6665 6.00033 7.99984 6.00033 8.6665 6.66699" stroke="#2e6a7d" strokeWidth="1.375" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="text-[12.5px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT_SANS }}>Guardian + dependent · added together</span>
+            <span className="text-[12.5px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT_SANS }} {...tx('Guardian + dependent · added together')} />
           </div>
           <div className="mt-[10px] flex flex-col gap-[8px]">
-            <ResultRow name={searchResult.name} meta={`${searchResult.gender} · Age ${age2(searchResult.age)} · ITS ${searchResult.its}`} />
+            <ResultRow name={searchResult.name} meta={`${tdText(searchResult.gender)} · ${t('Age')} ${age2(searchResult.age)} · ${t('ITS')} ${searchResult.its}`} />
             {searchResult.dependents.map((d) => (
-              <ResultRow key={d.its} name={d.name} meta={`${d.gender} · Age ${age2(d.age)} · ITS ${d.its}`} dependent />
+              <ResultRow key={d.its} name={d.name} meta={`${tdText(d.gender)} · ${t('Age')} ${age2(d.age)} · ${t('ITS')} ${d.its}`} dependent />
             ))}
           </div>
           <div className="mt-[16px] flex items-center justify-between gap-[12px] border-t border-[#f0ebe0] pt-[16px]">
@@ -675,9 +680,9 @@ export default function AddPeople() {
             <div className="flex size-[72px] items-center justify-center rounded-full bg-[#1f5a44]">
               <span className="text-[26px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(searchResult.name)}</span>
             </div>
-            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }}>{searchResult.name}</p>
+            <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }} {...td(searchResult.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              {searchResult.gender ? `${searchResult.gender} · ` : ''}Age {age2(searchResult.age)} · ITS {searchResult.its}
+              {isolateRuns(`${searchResult.gender ? `${tdText(searchResult.gender)} · ` : ''}${t('Age')} ${age2(searchResult.age)} · ${t('ITS')} ${searchResult.its}`)}
             </p>
             <div className="mt-[18px]">{addButton}</div>
           </div>
@@ -706,8 +711,8 @@ export default function AddPeople() {
         <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.6" />
         <path d="M13.8 13.8L18 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
-      <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT_SANS }}>No members found</p>
-      <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }}>Try searching with a different ITS ID or member name.</p>
+      <p className="mt-[8px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT_SANS }} {...tx('No members found')} />
+      <p className="mt-[4px] text-[13px] leading-[18px] text-[#7a827c]" style={{ fontFamily: FONT_SANS }} {...tx('Try searching with a different ITS ID or member name.')} />
     </div>
   )
 
@@ -716,7 +721,7 @@ export default function AddPeople() {
     <button
       type="button"
       onClick={performSearch}
-      aria-label="Search"
+      aria-label={t('Search')}
       className="flex size-[48px] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-opacity active:opacity-80"
     >
       <svg viewBox="0 0 20 20" fill="none" className="size-[19px] shrink-0 text-[#194a37]">
@@ -751,7 +756,7 @@ export default function AddPeople() {
       <div className="contents sm:hidden">
 
         {/* ── breadcrumb ── */}
-        <div className="ml-[16px] sm:ml-0 mt-[13px] flex sm:mt-6">
+        <div className="ms-[16px] sm:ml-0 mt-[13px] flex sm:mt-6">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -766,22 +771,16 @@ export default function AddPeople() {
         </div>
 
         {/* ── event header (main) ── */}
-        <div className="ml-[16px] mt-[18px]">
-          <h1 className="text-[26px] leading-[32px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-            {miqaat.title}
-          </h1>
-          <p className="mt-[4px] text-[14px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-            Family &amp; Group Allocation
-          </p>
+        <div className="ms-[16px] mt-[18px]">
+          <h1 className="text-[26px] leading-[32px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tdAuthored(miqaat.title)} />
+          <p className="mt-[4px] text-[14px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} {...tx('Family & Group Allocation')} />
         </div>
 
         {/* ── section title + ITS search — hidden in the read-only edit-registration view ── */}
         {!viewMode && (
           <>
-            <h2 className="ml-[16px] sm:ml-0 mt-[22px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:mt-8 sm:text-[26px]"
-              style={{ fontFamily: FONT_SERIF }}>
-              Add People to group
-            </h2>
+            <h2 className="ms-[16px] sm:ml-0 mt-[22px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:mt-8 sm:text-[26px]"
+              style={{ fontFamily: FONT_SERIF }} {...tx('Add People to group')} />
 
             {/* ── ITS input + Add button ── */}
             <div data-tour="add-people-section" className="mx-[16px] sm:mx-0 mt-[12px] sm:mt-4 sm:max-w-[440px]">
@@ -791,8 +790,8 @@ export default function AddPeople() {
                     value={itsInput}
                     onChange={(e) => handleItsChange(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch() } }}
-                    inputMode="numeric" maxLength={8} placeholder="Enter 8-digit ITS ID"
-                    className="absolute left-[11px] right-[11px] top-1/2 -translate-y-1/2 bg-transparent text-[16px] leading-normal text-[#23302a] outline-none placeholder:text-[#757575]"
+                    inputMode="numeric" maxLength={8} placeholder={t('Enter 8-digit ITS ID')}
+                    className="absolute start-[11px] end-[11px] top-1/2 -translate-y-1/2 bg-transparent text-[16px] leading-normal text-[#23302a] outline-none placeholder:text-[#757575]"
                     style={{ fontFamily: FONT_SANS, fontWeight: 400 }}
                   />
                 </div>
@@ -815,7 +814,7 @@ export default function AddPeople() {
         <div className="mx-[16px] sm:mx-0 mt-[18px] flex h-[18px] items-center sm:mt-8">
           <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
           <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-            style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>Your Family</span>
+            style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Your Family')} />
           <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
         </div>
 
@@ -841,7 +840,7 @@ export default function AddPeople() {
             <div className="mx-[16px] mt-[20px] flex h-[18px] items-center">
               <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
               <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-                style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>Group</span>
+                style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Group')} />
               <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
@@ -855,8 +854,8 @@ export default function AddPeople() {
                         <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(inv.name)}</span>
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
-                        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{inv.name}</p>
-                        <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{meta}</p>
+                        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(inv.name)} />
+                        <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{isolateRuns(meta)}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-[8px]">
                         <StatusPill status={inv.status} />
@@ -876,7 +875,7 @@ export default function AddPeople() {
             <div className="mx-[16px] mt-[20px] flex h-[18px] items-center">
               <div className="h-px flex-1 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
               <span className="mx-[10px] whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
-                style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>Invited Mehmaan</span>
+                style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx('Invited Mehmaan')} />
               <div className="h-px flex-1 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
@@ -890,8 +889,8 @@ export default function AddPeople() {
                         <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(inv.name)}</span>
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
-                        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{inv.name}</p>
-                        <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{meta}</p>
+                        <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(inv.name)} />
+                        <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>{isolateRuns(meta)}</p>
                       </div>
                       <StatusPill status={inv.status} />
                     </div>
@@ -918,7 +917,7 @@ export default function AddPeople() {
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
 
           {/* ───────── LEFT sidebar (stays in place; right panel scrolls) ───────── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
 
             {/* breadcrumb header — Go back merged in as the leading item */}
             <Breadcrumb
@@ -938,26 +937,22 @@ export default function AddPeople() {
             {/* Add People to group card — replaced by a read-only note in the edit-registration view */}
             {viewMode ? (
               <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-                <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                  Your reservation
-                </p>
+                <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Your reservation')} />
                 <p className="mt-[10px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-                  Reviewing the people and details on this registration. Tap <span className="font-bold text-[#a8843e]">Edit</span> to change your group, guardians, or details.
+                  Reviewing the people and details on this registration. Tap <span className="font-bold text-[#a8843e]" {...tx('Edit')} /> to change your group, guardians, or details.
                 </p>
               </div>
             ) : (
               <div data-tour="add-people-section" className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-                <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                  Add People to group
-                </p>
+                <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Add People to group')} />
                 <div className="mt-[16px] flex items-center gap-[10px]">
                   <div className={`group relative h-[48px] flex-1 overflow-clip rounded-[12px] border border-solid bg-[#fbfbfb] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12 ${itsError ? 'border-[#e53e3e]' : 'border-[#e7dfc9] hover:border-[#d6cbab]'}`}>
                     <input
                       value={itsInput}
                       onChange={(e) => handleItsChange(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch() } }}
-                      inputMode="numeric" maxLength={8} placeholder="Enter 8-digit ITS ID"
-                      className="absolute left-[13px] right-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] leading-normal text-[#23302a] outline-none placeholder:text-[#9aa39d]"
+                      inputMode="numeric" maxLength={8} placeholder={t('Enter 8-digit ITS ID')}
+                      className="absolute start-[13px] end-[13px] top-1/2 -translate-y-1/2 bg-transparent text-[15px] leading-normal text-[#23302a] outline-none placeholder:text-[#9aa39d]"
                       style={{ fontFamily: FONT_SANS, fontWeight: 400 }}
                     />
                   </div>
@@ -975,19 +970,13 @@ export default function AddPeople() {
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
 
             {/* scrollable content */}
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
-              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                {miqaat.title}
-              </h1>
-              <p className="mt-[6px] text-[15px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-                Family &amp; Group Allocation
-              </p>
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
+              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tdAuthored(miqaat.title)} />
+              <p className="mt-[6px] text-[15px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} {...tx('Family & Group Allocation')} />
 
               {/* Your family */}
               <div className="mt-[18px] flex items-center justify-between gap-[12px]">
-                <p className="text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                  Your family
-                </p>
+                <p className="text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Your family')} />
                 {editCta}
               </div>
               <div data-tour="family-table" className="mt-[14px]">
@@ -1003,7 +992,7 @@ export default function AddPeople() {
                         dimmed={!!memberBlockedReason(m, flow.guardians, flow.caregivers)}
                         onToggle={() => tryToggleMember(m)}
                         name={m.name}
-                        meta={`${m.relation} · ${m.gender} · Age ${age2(m.age)} · ITS ${m.its}`}
+                        meta={`${tdText(m.relation)} · ${tdText(m.gender)} · ${t('Age')} ${age2(m.age)} · ${t('ITS')} ${m.its}`}
                         isLast={idx === desktopFamily.length - 1}
                         status={
                           strip
@@ -1020,9 +1009,7 @@ export default function AddPeople() {
                   the Invite Mehmaan page appear in the "Invited Mehmaan" section below, with status.) */}
               {otherInvites.length > 0 && (
                 <>
-                  <p className="mt-[28px] text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                    Group
-                  </p>
+                  <p className="mt-[28px] text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Group')} />
                   <div className="mt-[14px]">
                     <MembersTableShell selectAllChecked={othersAllChecked} onSelectAll={toggleAllOthers}>
                       {otherInvites.map((inv, idx) => {
@@ -1031,7 +1018,7 @@ export default function AddPeople() {
                           <DesktopRow
                             key={inv.its}
                             name={inv.name}
-                            meta={`${gender ? `${gender} · ` : ''}Age ${age2(inv.age)} · ITS ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
+                            meta={`${gender ? `${gender} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
                             isLast={idx === otherInvites.length - 1}
                             status={
                               <div className="flex items-center justify-end gap-[10px]">
@@ -1050,9 +1037,7 @@ export default function AddPeople() {
               {/* Invited Mehmaan — guests invited from the Invite Mehmaan page, with live status. */}
               {mehmaanInvites.length > 0 && (
                 <>
-                  <p className="mt-[28px] text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
-                    Invited Mehmaan
-                  </p>
+                  <p className="mt-[28px] text-[20px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }} {...tx('Invited Mehmaan')} />
                   <div className="mt-[14px]">
                     <MembersTableShell>
                       {mehmaanInvites.map((inv, idx) => {
@@ -1061,7 +1046,7 @@ export default function AddPeople() {
                           <DesktopRow
                             key={inv.its}
                             name={inv.name}
-                            meta={`${gender ? `${gender} · ` : ''}Age ${age2(inv.age)} · ITS ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
+                            meta={`${gender ? `${gender} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
                             isLast={idx === mehmaanInvites.length - 1}
                             status={<div className="flex justify-end"><StatusPill status={inv.status} /></div>}
                           />
@@ -1093,7 +1078,7 @@ export default function AddPeople() {
 
       {/* ── success toast (shared) ── */}
       {toast && (
-        <div className="fixed bottom-[110px] left-[16px] right-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#1f5a44] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(21,64,47,0.3)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>
@@ -1108,7 +1093,7 @@ export default function AddPeople() {
 
       {/* ── validation / blocked-selection error toast (shared) ── */}
       {err && (
-        <div className="fixed bottom-[110px] left-[16px] right-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>
@@ -1125,7 +1110,7 @@ export default function AddPeople() {
       {/* ── assign sheet: bottom sheet on mobile, centered modal on desktop (shared) ── */}
       {sheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" data-name="AssignSheet">
-          <button type="button" aria-label="Close" onClick={closeSheet} className="absolute inset-0 bg-[rgba(0,0,0,0.5)]" />
+          <button type="button" aria-label={t('Close')} onClick={closeSheet} className="absolute inset-0 bg-[rgba(0,0,0,0.5)]" />
           <div className="relative flex w-full max-w-[480px] flex-col">
             <div className="relative flex max-h-[90dvh] w-full flex-col overflow-clip rounded-tl-[30px] rounded-tr-[30px] bg-white sm:max-h-[85vh] sm:rounded-[24px]">
               {/* Header — fixed */}
@@ -1141,7 +1126,7 @@ export default function AddPeople() {
                   For {sheet.dependent.name}
                 </p>
                 <p className="mt-[5px] text-[14px] leading-[18px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-                  {sheet.dependent.relation} · {sheet.dependent.gender} · Age {age2(sheet.dependent.age)} · Choose an adult family member
+                  {tdText(sheet.dependent.relation)} · {tdText(sheet.dependent.gender)} · {t('Age')} {age2(sheet.dependent.age)} · Choose an adult family member
                 </p>
               </div>
               {/* Body — scrolls only if the list is long */}
@@ -1152,13 +1137,13 @@ export default function AddPeople() {
                     const isCurrent = a.id === currentAssignedId
                     return (
                       <button key={a.id} type="button" onClick={() => setPick(a.id)}
-                        className={`flex min-h-[61px] w-full items-center gap-[10px] rounded-[12px] border border-solid px-[11px] py-[8px] text-left sm:transition-colors ${
+                        className={`flex min-h-[61px] w-full items-center gap-[10px] rounded-[12px] border border-solid px-[11px] py-[8px] text-start sm:transition-colors ${
                           active ? 'border-[#1f5a44] bg-[#eef6f1]' : 'border-[#fcf5df] bg-white sm:hover:border-[#e7dfc9] sm:hover:bg-[#fdfbf4]'
                         }`}>
                         <img src={active ? RADIO_ON : RADIO_OFF} alt="" className="size-[24px] shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[2px]">
-                            <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{a.name}</p>
+                            <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(a.name)} />
                             {isCurrent && (
                               <span className="rounded-full bg-[#e4efe7] px-[8px] py-[2px] text-[11px] font-bold text-[#276245]" style={{ fontFamily: FONT_SANS }}>
                                 Current {sheet.kind === 'guardian' ? 'Guardian' : 'Caregiver'}
@@ -1166,7 +1151,7 @@ export default function AddPeople() {
                             )}
                           </div>
                           <p className="text-[12px] leading-[18px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-                            {a.relation} · {a.gender} · Age {age2(a.age)} · ITS {a.its}
+                            {isolateRuns(`${tdText(a.relation)} · ${tdText(a.gender)} · ${t('Age')} ${age2(a.age)} · ${t('ITS')} ${a.its}`)}
                           </p>
                         </div>
                         {a.role === 'registrant' && <RoleBadge badge="registrant" />}

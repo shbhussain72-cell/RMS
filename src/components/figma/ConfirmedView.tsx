@@ -1,7 +1,9 @@
 import StickyFooter from './StickyFooter'
+import { isolateRuns } from '../Bidi'
 import RoleBadge from './RoleBadge'
 import type { Group } from '../../lib/group'
 import { genderByIts } from '../../data/seed'
+import { useT, tNow } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -9,9 +11,13 @@ const SERIF = 'Marcellus, Georgia, serif'
 const initials = (name: string) =>
   name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('')
 
+// Module scope, so `useT()` is unavailable — see the note on tNow in src/i18n.
+// relation and gender are DATA and go through the lookup too; the age and ITS digits
+// are left alone and stay LTR via the numeric CSS rule.
 const familyMeta = (relation: string, age: number, its: string) => {
   const g = genderByIts(its)
-  return `${relation} · ${g ? `${g} · ` : ''}Age ${String(age).padStart(2, '0')} · ITS ${its}`
+  const rel = relation ? `${tNow(relation)} · ` : ''
+  return isolateRuns(`${rel}${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`)
 }
 
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
@@ -43,6 +49,7 @@ function PinIcon({ size = 16 }: { size?: number }) {
 /** Right-panel member table — Member | (badge) | status, grouped by reserve-together bands.
  *  When `statusText` is set the rows show that "… – Not Allocated" status instead of the Raza pill. */
 function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusText?: string }) {
+  const { td } = useT()
   const statusHeader = statusText ? 'Status' : 'Raza Status'
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
@@ -53,7 +60,7 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {['Member', '', statusHeader].map((h, i) => (
-              <th key={i} className="px-[16px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={i} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -82,12 +89,12 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
                   <tr key={mm.member.id} style={{ borderTop: linked ? undefined : '1px solid #e7dfc9', background: 'white' }}>
                     <td className="relative px-[16px] py-[9px] align-middle">
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[33px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member.relation, mm.member.age, mm.member.its)}</p>
                         </div>
                       </div>
@@ -223,7 +230,8 @@ export default function ConfirmedView({
   footerCaption: string
   reference?: string
   infoLabel: string
-  infoValue: string
+  /** ReactNode, not string: dates/times arrive pre-formatted and bidi-isolated. */
+  infoValue: React.ReactNode
   membersAllocated: number
   sections: ConfirmedSection[]
   /** Render the amber notice below the table when members remain unallocated. */
@@ -239,17 +247,18 @@ export default function ConfirmedView({
   countLabel?: string
   footerNoun?: string
 }) {
+     const { tx } = useT()
   return (
     <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
       {/* ───── LEFT sidebar ───── */}
-      <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] pt-[24px] pb-[40px] pl-[var(--content-px)] pr-[28px]">
+      <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] pt-[24px] pb-[40px] ps-[var(--content-px)] pe-[28px]">
         {/* Confirmed screens go Home (not the previous step). */}
         <button type="button" onClick={onBack}
           className="group flex w-fit items-center gap-[6px] text-[#5a6660] transition-colors hover:text-[#15402f] focus-visible:outline-none">
           <svg viewBox="0 0 24 24" className="size-[18px] transition-transform duration-200 group-hover:-translate-y-[1px]" fill="none" aria-hidden="true">
             <path d="M4 11.5L12 4l8 7.5M6 10v9h12v-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[15px] leading-none" style={{ fontFamily: FONT, fontWeight: 600 }}>Go Home</span>
+          <span className="text-[15px] leading-none" style={{ fontFamily: FONT, fontWeight: 600 }} {...tx('Go Home')} />
         </button>
 
         <div className="mt-[36px] flex flex-col items-center">
@@ -282,7 +291,7 @@ export default function ConfirmedView({
 
       {/* ───── RIGHT panel ───── */}
       <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-        <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+        <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
           {sections.map((s, i) => (
             <div key={i} className={i === 0 ? '' : 'mt-[28px]'}>
               <div className="mb-[12px] flex flex-wrap items-center gap-x-[8px] gap-y-[4px]">
@@ -299,7 +308,7 @@ export default function ConfirmedView({
             <div className="mt-[28px]">
               <div className="mb-[12px] flex items-center gap-[8px]">
                 <ClockIcon size={18} color="#8a5a1a" />
-                <span className="text-[18px] font-bold text-[#8a5a1a]" style={{ fontFamily: FONT }}>Opening later</span>
+                <span className="text-[18px] font-bold text-[#8a5a1a]" style={{ fontFamily: FONT }} {...tx('Opening later')} />
                 <span className="text-[14px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {opensLater.length} member{opensLater.length > 1 ? 's' : ''}</span>
               </div>
               <div className="flex flex-col gap-[10px]">

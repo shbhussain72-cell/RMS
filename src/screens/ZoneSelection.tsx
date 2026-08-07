@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { Iso, isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
@@ -16,6 +17,8 @@ import StepIndicator from '../components/figma/StepIndicator'
 import ConfirmedView, { UnallocatedNotice, notAllocatedLabel } from '../components/figma/ConfirmedView'
 import Toast, { useToast } from '../components/figma/Toast'
 import { useStore } from '../store'
+import { useT, tNow } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -36,8 +39,8 @@ function familyMeta(m: FamilyMember) {
   // Prefer the member's own gender (invited Mehmaan/Others carry it); genderByIts knows only family.
   // Invited primaries have a blank relation, so omit the leading tag for them.
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(m.age).padStart(2, '0')} · ITS ${m.its}`
-  return m.relation ? `${m.relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
@@ -96,6 +99,7 @@ function InfoIcon({ color = '#b23b3b' }: { color?: string }) {
  *  `notValidForCity` are excluded before reaching here — they're globally blocked, so there's
  *  nothing to do about them on this screen. */
 function CityMissingCard({ group }: { group: Group }) {
+  const { tx, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       {group.members.map((mm, mi) => (
@@ -106,16 +110,14 @@ function CityMissingCard({ group }: { group: Group }) {
         >
           <Avatar name={mm.member.name} />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }}>
-              {mm.member.name}
-            </p>
+            <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
             <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>
               {familyMeta(mm.member)}
             </p>
           </div>
           <span className="inline-flex shrink-0 items-center gap-[6px] text-[12px] font-bold text-[#b23b3b]" style={{ fontFamily: FONT }}>
             <InfoIcon />
-            No city selected
+            <span {...tx('No city selected')} />
           </span>
         </div>
       ))}
@@ -174,6 +176,7 @@ function ZoneHCard({
 }: {
   zone: Zone; selected: boolean; onSelect: () => void
 }) {
+     const { td } = useT()
   const left = zone.capacity - zone.filled
   const isFull = left <= 0
   return (
@@ -188,9 +191,7 @@ function ZoneHCard({
         cursor: isFull ? 'not-allowed' : 'pointer',
       }}
     >
-      <span className="text-[14px] leading-[18px] text-[#23302a] text-left font-bold" style={{ fontFamily: FONT }}>
-        {zone.name}
-      </span>
+      <span className="text-[14px] leading-[18px] text-[#23302a] text-start font-bold" style={{ fontFamily: FONT }} {...td(zone.name)} />
       <span
         className="text-[13px] leading-[18px] mt-[3px] font-bold"
         style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}
@@ -209,6 +210,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
   onSelect: (z: Zone) => void
   onClose: () => void
 }) {
+     const { tx, t, td } = useT()
   const [q, setQ] = useState('')
   const list = q ? zones.filter((z) => z.name.toLowerCase().includes(q.toLowerCase())) : zones
   return (
@@ -217,11 +219,11 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
       onClose={onClose}
       header={(
         <>
-          <div className="pr-[36px]">
+          <div className="pe-[36px]">
             <span className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>All {cityName} zones</span>
           </div>
           <div className="mt-[14px] flex h-[44px] items-center gap-[10px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[14px]">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search zones..."
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search zones...')}
               className="flex-1 bg-transparent text-[14px] text-[#23302a] outline-none placeholder-[#b0b8b3]" style={{ fontFamily: FONT }} />
             <svg viewBox="0 0 20 20" fill="none" className="size-[18px] shrink-0 text-[#8a938e]">
               <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
@@ -238,16 +240,16 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
           const selected = z.id === activeZoneId
           return (
             <button key={z.id} type="button" onClick={() => { if (!isFull) { onSelect(z); onClose() } }}
-              className="flex w-full items-center justify-between rounded-[14px] border px-[16px] py-[14px] text-left"
+              className="flex w-full items-center justify-between rounded-[14px] border px-[16px] py-[14px] text-start"
               style={{ borderColor: selected ? '#d9c98a' : '#e7dfc9', background: selected ? '#fffdf5' : 'white', opacity: isFull ? 0.5 : 1, cursor: isFull ? 'not-allowed' : 'pointer' }}>
-              <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }}>{z.name}</span>
+              <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(z.name)} />
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f7a4d' }}>
                 {isFull ? 'Full' : `${left} left`}
               </span>
             </button>
           )
         })}
-        {list.length === 0 && <p className="px-[4px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No zones found.</p>}
+        {list.length === 0 && <p className="px-[4px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No zones found.')} />}
       </div>
     </BottomSheet>
   )
@@ -258,6 +260,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
 /** Green "Reserved" pill + a separate remove ✕ — the zone name is shown in its own column/row, so
  *  the pill only carries the status (mirrors City Selection's Action-column Reserved pill). */
 function ReservedZonePill({ onRemove, full = false, isRequest = false }: { onRemove: () => void; full?: boolean; isRequest?: boolean }) {
+  const { t } = useT()
   return (
     <div className={`flex items-center gap-[10px] ${full ? 'w-full justify-between' : ''}`}>
       <span className={`inline-flex h-[34px] w-fit items-center gap-[6px] rounded-full border px-[14px] text-[13px] font-bold ${isRequest ? 'border-[#f0d9a8] bg-[#fdf1dc] text-[#a9740f]' : 'border-[#bfe3cd] bg-[#eef7f1] text-[#1f7a4d]'}`} style={{ fontFamily: FONT }}>
@@ -274,7 +277,7 @@ function ReservedZonePill({ onRemove, full = false, isRequest = false }: { onRem
         )}
         {isRequest ? 'Requested' : 'Selected'}
       </span>
-      <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Remove reservation"
+      <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label={t('Remove reservation')}
         className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
         <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
       </button>
@@ -299,20 +302,21 @@ function ReserveZoneButton({ activeZone, onReserve, full = false, isRequest = fa
 /** "You missed your turn" card — shown when the zone booking window has closed (reached via Ask Help
  *  to file a request). Mirrors City Selection's SlotClosedCard. */
 function SlotClosedCard() {
+  const { tx, t } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#eccfca] bg-[#fbeeec]">
       <div className="px-[18px] pt-[16px] pb-[14px]">
         <span className="inline-flex items-center rounded-full bg-[#a2382c] px-[12px] py-[5px]">
-          <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white" style={{ fontFamily: FONT }}>Phase 1 · Slot Closed</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.7px] text-white" style={{ fontFamily: FONT }} {...tx('Phase 1 · Slot Closed')} />
         </span>
-        <p className="mt-[12px] text-[18px] font-bold leading-[24px] text-[#15402f]" style={{ fontFamily: FONT }}>You missed your turn</p>
-        <p className="mt-[6px] text-[14px] leading-[20px] text-[#8a7975]" style={{ fontFamily: FONT }}>
-          Your Jamaat&apos;s booking time is over. You can book again in Round 2, open for everyone.
-        </p>
+        <p className="mt-[12px] text-[18px] font-bold leading-[24px] text-[#15402f]" style={{ fontFamily: FONT }} {...tx('You missed your turn')} />
+        <p className="mt-[6px] text-[14px] leading-[20px] text-[#8a7975]" style={{ fontFamily: FONT }} {...tx('Your Jamaat\'s booking time is over. You can book again in Round 2, open for everyone.')} />
       </div>
       <div className="h-px bg-[#eccfca]" />
       <p className="px-[18px] py-[13px] text-[14px] leading-[20px] text-[#5a4f4c]" style={{ fontFamily: FONT }}>
-        <strong className="font-bold text-[#3a2f2d]">Phase 2</strong> starts Fri, 20 · 6:00 PM.
+        <strong className="font-bold text-[#3a2f2d]" {...tx('Phase 2')} />{' '}
+        <span {...tx('starts')} />{' '}
+        <Iso>{t('Fri')}, 20</Iso>{' · '}<TimeLine value="6:00 PM" />.
       </p>
     </div>
   )
@@ -329,6 +333,7 @@ function SwapZonePill({ currentZoneName, targetZoneName, onSwap, onRemove, full 
   onRemove: () => void
   full?: boolean
 }) {
+     const { t } = useT()
   return (
     <div className={`flex flex-col gap-[6px] ${full ? 'w-full' : ''}`}>
       <div className={`flex items-center gap-[8px] ${full ? 'w-full' : ''}`}>
@@ -338,7 +343,7 @@ function SwapZonePill({ currentZoneName, targetZoneName, onSwap, onRemove, full 
           <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="truncate">Swap to {targetZoneName}</span>
         </button>
-        <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Cancel reservation"
+        <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label={t('Cancel reservation')}
           className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
           <svg viewBox="0 0 20 20" fill="none" className="size-[15px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
@@ -357,7 +362,7 @@ function ZoneBulkActionPill({ kind, destName, onClick }: { kind: 'reserve' | 're
   if (kind === 'swap') {
     return (
       <button type="button" onClick={onClick}
-        className="ml-auto inline-flex h-[32px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[14px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
+        className="ms-auto inline-flex h-[32px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[14px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
         style={{ fontFamily: FONT }}>
         <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
         <span className="truncate">Swap all{destName ? ` to ${destName}` : ''}</span>
@@ -366,7 +371,7 @@ function ZoneBulkActionPill({ kind, destName, onClick }: { kind: 'reserve' | 're
   }
   return (
     <button type="button" onClick={onClick}
-      className={`ml-auto flex h-[32px] shrink-0 items-center justify-center rounded-full px-[14px] text-[13px] font-bold transition-colors ${
+      className={`ms-auto flex h-[32px] shrink-0 items-center justify-center rounded-full px-[14px] text-[13px] font-bold transition-colors ${
         kind === 'remove'
           ? 'border border-[#e0b0aa] bg-white text-[#c0392b] hover:bg-[#fdf3f2]'
           : 'bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[#194a37] shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] reserve-all-glow'
@@ -404,6 +409,7 @@ function AllocateGroupCard({
   /** Missed-deadline / closed-window flow — CTA files a request ("Request {zone}") + "Requested" pill. */
   isRequest?: boolean
 }) {
+     const { tx, td } = useT()
   const linked = !!group.label
   const isAssigned = assignedZone !== null
   return (
@@ -431,14 +437,12 @@ function AllocateGroupCard({
             className={`relative flex items-center gap-[10px] px-[13px] py-[10px] ${autoAllocated ? 'cursor-default' : 'cursor-pointer'}`}
             style={{ background: !isAssigned && memberChecked(mm.member.id) ? '#fbf7ec' : undefined }}>
             {linked && group.members.length > 1 && (
-              <span className="pointer-events-none absolute left-[31px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[31px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
             )}
             <div className="relative flex min-w-0 flex-1 items-center gap-[10px]">
               <Avatar name={mm.member.name} />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }}>
-                  {mm.member.name}
-                </p>
+                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                 <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>
                   {familyMeta(mm.member)}
                 </p>
@@ -457,8 +461,8 @@ function AllocateGroupCard({
         ) : assignedZone ? (
           <div className="flex items-center justify-between gap-[8px]">
             <div className="min-w-0">
-              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>Zone</p>
-              <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{assignedZone.name}</p>
+              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Zone')} />
+              <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedZone.name)} />
             </div>
             {autoAllocated ? (
               <span className="inline-flex shrink-0 items-center gap-[6px] rounded-full border border-[#bfe3cd] bg-[#eef7f1] px-[14px] py-[7px] text-[13px] font-bold text-[#1f7a4d]" style={{ fontFamily: FONT }}>
@@ -466,7 +470,7 @@ function AllocateGroupCard({
                   <circle cx="9" cy="9" r="7.25" stroke="#1f7a4d" strokeWidth="1.4" />
                   <path d="M5.6 9.2l2.2 2.2 4.4-4.6" stroke="#1f7a4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Auto-allocated
+                <span {...tx('Auto-allocated')} />
               </span>
             ) : (
               <ReservedZonePill onRemove={onRemove} isRequest={isRequest} />
@@ -496,6 +500,7 @@ function WhosWhereSheet({
   cityName: string
   totalMembers: number
 }) {
+     const { tx, td } = useT()
   const totalAllocated = [...groupZoneMap.entries()].reduce(
     (sum, [gIdx]) => sum + groups[gIdx].members.length, 0
   )
@@ -513,10 +518,8 @@ function WhosWhereSheet({
       onClose={onClose}
       header={(
         <>
-          <div className="pr-[36px]">
-            <h2 className="text-[18px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-              Who's in which zone
-            </h2>
+          <div className="pe-[36px]">
+            <h2 className="text-[18px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Who\'s in which zone')} />
           </div>
           <p className="text-[12px] text-[#8a938e] mt-[2px]" style={{ fontFamily: FONT }}>
             placed {totalAllocated} of {totalMembers}
@@ -533,9 +536,7 @@ function WhosWhereSheet({
     >
       <div className="flex flex-col gap-[14px]">
         {byZone.size === 0 ? (
-          <p className="text-[13px] text-[#8a938e] py-[12px] text-center" style={{ fontFamily: FONT }}>
-            No members allocated yet. Select a zone and check members above.
-          </p>
+          <p className="text-[13px] text-[#8a938e] py-[12px] text-center" style={{ fontFamily: FONT }} {...tx('No members allocated yet. Select a zone and check members above.')} />
         ) : (
           [...byZone.values()].map(({ zone, groupIndices }) => {
             const zoneMembers = groupIndices.flatMap((i) => groups[i].members)
@@ -552,9 +553,7 @@ function WhosWhereSheet({
                       className="flex items-center justify-between rounded-[10px] border border-[#e7dfc9] px-[12px] py-[8px]"
                     >
                       <div>
-                        <p className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-                          {mm.member.name}
-                        </p>
+                        <p className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                         <p className="text-[11px] text-[#8a938e] mt-[1px]" style={{ fontFamily: FONT }}>
                           {familyMeta(mm.member)}
                         </p>
@@ -575,6 +574,7 @@ function WhosWhereSheet({
 // ── Success – group card (mobile) ─────────────────────────────────────────────
 
 function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: string }) {
+  const { td } = useT()
   const linked = !!group.label
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
@@ -590,14 +590,12 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
         {group.members.map((mm, mi) => (
           <div key={mm.member.id} className="relative flex items-center gap-[10px] px-[13px] py-[10px]">
             {linked && group.members.length > 1 && (
-              <span className="pointer-events-none absolute left-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
+              <span className="pointer-events-none absolute start-[30px] w-[2px] bg-[#fac775]" style={{ top: mi === 0 ? '50%' : 0, bottom: mi === group.members.length - 1 ? '50%' : 0 }} />
             )}
             <div className="relative flex min-w-0 flex-1 items-center gap-[10px]">
               <Avatar name={mm.member.name} />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }}>
-                  {mm.member.name}
-                </p>
+                <p className="text-[14px] font-bold text-[#23302a] leading-[18px]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                 <p className="text-[12px] text-[#5a6660] mt-[2px]" style={{ fontFamily: FONT }}>
                   {familyMeta(mm.member)}
                 </p>
@@ -647,7 +645,7 @@ function MembersChip({ count }: { count: number }) {
 function CityTabCard({ name, count, active, onClick, type }: { name: string; count: number; active: boolean; onClick: () => void; type?: 'host' | 'relay' }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex flex-col items-start rounded-[12px] px-[12px] py-[10px] text-left transition-all duration-200"
+      className="flex flex-col items-start rounded-[12px] px-[12px] py-[10px] text-start transition-all duration-200"
       style={{ border: active ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: active ? '#fffdf5' : 'white' }}>
       <span className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{name}</span>
       <span className="mt-[3px] inline-flex items-center gap-[4px] text-[12px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }}>
@@ -660,13 +658,14 @@ function CityTabCard({ name, count, active, onClick, type }: { name: string; cou
 
 /** Sidebar zone grid cell — zone name + "N left", selected / full states. */
 function ZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: boolean; onClick: () => void }) {
+  const { td } = useT()
   const left = zone.capacity - zone.filled
   const isFull = left <= 0
   return (
     <button type="button" disabled={isFull} onClick={!isFull ? onClick : undefined}
-      className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-left transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
+      className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
       style={{ border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: selected ? '#fffdf5' : isFull ? '#f6f6f4' : 'white', cursor: isFull ? 'not-allowed' : 'pointer', minHeight: 64 }}>
-      <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }}>{zone.name}</span>
+      <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(zone.name)} />
       <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}>{isFull ? 'Full' : `${left} left`}</span>
     </button>
   )
@@ -690,10 +689,11 @@ function ZoneSidebarCard({
    *  RelaySidebarCard header treatment, not a separate row above the page). */
   bulkAction?: { kind: 'reserve' | 'remove' | 'swap'; destName?: string; onClick: () => void }
 }) {
+     const { tx, t } = useT()
   const filtered = search ? zones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase())) : zones
   return (
     <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-      <p className="text-[18px] leading-[24px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Members allocated cities</p>
+      <p className="text-[18px] leading-[24px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Members allocated cities')} />
       <div className="mt-[14px] grid grid-cols-3 gap-[10px]">
         {cityTabs.map((t, i) => (
           <CityTabCard key={t.id} name={t.name} count={t.memberCount} type={t.type} active={activeCityTab === i} onClick={() => onSelectTab(i)} />
@@ -706,14 +706,14 @@ function ZoneSidebarCard({
         {bulkAction && <ZoneBulkActionPill kind={bulkAction.kind} destName={bulkAction.destName} onClick={bulkAction.onClick} />}
       </div>
       <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
-        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder="Search zone names..." className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
+        <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search zone names...')} className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />
         <svg viewBox="0 0 20 20" fill="none" className="size-[18px] shrink-0 text-[#8a938e]"><circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" /><path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </div>
-      <div className="mt-[14px] grid max-h-[42vh] grid-cols-2 gap-[10px] overflow-y-auto pr-[4px]">
+      <div className="mt-[14px] grid max-h-[42vh] grid-cols-2 gap-[10px] overflow-y-auto pe-[4px]">
         {filtered.map((z) => (
           <ZoneGridCard key={z.id} zone={z} selected={z.id === activeZoneId} onClick={() => onSelectZone(z)} />
         ))}
-        {filtered.length === 0 && <p className="col-span-2 py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>No zones found.</p>}
+        {filtered.length === 0 && <p className="col-span-2 py-[12px] text-center text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No zones found.')} />}
       </div>
     </div>
   )
@@ -752,6 +752,7 @@ function ZoneBrowseDesktopTable({
    *  button is redundant, so show a muted dash instead (mirrors City Selection's Action column). */
   hideReserveCta?: boolean
 }) {
+     const { td } = useT()
   return (
     <div className={`overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white ${disabled ? 'pointer-events-none' : ''}`}>
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -764,7 +765,7 @@ function ZoneBrowseDesktopTable({
         <thead>
           <tr style={{ background: '#faf8f2' }}>
             {['Member', '', 'Zone', 'Action'].map((h, i) => (
-              <th key={i} className="px-[14px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -794,12 +795,12 @@ function ZoneBrowseDesktopTable({
                     className={`${auto ? 'cursor-default bg-white' : `cursor-pointer ${memberChecked(gi, mm.member.id) ? 'bg-[#fdf8ec]' : 'bg-white hover:bg-[#faf9f4]'}`}`} style={{ borderTop: linked ? undefined : '1px solid #f0ebe0' }}>
                     <td className="relative px-[14px] py-[9px] align-middle">
                       {hasConnector && (
-                        <span className="pointer-events-none absolute left-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                        <span className="pointer-events-none absolute start-[31px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
                       )}
                       <div className="relative flex items-center gap-[10px]">
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(mm.member)}</p>
                         </div>
                       </div>
@@ -814,7 +815,7 @@ function ZoneBrowseDesktopTable({
                           {assigned ? (
                             <div className="flex flex-col gap-[2px]">
                               {cityName && <span className="text-[12px] leading-[15px] text-[#8a938e]" style={{ fontFamily: FONT }}>{cityName}</span>}
-                              <span className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{assigned.name}</span>
+                              <span className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assigned.name)} />
                             </div>
                           ) : (
                             <span className="text-[14px] text-[#c2ccc6]" style={{ fontFamily: FONT }}>—</span>
@@ -863,7 +864,7 @@ function ZoneBrowseDesktopTable({
 function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null }) {
   if (!tip) return null
   return (
-    <div className="pointer-events-none fixed bottom-[128px] right-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
+    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
       <div
         className={`flex max-w-[calc(100vw-32px)] items-center gap-[9px] rounded-full px-[16px] py-[10px] ${tip.phase === 'in' ? 'reserve-tip-in' : 'reserve-tip-out'}`}
         style={{ background: '#1f5a44', boxShadow: '0 12px 30px -8px rgba(21,64,47,0.5)' }}
@@ -881,6 +882,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function ZoneSelection() {
+  const { tx, t, td } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Ask-Help-from-detail returns to the event's detail page after a request, else Home.
@@ -1329,11 +1331,11 @@ export default function ZoneSelection() {
         {/* ═══════════════════════ DESKTOP — two-panel confirmed ═══════════════════════ */}
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
-            title="Zone Confirmed"
+            title={t('Zone Confirmed')}
             footerCaption="Zone confirmed"
             reference={flow.referenceNumber ?? 'MIQ-23106'}
             infoLabel="Raza issues on"
-            infoValue="15 June 2026, 09:00 AM IST"
+            infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated || totalMembers}
             sections={confirmedSections}
             unallocatedNotice={unallocatedNotice}
@@ -1354,7 +1356,7 @@ export default function ZoneSelection() {
           <svg viewBox="0 0 16 16" fill="none" className="size-[14px]">
             <path d="M2.5 7.5L8 2.5l5.5 5M4 6.5V13h8V6.5" stroke="#5a6660" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[13px] font-medium text-[#5a6660]">Go Home</span>
+          <span className="text-[13px] font-medium text-[#5a6660]" {...tx('Go Home')} />
         </button>
 
         {/* Checkmark + Title */}
@@ -1364,15 +1366,13 @@ export default function ZoneSelection() {
               <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-[26px] leading-[34px] text-[#1f5a44]" style={{ fontFamily: SERIF }}>
-            Zone Confirmed
-          </h1>
+          <h1 className="text-[26px] leading-[34px] text-[#1f5a44]" style={{ fontFamily: SERIF }} {...tx('Zone Confirmed')} />
         </div>
 
         {/* Info rows */}
         <div className="mx-[16px] sm:mx-0 overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white mb-[20px]">
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Registration status</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Registration status')} />
             <span
               className="inline-flex items-center gap-[5px] rounded-full px-[10px] py-[3px] text-[11px] font-bold"
               style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}
@@ -1384,11 +1384,11 @@ export default function ZoneSelection() {
           <div className="flex items-center justify-between px-[14px] py-[12px] border-b border-[#f0ebe0]">
             <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Raza issues on</span>
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-              15 June 2026, 09:00 AM IST
+              <DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" />
             </span>
           </div>
           <div className="flex items-center justify-between px-[14px] py-[12px]">
-            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>Members allocated</span>
+            <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Members allocated')} />
             <span className="text-[13px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
               {String(totalMembers).padStart(2, '0')}
             </span>
@@ -1470,9 +1470,7 @@ export default function ZoneSelection() {
             onClick={() => setShowWhosWhere(true)}
             className="flex items-center gap-[5px] rounded-full border border-[#23302a] px-[12px] h-[32px]"
           >
-            <span className="text-[12px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-              Who's in which zone
-            </span>
+            <span className="text-[12px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Who\'s in which zone')} />
             <svg viewBox="0 0 16 16" fill="none" className="size-[10px]">
               <path d="M4 10l4-4 4 4" stroke="#23302a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -1507,14 +1505,11 @@ export default function ZoneSelection() {
       {/* Title */}
       <h1
         className="mx-[16px] sm:mx-0 text-[22px] leading-[30px] text-[#15402f] mb-[16px]"
-        style={{ fontFamily: SERIF }}
-      >
-        Zone Selection
-      </h1>
+        style={{ fontFamily: SERIF }} {...tx('Zone Selection')} />
 
       {/* City tabs (horizontal scroll) */}
       <div
-        className="overflow-x-auto pl-[16px] sm:pl-0 pr-[16px] mb-[18px]"
+        className="overflow-x-auto ps-[16px] sm:pl-0 pe-[16px] mb-[18px]"
         style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
       >
         <div className="flex gap-[10px] w-max">
@@ -1536,15 +1531,13 @@ export default function ZoneSelection() {
         <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
           {cityTabs[activeCityTab]?.name} zones
         </p>
-        <button type="button" onClick={() => setShowAllZones(true)} className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>
-          View all →
-        </button>
+        <button type="button" onClick={() => setShowAllZones(true)} className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('View all →')} />
       </div>
 
       {/* Zone cards (horizontal scroll) */}
       <div
         data-tour="zone-list"
-        className="overflow-x-auto pl-[16px] sm:pl-0 pr-[16px] mb-[14px]"
+        className="overflow-x-auto ps-[16px] sm:pl-0 pe-[16px] mb-[14px]"
         style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
       >
         <div className="flex gap-[10px] w-max">
@@ -1605,12 +1598,10 @@ export default function ZoneSelection() {
         </svg>
         {activeZone ? (
           <p className="text-[13px] font-semibold leading-[18px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-            Selected zone <strong className="font-bold text-[#1f5a44]">{activeZone.name}</strong> — select members below
+            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> — select members below
           </p>
         ) : (
-          <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-            Select a zone above to start allocating your members
-          </p>
+          <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }} {...tx('Select a zone above to start allocating your members')} />
         )}
       </div>
       </div>{/* end sticky action bar */}
@@ -1632,7 +1623,7 @@ export default function ZoneSelection() {
               <div key={tab.id} className="flex flex-col gap-[10px]">
                 <CityHeader name={tab.name} type={tab.type} count={tab.memberCount} />
                 {dimmed && (
-                  <p className="text-[12px] font-semibold text-[#a8843e]" style={{ fontFamily: FONT }}>Select this city to choose a zone for them</p>
+                  <p className="text-[12px] font-semibold text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Select this city to choose a zone for them')} />
                 )}
                 <div
                   className={isActive ? 'flex flex-col gap-[10px]' : 'flex flex-col gap-[10px] cursor-pointer'}
@@ -1687,9 +1678,7 @@ export default function ZoneSelection() {
       {/* Mobile: members still without any city (e.g. globally blocked) — surfaced, not hidden */}
       {cityUnallocatedIdx.length > 0 && (
         <div className="mx-[16px] sm:mx-0 mb-[16px] flex flex-col gap-[10px] sm:hidden">
-          <p className="text-[13px] font-bold text-[#8a938e]" style={{ fontFamily: FONT }}>
-            Not allocated to a city yet
-          </p>
+          <p className="text-[13px] font-bold text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Not allocated to a city yet')} />
           {cityUnallocatedIdx.map((gi) => (
             <CityMissingCard key={gi} group={groups[gi]} />
           ))}
@@ -1702,7 +1691,7 @@ export default function ZoneSelection() {
       <div className="hidden sm:block sm-full-bleed">
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
           {/* ───── LEFT sidebar ───── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
             <Breadcrumb
               items={[{ label: 'Home', to: '/miqaats' }, { label: 'Zone selection' }]}
               onNavigate={(to) => nav(to)}
@@ -1735,11 +1724,9 @@ export default function ZoneSelection() {
 
           {/* ───── RIGHT panel ───── */}
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
-              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }}>Zone Selection</h1>
-              <p className="mt-[6px] text-[15px] leading-[21px] text-[#6b7670]" style={{ fontFamily: FONT }}>
-                Pick a city, then a zone, then choose who to reserve.
-              </p>
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
+              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Zone Selection')} />
+              <p className="mt-[6px] text-[15px] leading-[21px] text-[#6b7670]" style={{ fontFamily: FONT }} {...tx('Pick a city, then a zone, then choose who to reserve.')} />
               <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
                 <StepIndicator
                   steps={[
@@ -1754,7 +1741,7 @@ export default function ZoneSelection() {
                   <span className="inline-flex h-[36px] items-center gap-[8px] rounded-full border px-[15px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
                     <PinIcon color="#c8842a" size={16} />
                     <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                      Selected zone <strong className="font-bold text-[#1f5a44]">{activeZone.name}</strong> — select members below
+                      Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> — select members below
                     </span>
                   </span>
                 )}
@@ -1776,7 +1763,7 @@ export default function ZoneSelection() {
                       <div key={tab.id}>
                         <CityHeader name={tab.name} type={tab.type} count={tab.memberCount} />
                         {dimmed && (
-                          <p className="mt-[5px] text-[13px] font-semibold text-[#a8843e]" style={{ fontFamily: FONT }}>Select this city to choose a zone for them</p>
+                          <p className="mt-[5px] text-[13px] font-semibold text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Select this city to choose a zone for them')} />
                         )}
                         <div
                           className={isActive ? 'mt-[14px]' : 'mt-[14px] cursor-pointer'}
@@ -1824,9 +1811,7 @@ export default function ZoneSelection() {
 
               {cityUnallocatedIdx.length > 0 && (
                 <div className="mt-[20px] flex flex-col gap-[10px]">
-                  <p className="text-[13px] font-bold text-[#8a938e]" style={{ fontFamily: FONT }}>
-                    Not allocated to a city yet
-                  </p>
+                  <p className="text-[13px] font-bold text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Not allocated to a city yet')} />
                   <div className="flex flex-col gap-[10px]">
                     {cityUnallocatedIdx.map((gi) => (
                       <CityMissingCard key={gi} group={groups[gi]} />

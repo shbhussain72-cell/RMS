@@ -1,0 +1,112 @@
+/**
+ * Static source sweeps — invariants that are cheap to state and expensive to rediscover.
+ *
+ * These complement the DOM scanner rather than duplicating it. The scanner only sees what a
+ * route actually PAINTED, so anything behind an unvisited state (an error banner, an empty
+ * list, a modal, a "Full" capacity pill) is invisible to it. A static sweep sees the literal
+ * regardless of whether the state was reachable in a headless run.
+ */
+import { describe, expect, it } from 'vitest'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { dirname, join, relative, resolve, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
+const NEWLINE = String.fromCharCode(10)
+const rel = (p) => relative(ROOT, p).split(sep).join('/')
+
+function walk(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name)
+    if (statSync(p).isDirectory()) walk(p, out)
+    else if (/\.tsx?$/.test(p) && !/\.test\.tsx?$/.test(p)) out.push(p)
+  }
+  return out
+}
+
+/** UI source only. src/data/* holds the seed strings these formatters CONSUME. */
+const uiFiles = walk(resolve(ROOT, 'src')).filter((p) => {
+  const name = rel(p)
+  return !name.startsWith('src/data/') && name !== 'src/components/Bidi.tsx' && name !== 'src/components/DateLine.tsx'
+})
+
+describe('no hard-coded clock times in UI source', () => {
+  /**
+   * A literal like `09:00 AM IST` sitting in JSX is a bidi bug waiting to happen: in an RTL
+   * paragraph the digits and the meridiem reorder into `AM IST ٠٩:٠٠`. `TimeLine`/`formatTime`
+   * exist so the time is always one LTR isolate, and a raw literal bypasses them.
+   *
+   * Allowed: the string passed TO a formatter (`<TimeLine value="09:00 AM IST" />`), a string
+   * routed through the dictionary (`tx('…2:00 PM today.')`), and prose in comments.
+   */
+  const TIME = /\b\d{1,2}:\d{2}\s*(?:AM|PM|Am|Pm|am|pm)\b/
+  /**
+   * Allowed contexts, in order: the string handed TO a formatter; a string routed through the
+   * dictionary; a comment; and a bare catalogue entry — a line that is nothing but a quoted
+   * string, as in the GUIDELINES_RULES array, whose members are passed to `tx()` at render.
+   */
+  const ALLOWED = [
+    /(?:TimeLine|DateLine)\s+value=/,
+    /\bt[dx]?\(\s*['"`]/,
+    /^\s*(?:\*|\/\/)/,
+    /^\s*['"`].*['"`],?\s*$/,
+  ]
+
+  it('routes every time through TimeLine, a formatter, or the dictionary', () => {
+    const offenders = []
+    for (const file of uiFiles) {
+      readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+        if (TIME.test(line) && !ALLOWED.some((re) => re.test(line))) {
+          offenders.push(`${rel(file)}:${i + 1}  ${line.trim().slice(0, 90)}`)
+        }
+      })
+    }
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('no LSD translations hard-coded in UI source', () => {
+  /**
+   * English mode must contain zero LSD text nodes. The way to guarantee that is for LSD copy
+   * to live ONLY in the dictionary, where the language check gates it — never inline in a
+   * screen, where nothing does.
+   *
+   * Three kinds of Arabic script are legitimate and are allowed by name below. The allowlist
+   * is deliberately explicit rather than a pattern: "some Arabic is fine" is how a leaked
+   * translation hides, so each exemption has to be argued for individually.
+   */
+  const ARABIC = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/
+
+  /** Arabic that is NOT a translation and is shown identically in both languages. */
+  const INTENTIONAL = [
+    // Qur'anic inscription on the hero cards — scripture, rendered in Arabic for every user.
+    '\u0648\u064e\u0627\u0639\u0652\u062a\u064e\u0635\u0650\u0645\u064f\u0648\u0627',
+    // U+06DE ARABIC START OF RUB EL HIZB — a decorative divider glyph, not text.
+    '\u06de',
+  ]
+
+  /** Files whose Arabic content is the feature, not a leak. */
+  const EXEMPT_FILES = new Set([
+    'src/i18n/hijri.ts',   // the Hijri month-name table
+    'src/i18n/index.tsx',  // the BIDI_MARKS character class
+    'src/i18n/domScan.ts', // the scanner's own Arabic character class
+  ])
+
+  const COMMENT = /^\s*(?:\*|\/\/)/
+
+  it('keeps LSD copy in the dictionary, not in screens', () => {
+    const offenders = []
+    for (const file of uiFiles) {
+      const name = rel(file)
+      if (EXEMPT_FILES.has(name)) continue
+      readFileSync(file, 'utf8').split(NEWLINE).forEach((line, i) => {
+        if (!ARABIC.test(line)) return
+        if (COMMENT.test(line)) return
+        if (INTENTIONAL.some((frag) => line.includes(frag))) return
+        offenders.push(`${name}:${i + 1}  ${line.trim().slice(0, 90)}`)
+      })
+    }
+    expect(offenders).toEqual([])
+  })
+})

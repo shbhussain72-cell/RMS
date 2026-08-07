@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
+import { useT } from '../i18n'
 
 /**
  * Raza letter — the actual issued letter, view only (no download affordance anywhere on this page).
@@ -11,6 +12,7 @@ import Breadcrumb from '../components/figma/Breadcrumb'
  * Registration) once Raza has been issued.
  */
 export default function RazaLetter() {
+  const { t } = useT()
   const { id } = useParams()
   const nav = useNavigate()
 
@@ -18,7 +20,7 @@ export default function RazaLetter() {
     <PhoneScreen statusTone="light">
       <AppBar notificationCount={3} />
 
-      <div className="ml-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ml-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },
@@ -32,8 +34,8 @@ export default function RazaLetter() {
 
       <div className="mx-[16px] sm:mx-0 mt-[16px] mb-[24px] flex justify-center overflow-hidden rounded-[16px] border border-[#ece4d2] bg-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)]">
         {/* Mobile-optimized crop on small screens, the full web version above the sm breakpoint. */}
-        <img src="/figma/raza-letter-mobile.jpg" alt="Raza letter" className="w-full object-contain sm:hidden" />
-        <img src="/figma/raza-letter-web.jpg" alt="Raza letter" className="hidden max-h-[85vh] w-auto object-contain sm:block" />
+        <img src="/figma/raza-letter-mobile.jpg" alt={t('Raza letter')} className="w-full object-contain sm:hidden" />
+        <img src="/figma/raza-letter-web.jpg" alt={t('Raza letter')} className="hidden max-h-[85vh] w-auto object-contain sm:block" />
       </div>
     </PhoneScreen>
   )

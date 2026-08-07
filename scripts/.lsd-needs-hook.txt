@@ -1,0 +1,47 @@
+src/chat/AskHelpChat.tsx	tx, t
+src/chat/AskHelpDock.tsx	tx, t
+src/chat/ChatItsEntry.tsx	tx, t
+src/chat/ChatMemberSelect.tsx	tx
+src/chat/QuickReplyRow.tsx	tx
+src/components/figma/AllocationGroupCard.tsx	tx
+src/components/figma/ArazCard.tsx	tx
+src/components/figma/BottomSheet.tsx	t
+src/components/figma/Breadcrumb.tsx	tx
+src/components/figma/ConfirmedView.tsx	tx
+src/components/figma/InvitationBanner.tsx	tx, t
+src/components/figma/InvitationPopup.tsx	tx, t
+src/components/figma/InvitedMembers.tsx	tx
+src/components/figma/InviteMehmaanCard.tsx	tx
+src/components/figma/InvitePopups.tsx	tx
+src/components/figma/LeaveCityConfirmSheet.tsx	tx
+src/components/figma/LogoutConfirmSheet.tsx	tx
+src/components/figma/MissedMemberSheet.tsx	tx
+src/components/figma/NotificationPanel.tsx	tx
+src/components/figma/RazaStatusCard.tsx	tx, t
+src/components/figma/VisaUploadCard.tsx	tx
+src/components/questionnaire/QuestionnaireFields.tsx	tx, t
+src/screens/AddPeople.tsx	tx, t
+src/screens/Araz.tsx	tx, t
+src/screens/ArrangeCities.tsx	tx, t
+src/screens/CityAllocation.tsx	tx
+src/screens/CitySelection.tsx	tx, t
+src/screens/EditRegistrationForm.tsx	tx
+src/screens/EventJourney.tsx	tx, t
+src/screens/HostCityMove.tsx	tx, t
+src/screens/InviteMehmaan.tsx	tx, t
+src/screens/JoinGroup.tsx	tx
+src/screens/ManageReservations.tsx	tx, t
+src/screens/MiqaatDetail.tsx	tx, t
+src/screens/MiqaatList.tsx	tx, t
+src/screens/Notifications.tsx	tx
+src/screens/PreferredCity.tsx	tx, t
+src/screens/RazaLetter.tsx	t
+src/screens/RazaView.tsx	tx
+src/screens/RegistrationQuestionnaire.tsx	tx
+src/screens/Review.tsx	tx
+src/screens/Roster.tsx	tx, t
+src/screens/Success.tsx	tx
+src/screens/ZoneAllocation.tsx	tx
+src/screens/ZoneSelection.tsx	tx, t
+src/tour/TourHelpButton.tsx	t
+src/tour/TourOverlay.tsx	tx, t

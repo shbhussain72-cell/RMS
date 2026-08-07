@@ -1,6 +1,9 @@
 import { useState, useEffect, type ReactNode } from 'react'
+import { DateLine, TimeLine } from '../components/DateLine'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { isolateRuns } from '../components/Bidi'
+import { useT, tNow } from '../i18n'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
@@ -30,8 +33,8 @@ function familyMeta(relation: string, age: number, its: string, gender?: string)
   // Gender prefers an explicit value (invited Mehmaan/Others carry it) over the family-only lookup.
   // A blank relation (an invited primary) drops the leading tag instead of showing a stray "·".
   const g = gender ?? genderByIts(its)
-  const base = `${g ? `${g} · ` : ''}Age ${String(age).padStart(2, '0')} · ITS ${its}`
-  return relation ? `${relation} · ${base}` : base
+  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
+  return isolateRuns(relation ? `${relation} · ${base}` : base)
 }
 
 /** Returns the under-10 dependent this member guards, if any (drives the "can't be left" flow). */
@@ -118,13 +121,11 @@ function Radio({ selected }: { selected: boolean }) {
 }
 
 function CurrentBadge() {
+  const { tx } = useT()
   return (
     <span
       className="shrink-0 rounded-full px-[12px] py-[4px] text-[13px] font-semibold"
-      style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }}
-    >
-      Current
-    </span>
+      style={{ background: '#e4efe7', color: '#276245', fontFamily: FONT }} {...tx('Current')} />
   )
 }
 
@@ -175,13 +176,12 @@ function MemberBlock({
   onZone: () => void
   onCancel: () => void
 }) {
+     const { t, td } = useT()
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-start gap-[8px]">
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }}>
-            {member.name}
-          </p>
+          <p className="text-[15px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }} {...td(member.name)} />
           <p className="mt-[2px] text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}>
             {familyMeta(member.relation, member.age, member.its)}
           </p>
@@ -195,9 +195,9 @@ function MemberBlock({
         </span>
       </div>
       <div className={`mt-[12px] grid gap-[8px] ${showZone ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        <ActionButton icon={<LandmarkIcon />} label="City" onClick={onCity} />
-        {showZone && <ActionButton icon={<PinIcon />} label="Zone" onClick={onZone} />}
-        <ActionButton icon={<CancelIcon />} label="Cancel" danger onClick={onCancel} />
+        <ActionButton icon={<LandmarkIcon />} label={t('City')} onClick={onCity} />
+        {showZone && <ActionButton icon={<PinIcon />} label={t('Zone')} onClick={onZone} />}
+        <ActionButton icon={<CancelIcon />} label={t('Cancel')} danger onClick={onCancel} />
       </div>
     </div>
   )
@@ -304,6 +304,7 @@ function GuardianResolution({
   secondChosen: boolean
   onSecondChoose: () => void
 }) {
+     const { td } = useT()
   const fn = firstNameOf(dependent.name)
   const assigned = !!assignedGuardianName
   return (
@@ -311,9 +312,7 @@ function GuardianResolution({
       <div className="flex items-center gap-[10px]">
         <Avatar name={dependent.name} />
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-bold text-[#23302a] leading-[20px] truncate" style={{ fontFamily: FONT }}>
-            {dependent.name}
-          </p>
+          <p className="text-[15px] font-bold text-[#23302a] leading-[20px] truncate" style={{ fontFamily: FONT }} {...td(dependent.name)} />
           <p className="mt-[2px] text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}>
             {familyMeta(dependent.relation, dependent.age, dependent.its)}
           </p>
@@ -353,7 +352,7 @@ function GuardianResolution({
       <button
         type="button"
         onClick={onSecondChoose}
-        className="mt-[10px] flex w-full items-start gap-[10px] rounded-[12px] px-[12px] py-[12px] text-left transition-colors"
+        className="mt-[10px] flex w-full items-start gap-[10px] rounded-[12px] px-[12px] py-[12px] text-start transition-colors"
         style={{ border: `1px solid ${secondChosen ? '#1f5a44' : '#e7dfc9'}`, background: secondChosen ? '#f3f8f5' : 'white' }}
       >
         <span className="mt-[1px]"><Radio selected={secondChosen} /></span>
@@ -379,6 +378,7 @@ function ChangeCitySheet({
   onClose: () => void
   onSend: () => void
 }) {
+     const { tx, t, td } = useT()
   const [selCityId, setSelCityId] = useState<string | null>(null)
   const [secondChosen, setSecondChosen] = useState(false)
   const guarded = guardedDependentOf(member.id, guardians)
@@ -394,15 +394,15 @@ function ChangeCitySheet({
       onClose={onClose}
       header={(
         <>
-          <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }}>Change city</h2>
+          <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Change city')} />
           <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT }}>
             Reserve {fn} in a different city. You can pick a zone there afterwards.
           </p>
         </>
       )}
-      footer={canSend ? <SheetFooterButton label="Send request" onClick={onSend} /> : undefined}
+      footer={canSend ? <SheetFooterButton label={t('Send request')} onClick={onSend} /> : undefined}
     >
-      <p className="mb-[10px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Pick new city</p>
+      <p className="mb-[10px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Pick new city')} />
 
       {/* Current */}
       <div className="flex items-center justify-between rounded-[12px] border border-[#e7dfc9] bg-white px-[16px] py-[14px]">
@@ -426,7 +426,7 @@ function ChangeCitySheet({
                 className="flex w-full items-center justify-between px-[16px] py-[14px]"
                 style={{ cursor: isFull ? 'default' : 'pointer' }}
               >
-                <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{c.name}</span>
+                <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(c.name)} />
                 <span className="flex items-center gap-[12px]">
                   <Seats left={c.seatsLeft} />
                   {!isFull && <Radio selected={selected} />}
@@ -467,6 +467,7 @@ function ChangeZoneSheet({
   onClose: () => void
   onSend: () => void
 }) {
+     const { tx, t, td } = useT()
   const [selZoneId, setSelZoneId] = useState<string | null>(null)
   const [secondChosen, setSecondChosen] = useState(false)
   const guarded = guardedDependentOf(member.id, guardians)
@@ -481,15 +482,15 @@ function ChangeZoneSheet({
       onClose={onClose}
       header={(
         <>
-          <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }}>Change zone</h2>
+          <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Change zone')} />
           <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT }}>
             Move yourself to another zone in {cityName}.
           </p>
         </>
       )}
-      footer={canSend ? <SheetFooterButton label="Send request" onClick={onSend} /> : undefined}
+      footer={canSend ? <SheetFooterButton label={t('Send request')} onClick={onSend} /> : undefined}
     >
-      <p className="mb-[10px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Pick new zone</p>
+      <p className="mb-[10px] text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Pick new zone')} />
 
       <div className="flex flex-col gap-[10px]">
         {zones.map((z) => {
@@ -509,7 +510,7 @@ function ChangeZoneSheet({
                 className="flex w-full items-center justify-between px-[16px] py-[14px]"
                 style={{ cursor: isCurrent || isFull ? 'default' : 'pointer' }}
               >
-                <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{z.name}</span>
+                <span className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(z.name)} />
                 {isCurrent ? (
                   <CurrentBadge />
                 ) : (
@@ -551,6 +552,7 @@ function AssignGuardianSheet({
   onClose: () => void
   onAssigned: (guardianId: string) => void
 }) {
+     const { tx, t, td, tdText } = useT()
   const [selId, setSelId] = useState<string | null>(null)
   const candidates = family.filter((f) => f.role !== 'dependent' && f.id !== dependent.id)
 
@@ -560,20 +562,18 @@ function AssignGuardianSheet({
       onClose={onClose}
       header={(
         <>
-          <p className="text-[12px] font-bold uppercase tracking-[1px] text-[#a8843e]" style={{ fontFamily: FONT }}>
-            Assign guardian
-          </p>
+          <p className="text-[12px] font-bold uppercase tracking-[1px] text-[#a8843e]" style={{ fontFamily: FONT }} {...tx('Assign guardian')} />
           <h2 className="mt-[4px] text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }}>
             For {dependent.name}
           </h2>
           <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            {dependent.relation} · {dependent.gender} · Age {String(dependent.age).padStart(2, '0')} · Choose an adult family member
+            {tdText(dependent.relation)} · {tdText(dependent.gender)} · {t('Age')} {String(dependent.age).padStart(2, '0')} · Choose an adult family member
           </p>
         </>
       )}
       footer={(
         <SheetFooterButton
-          label="Add guardian"
+          label={t('Add guardian')}
           icon={<PersonAddIcon />}
           disabled={!selId}
           onClick={() => selId && onAssigned(selId)}
@@ -589,12 +589,12 @@ function AssignGuardianSheet({
               key={c.id}
               type="button"
               onClick={() => { if (!isCurrent) setSelId(c.id) }}
-              className="flex items-center gap-[12px] rounded-[12px] border px-[14px] py-[12px] text-left transition-colors"
+              className="flex items-center gap-[12px] rounded-[12px] border px-[14px] py-[12px] text-start transition-colors"
               style={{ borderColor: selected ? '#1f5a44' : '#e7dfc9', background: selected ? '#f3f8f5' : 'white' }}
             >
               <Avatar name={c.name} />
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{c.name}</p>
+                <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(c.name)} />
                 <p className="mt-[2px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>
                   {familyMeta(c.relation, c.age, c.its)}
                 </p>
@@ -620,6 +620,7 @@ function ShieldCheckIcon() {
 // ── Result popup (centered success → Done) ───────────────────────────────────────
 
 function ResultPopup({ title, subtext, onDone }: { title: string; subtext: string; onDone: () => void }) {
+  const { tx } = useT()
   return (
     <BottomSheet
       open
@@ -627,9 +628,7 @@ function ResultPopup({ title, subtext, onDone }: { title: string; subtext: strin
       footer={(
         <button type="button" onClick={onDone}
           className="flex h-[54px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.3)]"
-          style={{ fontFamily: FONT }}>
-          Done
-        </button>
+          style={{ fontFamily: FONT }} {...tx('Done')} />
       )}
     >
       <div className="flex flex-col items-center px-[6px] pt-[8px] pb-[4px] text-center">
@@ -671,6 +670,7 @@ function LinkedReservationCard({
   /** The lead member's tag — flips to 'guardian' once the dependent has been transferred to them. */
   primaryBadge?: BadgeKind
 }) {
+     const { tx, t, td, tdText } = useT()
   const members = [primary, ...dependents]
   const linked = dependents.length > 0
   const dep = dependents[0] ?? null
@@ -687,7 +687,7 @@ function LinkedReservationCard({
         {/* Header band */}
         <div className="flex items-center gap-[9px] px-[16px] py-[12px]" style={{ background: '#fdefd2' }}>
           <span className="size-[11px] shrink-0 rounded-full bg-[#c08a1e]" />
-          <span className="text-[15px] font-extrabold tracking-[0.2px] text-[#b07d16]" style={{ fontFamily: FONT }}>Pending acceptance</span>
+          <span className="text-[15px] font-extrabold tracking-[0.2px] text-[#b07d16]" style={{ fontFamily: FONT }} {...tx('Pending acceptance')} />
         </div>
         {/* "Spot is safe" reassurance strip */}
         <div className="flex items-center gap-[9px] px-[16px] py-[11px]" style={{ background: '#e9f3ec' }}>
@@ -712,21 +712,21 @@ function LinkedReservationCard({
             {/* FROM YOU */}
             <div className="flex flex-1 flex-col items-center px-[4px] text-center">
               <Avatar name={primary.name} size={60} />
-              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#5f7183]" style={{ fontFamily: FONT }}>From you</p>
-              <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }}>{primary.name}</p>
+              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#5f7183]" style={{ fontFamily: FONT }} {...tx('From you')} />
+              <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(primary.name)} />
             </div>
             {/* TRANSFERING */}
             <div className="flex flex-1 flex-col items-center px-[4px] text-center">
               <span className="flex size-[60px] shrink-0 items-center justify-center rounded-full border-2 border-[#d9b978] bg-[#f6e6bf]">
                 <span className="text-[18px] font-bold text-[#9a7420]" style={{ fontFamily: FONT }}>{initials(dep.name)}</span>
               </span>
-              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#c08a1e]" style={{ fontFamily: FONT }}>Transfering</p>
-              <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }}>{dep.name}</p>
+              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#c08a1e]" style={{ fontFamily: FONT }} {...tx('Transfering')} />
+              <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(dep.name)} />
             </div>
             {/* NEW GUARDIAN */}
             <div className="flex flex-1 flex-col items-center px-[4px] text-center">
               <Avatar name={transferGuardianName ?? ''} size={60} />
-              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#5f7183]" style={{ fontFamily: FONT }}>New guardian</p>
+              <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#5f7183]" style={{ fontFamily: FONT }} {...tx('New guardian')} />
               <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }}>{transferGuardianName ?? '—'}</p>
             </div>
           </div>
@@ -739,14 +739,14 @@ function LinkedReservationCard({
               <path d="M3.6 19c0-3 2.4-5 5.4-5s5.4 2 5.4 5" stroke="#b07d16" strokeWidth="1.6" strokeLinecap="round" />
               <path d="M15.5 12.6l2 2 3.4-3.5" stroke="#b07d16" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-[14px] font-extrabold text-[#b07d16]" style={{ fontFamily: FONT }}>Requested</span>
+            <span className="text-[14px] font-extrabold text-[#b07d16]" style={{ fontFamily: FONT }} {...tx('Requested')} />
             <span className="h-[2px] w-[26px] shrink-0 rounded bg-[#e0d3ad]" />
             <span className="size-[15px] shrink-0 rounded-full border-2 border-[#cdd3cd]" />
-            <span className="text-[14px] font-bold text-[#9aa39d]" style={{ fontFamily: FONT }}>Approved</span>
+            <span className="text-[14px] font-bold text-[#9aa39d]" style={{ fontFamily: FONT }} {...tx('Approved')} />
           </div>
           <button type="button" onClick={onCancelTransfer} className="flex h-[38px] shrink-0 items-center gap-[6px] rounded-[12px] border border-[#cdd5cf] bg-white px-[14px]">
             <svg viewBox="0 0 16 16" fill="none" className="size-[13px]"><path d="M4 4l8 8M12 4l-8 8" stroke="#1f5a44" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Cancel Transfer</span>
+            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('Cancel Transfer')} />
           </button>
         </div>
       </div>
@@ -758,7 +758,7 @@ function LinkedReservationCard({
     const newGuardian = primary                       // in this state `primary` is the accepting guardian
     const newFn = firstNameOf(newGuardian.name)
     const depFn = firstNameOf(dep.name)
-    const youMeta = `(You) · ${registrant.gender} · Age ${String(registrant.age).padStart(2, '0')} · ITS ${registrant.its}`
+    const youMeta = `(You) · ${tdText(registrant.gender)} · ${t('Age')} ${String(registrant.age).padStart(2, '0')} · ${t('ITS')} ${registrant.its}`
     return (
       <div data-tour="linked-transfer" className="overflow-hidden rounded-[16px] border border-[#cfe6d5] bg-white">
         {/* Header band — transferred + who accepted */}
@@ -768,7 +768,7 @@ function LinkedReservationCard({
             <path d="M8.4 12.2l2.3 2.3 4.9-5" stroke="#1f8a54" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="text-[14px] sm:text-[15px] font-extrabold tracking-[0.2px] text-[#1f7a4d]" style={{ fontFamily: FONT }}>
-            Transferred · Accepted by {newFn}
+            <span {...tx('Transfer')} />red · Accepted by {newFn}
           </span>
         </div>
 
@@ -782,7 +782,7 @@ function LinkedReservationCard({
                 <span className="flex size-[32px] sm:size-[46px] shrink-0 items-center justify-center rounded-full bg-[#ece4d3]">
                   <span className="text-[11px] sm:text-[15px] font-bold text-[#7c6f57]" style={{ fontFamily: FONT }}>{initials(registrant.name)}</span>
                 </span>
-                <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{registrant.name}</p>
+                <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
               </div>
               <p className="mt-[7px] sm:mt-[9px] text-[9.5px] sm:text-[12px] leading-[13px] sm:leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>{youMeta}</p>
             </div>
@@ -801,7 +801,7 @@ function LinkedReservationCard({
                 <span className="flex size-[32px] sm:size-[46px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
                   <span className="text-[11px] sm:text-[15px] font-bold text-white" style={{ fontFamily: FONT }}>{initials(newGuardian.name)}</span>
                 </span>
-                <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{newGuardian.name}</p>
+                <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(newGuardian.name)} />
               </div>
               <p className="mt-[7px] sm:mt-[9px] text-[9.5px] sm:text-[12px] leading-[13px] sm:leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>
                 {familyMeta(newGuardian.relation, newGuardian.age, newGuardian.its, newGuardian.gender)}
@@ -816,13 +816,13 @@ function LinkedReservationCard({
                 <span className="text-[13px] sm:text-[15px] font-bold text-[#c08a1e]" style={{ fontFamily: FONT }}>{initials(dep.name)}</span>
               </span>
               <div className="min-w-0">
-                <p className="text-[13px] sm:text-[16px] font-bold leading-[17px] sm:leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{dep.name}</p>
+                <p className="text-[13px] sm:text-[16px] font-bold leading-[17px] sm:leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(dep.name)} />
                 <p className="mt-[2px] text-[10.5px] sm:text-[13px] leading-[14px] sm:leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>
                   {familyMeta(dep.relation, dep.age, dep.its, dep.gender)}
                 </p>
               </div>
             </div>
-            <span className="shrink-0 rounded-full px-[11px] py-[6px] sm:px-[14px] sm:py-[7px] text-[11px] sm:text-[14px] font-bold text-[#2f8f5b]" style={{ fontFamily: FONT, background: '#dcefe1' }}>Place secured</span>
+            <span className="shrink-0 rounded-full px-[11px] py-[6px] sm:px-[14px] sm:py-[7px] text-[11px] sm:text-[14px] font-bold text-[#2f8f5b]" style={{ fontFamily: FONT, background: '#dcefe1' }} {...tx('Place secured')} />
           </div>
         </div>
 
@@ -847,7 +847,7 @@ function LinkedReservationCard({
       {linked && (
         <div className="flex h-[34px] items-center gap-[8px] bg-[#e1eef1] px-[14px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>Guardian + dependent · reserve together</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }} {...tx('Guardian + dependent · reserve together')} />
         </div>
       )}
       <div className="relative px-[14px] py-[6px]">
@@ -858,11 +858,11 @@ function LinkedReservationCard({
           return (
             <div key={m.id} className="relative flex items-center gap-[12px] py-[10px]">
               {members.length > 1 && (
-                <span className="pointer-events-none absolute left-[21px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
+                <span className="pointer-events-none absolute start-[21px] w-[2px] bg-[#fac775]" style={{ top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : 0 }} />
               )}
               <div className="relative shrink-0"><Avatar name={m.name} size={44} /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-[16px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }}>{m.name}</p>
+                <p className="text-[16px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }} {...td(m.name)} />
                 <p className="mt-[2px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{familyMeta(m.relation, m.age, m.its)}</p>
               </div>
               <RoleBadge kind={isDep ? 'dependent' : primaryBadge} />
@@ -903,6 +903,7 @@ function LinkedReservationCard({
 // ── Cancel: blocked (linked) info popup + normal confirmation popup ────────────────
 
 function CancelBlockedPopup({ onClose, onTransfer, pending, depName }: { onClose: () => void; onTransfer?: () => void; pending?: boolean; depName?: string }) {
+  const { tx } = useT()
   const who = depName ?? 'the linked member'
   return (
     <BottomSheet
@@ -915,18 +916,14 @@ function CancelBlockedPopup({ onClose, onTransfer, pending, depName }: { onClose
           <button type="button" onClick={onTransfer}
             className="flex h-[52px] w-full items-center justify-center gap-[8px] rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white" style={{ fontFamily: FONT }}>
             <svg viewBox="0 0 20 20" fill="none" className="size-[17px]"><path d="M4 7h12l-3-3M16 13H4l3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            Transfer
+            <span {...tx('Transfer')} />
           </button>
           <button type="button" onClick={onClose}
-            className="flex h-[52px] w-full items-center justify-center rounded-[14px] border border-[#d6cdb8] bg-white text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-            Okay
-          </button>
+            className="flex h-[52px] w-full items-center justify-center rounded-[14px] border border-[#d6cdb8] bg-white text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Okay')} />
         </div>
       ) : (
         <button type="button" onClick={onClose}
-          className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white" style={{ fontFamily: FONT }}>
-          Okay
-        </button>
+          className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1f5a44] text-[16px] font-bold text-white" style={{ fontFamily: FONT }} {...tx('Okay')} />
       )}
     >
       <div className="flex flex-col items-center px-[6px] pt-[8px] pb-[4px] text-center">
@@ -955,6 +952,7 @@ function CancelBlockedPopup({ onClose, onTransfer, pending, depName }: { onClose
 function CancelCityConfirmPopup({ eventName, cityName, onClose, onConfirm }: {
   eventName: string; cityName: string; onClose: () => void; onConfirm: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open
@@ -962,13 +960,9 @@ function CancelCityConfirmPopup({ eventName, cityName, onClose, onConfirm }: {
       footer={(
         <div className="flex gap-[12px]">
           <button type="button" onClick={onClose}
-            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }}>
-            Keep my reservation
-          </button>
+            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }} {...tx('Keep my reservation')} />
           <button type="button" onClick={onConfirm}
-            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }}>
-            Cancel my city
-          </button>
+            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }} {...tx('Cancel my city')} />
         </div>
       )}
     >
@@ -977,9 +971,9 @@ function CancelCityConfirmPopup({ eventName, cityName, onClose, onConfirm }: {
           <PinIcon color="#b8821e" size={30} />
         </span>
         <p className="mt-[16px] text-[12px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>{eventName}</p>
-        <h2 className="mt-[5px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>Cancel your city selection?</h2>
+        <h2 className="mt-[5px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Cancel your city selection?')} />
         <div className="mt-[14px] flex items-center gap-[8px] rounded-[12px] border border-[#e7dfc9] bg-[#faf8f2] px-[14px] py-[10px]">
-          <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>Current city</span>
+          <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Current city')} />
           <span className="text-[15px] font-extrabold text-[#15402f]" style={{ fontFamily: FONT }}>{cityName}</span>
         </div>
         <p className="mt-[14px] max-w-[360px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
@@ -993,6 +987,7 @@ function CancelCityConfirmPopup({ eventName, cityName, onClose, onConfirm }: {
 function CancelZoneConfirmPopup({ eventName, zoneName, cityName, onClose, onConfirm }: {
   eventName: string; zoneName: string; cityName: string; onClose: () => void; onConfirm: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open
@@ -1000,13 +995,9 @@ function CancelZoneConfirmPopup({ eventName, zoneName, cityName, onClose, onConf
       footer={(
         <div className="flex gap-[12px]">
           <button type="button" onClick={onClose}
-            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }}>
-            Keep my reservation
-          </button>
+            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }} {...tx('Keep my reservation')} />
           <button type="button" onClick={onConfirm}
-            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }}>
-            Cancel my zone
-          </button>
+            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }} {...tx('Cancel my zone')} />
         </div>
       )}
     >
@@ -1015,9 +1006,9 @@ function CancelZoneConfirmPopup({ eventName, zoneName, cityName, onClose, onConf
           <PinIcon color="#2e6a7d" size={30} />
         </span>
         <p className="mt-[16px] text-[12px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT }}>{eventName}</p>
-        <h2 className="mt-[5px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>Cancel your zone selection?</h2>
+        <h2 className="mt-[5px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Cancel your zone selection?')} />
         <div className="mt-[14px] flex items-center gap-[8px] rounded-[12px] border border-[#e7dfc9] bg-[#faf8f2] px-[14px] py-[10px]">
-          <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>Current zone</span>
+          <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Current zone')} />
           <span className="text-[15px] font-extrabold text-[#15402f]" style={{ fontFamily: FONT }}>{zoneName}</span>
         </div>
         <p className="mt-[14px] max-w-[360px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
@@ -1029,6 +1020,7 @@ function CancelZoneConfirmPopup({ eventName, zoneName, cityName, onClose, onConf
 }
 
 function CancelConfirmPopup({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  const { tx } = useT()
   return (
     <BottomSheet
       open
@@ -1036,13 +1028,9 @@ function CancelConfirmPopup({ onClose, onConfirm }: { onClose: () => void; onCon
       footer={(
         <div className="flex gap-[12px]">
           <button type="button" onClick={onClose}
-            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }}>
-            Keep reservation
-          </button>
+            className="flex-1 rounded-[12px] border border-[#e7dfc9] py-[14px] text-[15px] font-bold text-[#23302a] transition-colors hover:bg-[#fdf9f4]" style={{ fontFamily: FONT }} {...tx('Keep reservation')} />
           <button type="button" onClick={onConfirm}
-            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }}>
-            Cancel reservation
-          </button>
+            className="flex-1 rounded-[12px] bg-[#d2632b] py-[14px] text-[15px] font-bold text-white transition-colors hover:bg-[#bd5723]" style={{ fontFamily: FONT }} {...tx('Cancel reservation')} />
         </div>
       )}
     >
@@ -1050,10 +1038,8 @@ function CancelConfirmPopup({ onClose, onConfirm }: { onClose: () => void; onCon
         <span className="flex size-[64px] items-center justify-center rounded-full bg-[#fbeceb]">
           <CancelIcon size={30} />
         </span>
-        <h2 className="mt-[16px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>Cancel my reservation?</h2>
-        <p className="mt-[10px] max-w-[340px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-          This will cancel your reservation for this Miqaat. This action can&apos;t be undone.
-        </p>
+        <h2 className="mt-[16px] text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Cancel my reservation?')} />
+        <p className="mt-[10px] max-w-[340px] text-[14px] leading-[21px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('This will cancel your reservation for this Miqaat. This action can\'t be undone.')} />
       </div>
     </BottomSheet>
   )
@@ -1071,6 +1057,7 @@ function CancelReservationSheet({
   onCancelBoth: () => void
   onCancelMine: () => void
 }) {
+     const { tx, t, td } = useT()
   const fn = firstNameOf(dependent.name)
   const assignedName = assignedGuardianId ? family.find((f) => f.id === assignedGuardianId)?.name ?? null : null
   const hasGuardian = !!assignedName
@@ -1080,19 +1067,19 @@ function CancelReservationSheet({
       open
       onClose={onClose}
       header={(
-        <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }}>Cancel my reservation</h2>
+        <h2 className="text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Cancel my reservation')} />
       )}
       footer={(
         hasGuardian
           ? <SheetFooterButton tone="orange" label={`Cancel mine & request ${fn} consent`} onClick={onCancelMine} />
-          : <SheetFooterButton tone="orange" label="Cancel event" onClick={onCancelBoth} />
+          : <SheetFooterButton tone="orange" label={t('Cancel event')} onClick={onCancelBoth} />
       )}
     >
       <div className="rounded-[14px] border border-[#e7dfc9] p-[14px]">
         <div className="flex items-center gap-[10px]">
           <Avatar name={dependent.name} />
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }}>{dependent.name}</p>
+            <p className="text-[15px] font-bold text-[#23302a] leading-[20px]" style={{ fontFamily: FONT }} {...td(dependent.name)} />
             <p className="mt-[2px] text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}>{familyMeta(dependent.relation, dependent.age, dependent.its)}</p>
           </div>
           <RoleBadge kind="dependent" />
@@ -1106,10 +1093,10 @@ function CancelReservationSheet({
           <div className="mt-[10px] flex items-center gap-[8px] rounded-[12px] bg-[#e7f1ea] px-[12px] py-[11px]">
             <ShieldCheckIcon />
             <p className="flex-1 text-[13px] leading-[18px]" style={{ fontFamily: FONT }}>
-              <span className="text-[#5a6660]">Guardian: </span>
+              <span className="text-[#5a6660]" {...tx('Guardian:')} />
               <span className="font-bold text-[#15402f]">{assignedName}</span>
             </p>
-            <button type="button" onClick={onRequestAssign} className="shrink-0 text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Change</button>
+            <button type="button" onClick={onRequestAssign} className="shrink-0 text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('Change')} />
           </div>
         ) : (
           <div className="mt-[10px] flex items-center gap-[10px] rounded-[12px] px-[12px] py-[12px]" style={{ background: '#fdf6e6', border: '1px solid #e8d9a8' }}>
@@ -1119,7 +1106,7 @@ function CancelReservationSheet({
             </svg>
             <p className="flex-1 text-[13px] leading-[18px] text-[#5a4a22]" style={{ fontFamily: FONT }}>Link {fn} to someone staying. so they keep their place.</p>
             <button type="button" onClick={onRequestAssign} className="shrink-0 flex items-center gap-[4px] rounded-[10px] border border-[#1f5a44] bg-white px-[12px] h-[34px]">
-              <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }}>Transfer</span>
+              <span className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('Transfer')} />
               <svg viewBox="0 0 16 16" fill="none" className="size-[12px]"><path d="M6 4l4 4-4 4" stroke="#1f5a44" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           </div>
@@ -1148,6 +1135,7 @@ function MembersTable({
   onZone: (m: FamilyMember) => void
   onCancel: (m: FamilyMember) => void
 }) {
+     const { t, td } = useT()
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9]">
       <div className="overflow-x-auto">
@@ -1163,7 +1151,7 @@ function MembersTable({
             {['Member', 'Role', 'Location', 'Actions'].map((h) => (
               <th
                 key={h}
-                className="px-[16px] py-[10px] text-left text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
+                className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                 style={{ fontFamily: FONT }}
               >
                 {h}
@@ -1189,11 +1177,11 @@ function MembersTable({
                 return (
                   <tr key={mm.member.id} style={{ borderTop: '1px solid #f0ebe0', background: isDep ? '#fdfcf8' : 'white' }}>
                     <td className="px-[16px] py-[9px]">
-                      <div className={`flex items-center gap-[10px] ${isDep ? 'pl-[20px]' : ''}`}>
+                      <div className={`flex items-center gap-[10px] ${isDep ? 'ps-[20px]' : ''}`}>
                         {isDep && <span className="shrink-0 select-none text-[15px] leading-none text-[#c5bfb0]">└</span>}
                         <Avatar name={mm.member.name} size={36} />
                         <div className="min-w-0">
-                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{mm.member.name}</p>
+                          <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(mm.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT }}>
                             {familyMeta(mm.member.relation, mm.member.age, mm.member.its, mm.member.gender)}
                           </p>
@@ -1211,9 +1199,9 @@ function MembersTable({
                     </td>
                     <td className="px-[16px] py-[9px]">
                       <div className="flex items-center gap-[8px]">
-                        <ActionButton icon={<LandmarkIcon />} label="City" onClick={() => onCity(mm.member)} />
-                        {showZone && <ActionButton icon={<PinIcon />} label="Zone" onClick={() => onZone(mm.member)} />}
-                        <ActionButton icon={<CancelIcon />} label="Cancel" danger onClick={() => onCancel(mm.member)} />
+                        <ActionButton icon={<LandmarkIcon />} label={t('City')} onClick={() => onCity(mm.member)} />
+                        {showZone && <ActionButton icon={<PinIcon />} label={t('Zone')} onClick={() => onZone(mm.member)} />}
+                        <ActionButton icon={<CancelIcon />} label={t('Cancel')} danger onClick={() => onCancel(mm.member)} />
                       </div>
                     </td>
                   </tr>
@@ -1324,16 +1312,15 @@ function ChangeOptionsSheet({
   onSelect: (o: ChangeOption) => void
   onClose: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
       header={(
-        <div className="pr-[36px]">
-          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>What would you like to change?</h2>
-          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            Choose how you&apos;d like to update your reservation. Only the options applicable to your current reservation are shown.
-          </p>
+        <div className="pe-[36px]">
+          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('What would you like to change?')} />
+          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Choose how you\'d like to update your reservation. Only the options applicable to your current reservation are shown.')} />
         </div>
       )}
     >
@@ -1343,7 +1330,7 @@ function ChangeOptionsSheet({
             key={o.key}
             type="button"
             onClick={() => onSelect(o)}
-            className="group flex w-full items-center gap-[14px] rounded-[14px] border border-[#e7dfc9] bg-white px-[14px] py-[13px] text-left transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_6px_18px_-10px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30"
+            className="group flex w-full items-center gap-[14px] rounded-[14px] border border-[#e7dfc9] bg-white px-[14px] py-[13px] text-start transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_6px_18px_-10px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/30"
           >
             <span className="flex size-[46px] shrink-0 items-center justify-center rounded-[12px]" style={{ background: o.iconBg }}>{o.icon}</span>
             <span className="min-w-0 flex-1">
@@ -1372,16 +1359,15 @@ function ReservationEntrySheet({ open, items, onClose }: {
   items: EntryItem[]
   onClose: () => void
 }) {
+     const { tx } = useT()
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
       header={(
-        <div className="pr-[36px]">
-          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>What would you like to cancel?</h2>
-          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            Choose what you&apos;d like to cancel for this reservation.
-          </p>
+        <div className="pe-[36px]">
+          <h2 className="text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('What would you like to cancel?')} />
+          <p className="mt-[6px] text-[13.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Choose what you\'d like to cancel for this reservation.')} />
         </div>
       )}
     >
@@ -1391,7 +1377,7 @@ function ReservationEntrySheet({ open, items, onClose }: {
             key={it.key}
             type="button"
             onClick={it.onClick}
-            className={`group flex w-full items-center gap-[14px] rounded-[14px] border bg-white px-[14px] py-[13px] text-left transition-all duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 ${
+            className={`group flex w-full items-center gap-[14px] rounded-[14px] border bg-white px-[14px] py-[13px] text-start transition-all duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 ${
               it.danger
                 ? 'border-[#e7dfc9] hover:border-[#d98a85] hover:bg-[#fdf3f2] hover:shadow-[0_6px_18px_-10px_rgba(178,59,59,0.28)] focus-visible:ring-[#d98a85]/40'
                 : 'border-[#e7dfc9] hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_6px_18px_-10px_rgba(21,64,47,0.25)] focus-visible:ring-[#1f5a44]/30'
@@ -1486,6 +1472,7 @@ function RouteLine({ from, to, size }: { from: string; to: string; size: 'hero' 
  * The route-grouping below still stands: a slice can in principle hold more than one route.
  */
 function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eventTitle: string; onCancel: (reqId: string, memberIds: string[]) => void }) {
+  const { tx } = useT()
   const r = slice.req
   const rows = slice.rows
   const count = rows.length
@@ -1517,7 +1504,7 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
             <circle cx="12" cy="12" r="8.5" stroke="#b8821e" strokeWidth="2" />
             <path d="M12 7.5V12l3 1.8" stroke="#b8821e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[11px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }}>Pending approval</span>
+          <span className="text-[11px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }} {...tx('Pending approval')} />
         </span>
       </div>
 
@@ -1533,7 +1520,7 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
         ) : (
           /* Genuinely different destinations — no single headline can be truthful, so the routes
              below carry it and the eyebrow just names what this block is. */
-          <CardEyebrow>Requested changes</CardEyebrow>
+          <CardEyebrow {...tx('Requested changes')} />
         )}
         <p className={`${singleRoute || sharedDest ? 'mt-[5px]' : 'mt-[3px]'} text-[13px] leading-[18px] text-[#7c8a83]`} style={{ fontFamily: FONT }}>
           {count} {memberWord}
@@ -1597,18 +1584,15 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
 /** Modify Reservation entry point for pending change requests: heading + description + a SINGLE
  *  summary card. Tapping the card opens the full list in a popup. */
 function RequestsSummaryCard({ count, onOpen, dense = false }: { count: number; onOpen: () => void; dense?: boolean }) {
+  const { tx } = useT()
   return (
     <div className="mb-[2px]">
-      <h2 className={`text-[#15402f] ${dense ? 'text-[30px] leading-[36px]' : 'text-[22px] leading-[28px]'}`} style={{ fontFamily: SERIF }}>
-        Requests in progress
-      </h2>
-      <p className={`mt-[8px] text-[#5a6660] ${dense ? 'max-w-[720px] text-[16px] leading-[23px]' : 'text-[14px] leading-[20px]'}`} style={{ fontFamily: FONT }}>
-        These changes have been sent for approval. You can cancel a request while it&apos;s still under review.
-      </p>
+      <h2 className={`text-[#15402f] ${dense ? 'text-[30px] leading-[36px]' : 'text-[22px] leading-[28px]'}`} style={{ fontFamily: SERIF }} {...tx('Requests in progress')} />
+      <p className={`mt-[8px] text-[#5a6660] ${dense ? 'max-w-[720px] text-[16px] leading-[23px]' : 'text-[14px] leading-[20px]'}`} style={{ fontFamily: FONT }} {...tx('These changes have been sent for approval. You can cancel a request while it\'s still under review.')} />
       <button
         type="button"
         onClick={onOpen}
-        className="mt-[16px] flex w-full max-w-[560px] items-center gap-[14px] rounded-[16px] border border-[#f0d9a8] bg-[#fffdf8] p-[16px] text-left shadow-[0_4px_18px_-12px_rgba(21,64,47,0.2)] transition-all duration-200 hover:border-[#c2a04e] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.28)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
+        className="mt-[16px] flex w-full max-w-[560px] items-center gap-[14px] rounded-[16px] border border-[#f0d9a8] bg-[#fffdf8] p-[16px] text-start shadow-[0_4px_18px_-12px_rgba(21,64,47,0.2)] transition-all duration-200 hover:border-[#c2a04e] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.28)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
       >
         <span className="flex size-[46px] shrink-0 items-center justify-center rounded-[13px] bg-[#fbeecb]">
           <svg viewBox="0 0 24 24" fill="none" className="size-[26px]">
@@ -1623,12 +1607,10 @@ function RequestsSummaryCard({ count, onOpen, dense = false }: { count: number; 
             </p>
             <span className="inline-flex items-center gap-[5px] rounded-full bg-[#fdf1e2] px-[10px] py-[3px]">
               <span className="size-[6px] rounded-full bg-[#b8821e]" />
-              <span className="text-[12px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }}>Awaiting approval</span>
+              <span className="text-[12px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }} {...tx('Awaiting approval')} />
             </span>
           </div>
-          <p className="mt-[3px] text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            Tap to view details or cancel a request.
-          </p>
+          <p className="mt-[3px] text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Tap to view details or cancel a request.')} />
         </div>
         <svg viewBox="0 0 24 24" fill="none" className="size-[22px] shrink-0 text-[#9a6a1e]"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
@@ -1651,6 +1633,7 @@ function RequestsPopup({
   eventTitle: string
   onCancel: (reqId: string, memberIds: string[]) => void
 }) {
+     const { t } = useT()
   const [filter, setFilter] = useState<string>('all')
   // One chip per distinct request name so the user can pick out the exact request they made.
   const titles = Array.from(new Set(slices.map((s) => s.req.title)))
@@ -1660,7 +1643,7 @@ function RequestsPopup({
   const countOf = (t: string) => (t === 'all' ? slices.length : slices.filter((s) => s.req.title === t).length)
   const chips = ['all', ...titles]
   return (
-    <BottomSheet open={open} onClose={onClose} title="Requests in progress" wide>
+    <BottomSheet open={open} onClose={onClose} title={t('Requests in progress')} wide>
       {showChips && (
         <div className="mb-[4px] flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar">
           {chips.map((c) => {
@@ -1690,6 +1673,7 @@ function RequestsPopup({
 }
 
 export default function ManageReservations() {
+  const { tx, t, td, tdText, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -2034,7 +2018,11 @@ export default function ManageReservations() {
   // "<date> at <time>"; a graceful fallback keeps the empty state readable for any seed.
   const cityAllocated = hostConfirmed || relayConfirmed
   const cityOpenMatch = miqaat.deadlineLabel.match(/opens?\s+(?:in|on)\s+(.+)$/i)
-  const cityOpenLabel = (cityOpenMatch ? cityOpenMatch[1] : 'Thu, 19 Jun 2026 - 09:00 AM IST').replace(' - ', ' at ')
+  // Split rather than string-concatenated: the date and the time are separate bidi runs and
+  // each needs its own isolate, so they are rendered by DateLine/TimeLine instead of being
+  // glued into one label. A miqaat whose deadlineLabel has no "opens on" clause yields null,
+  // and the sentence below simply omits the date rather than inventing one.
+  const cityOpenParts = cityOpenMatch ? cityOpenMatch[1].split(' - ') : null
 
   // Transfer the linked dependent to a staying guardian → card moves to "Acceptance Pending".
   function handleTransferAssigned(gid: string) {
@@ -2052,7 +2040,7 @@ export default function ManageReservations() {
 
         {/* ═══════════════════════ MOBILE — single column (unchanged) ═══════════════════════ */}
         <div className="sm:hidden">
-        <div className="ml-[16px] sm:ml-0 mt-[12px]">
+        <div className="ms-[16px] sm:ml-0 mt-[12px]">
           <Breadcrumb
             items={[{ label: 'Home', to: '/miqaats' }, { label: 'Modify Reservation' }]}
             onNavigate={(to) => nav(to)}
@@ -2060,9 +2048,7 @@ export default function ManageReservations() {
           />
         </div>
 
-        <h1 className="mt-[14px] px-[16px] sm:px-0 text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-          Modify Reservation
-        </h1>
+        <h1 className="mt-[14px] px-[16px] sm:px-0 text-[26px] leading-[32px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Modify Reservation')} />
 
         {/* Registrant — usability testing found users landing on this screen immediately look for
             "whose reservation is this", but the only place their name showed was buried inside
@@ -2071,7 +2057,7 @@ export default function ManageReservations() {
         <div className="mx-[16px] sm:mx-0 mt-[16px] flex max-w-[600px] items-center gap-[12px] rounded-[14px] border border-[#ece4d2] bg-white p-[14px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.12)]">
           <Avatar name={registrant.name} size={44} />
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>{registrant.name}</p>
+            <p className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
             <p className="mt-[2px] text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{familyMeta(registrant.relation, registrant.age, registrant.its)}</p>
           </div>
           <RoleBadge kind="registrant" />
@@ -2082,20 +2068,20 @@ export default function ManageReservations() {
           <div className="flex gap-[12px]">
             <img src={CARD_BG} alt="" className="size-[64px] shrink-0 rounded-[12px] object-cover" />
             <div className="min-w-0 flex-1 pt-[2px]">
-              <h2 className="text-[19px] leading-[24px] text-[#23302a]" style={{ fontFamily: SERIF }}>{miqaat.title}</h2>
+              <h2 className="text-[19px] leading-[24px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tdAuthored(miqaat.title)} />
               <div className="mt-[6px] flex items-center gap-[6px]">
                 <svg viewBox="0 0 16 16" fill="none" className="size-[14px] shrink-0">
                   <rect x="2" y="3" width="12" height="11" rx="2" stroke="#8a938e" strokeWidth="1.2" />
                   <path d="M2 6h12M5.5 1.5v3M10.5 1.5v3" stroke="#8a938e" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
-                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{miqaat.dateLabel}</span>
+                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.dateLabel)} />
               </div>
               <div className="mt-[4px] flex items-center gap-[6px]">
                 <svg viewBox="0 0 16 16" fill="none" className="size-[14px] shrink-0">
                   <circle cx="8" cy="8" r="6.2" stroke="#8a938e" strokeWidth="1.2" />
                   <path d="M8 4.8V8l2.2 1.4" stroke="#8a938e" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}>{miqaat.timeLabel}</span>
+                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.timeLabel)} />
               </div>
             </div>
           </div>
@@ -2121,9 +2107,7 @@ export default function ManageReservations() {
             Shown only when the reservation actually carries a linked dependent. */}
         {isLinked && (
           <>
-            <h2 className="mt-[26px] px-[16px] sm:px-0 text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-              Linked to your reservation
-            </h2>
+            <h2 className="mt-[26px] px-[16px] sm:px-0 text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Linked to your reservation')} />
             <div className="mx-[16px] sm:mx-0 mt-[14px] max-w-[600px]">
               <LinkedReservationCard
                 primary={linkedPrimary}
@@ -2147,9 +2131,7 @@ export default function ManageReservations() {
         )}
 
         {/* What would you like to do? */}
-        <h2 className="mt-[26px] px-[16px] sm:px-0 text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-          What would you like to do?
-        </h2>
+        <h2 className="mt-[26px] px-[16px] sm:px-0 text-[22px] leading-[28px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('What would you like to do?')} />
         {/* Edit registration — Ashara Mubaraka 1448H only (demo flow): jumps to Add People,
             then on to City Selection instead of the pre-submit Review screen. Demo Progression
             Controls: only offered while registration is still open (see showEditRegistration). */}
@@ -2158,14 +2140,14 @@ export default function ManageReservations() {
             <button
               type="button"
               onClick={() => nav(`/miqaats/${id}/people`, { state: { fromModify: true } })}
-              className="group flex w-full items-center gap-[14px] rounded-[16px] border border-[#e7dfc9] bg-white p-[16px] text-left shadow-[0_4px_18px_-12px_rgba(21,64,47,0.2)] transition-all duration-200 hover:border-[#c2a04e] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.28)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
+              className="group flex w-full items-center gap-[14px] rounded-[16px] border border-[#e7dfc9] bg-white p-[16px] text-start shadow-[0_4px_18px_-12px_rgba(21,64,47,0.2)] transition-all duration-200 hover:border-[#c2a04e] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.28)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
             >
               <span className="flex size-[46px] shrink-0 items-center justify-center rounded-[13px]" style={{ background: '#e8f2ec' }}>
                 <EditPeopleIcon color="#1f5a44" size={22} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[16px] font-bold leading-[21px] text-[#23302a]" style={{ fontFamily: FONT }}>Edit registration</span>
-                <span className="mt-[3px] block text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }}>Update your family members, guardians, and other details.</span>
+                <span className="block text-[16px] font-bold leading-[21px] text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Edit registration')} />
+                <span className="mt-[3px] block text-[13px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Update your family members, guardians, and other details.')} />
               </span>
               <svg viewBox="0 0 24 24" fill="none" className="size-[20px] shrink-0 text-[#a8843e] transition-transform duration-200 group-hover:translate-x-[2px]">
                 <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -2183,7 +2165,7 @@ export default function ManageReservations() {
               <span className="flex size-[52px] items-center justify-center rounded-[14px]" style={{ background: '#f3ecd9' }}>
                 <SwapIcon color="#b8821e" size={28} />
               </span>
-              <span className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>Change reservation</span>
+              <span className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Change reservation')} />
             </button>
           )}
           <button
@@ -2194,7 +2176,7 @@ export default function ManageReservations() {
             <span className="flex size-[52px] items-center justify-center rounded-[14px]" style={{ background: '#fbeceb' }}>
               <CancelIcon size={26} />
             </span>
-            <span className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }}>Cancel my reservation</span>
+            <span className="text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Cancel my reservation')} />
           </button>
         </div>
         </div>{/* ── end mobile ── */}
@@ -2204,7 +2186,7 @@ export default function ManageReservations() {
           <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden">
 
             {/* ───── LEFT sidebar ───── */}
-            <aside className="flex w-[40%] max-w-[600px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[28px] pl-[var(--content-px)] pr-[30px]">
+            <aside className="flex w-[40%] max-w-[600px] shrink-0 flex-col overflow-y-auto border-r border-[#e7ddc6] bg-[#f1ede3] py-[28px] ps-[var(--content-px)] pe-[30px]">
               <Breadcrumb
                 items={[{ label: 'Home', to: '/miqaats' }, { label: 'Modify Reservation' }]}
                 onNavigate={(to) => nav(to)}
@@ -2213,17 +2195,15 @@ export default function ManageReservations() {
                 dense
               />
 
-              <h1 className="mt-[16px] text-[38px] leading-[44px] text-[#26332c]" style={{ fontFamily: SERIF }}>
-                Modify Reservation
-              </h1>
+              <h1 className="mt-[16px] text-[38px] leading-[44px] text-[#26332c]" style={{ fontFamily: SERIF }} {...tx('Modify Reservation')} />
 
               {/* Registrant identity card — compact horizontal row (avatar left, name/meta right) */}
               <div className="mt-[22px] flex items-center gap-[14px] rounded-[18px] border border-[#eae2d1] bg-white px-[18px] py-[16px] shadow-[0px_6px_22px_-10px_rgba(21,64,47,0.12)]">
                 <Avatar name={registrant.name} size={48} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }}>{registrant.name}</p>
+                  <p className="text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
                   <p className="mt-[3px] text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                    {registrant.gender} · Age {registrant.age} · ITS {registrant.its}
+                    {tdText(registrant.gender)} · {t('Age')} {registrant.age} · {t('ITS')} {registrant.its}
                   </p>
                 </div>
               </div>
@@ -2233,14 +2213,14 @@ export default function ManageReservations() {
                 <div className="flex gap-[14px]">
                   <img src={miqaat.image ?? CARD_BG} alt="" className="size-[86px] shrink-0 rounded-[14px] object-cover" />
                   <div className="min-w-0 flex-1 pt-[2px]">
-                    <h2 className="text-[21px] leading-[26px] text-[#23302a]" style={{ fontFamily: SERIF }}>{miqaat.title}</h2>
+                    <h2 className="text-[21px] leading-[26px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tdAuthored(miqaat.title)} />
                     <div className="mt-[8px] flex items-center gap-[7px]">
                       <CalGlyph />
-                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}>{miqaat.dateLabel}</span>
+                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.dateLabel)} />
                     </div>
                     <div className="mt-[5px] flex items-center gap-[7px]">
                       <ClockGlyph />
-                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}>{miqaat.timeLabel}</span>
+                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.timeLabel)} />
                     </div>
                   </div>
                 </div>
@@ -2266,25 +2246,23 @@ export default function ManageReservations() {
               <button
                 type="button"
                 onClick={() => setShowEntryChooser(true)}
-                className="mt-[18px] flex items-center gap-[14px] rounded-[18px] border border-[#eae2d1] bg-white p-[16px] text-left shadow-[0px_6px_22px_-10px_rgba(21,64,47,0.12)] transition-colors hover:border-[#e4b9b3] hover:bg-[#fdf7f6]"
+                className="mt-[18px] flex items-center gap-[14px] rounded-[18px] border border-[#eae2d1] bg-white p-[16px] text-start shadow-[0px_6px_22px_-10px_rgba(21,64,47,0.12)] transition-colors hover:border-[#e4b9b3] hover:bg-[#fdf7f6]"
               >
                 <span className="flex size-[46px] shrink-0 items-center justify-center rounded-[13px] bg-[#fbeceb]">
                   <CancelIcon size={22} />
                 </span>
-                <span className="text-[17px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Cancel my reservation</span>
+                <span className="text-[17px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Cancel my reservation')} />
               </button>
             </aside>
 
             {/* ───── RIGHT panel ───── */}
             <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-              <div className="min-h-0 flex-1 overflow-y-auto py-[34px] pl-[40px] pr-[var(--content-px)]">
+              <div className="min-h-0 flex-1 overflow-y-auto py-[34px] ps-[40px] pe-[var(--content-px)]">
 
                 {/* Linked to your reservation */}
                 {isLinked && (
                   <>
-                    <h2 className="text-[30px] leading-[36px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-                      Linked to your reservation
-                    </h2>
+                    <h2 className="text-[30px] leading-[36px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Linked to your reservation')} />
                     <div className="mt-[16px] max-w-[620px]">
                       <LinkedReservationCard
                         primary={linkedPrimary}
@@ -2312,12 +2290,8 @@ export default function ManageReservations() {
                 {(changeOptions.length > 0 || showEditRegistration) && (
                   <>
                     {isLinked && pendingRequests.length === 0 && <div className="my-[30px] border-t border-[#eee7d8]" />}
-                    <h2 className="text-[30px] leading-[36px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-                      What would you like to do?
-                    </h2>
-                    <p className="mt-[8px] max-w-[720px] text-[16px] leading-[23px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                      Choose how you&apos;d like to update your reservation. Only the options applicable to your current reservation are shown.
-                    </p>
+                    <h2 className="text-[30px] leading-[36px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('What would you like to do?')} />
+                    <p className="mt-[8px] max-w-[720px] text-[16px] leading-[23px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Choose how you\'d like to update your reservation. Only the options applicable to your current reservation are shown.')} />
                     {/* Edit registration — Ashara Mubaraka 1448H only (demo flow): jumps to
                         Add People, then on to City Selection instead of the pre-submit Review screen.
                         Demo Progression Controls: only offered while registration is still open. */}
@@ -2325,14 +2299,14 @@ export default function ManageReservations() {
                       <button
                         type="button"
                         onClick={() => nav(`/miqaats/${id}/people`, { state: { fromModify: true } })}
-                        className="group mt-[22px] flex w-full max-w-[560px] items-center gap-[16px] rounded-[16px] border border-[#e7dfc9] bg-white px-[18px] py-[18px] text-left transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
+                        className="group mt-[22px] flex w-full max-w-[560px] items-center gap-[16px] rounded-[16px] border border-[#e7dfc9] bg-white px-[18px] py-[18px] text-start transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
                       >
                         <span className="flex size-[52px] shrink-0 items-center justify-center rounded-[13px]" style={{ background: '#e8f2ec' }}>
                           <EditPeopleIcon color="#1f5a44" size={24} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }}>Edit registration</span>
-                          <span className="mt-[3px] block text-[14.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }}>Update your family members, guardians, and other details.</span>
+                          <span className="block text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }} {...tx('Edit registration')} />
+                          <span className="mt-[3px] block text-[14.5px] leading-[19px] text-[#5a6660]" style={{ fontFamily: FONT }} {...tx('Update your family members, guardians, and other details.')} />
                         </span>
                       </button>
                     )}
@@ -2343,7 +2317,7 @@ export default function ManageReservations() {
                           key={o.key}
                           type="button"
                           onClick={() => nav(o.to, { state: { groupIndices: o.groupIndices, optionTitle: o.title, sameCity: o.sameCity, returnTo: o.returnTo, modifyCityZone: o.modifyCityZone } })}
-                          className="group flex items-center gap-[16px] rounded-[16px] border border-[#e7dfc9] bg-white px-[18px] py-[18px] text-left transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
+                          className="group flex items-center gap-[16px] rounded-[16px] border border-[#e7dfc9] bg-white px-[18px] py-[18px] text-start transition-all duration-200 hover:border-[#c2a04e] hover:bg-[#fdfaf2] hover:shadow-[0_8px_22px_-12px_rgba(21,64,47,0.25)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f5a44]/25"
                         >
                           <span className="flex size-[52px] shrink-0 items-center justify-center rounded-[13px]" style={{ background: o.iconBg }}>{o.icon}</span>
                           <span className="min-w-0 flex-1">
@@ -2364,9 +2338,14 @@ export default function ManageReservations() {
                       <span className="flex size-[92px] items-center justify-center rounded-full" style={{ background: '#f2ead5' }}>
                         <MosqueIcon color="#1f5a44" size={44} />
                       </span>
-                      <h3 className="mt-[24px] text-[34px] leading-[40px] text-[#15402f]" style={{ fontFamily: SERIF }}>City not opened yet</h3>
+                      <h3 className="mt-[24px] text-[34px] leading-[40px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('City not opened yet')} />
                       <p className="mt-[14px] max-w-[440px] text-[19px] leading-[28px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                        City selection opens on <strong className="font-bold text-[#23302a]">{cityOpenLabel}</strong>. Once it opens, you&apos;ll be able to choose your preferred city.
+                        <span {...tx('City selection opens on')} />{' '}
+                        <strong className="font-bold text-[#23302a]">
+                          {cityOpenParts ? <DateLine value={cityOpenParts[0]} hijri={false} /> : null}
+                          {cityOpenParts?.[1] ? <> {t('at')} <TimeLine value={cityOpenParts[1]} /></> : null}
+                        </strong>
+                        <span {...tx('. Once it opens, you will be able to choose your preferred city.')} />
                       </p>
                     </div>
                   </div>

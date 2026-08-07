@@ -7,6 +7,7 @@ import StickyFooter from '../components/figma/StickyFooter'
 import { cityDirectory, family, miqaats } from '../data/seed'
 import { useStore, type RankedCity, type QuestionnaireAnswers } from '../store'
 import { QuestionnaireSections, validateQuestionnaire } from '../components/questionnaire/QuestionnaireFields'
+import { useT } from '../i18n'
 
 const MAX_CITIES = 5
 const CARD_H = 60
@@ -110,6 +111,7 @@ function RankList({ cities, onReorder, onRemove }: {
   onReorder: (from: number, to: number) => void
   onRemove: (id: string) => void
 }) {
+     const { t } = useT()
   const dsRef = useRef<DS | null>(null)
   const [ds, setDSRaw] = useState<DS | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -187,7 +189,7 @@ function RankList({ cities, onReorder, onRemove }: {
                 boxShadow: isDragging ? 'none' : undefined,
               }}
             >
-              <div className="pointer-events-none absolute inset-0 flex items-center gap-[13px] pl-[14px] pr-[77px]">
+              <div className="pointer-events-none absolute inset-0 flex items-center gap-[13px] ps-[14px] pe-[77px]">
                 <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] transition-transform duration-200">
                   <span className="text-[15px] font-extrabold leading-none text-white" style={FMU}>{liveRank}</span>
                 </div>
@@ -207,8 +209,8 @@ function RankList({ cities, onReorder, onRemove }: {
               <button
                 type="button"
                 onClick={() => onRemove(c.id)}
-                aria-label="Remove city"
-                className="absolute right-[43px] top-1/2 flex size-[28px] -translate-y-1/2 items-center justify-center rounded-full text-[#b0bbb6] transition-colors hover:bg-[#fde8e8] hover:text-[#b23b3b]"
+                aria-label={t('Remove city')}
+                className="absolute end-[43px] top-1/2 flex size-[28px] -translate-y-1/2 items-center justify-center rounded-full text-[#b0bbb6] transition-colors hover:bg-[#fde8e8] hover:text-[#b23b3b]"
               >
                 <svg viewBox="0 0 14 14" fill="none" className="size-[12px]">
                   <path d="M13 1L1 13M1 1l12 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -216,7 +218,7 @@ function RankList({ cities, onReorder, onRemove }: {
               </button>
 
               <div
-                className="absolute right-[-5px] top-1/2 flex size-[38px] -translate-y-1/2 touch-none select-none items-center justify-center rounded-full transition-colors hover:bg-[#ede5c8]"
+                className="absolute end-[-5px] top-1/2 flex size-[38px] -translate-y-1/2 touch-none select-none items-center justify-center rounded-full transition-colors hover:bg-[#ede5c8]"
                 style={{ background: isDragging ? '#d4eddf' : '#FBF1D8', cursor: isDragging ? 'grabbing' : 'grab' }}
                 onPointerDown={(e) => onHandleDown(e, i)}
                 onPointerMove={onHandleMove}
@@ -232,7 +234,7 @@ function RankList({ cities, onReorder, onRemove }: {
         })}
 
         {ds && insertPos >= 0 && (
-          <div className="pointer-events-none absolute left-0 right-0 z-20 flex items-center gap-[5px] px-[3px]" style={{ top: insertPos * STRIDE - 6 }}>
+          <div className="pointer-events-none absolute start-0 end-0 z-20 flex items-center gap-[5px] px-[3px]" style={{ top: insertPos * STRIDE - 6 }}>
             <div className="size-[7px] shrink-0 rounded-full bg-[#1f5a44] shadow-[0_0_0_2px_rgba(31,90,68,0.2)]" />
             <div className="h-[2px] flex-1 rounded-full bg-[#1f5a44] opacity-80" />
             <div className="size-[7px] shrink-0 rounded-full bg-[#1f5a44] shadow-[0_0_0_2px_rgba(31,90,68,0.2)]" />
@@ -249,7 +251,7 @@ function RankList({ cities, onReorder, onRemove }: {
             boxShadow: '0 20px 60px rgba(0,0,0,0.16), 0 6px 20px rgba(0,0,0,0.1)', opacity: 0.96,
           }}
         >
-          <div className="pointer-events-none absolute inset-0 flex items-center gap-[13px] pl-[14px] pr-[77px]">
+          <div className="pointer-events-none absolute inset-0 flex items-center gap-[13px] ps-[14px] pe-[77px]">
             <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
               <span className="text-[15px] font-extrabold leading-none text-white" style={FMU}>{ds.idx + 1}</span>
             </div>
@@ -265,7 +267,7 @@ function RankList({ cities, onReorder, onRemove }: {
               </div>
             </div>
           </div>
-          <div className="absolute right-[-5px] top-1/2 flex size-[38px] -translate-y-1/2 items-center justify-center rounded-full" style={{ background: '#d4eddf' }}>
+          <div className="absolute end-[-5px] top-1/2 flex size-[38px] -translate-y-1/2 items-center justify-center rounded-full" style={{ background: '#d4eddf' }}>
             <span className="block size-[12px] -translate-x-[3px] text-[#1f5a44]"><DragHandle active /></span>
           </div>
         </div>
@@ -290,6 +292,7 @@ function CitySearch({
   setShowDropdown: (v: boolean) => void
   variant: 'mobile' | 'desktop'
 }) {
+     const { tx, td } = useT()
   const isDesktop = variant === 'desktop'
   return (
     <div className="relative">
@@ -300,37 +303,37 @@ function CitySearch({
           onFocus={() => setShowDropdown(true)}
           onClick={(e) => { e.stopPropagation(); setShowDropdown(true) }}
           placeholder={isDesktop ? 'Search cities' : 'Search a city to add'}
-          className="h-full w-full bg-transparent pl-[11px] pr-[8px] text-[16px] font-normal leading-normal text-[#15402f] placeholder:text-[#757575] focus:outline-none"
+          className="h-full w-full bg-transparent ps-[11px] pe-[8px] text-[16px] font-normal leading-normal text-[#15402f] placeholder:text-[#757575] focus:outline-none"
           style={FMU}
         />
       </div>
       {showDropdown && suggestions.length > 0 && (
         <div
           data-tour="preferred-dropdown"
-          className="absolute left-0 right-0 top-[52px] z-50 max-h-[300px] overflow-y-auto rounded-[12px] border border-solid border-[#e7dfc9] bg-[#fffdf8] shadow-[0px_8px_24px_-4px_rgba(21,64,47,0.14)]"
+          className="absolute start-0 end-0 top-[52px] z-50 max-h-[300px] overflow-y-auto rounded-[12px] border border-solid border-[#e7dfc9] bg-[#fffdf8] shadow-[0px_8px_24px_-4px_rgba(21,64,47,0.14)]"
           onClick={(e) => e.stopPropagation()}
         >
           {suggestions.map((city) => {
             return (
               <div
                 key={city.id}
-                className="flex w-full items-center gap-[10px] border-b border-solid border-[#f0e9d8] px-[14px] py-[10px] text-left transition-colors last:border-b-0 hover:bg-[#f5ecd8]"
+                className="flex w-full items-center gap-[10px] border-b border-solid border-[#f0e9d8] px-[14px] py-[10px] text-start transition-colors last:border-b-0 hover:bg-[#f5ecd8]"
               >
                 {/* Badge on top, full city name + region below — so the city name is never clipped */}
                 <span className="flex min-w-0 flex-1 flex-col items-start gap-[4px]">
                   <CityTypeTag type={city.type} />
-                  <span className="truncate text-[16px] font-bold leading-[20px] text-[#15402f]" style={FMU}>{city.name}</span>
-                  <span className="truncate text-[12px] font-normal leading-[16px] text-[#8a938e]" style={FMU}>{city.region}</span>
+                  <span className="truncate text-[16px] font-bold leading-[20px] text-[#15402f]" style={FMU} {...td(city.name)} />
+                  <span className="truncate text-[12px] font-normal leading-[16px] text-[#8a938e]" style={FMU} {...td(city.region)} />
                 </span>
                 <button
                   type="button"
                   disabled={atMax}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => onAddCity(city)}
-                  className={`relative ml-auto h-[36px] shrink-0 rounded-[10px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[18px] transition-all duration-200 ${atMax ? 'cursor-not-allowed opacity-50' : 'hover:from-[#e7d3a2] hover:to-[#cfab65] active:scale-[0.97]'}`}
+                  className={`relative ms-auto h-[36px] shrink-0 rounded-[10px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[18px] transition-all duration-200 ${atMax ? 'cursor-not-allowed opacity-50' : 'hover:from-[#e7d3a2] hover:to-[#cfab65] active:scale-[0.97]'}`}
                 >
                   <span className="pointer-events-none absolute inset-0 rounded-[10px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]" />
-                  <span className="relative whitespace-nowrap text-center text-[14px] font-bold leading-[24px] text-[#194a37]" style={FMU}>Add</span>
+                  <span className="relative whitespace-nowrap text-center text-[14px] font-bold leading-[24px] text-[#194a37]" style={FMU} {...tx('Add')} />
                 </button>
               </div>
             )
@@ -343,15 +346,14 @@ function CitySearch({
 
 /* ── info banner ─────────────────────────────────────────────────── */
 function InfoBanner() {
+  const { tx } = useT()
   return (
     <div className="overflow-clip rounded-[14px] bg-[#e1eef1] px-[16px] py-[12px]">
       <div className="flex items-start gap-[10px]">
         <span className="mt-[2px] block size-[18px] shrink-0"><InfoFilled /></span>
         <div className="flex flex-col gap-[2px]">
-          <p className="text-[15px] font-bold leading-[20px] text-[#23302a]" style={FMU}>Allocation depends on availability</p>
-          <p className="text-[13px] font-normal leading-[18px] text-[#8a938e]" style={FMU}>
-            We&apos;ll try to assign your highest available preference.
-          </p>
+          <p className="text-[15px] font-bold leading-[20px] text-[#23302a]" style={FMU} {...tx('Allocation depends on availability')} />
+          <p className="text-[13px] font-normal leading-[18px] text-[#8a938e]" style={FMU} {...tx('We\'ll try to assign your highest available preference.')} />
         </div>
       </div>
     </div>
@@ -361,6 +363,7 @@ function InfoBanner() {
 /* ── component ──────────────────────────────────────────────────── */
 
 export default function PreferredCity({ backdrop = false }: { backdrop?: boolean } = {}) {
+  const { tx } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -393,12 +396,8 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
   const renderOtherDetails = (idPrefix: string) => (
     <>
       <div className="mb-[24px] h-px w-full bg-[#e7dfc9]" />
-      <h2 className="text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={FM}>
-        Other Details
-      </h2>
-      <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={FMU}>
-        Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.
-      </p>
+      <h2 className="text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={FM} {...tx('Other Details')} />
+      <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={FMU} {...tx('Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.')} />
       <div className="mt-[20px]">
         <QuestionnaireSections q={flow.questionnaire} onChange={setQuestionnaireField} registrant={registrant} idPrefix={idPrefix} hideIntro miqaatId={id} showErrors={showQErrors} />
       </div>
@@ -494,10 +493,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             type="button"
             onClick={() => nav(fromModify ? `/miqaats/${id}/manage` : '/miqaats')}
             className="inline-flex h-[48px] shrink-0 items-center justify-center rounded-[12px] border border-[#e7dfc9] bg-white px-[20px] text-[15px] font-bold text-[#5a6660] shadow-[0_6px_22px_-8px_rgba(21,64,47,0.12)] transition-colors hover:bg-[#faf8f2]"
-            style={FMU}
-          >
-            Skip
-          </button>
+            style={FMU} {...tx('Skip')} />
           <button
             type="button"
             onClick={handleConfirmFormOnly}
@@ -521,12 +517,8 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             onNavigate={(to) => nav(to)}
             onBack={() => nav(-1)}
           />
-          <h2 className="mt-[22px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[26px]" style={FM}>
-            Post Registration Details
-          </h2>
-          <p className="mt-[10px] pr-[90px] text-[14px] leading-[20px] text-[#5a6660] sm:pr-0" style={FMU}>
-            Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.
-          </p>
+          <h2 className="mt-[22px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[26px]" style={FM} {...tx('Post Registration Details')} />
+          <p className="mt-[10px] pe-[90px] text-[14px] leading-[20px] text-[#5a6660] sm:pr-0" style={FMU} {...tx('Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.')} />
 
           {/* full-width stacked section cards (application-form layout) */}
           <div className="mt-[18px]">
@@ -536,7 +528,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
         {/* validation error toast (same as the standard screen) */}
         {err && (
-          <div className="fixed bottom-[24px] left-[16px] right-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+          <div className="fixed bottom-[24px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
             <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
               <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
                 <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)" />
@@ -569,18 +561,18 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
               <svg viewBox="0 0 24 24" className="size-[16px] shrink-0 transition-transform duration-200 group-hover:-translate-x-[2px]" fill="none" aria-hidden="true">
                 <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span className="whitespace-nowrap text-[14px] font-semibold leading-[1.5]" style={FMU}>Go back</span>
+              <span className="whitespace-nowrap text-[14px] font-semibold leading-[1.5]" style={FMU} {...tx('Go back')} />
             </button>
             <button type="button" onClick={() => nav('/miqaats')}
               className="flex h-[24px] w-[66px] cursor-pointer items-center justify-center gap-[4px] rounded-[12px] border border-solid border-[rgba(12,61,34,0.2)] bg-[#fffdf8]">
-              <span className="text-[12px] leading-[16px] text-[#0c3d22]" style={{ ...FMU, fontWeight: 600 }}>Skip</span>
+              <span className="text-[12px] leading-[16px] text-[#0c3d22]" style={{ ...FMU, fontWeight: 600 }} {...tx('Skip')} />
               <span className="block size-[12px]"><ArrowForward /></span>
             </button>
           </div>
 
           {/* Title */}
           <div className="mt-[12px] text-[20px] not-italic tracking-[0.2px] text-[#15402f]" style={FM}>
-            <p className="leading-[24px]">Select Your Preferred Cities</p>
+            <p className="leading-[24px]" {...tx('Select Your Preferred Cities')} />
           </div>
 
           {/* Info banner */}
@@ -596,7 +588,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
           {/* "Your city choices" header */}
           <div className="mt-[16px] flex items-center justify-between">
-            <p className="whitespace-nowrap text-[16px] font-bold leading-[18px] tracking-[2.5px] text-[#a8843e]" style={FMU}>Your city choices</p>
+            <p className="whitespace-nowrap text-[16px] font-bold leading-[18px] tracking-[2.5px] text-[#a8843e]" style={FMU} {...tx('Your city choices')} />
             <p className="whitespace-nowrap text-[14px] font-bold leading-[18px] tracking-[2.5px] text-[#8a938e]" style={FMU}>{cities.length} / {MAX_CITIES} cities</p>
           </div>
 
@@ -604,9 +596,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
           {!empty && cities.length >= 2 && (
             <div className="mt-[8px] flex items-center gap-[6px]">
               <span className="block size-[12px] text-[#b0943a]"><DragHandle /></span>
-              <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                Drag the handle to reorder — your highest available choice is honored first.
-              </p>
+              <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU} {...tx('Drag the handle to reorder — your highest available choice is honored first.')} />
             </div>
           )}
 
@@ -615,11 +605,9 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             <div className="mt-[12px] flex flex-col items-center gap-[16px] overflow-clip rounded-[12px] border-2 border-dashed border-[#e7dfc9] bg-[#fffdf8] px-[24px] py-[32px] text-center">
               <div className="size-[50px]"><LocationPin /></div>
               <div className="text-center text-[20px] font-normal tracking-[0.2px] text-[#15402f]" style={FM}>
-                <p className="leading-[28px]">No cities added yet</p>
+                <p className="leading-[28px]" {...tx('No cities added yet')} />
               </div>
-              <p className="max-w-[300px] text-center text-[14px] font-normal leading-[18px] text-[#5a6660]" style={FMU}>
-                Add the cities you&apos;d prefer to attend in. You can rank them after adding — your highest available choice is honored first.
-              </p>
+              <p className="max-w-[300px] text-center text-[14px] font-normal leading-[18px] text-[#5a6660]" style={FMU} {...tx('Add the cities you\'d prefer to attend in. You can rank them after adding — your highest available choice is honored first.')} />
             </div>
           ) : (
             <div className="mt-[12px]">
@@ -641,7 +629,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
         <div className="flex h-[calc(100dvh-60px)] items-stretch overflow-hidden" onClick={() => setShowDropdown(false)}>
 
           {/* ───────── LEFT sidebar ───────── */}
-          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] pl-[var(--content-px)] pr-[28px]">
+          <aside className="flex w-[37%] max-w-[580px] shrink-0 flex-col gap-[24px] border-r border-[#e7ddc6] bg-[#f1ede3] py-[24px] ps-[var(--content-px)] pe-[28px]">
 
             {/* breadcrumb header — Go back merged in as the leading item */}
             <Breadcrumb
@@ -657,7 +645,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
             {/* Select Your Preferred Cities card */}
             <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
-              <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={FM}>Select Your Preferred Cities</p>
+              <p className="text-[22px] leading-[26px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Select Your Preferred Cities')} />
               <div className="mt-[16px]">
                 <CitySearch
                   q={q} onQuery={onQuery} suggestions={suggestions} onAddCity={addCityDirect} atMax={atMax}
@@ -669,14 +657,14 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
           {/* ───────── RIGHT choices panel ───────── */}
           <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
-            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] pl-[28px] pr-[var(--content-px)]">
+            <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
 
               {/* Info banner */}
               <InfoBanner />
 
               {/* "Your city choices" header — Skip lives in the floating CTA below on web */}
               <div className="mt-[24px] flex items-baseline gap-[12px]">
-                <p className="text-[16px] font-bold uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]" style={FMU}>Your city choices</p>
+                <p className="text-[16px] font-bold uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]" style={FMU} {...tx('Your city choices')} />
                 <p className="text-[16px] font-bold leading-[18px] text-[#15402f]" style={FMU}>{cities.length}/{MAX_CITIES} cities</p>
               </div>
 
@@ -684,9 +672,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
               {!empty && cities.length >= 2 && (
                 <div className="mt-[12px] flex items-center gap-[8px]">
                   <span className="block size-[14px] text-[#b0943a]"><DragHandle /></span>
-                  <p className="text-[14px] leading-[18px] tracking-[1px] text-[#8a938e]" style={FMU}>
-                    Drag the handle to reorder — your highest available choice is honored first.
-                  </p>
+                  <p className="text-[14px] leading-[18px] tracking-[1px] text-[#8a938e]" style={FMU} {...tx('Drag the handle to reorder — your highest available choice is honored first.')} />
                 </div>
               )}
 
@@ -694,10 +680,8 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
               {empty ? (
                 <div className="mt-[20px] flex flex-col items-center gap-[18px] rounded-[16px] border-2 border-dashed border-[#dcd3bd] bg-[#fdfbf5] px-[40px] py-[44px] text-center">
                   <div className="size-[68px]"><LocationPin /></div>
-                  <p className="text-[28px] leading-[34px] tracking-[0.2px] text-[#15402f]" style={FM}>No cities added yet</p>
-                  <p className="max-w-[460px] text-[16px] font-normal leading-[24px] text-[#5a6660]" style={FMU}>
-                    Add the cities you&apos;d prefer to attend in. You can rank them after adding — your highest available choice is honored first.
-                  </p>
+                  <p className="text-[28px] leading-[34px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('No cities added yet')} />
+                  <p className="max-w-[460px] text-[16px] font-normal leading-[24px] text-[#5a6660]" style={FMU} {...tx('Add the cities you\'d prefer to attend in. You can rank them after adding — your highest available choice is honored first.')} />
                 </div>
               ) : (
                 <div className="mt-[16px]">
@@ -728,7 +712,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
       {/* ── validation error toast ── */}
       {err && (
-        <div className="fixed bottom-[110px] left-[16px] right-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>

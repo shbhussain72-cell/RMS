@@ -15,6 +15,7 @@ import {
   type NotifGroup,
 } from '../data/notifications'
 import { formNotificationPending } from '../lib/registrationForm'
+import { useT } from '../i18n'
 
 // suppress unused import warning — CATEGORY_STYLE exported for completeness
 void CATEGORY_STYLE
@@ -24,6 +25,7 @@ const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
 const GROUPS: NotifGroup[] = ['Today', 'Yesterday', 'Earlier']
 
 export default function Notifications() {
+  const { tx } = useT()
   const nav = useNavigate()
   const [filter, setFilter] = useState<NotifFilter>('All')
   const readNotifIds = useStore((s) => s.readNotifIds)
@@ -66,7 +68,7 @@ export default function Notifications() {
       </div>
 
       {/* Breadcrumb */}
-      <div className="ml-[16px] mt-[10px] sm:ml-0">
+      <div className="ms-[16px] mt-[10px] sm:ml-0">
         <Breadcrumb
           items={[{ label: 'Home', to: '/miqaats' }, { label: 'Notification' }]}
           onNavigate={(to) => nav(to)}
@@ -77,18 +79,13 @@ export default function Notifications() {
       <div className="px-[16px] pb-[32px] sm:px-0">
         {/* Page header */}
         <div className="mt-[16px] flex items-center justify-between">
-          <h1 className="text-[24px] leading-[30px] text-[#15402f]" style={FM}>
-            Notification
-          </h1>
+          <h1 className="text-[24px] leading-[30px] text-[#15402f]" style={FM} {...tx('Notification')} />
           <button
             type="button"
             onClick={handleMarkAll}
             disabled={unread === 0}
             className="text-[14px] font-semibold text-[#1f5a44] transition-opacity enabled:active:opacity-60 disabled:cursor-default disabled:text-[#b6beb9]"
-            style={FMU}
-          >
-            Mark all read
-          </button>
+            style={FMU} {...tx('Mark all read')} />
         </div>
 
         {/* Filter chips */}
@@ -133,7 +130,7 @@ export default function Notifications() {
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-[16px] font-semibold text-[#5a6660]" style={FMU}>No notifications</p>
+              <p className="text-[16px] font-semibold text-[#5a6660]" style={FMU} {...tx('No notifications')} />
             </div>
           )}
         </div>

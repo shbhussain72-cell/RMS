@@ -24,7 +24,11 @@ if (process.argv.includes('--strip')) {
       if (e.isDirectory()) walk(p)
       else if (/\.tsx$/.test(p)) {
         const src = fs.readFileSync(p, 'utf8')
-        const out = src.replace(/\s*data-elim="\d+"/g, '')
+        // Consume TRAILING whitespace, never leading: the marker is inserted immediately
+        // before `className`, so eating what precedes it swallows the newline and indent of a
+        // multi-line JSX attribute and silently reformats the file. Round-tripping a
+        // measurement marker must leave the source byte-identical.
+        const out = src.replace(/data-elim="\d+"\s*/g, '')
         if (out !== src) { fs.writeFileSync(p, out); n++ }
       }
     }

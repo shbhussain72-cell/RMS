@@ -27,7 +27,8 @@ const initials = (name: string) =>
 function Avatar({ name }: { name: string }) {
   return (
     <div className="relative size-[36px] shrink-0 overflow-clip rounded-[46px] bg-[#1f5a44]">
-      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[14px] leading-[18px] text-white"
+      <span
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[14px] leading-[18px] text-white"
         style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}
       >
         {initials(name)}

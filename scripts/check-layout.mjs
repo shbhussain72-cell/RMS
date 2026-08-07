@@ -20,7 +20,16 @@
  *
  * OVERLAP      two interactive elements whose boxes intersect. One of them is unclickable,
  *              and which one depends on paint order, so this is always a bug even when it
- *              looks fine in a screenshot.
+ *              looks fine in a screenshot. Cheap, and catches a class occlusion misses:
+ *              two controls can overlap while a THIRD element is painted over both.
+ *
+ * OCCLUDED     a text element that is not the topmost thing at its own centre, where the
+ *              occluder is in normal flow. Nothing in flow should ever be painted over
+ *              text. This is a real defect and fails the run.
+ *
+ * OVERLAY      the same measurement, but the occluder lives in a fixed/sticky layer — a
+ *              modal, a toast, a sticky footer. Covering the page is what those are for.
+ *              Reported for the record; does NOT fail the run.
  *
  * TALL-ROW     a members-table row past a height threshold. This is how a missing
  *              `min-width` shows up numerically: the name column collapses, every word wraps
@@ -43,7 +52,6 @@ import { spawn } from 'node:child_process'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
-const PORT = 4322
 const MIQAAT_ID = 'ashara-1448'
 const OUT = resolve(ROOT, 'artifacts/audit/layout.json')
 
@@ -80,11 +88,26 @@ const seed = (lang) => `
 /** Runs in the page. Self-contained — stringified across the boundary. */
 const PROBE = () => {
   const out = []
+  /**
+   * Visibility must be inherited, not read off the element alone.
+   *
+   * `opacity` does NOT inherit as a computed value: a `<p>` inside an `opacity-0` tooltip
+   * still reports `opacity: 1`. Checking only the element itself therefore counted every
+   * hover tooltip's contents as visible on-screen text — and since a real element is of
+   * course painted where a hidden tooltip sits, the occlusion probe reported one finding per
+   * line of hidden tooltip. That alone was 149 of 279 OCCLUDED hits, all on /timeline, all
+   * from the EventJourney day-cell tooltip. Same reason `visibility: hidden` on a wrapper has
+   * to be honoured for its descendants.
+   */
   const isVisible = (el) => {
     const r = el.getBoundingClientRect()
     if (r.width < 2 || r.height < 2) return false
-    const s = getComputedStyle(el)
-    return s.visibility !== 'hidden' && s.display !== 'none' && s.opacity !== '0'
+    for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p)
+      if (s.visibility === 'hidden' || s.display === 'none' || s.opacity === '0') return false
+      if (s.contentVisibility === 'hidden') return false
+    }
+    return true
   }
   const describe = (el) => {
     const cls = typeof el.className === 'string' ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join('.') : ''
@@ -155,33 +178,63 @@ const PROBE = () => {
     }
   }
 
-  // ── an interactive element covering readable text ─────────────────────────
-  // Distinct from the button-on-button check above: a button sitting on top of a LABEL hides
-  // information rather than a control, so neither element is interactive-on-interactive and
-  // the earlier pass cannot see it. This is the "Request all covers Host city / Colombo" case.
+  // ── occlusion: is each text element the thing painted at its own centre? ──
+  //
+  // This replaces a bounding-box intersection test. Two boxes intersecting is not evidence
+  // that anything is hidden: the app is full of absolutely-positioned wrappers, gradient
+  // scrims and full-bleed containers whose boxes legitimately cross a label without ever
+  // covering it. That test produced 22 raw hits, nearly all of them noise, which is the
+  // worst failure mode a probe can have — it makes the one real finding indistinguishable.
+  //
+  // `elementFromPoint` asks the renderer the question we actually mean: at this pixel, what
+  // is on top? If the answer is not this element (nor a descendant, nor an ancestor standing
+  // in for it) then something genuinely covers it.
+  //
+  // Partitioned by the OCCLUDER's computed position, because the two cases need opposite
+  // treatment:
+  //   OVERLAY   the occluder sits in a fixed/sticky layer — a modal, a sticky footer, a
+  //             toast. Covering the page is its JOB. Logged, never failed.
+  //   OCCLUDED  the occluder is in normal flow. Nothing in flow should ever land on top of
+  //             text; this is a real layout defect. Failed.
+  //
+  // KNOWN LIMIT: `pointer-events: none` elements are invisible to hit-testing, so a
+  // decorative tooltip that visually covers text will not be reported. That is the correct
+  // trade for a probe whose failures must be actionable — it is the interaction question,
+  // and it is the one that has a right answer.
   const textEls = all.filter((el) => {
     if (!isVisible(el)) return false
     if (el.children.length) return false // leaf text only, or every ancestor reports too
     const t = (el.textContent || '').trim()
-    return t.length > 2 && !/^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)
+    return t.length > 2
   })
-  for (const btn of interactive) {
-    const rb = btn.getBoundingClientRect()
-    for (const te of textEls) {
-      if (btn.contains(te) || te.contains(btn)) continue
-      const rt = te.getBoundingClientRect()
-      const ox = Math.min(rb.right, rt.right) - Math.max(rb.left, rt.left)
-      const oy = Math.min(rb.bottom, rt.bottom) - Math.max(rb.top, rt.top)
-      // Require a substantial overlap of the TEXT box: a 2px kiss is antialiasing, but half
-      // the label covered means the user cannot read it.
-      if (ox > 6 && oy > 6 && ox * oy > rt.width * rt.height * 0.4) {
-        out.push({
-          kind: 'COVERS-TEXT', where: `${describe(btn)} over ${describe(te)}`,
-          detail: `${Math.round(ox)}x${Math.round(oy)}px`,
-          text: (te.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40),
-        })
-      }
+  for (const te of textEls) {
+    // First client rect, not the bounding box: a wrapped line's bounding box spans the full
+    // column and its centre can fall in the gap between lines, where nothing is painted.
+    const r = te.getClientRects()[0]
+    if (!r || r.width < 4 || r.height < 4) continue
+    const x = Math.round(r.left + r.width / 2)
+    const y = Math.round(r.top + r.height / 2)
+    if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) continue
+    const hit = document.elementFromPoint(x, y)
+    if (!hit) continue
+    // Descendant: normal. Ancestor: also normal — happens when the leaf itself is
+    // pointer-events:none and its parent answers for it.
+    if (hit === te || te.contains(hit) || hit.contains(te)) continue
+
+    // Nearest fixed/sticky ancestor of the occluder, itself included.
+    let layer = null
+    for (let p = hit; p && p !== document.documentElement; p = p.parentElement) {
+      const pos = getComputedStyle(p).position
+      if (pos === 'fixed' || pos === 'sticky') { layer = p; break }
     }
+    out.push({
+      kind: layer ? 'OVERLAY' : 'OCCLUDED',
+      where: `${describe(hit)} over ${describe(te)}`,
+      detail: layer
+        ? `occluder inside ${getComputedStyle(layer).position} layer ${describe(layer)}`
+        : `in-flow occluder at (${x},${y})`,
+      text: (te.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40),
+    })
   }
 
   // ── over-tall table rows ──────────────────────────────────────────────────
@@ -226,20 +279,42 @@ const PROBE = () => {
   return out
 }
 
-async function serve() {
-  const proc = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+/**
+ * Ask the OS for a port nobody is using.
+ *
+ * A fixed `--strictPort` was costing more time than the assertions were: an orphaned preview
+ * from a previous run — or one still shutting down, or a socket in TIME_WAIT — makes the next
+ * run die with `preview exited (1)`, which reads like a build failure and is not one.
+ * Binding port 0 lets the kernel hand back something free, so concurrent and back-to-back
+ * runs stop colliding.
+ */
+async function freePort() {
+  const { createServer } = await import('node:net')
+  return new Promise((ok, fail) => {
+    const s = createServer()
+    s.on('error', fail)
+    s.listen(0, '127.0.0.1', () => {
+      const { port } = s.address()
+      s.close(() => ok(port))
+    })
+  })
+}
+
+async function serve(port) {
+  const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], {
     cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
   })
   await new Promise((ok, fail) => {
     const t = setTimeout(() => fail(new Error('preview did not start')), 60_000)
-    const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 800) } }
+    const w = (b) => { if (String(b).includes(String(port))) { clearTimeout(t); setTimeout(ok, 800) } }
     proc.stdout.on('data', w); proc.stderr.on('data', w)
     proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`preview exited (${c})`)) })
   })
   return proc
 }
 
-const server = await serve()
+const PREVIEW_PORT = await freePort()
+const server = await serve(PREVIEW_PORT)
 const browser = await chromium.launch()
 const findings = []
 const failed = []
@@ -257,7 +332,7 @@ try {
 
       for (const route of targets) {
         try {
-          await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
+          await page.goto(`http://localhost:${PREVIEW_PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
           await page.evaluate(() => document.fonts?.ready)
           await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
           const hits = await page.evaluate(PROBE)
@@ -275,6 +350,11 @@ try {
   server.kill()
 }
 
+// Kinds that are recorded but must not gate a build. An overlay covering the page is the
+// overlay working; failing on it would train everyone to ignore the exit code.
+const LOG_ONLY = new Set(['OVERLAY'])
+const failures = findings.filter((f) => !LOG_ONLY.has(f.kind))
+
 const byKind = {}
 for (const f of findings) byKind[f.kind] = (byKind[f.kind] ?? 0) + 1
 
@@ -285,8 +365,10 @@ if (JSON_OUT) {
   console.log(JSON.stringify({ visits, byKind, findings }, null, 2))
 } else {
   console.log(`route visits : ${visits} (${targets.length} routes x ${LANGS.length} langs x ${WIDTHS.length} widths)`)
-  console.log(`findings     : ${findings.length}`)
-  for (const [k, n] of Object.entries(byKind).sort((a, b) => b[1] - a[1])) console.log(`  ${k.padEnd(14)} ${n}`)
+  console.log(`findings     : ${findings.length} (${failures.length} failing, ${findings.length - failures.length} log-only)`)
+  for (const [k, n] of Object.entries(byKind).sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${k.padEnd(14)} ${String(n).padStart(4)}${LOG_ONLY.has(k) ? '   (log-only)' : ''}`)
+  }
 
   // Grouped by kind then route so the output reads as a worklist, not a log.
   for (const kind of Object.keys(byKind)) {
@@ -312,4 +394,4 @@ if (JSON_OUT) {
   console.log(`\nwrote ${OUT.replace(ROOT, '.')}`)
 }
 
-process.exit(findings.length === 0 ? 0 : 1)
+process.exit(failures.length === 0 ? 0 : 1)

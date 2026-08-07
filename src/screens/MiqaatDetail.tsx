@@ -15,14 +15,17 @@ import { pendingNewQuestionKeys, isFormEditable, formatFormUpdated } from '../li
 import AskHelpDock from '../chat/AskHelpDock'
 import type { AskHelpInit } from '../chat/types'
 import Toast, { useToast } from '../components/figma/Toast'
+import { useT } from '../i18n'
+import { DateLine, TimeLine } from '../components/DateLine'
 
 const HERO_ARCH = '/figma/md-hero-arch.svg'
 const HERO_PHOTO = '/figma/md-hero-photo.png'
-const EVENT_EMBLEM = '/figma/event-emblem.svg'
+/** Miqaat logo — replaces the old ITS crest (`/figma/event-emblem.svg`) beside event names. */
+const EVENT_EMBLEM = '/miqaat-logo.png'
 const VIDEO_PLAY = '/figma/md-video-play.svg'
 const VIDEO_ORNAMENT = '/figma/md-video-ornament.svg'
 const CHECK_CIRCLE = '/figma/md-check-circle.svg'
-const CREST = '/figma/its-crest-header.png'
+const CREST = '/miqaat-logo.png'
 
 const MUL = 'Mulish, system-ui, sans-serif'
 
@@ -42,16 +45,16 @@ function useCountdown(initialSeconds: number) {
 }
 
 function SectionHeading({ label }: { label: string }) {
+  const { tx } = useT()
   return (
     <div className="relative h-[18px] w-full">
-      <div className="absolute left-0 right-1/2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
+      <div className="absolute start-0 right-1/2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[#e3cd96] to-[rgba(227,205,150,0)]" />
       <p
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
         style={{ fontFamily: MUL, fontWeight: 700 }}
-      >
-        {label}
-      </p>
-      <div className="absolute left-1/2 right-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
+        {...tx(label)}
+      />
+      <div className="absolute left-1/2 end-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[rgba(227,205,150,0)] to-[#e3cd96]" />
     </div>
   )
 }
@@ -109,6 +112,7 @@ function Hero({
    *  banner. `Hero` stays generic/unaware of ashara; the caller decides whether to pass it. */
   demoControl?: ReactNode
 }) {
+  const { tx, tdAuthored, isLsd, dirProps } = useT()
   // Both CTAs get exactly one equal width — a 2-col grid (`1fr 1fr`), capped on desktop so they
   // stay a sensible size instead of stretching. Single-CTA state stays natural width. Pulled into
   // its own variable so it can be positioned either beside the countdown (the normal case) or
@@ -118,7 +122,7 @@ function Hero({
       {onManage && (
         <button type="button" onClick={onManage} className="inline-flex h-[50px] w-full min-w-0 items-center justify-center gap-[5px] rounded-full border border-solid border-[rgba(255,255,255,0.7)] bg-[rgba(0,0,0,0.38)] px-[12px] backdrop-blur-[3px] transition-colors hover:bg-[rgba(0,0,0,0.5)]">
           <span className="text-[12px] leading-none text-white">✎</span>
-          <span className="truncate text-[12px] font-bold text-white" style={{ fontFamily: MUL }}>Modify Reservation</span>
+          <span className="truncate text-[12px] font-bold text-white" style={{ fontFamily: MUL }} {...tx('Modify Reservation')} />
         </button>
       )}
       {/* When the primary IS "Modify Reservation" (no separate manage secondary), use the SAME dark
@@ -127,11 +131,11 @@ function Hero({
       {primaryLabel === 'Modify Reservation' ? (
         <button type="button" onClick={onPrimary} className={`inline-flex h-[50px] min-w-0 items-center justify-center gap-[5px] rounded-full border border-solid border-[rgba(255,255,255,0.7)] bg-[rgba(0,0,0,0.38)] backdrop-blur-[3px] transition-colors hover:bg-[rgba(0,0,0,0.5)] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
           <span className="text-[13px] leading-none text-white">✎</span>
-          <span className="truncate text-[14px] font-bold text-white" style={{ fontFamily: MUL }}>{primaryLabel}</span>
+          <span className="truncate text-[14px] font-bold text-white" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       ) : (
         <button type="button" onClick={onPrimary} data-tour={primaryLabel === 'Register Now' ? 'register-button' : undefined} className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
-          <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: MUL }}>{primaryLabel}</span>
+          <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       )}
     </div>
@@ -139,7 +143,7 @@ function Hero({
   return (
     <div className="relative w-full overflow-clip rounded-[20px] bg-gradient-to-b from-[#0e2d21] via-[#15402f] to-[#1f5a44] [--tw-gradient-via-position:50%] sm:rounded-[24px]">
       <div
-        className="absolute bottom-[32.41%] left-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
+        className="absolute bottom-[32.41%] start-[calc(50%-0.94px)] top-[5.51%] w-[320px] -translate-x-1/2 rounded-[9999px]"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(22.627 0 0 22.627 160 160)'><stop stop-color='rgba(227,205,150,0.28)' offset='0'/><stop stop-color='rgba(227,205,150,0)' offset='0.62'/></radialGradient></defs></svg>\")",
@@ -168,21 +172,29 @@ function Hero({
             {newBadge && (
               <div className="flex w-fit items-center gap-[7px] rounded-full bg-[#a8843e] px-[13px] py-[5px]">
                 <span className="size-[6px] shrink-0 rounded-full bg-white" />
-                <span className="whitespace-nowrap text-[11px] font-bold uppercase leading-none tracking-[0.8px] text-white" style={{ fontFamily: MUL }}>
-                  New Miqaat
-                </span>
+                <span className="whitespace-nowrap text-[11px] font-bold uppercase leading-none tracking-[0.8px] text-white" style={{ fontFamily: MUL }} {...tx('New Miqaat')} />
               </div>
             )}
+            {/* Logo leads from the right in LSD — the hero container above is already RTL,
+                so no `flex-row-reverse` here (applying both would cancel out). */}
             <div className="flex items-center gap-[12px]">
               <img src={EVENT_EMBLEM} alt="" className="h-[46px] w-auto shrink-0 object-contain sm:h-[58px]" />
               <div className="min-w-0">
+                {/* Same heading slot in both languages. LSD renders the name larger and in
+                    gold — matching the event cards on the home screen; the gold that used
+                    to carry the Arabic subtitle now carries the name itself. EN keeps its
+                    original white at its original size. */}
                 <p
-                  className="text-[27px] leading-[31px] tracking-[0.2px] text-white sm:text-[36px] sm:leading-[42px]"
+                  className={
+                    isLsd
+                      ? 'text-[35px] leading-[44px] tracking-[0.2px] text-[#e3cd96] sm:text-[47px] sm:leading-[58px]'
+                      : 'text-[27px] leading-[31px] tracking-[0.2px] text-white sm:text-[36px] sm:leading-[42px]'
+                  }
                   style={{ fontFamily: 'Marcellus, serif' }}
-                >
-                  {title}
-                </p>
-                {arabicName && (
+                  {...tdAuthored(title, arabicName)}
+                />
+                {/* EN-only: in LSD this name is already the heading above. */}
+                {!isLsd && arabicName && (
                   <p
                     className="mt-[5px] text-[15px] leading-[22px] text-[rgba(255,255,255,0.78)] sm:text-[18px] sm:leading-[26px]"
                     style={{ fontFamily: 'Amiri, serif' }}
@@ -196,15 +208,15 @@ function Hero({
             <div className="flex flex-wrap items-center gap-x-[12px] gap-y-[4px]">
               <span className="flex items-center gap-[8px]">
                 <img src="/figma/icon-date-range-gold.svg" alt="" className="size-[18px] shrink-0" />
-                <span className="text-[14px] leading-[18px] text-white" style={{ fontFamily: MUL, fontWeight: 500 }}>
-                  {dateLabel}
+                <span className="text-[14px] leading-[18px] text-white" style={{ fontFamily: MUL, fontWeight: 500 }} {...dirProps}>
+                  <DateLine value={dateLabel} />
                 </span>
               </span>
               <span className="h-[16px] w-px shrink-0 bg-[rgba(255,255,255,0.3)]" />
               <span className="flex items-center gap-[8px]">
                 <img src="/figma/icon-schedule.svg" alt="" className="size-[18px] shrink-0" />
-                <span className="text-[14px] leading-[18px] text-white" style={{ fontFamily: MUL, fontWeight: 500 }}>
-                  {timeLabel}
+                <span className="text-[14px] leading-[18px] text-white" style={{ fontFamily: MUL, fontWeight: 500 }} {...dirProps}>
+                  <TimeLine value={timeLabel} />
                 </span>
               </span>
             </div>
@@ -221,9 +233,9 @@ function Hero({
                     <div className="flex h-[40px] items-center justify-between rounded-[12px] px-[14px]" style={{ background: reg.cityAllocated ? '#e7f1ea' : '#ffffff' }}>
                       <span className="flex items-center gap-[8px]">
                         <svg viewBox="0 0 24 24" fill="none" className="size-[18px] shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#1f5a44" /><circle cx="12" cy="9" r="2.6" fill="white" /></svg>
-                        <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: MUL, fontWeight: 600 }}>{reg.cityLabel}</span>
+                        <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: MUL, fontWeight: 600 }} {...tx(reg.cityLabel)} />
                       </span>
-                      <span className="truncate text-[14px]" style={{ fontFamily: MUL, fontWeight: reg.cityAllocated ? 800 : 600, color: reg.cityAllocated ? '#1f5a44' : '#8a938e' }}>{reg.cityValue}</span>
+                      <span className="truncate text-[14px]" style={{ fontFamily: MUL, fontWeight: reg.cityAllocated ? 800 : 600, color: reg.cityAllocated ? '#1f5a44' : '#8a938e' }} {...(reg.cityAllocated ? { children: reg.cityValue } : tx(reg.cityValue))} />
                     </div>
                   )}
                 </>
@@ -265,15 +277,13 @@ function Hero({
 /** Official Fasal Announcement — a separate rounded card below the Hero (own gap/margin, not
  *  nested inside it), matching the same dark-green gradient card treatment. */
 function FasalAnnouncementCard({ arabic, hostCity, relayCenters }: { arabic: string; hostCity: string; relayCenters: string[] }) {
+                                                                                                                                   const { tx } = useT()
   return (
     <div className="relative w-full overflow-clip rounded-[20px] bg-gradient-to-b from-[#0e2d21] via-[#15402f] to-[#1f5a44] px-[18px] pb-[16px] pt-[20px] sm:rounded-[24px]">
       <div className="flex w-full flex-col items-center rounded-[14px] border border-solid border-[rgba(227,205,150,0.25)] bg-[rgba(255,255,255,0.07)] px-[18px] py-[20px] sm:px-[48px] sm:py-[28px]">
         <p
           className="text-center text-[10px] uppercase leading-[15px] tracking-[1px] text-[#e3cd96]"
-          style={{ fontFamily: MUL, fontWeight: 800 }}
-        >
-          Official Fasal Announcement
-        </p>
+          style={{ fontFamily: MUL, fontWeight: 800 }} {...tx('Official Fasal Announcement')} />
         <p
           className="mt-[10px] text-center text-[18px] leading-[32px] text-white sm:mt-[14px] sm:text-[22px] sm:leading-[36px]"
           style={{ fontFamily: 'Amiri, serif' }}
@@ -283,21 +293,14 @@ function FasalAnnouncementCard({ arabic, hostCity, relayCenters }: { arabic: str
         </p>
         <p
           className="mt-[8px] max-w-[640px] text-center text-[13px] italic leading-[20px] text-[rgba(248,244,234,0.8)] sm:mt-[10px]"
-          style={{ fontFamily: MUL, fontWeight: 400 }}
-        >
-          Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant
-          all the taufeeq of haziri.
-        </p>
+          style={{ fontFamily: MUL, fontWeight: 400 }} {...tx('Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant all the taufeeq of haziri.')} />
         <div className="mt-[14px] flex h-[35px] items-center gap-[8px] rounded-[999px] border border-solid border-[rgba(227,205,150,0.4)] bg-[rgba(255,255,255,0.1)] px-[20px] sm:mt-[18px]">
           <span className="whitespace-nowrap text-[13px] text-[#e3cd96]" style={{ fontFamily: MUL, fontWeight: 700 }}>📍 Host City</span>
           <span className="whitespace-nowrap text-[13px] text-white" style={{ fontFamily: MUL, fontWeight: 700 }}>{hostCity}</span>
         </div>
         <p
           className="mt-[14px] text-center text-[10px] uppercase leading-[15px] tracking-[1px] text-[#e3cd96] sm:mt-[18px]"
-          style={{ fontFamily: MUL, fontWeight: 800 }}
-        >
-          Relay Centers
-        </p>
+          style={{ fontFamily: MUL, fontWeight: 800 }} {...tx('Relay Centers')} />
         <div className="mt-[10px] flex flex-wrap justify-center gap-[8px] sm:mt-[12px]">
           {relayCenters.map((city, i) => (
             <div
@@ -352,6 +355,7 @@ function ImportantNoticeCard() {
 }
 
 function AboutVideoCard() {
+                            const { tx } = useT()
   return (
     <div className="relative h-[200px] sm:h-[300px] w-full overflow-clip rounded-[18px] border-2 border-solid border-[#e7dfc9] bg-[#fffdf8] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]">
       <div
@@ -369,18 +373,15 @@ function AboutVideoCard() {
           </div>
         </div>
         <div className="absolute left-1/2 top-[65.44px] size-[66px] -translate-x-1/2 rounded-[33px] bg-[rgba(248,244,234,0.92)] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.3)]">
-          <div className="absolute left-[21.5px] top-[20px] size-[26px]">
+          <div className="absolute start-[21.5px] top-[20px] size-[26px]">
             <img src={VIDEO_PLAY} alt="" className="absolute inset-0 block size-full max-w-none" />
           </div>
           <div className="absolute inset-[-8px] rounded-[41px] border-2 border-solid border-[rgba(255,255,255,0.4)]" />
         </div>
-        <div className="absolute bottom-[0.25px] left-0 right-0 h-[49.69px] bg-gradient-to-b from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.55)]">
+        <div className="absolute bottom-[0.25px] start-0 end-0 h-[49.69px] bg-gradient-to-b from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.55)]">
           <p
-            className="absolute left-[16px] right-[16px] top-[23px] h-[18px] -translate-y-1/2 text-[14px] leading-[21.7px] text-white"
-            style={{ fontFamily: MUL, fontWeight: 600 }}
-          >
-            Watch Introduction · Purpose &amp; Travel Guidance
-          </p>
+            className="absolute start-[16px] end-[16px] top-[23px] h-[18px] -translate-y-1/2 text-[14px] leading-[21.7px] text-white"
+            style={{ fontFamily: MUL, fontWeight: 600 }} {...tx('Watch Introduction · Purpose & Travel Guidance')} />
         </div>
       </div>
     </div>
@@ -417,41 +418,34 @@ const GUIDELINES_NOTE =
 /** Guidelines & Rules card — view-only written guidelines: a small clipped text preview sits on the
  *  card, and tapping it opens a larger popup with the full text. There is no download affordance. */
 function GuidelinesCard() {
+                            const { tx, removed } = useT()
   const [open, setOpen] = useState(false)
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full flex-col overflow-hidden rounded-[18px] border-2 border-solid border-[#e7dfc9] bg-[#fffdf8] text-left shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)] transition-colors hover:border-[#c2a04e]"
+        className="flex w-full flex-col overflow-hidden rounded-[18px] border-2 border-solid border-[#e7dfc9] bg-[#fffdf8] text-start shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)] transition-colors hover:border-[#c2a04e]"
       >
         <div className="flex items-center gap-[10px] p-[16px] pb-[12px]">
           <PdfFileIcon size={22} />
           <div className="min-w-0">
-            <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 700 }}>
-              Guidelines &amp; Rules and Regulations
-            </p>
-            <p className="mt-[2px] text-[12px] leading-[17px] text-[#6a746e]" style={{ fontFamily: MUL }}>
-              Provided by the organisers for this Miqaat — tap to view.
-            </p>
+            <p className="text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 700 }} {...tx('Guidelines & Rules and Regulations')} />
+            <p className="mt-[2px] text-[12px] leading-[17px] text-[#6a746e]" style={{ fontFamily: MUL }} {...tx('Provided by the organisers for this Miqaat — tap to view.')} />
           </div>
         </div>
         <div className="relative mx-[16px] mb-[16px] h-[150px] overflow-hidden rounded-[10px] border border-[#e7dfc9] bg-white">
           {/* Clipped written preview of the guidelines (not a document image). */}
           <div className="pointer-events-none absolute inset-0 px-[16px] pt-[14px]">
-            <p className="text-[13px] leading-[18px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }}>
-              Miqaat Guidelines &amp; Rules and Regulations
-            </p>
-            <ol className="mt-[8px] list-decimal space-y-[5px] pl-[18px]">
-              {GUIDELINES_RULES.map((r, i) => (
-                <li key={i} className="text-[11.5px] leading-[16px] text-[#5a6660]" style={{ fontFamily: MUL }}>{r}</li>
+            <p className="text-[13px] leading-[18px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
+            <ol className="mt-[8px] list-decimal space-y-[5px] ps-[18px]">
+              {GUIDELINES_RULES.filter((r) => !removed(r)).map((r, i) => (
+                <li key={i} className="text-[11.5px] leading-[16px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(r)} />
               ))}
             </ol>
           </div>
           <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-white via-white/70 to-transparent pb-[8px]">
-            <span className="rounded-full bg-[#1f5a44] px-[12px] py-[4px] text-[11px] font-bold text-white" style={{ fontFamily: MUL }}>
-              View document
-            </span>
+            <span className="rounded-full bg-[#1f5a44] px-[12px] py-[4px] text-[11px] font-bold text-white" style={{ fontFamily: MUL }} {...tx('View document')} />
           </div>
         </div>
       </button>
@@ -462,6 +456,7 @@ function GuidelinesCard() {
 
 /** Larger view-only popup with the full written guidelines. Read-only text — no download/print. */
 function GuidelinesPreviewPopup({ onClose }: { onClose: () => void }) {
+                                                                        const { tx, t, removed } = useT()
   return createPortal(
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-[16px]"
@@ -469,31 +464,27 @@ function GuidelinesPreviewPopup({ onClose }: { onClose: () => void }) {
     >
       <div className="flex max-h-[85dvh] w-full max-w-[640px] flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
         <div className="flex shrink-0 items-center justify-between border-b border-[#e7dfc9] px-[16px] py-[12px]">
-          <p className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: MUL }}>Guidelines &amp; Rules and Regulations</p>
+          <p className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: MUL }} {...tx('Guidelines & Rules and Regulations')} />
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('Close')}
             className="flex size-[28px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f6f4ef]"
           >
             <svg viewBox="0 0 20 20" fill="none" className="size-[14px]"><path d="M5 5l10 10M15 5L5 15" stroke="#5a6660" strokeWidth="1.8" strokeLinecap="round" /></svg>
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-[20px] py-[18px]">
-          <h3 className="text-[20px] leading-[26px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }}>
-            Miqaat Guidelines &amp; Rules and Regulations
-          </h3>
-          <p className="mt-[8px] text-[13.5px] leading-[20px] text-[#5a6660]" style={{ fontFamily: MUL }}>
-            {GUIDELINES_INTRO}
-          </p>
-          <ol className="mt-[16px] list-decimal space-y-[12px] pl-[20px]">
-            {GUIDELINES_RULES.map((r, i) => (
-              <li key={i} className="pl-[4px] text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL }}>{r}</li>
+          <h3 className="text-[20px] leading-[26px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
+          <p className="mt-[8px] text-[13.5px] leading-[20px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(GUIDELINES_INTRO)} />
+          <ol className="mt-[16px] list-decimal space-y-[12px] ps-[20px]">
+            {GUIDELINES_RULES.filter((r) => !removed(r)).map((r, i) => (
+              <li key={i} className="ps-[4px] text-[14px] leading-[20px] text-[#23302a]" style={{ fontFamily: MUL }} {...tx(r)} />
             ))}
           </ol>
           <div className="mt-[18px] rounded-[12px] border border-[#e7dfc9] bg-[#faf8f2] px-[14px] py-[12px]">
             <p className="text-[13.5px] leading-[20px] text-[#5a6660]" style={{ fontFamily: MUL }}>
-              <strong className="font-bold text-[#23302a]">Note:</strong> {GUIDELINES_NOTE}
+              <strong className="font-bold text-[#23302a]" {...tx('Note:')} /> <span {...tx(GUIDELINES_NOTE)} />
             </p>
           </div>
         </div>
@@ -541,6 +532,7 @@ function RegistrationFormCard({
   cd: { days: string; hours: string; min: string; sec: string }
   onOpen: () => void
 }) {
+     const { tx } = useT()
   const pendingKeys = pendingNewQuestionKeys(m, flow)
   const editable = isFormEditable(flow)
   const lastUpdated = formatFormUpdated(flow.questionnaireUpdatedAt)
@@ -550,7 +542,7 @@ function RegistrationFormCard({
       <div className="w-full rounded-[18px] border-2 border-solid border-[#f0d9a0] bg-[#fdf6e5] p-[18px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.12)]">
         <div className="flex items-center gap-[8px]">
           <span className="size-[9px] shrink-0 rounded-full bg-[#c8911f]" />
-          <p className="text-[13px] font-bold uppercase tracking-[0.6px] text-[#a9740f]" style={{ fontFamily: MUL }}>New Questions Added</p>
+          <p className="text-[13px] font-bold uppercase tracking-[0.6px] text-[#a9740f]" style={{ fontFamily: MUL }} {...tx('New Questions Added')} />
         </div>
         <p className="mt-[10px] text-[14px] leading-[21px] text-[#6b5119]" style={{ fontFamily: MUL, fontWeight: 700 }}>
           Complete the newly added question{pendingKeys.length > 1 ? 's' : ''} before City Selection opens.
@@ -564,7 +556,7 @@ function RegistrationFormCard({
           className="mt-[16px] flex h-[46px] w-full items-center justify-center gap-[6px] rounded-[12px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] text-[15px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-opacity active:opacity-90"
           style={{ fontFamily: MUL, fontWeight: 700, color: '#5a3d0a' }}
         >
-          <span className="text-[15px] leading-none">✎</span> Update Form
+          <span className="text-[15px] leading-none">✎</span> <span {...tx('Update Form')} />
         </button>
       </div>
     )
@@ -573,7 +565,7 @@ function RegistrationFormCard({
   return (
     <div className="w-full rounded-[18px] border-2 border-solid border-[#e7dfc9] bg-[#fffdf8] p-[18px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]">
       <div className="flex items-center justify-between gap-[10px]">
-        <p className="text-[14px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: MUL }}>Registration Form</p>
+        <p className="text-[14px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: MUL }} {...tx('Registration Form')} />
         {editable ? (
           <button
             type="button"
@@ -581,12 +573,12 @@ function RegistrationFormCard({
             className="flex h-[30px] shrink-0 items-center gap-[5px] rounded-full border border-[#e7dfc9] bg-white px-[12px] transition-colors hover:border-[#c2a04e]"
           >
             <span className="text-[13px] leading-none">✎</span>
-            <span className="text-[12.5px]" style={{ fontFamily: MUL, fontWeight: 700, color: '#15402f' }}>Edit</span>
+            <span className="text-[12.5px]" style={{ fontFamily: MUL, fontWeight: 700, color: '#15402f' }} {...tx('Edit')} />
           </button>
         ) : (
           <span className="flex shrink-0 items-center gap-[5px] rounded-full bg-[#f2f1ed] px-[10px] py-[3px]">
             <LockIconSmall />
-            <span className="text-[11px] font-bold text-[#5a6660]" style={{ fontFamily: MUL }}>Locked</span>
+            <span className="text-[11px] font-bold text-[#5a6660]" style={{ fontFamily: MUL }} {...tx('Locked')} />
           </span>
         )}
       </div>
@@ -603,9 +595,7 @@ function RegistrationFormCard({
         </div>
       ) : (
         <>
-          <p className="mt-[12px] text-[13px] leading-[19px] text-[#8a938e]" style={{ fontFamily: MUL }}>
-            City Selection has opened. Your responses can no longer be changed.
-          </p>
+          <p className="mt-[12px] text-[13px] leading-[19px] text-[#8a938e]" style={{ fontFamily: MUL }} {...tx('City Selection has opened. Your responses can no longer be changed.')} />
           <button
             type="button"
             onClick={onOpen}
@@ -626,6 +616,10 @@ interface StatusStep {
   label: string
   state: StepState
   sub: string
+  /** `sub` is composed from live data (a city name, a chosen destination, an opening date)
+   *  rather than being fixed UI copy — so it is rendered as-is and never looked up. Without
+   *  this the coverage report would fill with data values and the UI would star a city name. */
+  subIsData?: boolean
   badge?: string
   view?: () => void
 }
@@ -648,16 +642,16 @@ function buildRequestStatusSteps(request: ReopenRequest, confirmedCityName: stri
   // City selection
   steps.push(
     request.stage === 'city'
-      ? { key: 'city', label: 'City selection', state: 'requested', sub: `Requested: ${request.choiceLabel ?? 'a city'}`, badge: 'Requested' }
+      ? { key: 'city', label: 'City selection', state: 'requested', sub: `Requested: ${request.choiceLabel ?? 'a city'}`, subIsData: true, badge: 'Requested' }
       : request.stage === 'zone'
-        ? { key: 'city', label: 'City selection', state: 'done', sub: confirmedCityName ?? 'Allocated', badge: 'Done' }
+        ? { key: 'city', label: 'City selection', state: 'done', sub: confirmedCityName ?? 'Allocated', subIsData: !!confirmedCityName, badge: 'Done' }
         : { key: 'city', label: 'City selection', state: 'pending', sub: 'Not yet opened' },
   )
 
   // Zone selection
   steps.push(
     request.stage === 'zone'
-      ? { key: 'zone', label: 'Zone selection', state: 'requested', sub: `Requested: ${request.choiceLabel ?? 'a zone'}`, badge: 'Requested' }
+      ? { key: 'zone', label: 'Zone selection', state: 'requested', sub: `Requested: ${request.choiceLabel ?? 'a zone'}`, subIsData: true, badge: 'Requested' }
       : { key: 'zone', label: 'Zone selection', state: 'pending', sub: 'Not yet opened' },
   )
 
@@ -722,7 +716,7 @@ function buildStatusSteps(
       view: latest === 'city' ? goCityAlloc : undefined,
     })
   } else {
-    steps.push({ key: 'city', label: 'City selection', state: 'current', sub: cityOpens })
+    steps.push({ key: 'city', label: 'City selection', state: 'current', sub: cityOpens, subIsData: true })
   }
 
   // Zone selection — always shown (fourth status card)
@@ -736,7 +730,7 @@ function buildStatusSteps(
       view: latest === 'zone' ? goZoneAlloc : undefined,
     })
   } else if (cityDone) {
-    steps.push({ key: 'zone', label: 'Zone selection', state: 'current', sub: zoneOpens })
+    steps.push({ key: 'zone', label: 'Zone selection', state: 'current', sub: zoneOpens, subIsData: true })
   } else {
     steps.push({ key: 'zone', label: 'Zone selection', state: 'pending', sub: 'Not yet opened' })
   }
@@ -752,6 +746,7 @@ function buildStatusSteps(
 }
 
 function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: ReopenRequest }) {
+  const { tx, t } = useT()
   const nav = useNavigate()
   const { id } = useParams()
   // Read THIS event's journey (active or archived) so its timeline is correct even when a different
@@ -799,12 +794,12 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
 
   return (
     <div className="relative w-full" data-tour="status-cards">
-      <SectionHeading label="Your Status" />
+      <SectionHeading label={t('Your Status')} />
       <div
         className="relative mt-[20px] rounded-[18px] border-2 border-[#e7dfc9] bg-[#fffdf8] px-[16px] py-[16px] shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]"
         style={{ height: cardHeight }}
       >
-        {n > 1 && <div className="absolute left-[37px] top-[58px] w-[2px] bg-[#f8f4ea]" style={{ height: lineHeight }} />}
+        {n > 1 && <div className="absolute start-[37px] top-[58px] w-[2px] bg-[#f8f4ea]" style={{ height: lineHeight }} />}
 
         {steps.map((step, i) => {
           const base = 16 + i * STEP_GAP
@@ -815,20 +810,20 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
             <div key={step.key}>
               {/* status circle */}
               {step.state === 'done' ? (
-                <div className="absolute left-[16px] size-[42px]" style={{ top: base }}>
+                <div className="absolute start-[16px] size-[42px]" style={{ top: base }}>
                   <img src={CHECK_CIRCLE} alt="" className="absolute inset-0 block size-full max-w-none" />
                 </div>
               ) : isRequested ? (
-                <div className="absolute left-[16px] flex size-[42px] items-center justify-center rounded-[74.118px] bg-[#fbeecb]" style={{ top: base }}>
+                <div className="absolute start-[16px] flex size-[42px] items-center justify-center rounded-[74.118px] bg-[#fbeecb]" style={{ top: base }}>
                   <svg viewBox="0 0 24 24" fill="none" className="size-[22px]">
                     <circle cx="12" cy="12" r="8" stroke="#c8911f" strokeWidth="2" />
                     <path d="M12 8v4.2l2.8 1.7" stroke="#c8911f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               ) : (
-                <div className="absolute left-[16px] size-[42px] rounded-[74.118px] bg-[#f8f4ea]" style={{ top: base }}>
+                <div className="absolute start-[16px] size-[42px] rounded-[74.118px] bg-[#f8f4ea]" style={{ top: base }}>
                   <p
-                    className="absolute left-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
+                    className="absolute start-[calc(50%+0.62px)] top-[calc(50%-1.23px)] w-[18.529px] -translate-x-1/2 -translate-y-1/2 text-center text-[19.765px] leading-[29.647px] text-[#1f5a44]"
                     style={{ fontFamily: '"Segoe UI Symbol", system-ui, sans-serif', fontWeight: 400 }}
                   >
                     ❖
@@ -838,21 +833,18 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
 
               {/* label */}
               <p
-                className="absolute left-[68px] -translate-y-1/2 whitespace-nowrap text-[14px] leading-[20px]"
+                className="absolute start-[68px] -translate-y-1/2 whitespace-nowrap text-[14px] leading-[20px]"
                 style={{ top: base + 10, fontFamily: MUL, fontWeight: 700, color: labelColor }}
-              >
-                {step.label}
-              </p>
+                {...tx(step.label)}
+              />
 
               {/* status badge — green "Done" / amber "Requested" */}
               {step.badge && (
                 <div
-                  className={`absolute left-[162px] flex h-[20px] items-center justify-center rounded-[50px] px-[10px] ${isRequested ? 'bg-[#fdf1dc]' : 'bg-[#e4f1e9]'}`}
+                  className={`absolute start-[162px] flex h-[20px] items-center justify-center rounded-[50px] px-[10px] ${isRequested ? 'bg-[#fdf1dc]' : 'bg-[#e4f1e9]'}`}
                   style={{ top: base }}
                 >
-                  <span className={`whitespace-nowrap text-[12px] leading-[20.25px] ${isRequested ? 'text-[#a9740f]' : 'text-[#2e7d5b]'}`} style={{ fontFamily: MUL, fontWeight: 700 }}>
-                    {step.badge}
-                  </span>
+                  <span className={`whitespace-nowrap text-[12px] leading-[20.25px] ${isRequested ? 'text-[#a9740f]' : 'text-[#2e7d5b]'}`} style={{ fontFamily: MUL, fontWeight: 700 }} {...tx(step.badge)} />
                 </div>
               )}
 
@@ -862,24 +854,21 @@ function StatusTracker({ m, pendingRequest }: { m: Miqaat; pendingRequest?: Reop
                 <button
                   type="button"
                   onClick={step.view}
-                  className="absolute right-[16px] flex h-[26px] items-center justify-center rounded-[14px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[12px] transition-transform active:scale-[0.97]"
+                  className="absolute end-[16px] flex h-[26px] items-center justify-center rounded-[14px] bg-gradient-to-b from-[#e3cd96] to-[#c9a45c] px-[12px] transition-transform active:scale-[0.97]"
                   style={{ top: base + 4 }}
                 >
-                  <span className="whitespace-nowrap text-center text-[12px] leading-none text-[#1f5a44]" style={{ fontFamily: MUL, fontWeight: 700 }}>
-                    View Members
-                  </span>
+                  <span className="whitespace-nowrap text-center text-[12px] leading-none text-[#1f5a44]" style={{ fontFamily: MUL, fontWeight: 700 }} {...tx('View Members')} />
                 </button>
               )}
 
               {/* sub-status */}
-              <div className="absolute left-[68px] flex items-center gap-[6px]" style={{ top: base + 22 }}>
+              <div className="absolute start-[68px] flex items-center gap-[6px]" style={{ top: base + 22 }}>
                 {accent && <span className="size-[7px] shrink-0 rounded-[3.5px]" style={{ background: accent }} />}
                 <span
                   className="whitespace-nowrap text-[12px] leading-[20.25px]"
                   style={{ fontFamily: MUL, fontWeight: 700, color: accent ?? '#8a938e' }}
-                >
-                  {step.sub}
-                </span>
+                  {...(step.subIsData ? { children: step.sub } : tx(step.sub))}
+                />
               </div>
             </div>
           )
@@ -913,6 +902,7 @@ function DesktopRightCard({
   /** Raza issued → render Modify (left link) + primary button (right) in one row instead of stacked. */
   manageInline?: boolean
 }) {
+  const { tx, td } = useT()
   const showCountdown = countdownStage !== null
 
   return (
@@ -924,9 +914,7 @@ function DesktopRightCard({
             <rect x="2" y="3.5" width="14" height="12" rx="2" stroke="#8a938e" strokeWidth="1.4" />
             <path d="M2 7.5h14M6 1.5v4M12 1.5v4" stroke="#8a938e" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
-          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }}>
-            {m.dateLabel}
-          </span>
+          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }} {...td(m.dateLabel)} />
         </div>
         <div className="mx-[2px] h-[18px] w-px bg-[#d8d0c0]" />
         <div className="flex items-center gap-[6px]">
@@ -934,9 +922,7 @@ function DesktopRightCard({
             <circle cx="9" cy="9" r="7" stroke="#8a938e" strokeWidth="1.4" />
             <path d="M9 5.5V9l2.5 2" stroke="#8a938e" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }}>
-            {m.timeLabel}
-          </span>
+          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }} {...td(m.timeLabel)} />
         </div>
       </div>
 
@@ -946,15 +932,12 @@ function DesktopRightCard({
           <>
             <p
               className="text-[11px] uppercase tracking-[1px] text-[#a8843e]"
-              style={{ fontFamily: MUL, fontWeight: 700 }}
-            >
-              Opening Soon
-            </p>
+              style={{ fontFamily: MUL, fontWeight: 700 }} {...tx('Opening Soon')} />
             <p
               className="mt-[4px] text-[16px] text-[#15402f]"
               style={{ fontFamily: MUL, fontWeight: 800 }}
             >
-              {countdownStage}
+              <span {...tx(countdownStage ?? '')} />
             </p>
             <div className="mt-[14px] flex gap-[6px]">
               {[
@@ -995,7 +978,7 @@ function DesktopRightCard({
               className="mt-[4px] text-[16px] text-[#15402f]"
               style={{ fontFamily: MUL, fontWeight: 800 }}
             >
-              {statusLabel}
+              <span {...tx(statusLabel)} />
             </p>
             {onManage && manageInline ? (
               // Raza issued → Modify reservation (secondary link, left) + primary button (right).
@@ -1004,17 +987,14 @@ function DesktopRightCard({
                   type="button"
                   onClick={onManage}
                   className="shrink-0 text-[14px] font-bold text-[#5a6660] underline-offset-[3px] transition-colors hover:text-[#1f5a44] hover:underline"
-                  style={{ fontFamily: MUL }}
-                >
-                  Modify Reservation
-                </button>
+                  style={{ fontFamily: MUL }} {...tx('Modify Reservation')} />
                 <button
                   type="button"
                   onClick={onAction}
                   className="h-[44px] shrink-0 rounded-[12px] bg-[#1f5a44] px-[24px] text-[15px] font-bold text-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#15402f]"
                   style={{ fontFamily: MUL }}
                 >
-                  {actionLabel}
+                  <span {...tx(actionLabel)} />
                 </button>
               </div>
             ) : (
@@ -1026,7 +1006,7 @@ function DesktopRightCard({
                   className="mt-[14px] h-[44px] w-full rounded-[12px] bg-[#1f5a44] text-[15px] text-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#15402f]"
                   style={{ fontFamily: MUL, fontWeight: 700 }}
                 >
-                  {actionLabel}
+                  <span {...tx(actionLabel)} />
                 </button>
                 {onManage && (
                   <button
@@ -1035,7 +1015,7 @@ function DesktopRightCard({
                     className="mt-[10px] flex h-[42px] w-full items-center justify-center gap-[6px] rounded-[12px] border border-[#e7dfc9] bg-white text-[14px] text-[#5a6660] transition-colors hover:border-[#c2a04e] hover:text-[#23302a]"
                     style={{ fontFamily: MUL, fontWeight: 700 }}
                   >
-                    <span className="text-[15px] leading-none">✎</span> Modify Reservation
+                    <span className="text-[15px] leading-none">✎</span> <span {...tx('Modify Reservation')} />
                   </button>
                 )}
               </>
@@ -1050,6 +1030,7 @@ function DesktopRightCard({
 // ── Page footer ─────────────────────────────────────────────────────────────
 
 function PageFooter() {
+                        const { tx } = useT()
   return (
     <div
       className="relative mt-[40px] overflow-hidden sm-full-bleed"
@@ -1059,7 +1040,7 @@ function PageFooter() {
         <div className="mb-[20px] h-[68px] w-[44px]">
           <img
             src={CREST}
-            alt="ITS"
+            alt=""
             className="size-full object-contain brightness-0 invert opacity-90"
           />
         </div>
@@ -1073,10 +1054,7 @@ function PageFooter() {
       <div className="relative z-10 border-t border-[rgba(255,255,255,0.1)] px-[24px] py-[14px]">
         <p
           className="text-center text-[11px] leading-[16px] text-[rgba(255,255,255,0.45)] sm:text-[12px]"
-          style={{ fontFamily: MUL }}
-        >
-          ITS Productions | © 2003 - 2026 IDARAT AL-TA'REEF AL-SHAKHSI TRUST | All Rights Reserved | Terms &amp; Conditions
-        </p>
+          style={{ fontFamily: MUL }} {...tx('ITS Productions | © 2003 - 2026 IDARAT AL-TA\'REEF AL-SHAKHSI TRUST | All Rights Reserved | Terms & Conditions')} />
       </div>
     </div>
   )
@@ -1085,6 +1063,7 @@ function PageFooter() {
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function MiqaatDetail() {
+                                         const { t } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const m = miqaats.find((x) => x.id === id) ?? miqaats[0]
@@ -1287,7 +1266,7 @@ export default function MiqaatDetail() {
         <div>
           <AppBar notificationCount={3} onBellClick={() => {}} />
         </div>
-        <div className="ml-[16px] mt-[12px] sm:ml-0">
+        <div className="ms-[16px] mt-[12px] sm:ml-0">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -1337,7 +1316,7 @@ export default function MiqaatDetail() {
                 shows this in the right sticky column instead (above Event timeline). */}
             {flow.submitted && !pendingRequest && (
               <div className="sm:hidden">
-                <SectionHeading label="Registration Form" />
+                <SectionHeading label={t('Registration Form')} />
                 <div className="mt-[20px]">
                   <RegistrationFormCard m={m} flow={flow} cd={cd} onOpen={() => { setActiveMiqaat(m.id); nav(`/miqaats/${m.id}/edit-form`) }} />
                 </div>
@@ -1361,19 +1340,19 @@ export default function MiqaatDetail() {
               </div>
             )}
             <div>
-              <SectionHeading label="Important Notice" />
+              <SectionHeading label={t('Important Notice')} />
               <div className="mt-[20px]">
                 <ImportantNoticeCard />
               </div>
             </div>
             <div>
-              <SectionHeading label="About" />
+              <SectionHeading label={t('About')} />
               <div className="mt-[20px]">
                 <AboutVideoCard />
               </div>
             </div>
             <div>
-              <SectionHeading label="Documents" />
+              <SectionHeading label={t('Documents')} />
               <div className="mt-[20px]">
                 <GuidelinesCard />
               </div>

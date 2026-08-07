@@ -1,0 +1,5398 @@
+{
+  "//": "GENERATED FILE — do not edit by hand. Edit RMS_Mumineen_LSD_wordlist_v4.xlsx and run `npm run build:lsd` (the dev server regenerates this automatically on save).",
+  "Enter your 8-digit ITS ID": {
+    "lsd": "",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Enter your password": {
+    "lsd": "",
+    "page": "1",
+    "list": "permanent"
+  },
+  "ITS ID": {
+    "lsd": "ITS ID",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Login": {
+    "lsd": "‏Login كرو",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Login to Continue": {
+    "lsd": "المدخل",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Password": {
+    "lsd": "",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Registration": {
+    "lsd": "registration",
+    "page": "1 (38 pages)",
+    "list": "permanent"
+  },
+  "Remember Me": {
+    "lsd": "",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Use your ITS credentials to access the portal": {
+    "lsd": "‏portal ما داخل تھاوا واسطے تمارا ITS نا تفاصيل نو استعمال كرو",
+    "page": "1",
+    "list": "permanent"
+  },
+  "Welcome to": {
+    "lsd": "‏اهلا وسہلا",
+    "page": "1 (2 pages)",
+    "list": "permanent"
+  },
+  "(before City Selection opens)": {
+    "lsd": "‏﴿اختيار ‏الشہر كھلے اهنا پہلا﴾",
+    "page": "2 (3 pages)",
+    "list": "permanent"
+  },
+  "Available": {
+    "lsd": "‏موجود",
+    "page": "2 (21 pages)",
+    "list": "permanent"
+  },
+  "Browse available Miqaats and select the event you wish to attend.": {
+    "lsd": "‏موجود مواقيت ديكهو انے جھ ميقات ما حاضر تھاوو چاهو چھو يھ اختيار كرو.",
+    "page": "2",
+    "list": "permanent"
+  },
+  "City selection": {
+    "lsd": "اختيار ‏الشہر",
+    "page": "2 (24 pages)",
+    "list": "permanent"
+  },
+  "City selection open": {
+    "lsd": "اختيار ‏الشہر كھلي چھے",
+    "page": "2 (7 pages)",
+    "list": "permanent"
+  },
+  "Closed": {
+    "lsd": "‏بند",
+    "page": "2",
+    "list": "permanent"
+  },
+  "closes in": {
+    "lsd": "‏بند تهاوا ما",
+    "page": "2 (10 pages)",
+    "list": "permanent"
+  },
+  "Got it": {
+    "lsd": "‏سمجهي ككيو",
+    "page": "2 (2 pages)",
+    "list": "permanent"
+  },
+  "Register now": {
+    "lsd": "‏Register كرو",
+    "page": "2 (4 pages)",
+    "list": "permanent"
+  },
+  "Registered": {
+    "lsd": "‏Registered",
+    "page": "2 (22 pages)",
+    "list": "permanent"
+  },
+  "Registration closed": {
+    "lsd": "‏Registration بند",
+    "page": "2 (4 pages)",
+    "list": "permanent"
+  },
+  "Registration closes in": {
+    "lsd": "‏Registration بند تهاوا ما",
+    "page": "2 (3 pages)",
+    "list": "permanent"
+  },
+  "Registration has closed. This Miqaat can no longer be Registered for.": {
+    "lsd": "‏Registration بند تھئي گئي چھے. اْ ميقات واسطے هوے Register نهيطط تهئي سكائسس.",
+    "page": "2",
+    "list": "permanent"
+  },
+  "Registration open": {
+    "lsd": "‏Registration كھلي چھے",
+    "page": "2 (10 pages)",
+    "list": "permanent"
+  },
+  "Registration open in": {
+    "lsd": "‏Registration كھولوا ما",
+    "page": "2 (2 pages)",
+    "list": "permanent"
+  },
+  "URS MUBARAK SYEDNA MOHAMMED BURHANUDDIN RA": {
+    "lsd": "‏عرس مبارك سيدنا محمد برهان الدين رض",
+    "page": "2 (4 pages)",
+    "list": "permanent"
+  },
+  "View details →": {
+    "lsd": "‏تفاصيل ←",
+    "page": "2 (8 pages)",
+    "list": "permanent"
+  },
+  "Welcome to RMS": {
+    "lsd": "اهلا وسهلا",
+    "page": "2",
+    "list": "permanent"
+  },
+  "You can revisit this guide anytime from the Help (?) menu.": {
+    "lsd": "‏اْ ارشاد اْثث كوئيي بهي وقت مدد ﴿؟﴾ ني فهرست ما جوئي سكو چھو.",
+    "page": "2",
+    "list": "permanent"
+  },
+  "Allocated": {
+    "lsd": "‏تعيين تهئيلا",
+    "page": "3 (36 pages)",
+    "list": "permanent"
+  },
+  "Ask about registration, city & zone": {
+    "lsd": "‏Registration، شہر انے zone بابت سؤال",
+    "page": "3",
+    "list": "permanent"
+  },
+  "City selection / Request or change your allocated city": {
+    "lsd": "اختيار ‏الشہر / اْثثنا تعيين تهئيلا شہر ني عرض كرو يا بدلو",
+    "page": "3",
+    "list": "permanent"
+  },
+  "Get help Registering for a Miqaat, or request a change to your allocated city or zone.": {
+    "lsd": "‏ميقات ما Register تهاوا واسطے مدد، يا اْثثنا تعيين تهئيلا شہر يا zone ما تبديلي ني عرض واسطسس مدد.",
+    "page": "3",
+    "list": "permanent"
+  },
+  "How can I help?": {
+    "lsd": "سوطط مدد ني ضرورة ؛؟",
+    "page": "3",
+    "list": "permanent"
+  },
+  "Miqaat Assistant": {
+    "lsd": "‏ميقات مساعد",
+    "page": "3 (3 pages)",
+    "list": "permanent"
+  },
+  "Register for an event / Sign up yourself or your family": {
+    "lsd": "‏ميقات واسطے Register كرو / اْثث پوتے يا اْثثنا اهل نے Register كرو",
+    "page": "3",
+    "list": "permanent"
+  },
+  "Track My Requests": {
+    "lsd": "‏عرائض نو حال",
+    "page": "3 (2 pages)",
+    "list": "permanent"
+  },
+  "Track My Requests / See status of submitted requests": {
+    "lsd": "‏مارا عرائض نو حال / پيش تهئيلا عرضو نو حال",
+    "page": "3",
+    "list": "permanent"
+  },
+  "WHAT WOULD YOU LIKE HELP WITH?": {
+    "lsd": "اْثثنسس  كون بابت ما مدد جوئيے چھے؟",
+    "page": "3 (6 pages)",
+    "list": "permanent"
+  },
+  "Your Family": {
+    "lsd": "اْثثنا اهل",
+    "page": "3 (15 pages)",
+    "list": "permanent"
+  },
+  "Zone selection": {
+    "lsd": "اختيار الموضع",
+    "page": "3 (17 pages)",
+    "list": "permanent"
+  },
+  "Zone selection / Request or change your allocated zone": {
+    "lsd": "‏اختيار الموضع / اْثثنا تعيين تهئيلا zone ني عرض كرو يا بدلو",
+    "page": "3",
+    "list": "permanent"
+  },
+  "City": {
+    "lsd": "‏شہر",
+    "page": "4 (14 pages)",
+    "list": "permanent"
+  },
+  "CITY SELECTION CLOSED / ZONE SELECTION CLOSED": {
+    "lsd": "اختيار ‏الشہر بند تهئي ككيو ؛ / اختيار الموضع بند تهئي ككيو ؛",
+    "page": "4",
+    "list": "permanent"
+  },
+  "CITY SELECTION CLOSES IN": {
+    "lsd": "اختيار ‏الشہر بند تهاوا ما",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "CITY SELECTION CLOSES IN / ZONE SELECTION CLOSES IN": {
+    "lsd": "اختيار ‏الشہر بند تهاوا ما / اختيار الموضع بند تهاوا ما",
+    "page": "4",
+    "list": "permanent"
+  },
+  "City selection has closed. This window closed before a city was allocated to your group, so this reservation is left unallocated.": {
+    "lsd": "‏اختيار ‏الشہر بند تمام چھے. اْثثنا گروپ نے شہر ني تعيين تهائي اهنا پہلا وقت پورو تمام، اهنا سبب اْ reservation تعيين بغير رهي گيو چھے.",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "Colombo": {
+    "lsd": "‏كولمبو",
+    "page": "4 (13 pages)",
+    "list": "permanent"
+  },
+  "Confirmed": {
+    "lsd": "تمام",
+    "page": "4 (11 pages)",
+    "list": "permanent"
+  },
+  "DAYS": {
+    "lsd": "‏دن",
+    "page": "4 (4 pages)",
+    "list": "permanent"
+  },
+  "HRS": {
+    "lsd": "‏كلاك",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "MILAD SYEDNA YUSUF NAJMUDDIN RA": {
+    "lsd": "‏ميلاد سيدنا يوسف نجم الدين رض",
+    "page": "4 (14 pages)",
+    "list": "permanent"
+  },
+  "MIN": {
+    "lsd": "‏منٹ",
+    "page": "4 (5 pages)",
+    "list": "permanent"
+  },
+  "Modify Reservation": {
+    "lsd": "‏reservation ما تبديلي",
+    "page": "4 (20 pages)",
+    "list": "permanent"
+  },
+  "Not allocated": {
+    "lsd": "‏تعيين نتهي تهئي",
+    "page": "4 (12 pages)",
+    "list": "permanent"
+  },
+  "Pending": {
+    "lsd": "باقي",
+    "page": "4 (13 pages)",
+    "list": "permanent"
+  },
+  "RAZA STATUS": {
+    "lsd": "‏رزا حال",
+    "page": "4 (31 pages)",
+    "list": "permanent"
+  },
+  "SEC *(column labels, not values)*": {
+    "lsd": "‏سيكنڈ",
+    "page": "4",
+    "list": "permanent"
+  },
+  "Select city": {
+    "lsd": "‏شہر اختيار كرو",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "ZONE SELECTION CLOSED": {
+    "lsd": "اختيار الموضع بند",
+    "page": "4 (5 pages)",
+    "list": "permanent"
+  },
+  "ZONE SELECTION CLOSES IN": {
+    "lsd": "اختيار الموضع بند تهاوا ما",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "Zone selection has closed. This window closed before a zone was allocated. Your city (Colombo) stays confirmed — no further action is available here.": {
+    "lsd": "‏اختيار الموضع بند تھئي گئي چھے. zone ني تعيين تهائي اهنا پہلا اْ وقت پورو تمام. اْثثنو شہر ﴿كولمبو﴾ تمام رهسے",
+    "page": "4 (2 pages)",
+    "list": "permanent"
+  },
+  "Miqaats Current & Upcoming": {
+    "lsd": "‏چالو انے اْونارا مواقيت",
+    "page": "5",
+    "list": "permanent"
+  },
+  "Murtaza bhai Moiz bhai Gheewala": {
+    "lsd": "مرتضى بهائي معز بهائي ككهي والا",
+    "page": "5 (94 pages)",
+    "list": "permanent"
+  },
+  "View all current and upcoming Miqaats in one place.": {
+    "lsd": "‏سگلا مواقيت ايك جگہ پر ديكهو.",
+    "page": "5",
+    "list": "permanent"
+  },
+  "Ashara Mubaraka 1448H": {
+    "lsd": "‏العشرة المباركة 1448ھ",
+    "page": "6 (44 pages)",
+    "list": "permanent"
+  },
+  "HOURS": {
+    "lsd": "‏كلاك",
+    "page": "6 (2 pages)",
+    "list": "permanent"
+  },
+  "New Miqaat": {
+    "lsd": "‏جديد ميقات",
+    "page": "6 (4 pages)",
+    "list": "permanent"
+  },
+  "Registration opens in": {
+    "lsd": "‏Registration كھولوا ما",
+    "page": "6 (5 pages)",
+    "list": "permanent"
+  },
+  "SEC": {
+    "lsd": "‏سيكنڈ",
+    "page": "6 (3 pages)",
+    "list": "permanent"
+  },
+  "Your Registered Miqaats that require your attention.": {
+    "lsd": "‏اْثثنا Register تهئيلا مواقيت جھ نے اْثثنا توجه ني ضرورة چھے.",
+    "page": "6 (13 pages)",
+    "list": "permanent"
+  },
+  "ABOUT": {
+    "lsd": "‏تعارف",
+    "page": "7 (3 pages)",
+    "list": "permanent"
+  },
+  "ALLOCATION": {
+    "lsd": "‏تعيين",
+    "page": "7 (44 pages)",
+    "list": "permanent"
+  },
+  "Children below 10 years of age must be assigned to a parent or guardian before proceeding.": {
+    "lsd": "remove",
+    "page": "",
+    "list": "permanent",
+    "remove": true
+  },
+  "Dubai": {
+    "lsd": "‏دبئي",
+    "page": "7 (4 pages)",
+    "list": "permanent"
+  },
+  "Event timeline": {
+    "lsd": "‏ميقات جدول",
+    "page": "7 (6 pages)",
+    "list": "permanent"
+  },
+  "Guardian:": {
+    "lsd": "‏ولي:",
+    "page": "7 (42 pages)",
+    "list": "permanent"
+  },
+  "Host City": {
+    "lsd": "موضع الفصل",
+    "page": "src/components/figma/ConfirmedView.tsx",
+    "list": "permanent"
+  },
+  "Host City registrations may close early once capacity is reached.": {
+    "lsd": "remove",
+    "page": "",
+    "list": "permanent",
+    "remove": true
+  },
+  "IMPORTANT NOTICE": {
+    "lsd": "‏اهم هدايات",
+    "page": "7 (5 pages)",
+    "list": "permanent"
+  },
+  "Karachi": {
+    "lsd": "‏كراچي",
+    "page": "7 (4 pages)",
+    "list": "permanent"
+  },
+  "London": {
+    "lsd": "‏لندن",
+    "page": "7 (4 pages)",
+    "list": "permanent"
+  },
+  "Nairobi": {
+    "lsd": "‏نيروبي",
+    "page": "7 (4 pages)",
+    "list": "permanent"
+  },
+  "Open the full timeline to see every milestone — registration, city, zone selection, Raza, and the Miqaat date.": {
+    "lsd": "‏پورو جدول كھولي نے هر مرحلو ديكهو — ‏Registration، شہر، اختيار الموضع، رزا انے ميقات ني تاريخ.",
+    "page": "7",
+    "list": "permanent"
+  },
+  "OPENING SOON": {
+    "lsd": "‏جلد كھلسے",
+    "page": "7 (2 pages)",
+    "list": "permanent"
+  },
+  "Registration closes on 5 June 2026 at 11:59 PM.": {
+    "lsd": "‏Registration 5 June 2026 نا روز رات نا 11:59 وگے بند تھاسے.",
+    "page": "7 (6 pages)",
+    "list": "permanent"
+  },
+  "Registration closes on 5 June 2026 at 11:59 PM. Complete all group registrations and Raza requests before the deadline.": {
+    "lsd": "remove",
+    "page": "",
+    "list": "permanent",
+    "remove": true
+  },
+  "Relay centres: Mumbai": {
+    "lsd": "‏ريلسس مركز: ممبئي",
+    "page": "7",
+    "list": "permanent"
+  },
+  "Surat": {
+    "lsd": "‏سورت",
+    "page": "7 (6 pages)",
+    "list": "permanent"
+  },
+  "Tickets will only be generated after all required approvals are completed.": {
+    "lsd": "remove",
+    "page": "",
+    "list": "permanent",
+    "remove": true
+  },
+  "TIMELINE": {
+    "lsd": "‏وقت نامو",
+    "page": "7 (8 pages)",
+    "list": "permanent"
+  },
+  "Venue allocation is subject to availability and capacity limits.": {
+    "lsd": "remove",
+    "page": "",
+    "list": "permanent",
+    "remove": true
+  },
+  "Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant all the taufeeq of haziri.": {
+    "lsd": "‏فصل فرمايو چھے. مؤمنين نے العشرة المباركة 1448ھ ني رزا طلب كروا ني اذن چھے. الله تعالى سگلا نے حاضري ني توفيق عطا فرماوے.",
+    "page": "8 (2 pages)",
+    "list": "permanent"
+  },
+  "Mumbai": {
+    "lsd": "‏ممبئي",
+    "page": "8 (9 pages)",
+    "list": "permanent"
+  },
+  "OFFICIAL FASAL ANNOUNCEMENT": {
+    "lsd": "‏فصل نو اعلان",
+    "page": "8 (3 pages)",
+    "list": "permanent"
+  },
+  "RELAY CENTERS": {
+    "lsd": "‏ريلے مراكز",
+    "page": "8 (3 pages)",
+    "list": "permanent"
+  },
+  "Purpose & Travel Guidance": {
+    "lsd": "‏مقصد انے سفر نا إرشادات",
+    "page": "9 (2 pages)",
+    "list": "permanent"
+  },
+  "Watch Introduction": {
+    "lsd": "‏تعارف ديكهو",
+    "page": "9 (2 pages)",
+    "list": "permanent"
+  },
+  "DOCUMENTS": {
+    "lsd": "وثائق",
+    "page": "10 (2 pages)",
+    "list": "permanent"
+  },
+  "Guidelines & Rules and Regulations": {
+    "lsd": "‏هدايات انے قواعد و ضوابط",
+    "page": "10 (2 pages)",
+    "list": "permanent"
+  },
+  "Miqaat Guidelines & Rules and Regulations": {
+    "lsd": "‏ميقات ني هدايات انے قواعد و ضوابط",
+    "page": "10 (2 pages)",
+    "list": "permanent"
+  },
+  "Provided by the organisers for this Miqaat — tap to view.": {
+    "lsd": "‏اْ ميقات واسطے منتظمين طرف سي اْپوا ما اْيا چھے — ديكهو",
+    "page": "10",
+    "list": "permanent"
+  },
+  "Closes:": {
+    "lsd": "‏بند تھاسے:",
+    "page": "11",
+    "list": "permanent"
+  },
+  "Event Journey": {
+    "lsd": "‏ميقات سفر",
+    "page": "11 (2 pages)",
+    "list": "permanent"
+  },
+  "Miqaat begins": {
+    "lsd": "‏ميقات شروع تھاسے",
+    "page": "11 (2 pages)",
+    "list": "permanent"
+  },
+  "Opens:": {
+    "lsd": "‏كھلسے:",
+    "page": "11 (2 pages)",
+    "list": "permanent"
+  },
+  "Pass Allocation": {
+    "lsd": "‏pass ني تعيين",
+    "page": "11 (2 pages)",
+    "list": "permanent"
+  },
+  "Raza issue": {
+    "lsd": "‏رزا نو اصدار",
+    "page": "11 (5 pages)",
+    "list": "permanent"
+  },
+  "Seat Allocation": {
+    "lsd": "‏جگہ ني تعيين",
+    "page": "11 (2 pages)",
+    "list": "permanent"
+  },
+  "Allocation date:": {
+    "lsd": "‏تعيين ني تاريخ:",
+    "page": "12",
+    "list": "permanent"
+  },
+  "Event date:": {
+    "lsd": "‏ميقات ني تاريخ:",
+    "page": "12",
+    "list": "permanent"
+  },
+  "Issue date:": {
+    "lsd": "‏اصدار ني تاريخ:",
+    "page": "12",
+    "list": "permanent"
+  },
+  "Add people": {
+    "lsd": "مؤمن نسس  شامل كرو",
+    "page": "13 (17 pages)",
+    "list": "permanent"
+  },
+  "Add People to group": {
+    "lsd": "‏گروپ ما مؤمن نسس  شامل كرو",
+    "page": "13 (17 pages)",
+    "list": "permanent"
+  },
+  "Add yourself, your family members, or invite eligible Mehmaan before continuing.": {
+    "lsd": "‏اْگل ودھوا پہلا اْثث پوتے، اْثثنا اهل نا ممبرو شامل كرو، يا مستحق مهمان نے اذن اْپو.",
+    "page": "13 (2 pages)",
+    "list": "permanent"
+  },
+  "Enter 8-digit ITS ID": {
+    "lsd": "‏٨ عدد نو ITS ID داخل كرو",
+    "page": "13 (5 pages)",
+    "list": "permanent"
+  },
+  "Age": {
+    "lsd": "‏عمر",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "Assign →": {
+    "lsd": "‏مقرر كرو ←",
+    "page": "14 (3 pages)",
+    "list": "permanent"
+  },
+  "Attribute labels: Male": {
+    "lsd": "‏صفة نا عجديدن: مرد",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Caregiver": {
+    "lsd": "معاون",
+    "page": "14 (35 pages)",
+    "list": "permanent"
+  },
+  "Children under 10 cannot be allocated independently. Assign a guardian.": {
+    "lsd": "‏10 ورس سي ناهنا فرزندو ني تعيين ‏اكيلا نه تھئي سكے. ولي مقرر كرو.",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "Daughter": {
+    "lsd": "‏دكري",
+    "page": "14 (7 pages)",
+    "list": "permanent"
+  },
+  "Dependent": {
+    "lsd": "تابع",
+    "page": "14 (33 pages)",
+    "list": "permanent"
+  },
+  "Father": {
+    "lsd": "‏والد",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "Female": {
+    "lsd": "بئيرو",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "ITS": {
+    "lsd": "ITS",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "MEMBER": {
+    "lsd": "‏ممبر",
+    "page": "14 (18 pages)",
+    "list": "permanent"
+  },
+  "Mother": {
+    "lsd": "‏والدة",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Next": {
+    "lsd": "‏اْگل",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Previous": {
+    "lsd": "ثثاححل",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Registrant": {
+    "lsd": "‏Register كرنار",
+    "page": "14 (35 pages)",
+    "list": "permanent"
+  },
+  "Relationship labels: (You)": {
+    "lsd": "‏رشته نا عجديدن: ﴿اْثث﴾",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Select which family members are attending. Members needing a guardian or caregiver are flagged here — tap Assign to link them before continuing.": {
+    "lsd": "‏كيا اهل نا ممبرو حاضر تھاسے يھ چنو. جھ نے ولي يا معاون ني ضرورة چھے يھ نشان تهئيلا چھے — اْگل ودھوا اهنا پہلا مقرر كري نسس  جوڑو.",
+    "page": "14",
+    "list": "permanent"
+  },
+  "Skip": {
+    "lsd": "رهوا دو",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "Spouse": {
+    "lsd": "‏زوجة",
+    "page": "14 (2 pages)",
+    "list": "permanent"
+  },
+  "This member requires medical assistance. Assign a caregiver.": {
+    "lsd": "‏اْ ممبر نے طب ني ضرورة چھے. معاون مقرر كرو.",
+    "page": "14 (3 pages)",
+    "list": "permanent"
+  },
+  "5. Medical Assistance": {
+    "lsd": "‏5. طبيب",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "6. Accessibility Requirements": {
+    "lsd": "‏6. سهوليات ني ضرورة",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "Continue(3)": {
+    "lsd": "‏اْگل ﴿3﴾",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "DO YOU REQUIRE ANY SPECIAL ASSISTANCE? SELECT ALL THAT APPLY.": {
+    "lsd": "اْثثنسس   كوئي خاص مدد ني ضرورة چھے؟ جھ ني ضرورو هوئي يھ سگلا چنو.",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "DO YOU REQUIRE MEDICAL ASSISTANCE DURING THE EVENT?*": {
+    "lsd": "‏ميقات درميان اْثثنسس   طب ني ضرورة چھے؟*",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "Elderly Assistance": {
+    "lsd": "‏بزرگو ني مدد",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "FAMILY & GROUP": {
+    "lsd": "اهل انے گروپ",
+    "page": "15 (19 pages)",
+    "list": "permanent"
+  },
+  "Max 4.0 MB": {
+    "lsd": "‏زيادة ما زيادة 4.0 MB",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "Other Details": {
+    "lsd": "‏بيجي تفاصيل",
+    "page": "15 (13 pages)",
+    "list": "permanent"
+  },
+  "SELECT ALL THAT APPLY*": {
+    "lsd": "‏جھ ني ضرورة هوئي يھ سگلا چنو*",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "Share a few extra details — accommodation, food, travel, medical and more — so we can plan your Miqaat journey.": {
+    "lsd": "‏تھوڑي زيادة تفاصيل اْپو — رهائش، جمن، سفر، طب انے بيجي — جھ سي اْثثنا ميقات نا سفر ني تياري تهئي سكے.",
+    "page": "15",
+    "list": "permanent"
+  },
+  "SPECIAL ASSISTANCE": {
+    "lsd": "‏خاص مدد",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "Tap to upload visa (PDF)": {
+    "lsd": "Tap to upload visa (PDF)",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "Wheelchair Access": {
+    "lsd": "‏wheelchair ني سهولة",
+    "page": "15 (3 pages)",
+    "list": "permanent"
+  },
+  "Yes / No": {
+    "lsd": "‏نعم / لا",
+    "page": "15 (2 pages)",
+    "list": "permanent"
+  },
+  "Add guardian": {
+    "lsd": "‏ولي جوڑو",
+    "page": "16 (2 pages)",
+    "list": "permanent"
+  },
+  "ASSIGN GUARDIAN": {
+    "lsd": "‏ولي مقرر كرو",
+    "page": "16 (4 pages)",
+    "list": "permanent"
+  },
+  "Choose an adult family member": {
+    "lsd": "اهل نو ايك بالغ ممبر چنو",
+    "page": "16 (4 pages)",
+    "list": "permanent"
+  },
+  "For Syed Nazia": {
+    "lsd": "‏سيد نازية واسطے",
+    "page": "16 (5 pages)",
+    "list": "permanent"
+  },
+  "Male": {
+    "lsd": "‏مرد",
+    "page": "16",
+    "list": "permanent"
+  },
+  "Relationship/attribute labels: Daughter": {
+    "lsd": "‏رشته/صفة نا عجديدن: دكري",
+    "page": "16",
+    "list": "permanent"
+  },
+  "Change →": {
+    "lsd": "‏بدلو ←",
+    "page": "17 (7 pages)",
+    "list": "permanent"
+  },
+  "Family & Group Allocation": {
+    "lsd": "اهل انے گروپ ني تعيين",
+    "page": "17 (5 pages)",
+    "list": "permanent"
+  },
+  "Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.": {
+    "lsd": "اْثثني ضرورة اْپو جھ سي اْثثنا ميقات نو سفر اْرام ، محفوظ انے منظم تهئي سكے.",
+    "page": "17 (5 pages)",
+    "list": "permanent"
+  },
+  "Under Care of:": {
+    "lsd": "‏تحت رعاية:",
+    "page": "17 (6 pages)",
+    "list": "permanent"
+  },
+  "Under Care of: Sakina Husain": {
+    "lsd": "تحت رعاية: سكينة حسين",
+    "page": "17 (4 pages)",
+    "list": "permanent"
+  },
+  "1. Accommodation": {
+    "lsd": "‏1. رهائش",
+    "page": "18 (2 pages)",
+    "list": "permanent"
+  },
+  "2. Food Arrangements": {
+    "lsd": "‏2. جمن نو انتظام",
+    "page": "18 (5 pages)",
+    "list": "permanent"
+  },
+  "DO YOU REQUIRE ACCOMMODATION?*": {
+    "lsd": "اْثثنسس   رهائش ني ضرورة چھے؟*",
+    "page": "18",
+    "list": "permanent"
+  },
+  "Family Room": {
+    "lsd": "اهل نو غرفة",
+    "page": "18",
+    "list": "permanent"
+  },
+  "Hotel (If Available)": {
+    "lsd": "‏هوٹل ﴿اگر موجود هويھ﴾",
+    "page": "18",
+    "list": "permanent"
+  },
+  "NUMBER OF PEOPLE REQUIRING ACCOMMODATION*": {
+    "lsd": "‏رهائش ني ضرورة والا مؤمن ني گنتي*",
+    "page": "18",
+    "list": "permanent"
+  },
+  "PREFERRED ACCOMMODATION TYPE*": {
+    "lsd": "احب رهائش نو قسم*",
+    "page": "18",
+    "list": "permanent"
+  },
+  "Shared Accommodation": {
+    "lsd": "‏مشترك رهائش",
+    "page": "18",
+    "list": "permanent"
+  },
+  "ANY DIETARY REQUIREMENTS?": {
+    "lsd": "جمن ما كوئي خاص ضرورة چھے؟",
+    "page": "19 (2 pages)",
+    "list": "permanent"
+  },
+  "Diabetic Meals": {
+    "lsd": "‏Diabetic نا جمن",
+    "page": "19 (2 pages)",
+    "list": "permanent"
+  },
+  "DO YOU REQUIRE FOOD ARRANGEMENTS?*": {
+    "lsd": "اْثثنسس   جمن نو انتظام جوئيے چھے؟*",
+    "page": "19 (4 pages)",
+    "list": "permanent"
+  },
+  "e.g. 3": {
+    "lsd": "‏مثلاً 3",
+    "page": "19",
+    "list": "permanent"
+  },
+  "Low Salt": {
+    "lsd": "كم نمك",
+    "page": "19",
+    "list": "permanent"
+  },
+  "NUMBER OF MEALS REQUIRED*": {
+    "lsd": "‏ضرورت نا جمن ني گنتي*",
+    "page": "19 (2 pages)",
+    "list": "permanent"
+  },
+  "Other": {
+    "lsd": "‏بيجو",
+    "page": "19 (2 pages)",
+    "list": "permanent"
+  },
+  "Soft Diet": {
+    "lsd": "Soft Diet",
+    "page": "19 (2 pages)",
+    "list": "permanent"
+  },
+  "This field is required.": {
+    "lsd": "‏اْ بھروو لازم چھے.",
+    "page": "19 (6 pages)",
+    "list": "permanent"
+  },
+  "3. Travel Details": {
+    "lsd": "‏3. سفر ني تفاصيل",
+    "page": "20 (4 pages)",
+    "list": "permanent"
+  },
+  "ARRIVAL DATE*": {
+    "lsd": "‏پهونچوا ني تاريخ*",
+    "page": "20",
+    "list": "permanent"
+  },
+  "Bus": {
+    "lsd": "السيارة",
+    "page": "20",
+    "list": "permanent"
+  },
+  "DEPARTURE DATE*": {
+    "lsd": "نكلوا ني تاريخ*",
+    "page": "20",
+    "list": "permanent"
+  },
+  "DO YOU REQUIRE TRANSPORTATION?*": {
+    "lsd": "اْثثنسس   اْوا - جاوا نو انتظام جوئيے چھے؟*",
+    "page": "20 (3 pages)",
+    "list": "permanent"
+  },
+  "Flight": {
+    "lsd": "‏الطائرة",
+    "page": "20",
+    "list": "permanent"
+  },
+  "mm/dd/yyyy": {
+    "lsd": "mm/dd/yyyy",
+    "page": "20",
+    "list": "permanent"
+  },
+  "MODE OF TRAVEL*": {
+    "lsd": "‏سفر نو ذريعة*",
+    "page": "20",
+    "list": "permanent"
+  },
+  "Personal Vehicle": {
+    "lsd": "‏ذاتي گاڑي",
+    "page": "20 (2 pages)",
+    "list": "permanent"
+  },
+  "Train": {
+    "lsd": "القطار",
+    "page": "20",
+    "list": "permanent"
+  },
+  "4. Visa Document": {
+    "lsd": "‏4. visa وثائق",
+    "page": "21 (3 pages)",
+    "list": "permanent"
+  },
+  "A valid visa copy (PDF) is required to confirm eligibility for this Miqaat.": {
+    "lsd": "‏اْ ميقات ني اهليت ني تمام واسطے معتبر visa ني نقل ﴿PDF﴾ لازم چھے.",
+    "page": "21 (3 pages)",
+    "list": "permanent"
+  },
+  "DO YOU NEED AIRPORT PICKUP ASSISTANCE?": {
+    "lsd": "‏اْثثنسس   airport سي لئي جاوا ني مدد جوئيے چھے؟",
+    "page": "21 (3 pages)",
+    "list": "permanent"
+  },
+  "UPLOAD YOUR VISA": {
+    "lsd": "‏اْثث نو visa upload كرئيسس",
+    "page": "21 (3 pages)",
+    "list": "permanent"
+  },
+  "Medical Emergency Support": {
+    "lsd": "‏طواري طب ني ضرورة",
+    "page": "22",
+    "list": "permanent"
+  },
+  "Mobility Assistance": {
+    "lsd": "‏حركة واسطسس مدد",
+    "page": "22",
+    "list": "permanent"
+  },
+  "Oxygen Support": {
+    "lsd": "‏oxygen واسطسس مدد",
+    "page": "22",
+    "list": "permanent"
+  },
+  "Please select at least one option.": {
+    "lsd": "‏كم ما كم ايك اختيار چنو.",
+    "page": "22 (2 pages)",
+    "list": "permanent"
+  },
+  "Regular Medication Support": {
+    "lsd": "روزانه دوا ني ضرورة",
+    "page": "22",
+    "list": "permanent"
+  },
+  "Wheelchair Assistance": {
+    "lsd": "‏wheelchair ني مدد",
+    "page": "22",
+    "list": "permanent"
+  },
+  "Hearing Assistance": {
+    "lsd": "سجديد واسطسس مدد",
+    "page": "23",
+    "list": "permanent"
+  },
+  "Please specify": {
+    "lsd": "تفصيل لكھو",
+    "page": "23",
+    "list": "permanent"
+  },
+  "Vision Assistance": {
+    "lsd": "ديكهوا واسطسس مدد",
+    "page": "23 (2 pages)",
+    "list": "permanent"
+  },
+  "7. Emergency Contact": {
+    "lsd": "اتصال الطوارع",
+    "page": "24",
+    "list": "permanent"
+  },
+  "A backup number, if any": {
+    "lsd": "‏بيجو نمبر، اگر هويھ تو",
+    "page": "24 (2 pages)",
+    "list": "permanent"
+  },
+  "ALTERNATE CONTACT NUMBER": {
+    "lsd": "بيجو نمبر",
+    "page": "24 (3 pages)",
+    "list": "permanent"
+  },
+  "ALTERNATE CONTACT NUMBER (OPTIONAL)": {
+    "lsd": "‏بيجو نمبر ﴿اختياري﴾",
+    "page": "24 (2 pages)",
+    "list": "permanent"
+  },
+  "CONTACT NAME*": {
+    "lsd": "نام",
+    "page": "24 (2 pages)",
+    "list": "permanent"
+  },
+  "e.g. Spouse, Parent, Sibling": {
+    "lsd": "‏مثلاً زوجة، والدين، بھائي بہن",
+    "page": "24 (2 pages)",
+    "list": "permanent"
+  },
+  "Enter mobile number": {
+    "lsd": "‏موبائل نمبر داخل كرو",
+    "page": "24 (2 pages)",
+    "list": "permanent"
+  },
+  "Full name": {
+    "lsd": "‏پورو نام",
+    "page": "24",
+    "list": "permanent"
+  },
+  "MOBILE NUMBER*": {
+    "lsd": "‏موبائل نمبر*",
+    "page": "24 (4 pages)",
+    "list": "permanent"
+  },
+  "RELATIONSHIP*": {
+    "lsd": "‏رشتو*",
+    "page": "24 (3 pages)",
+    "list": "permanent"
+  },
+  "8. Confirmation": {
+    "lsd": "‏8. تحقيق",
+    "page": "25",
+    "list": "permanent"
+  },
+  "I agree to follow the Miqaat guidelines and event regulations.": {
+    "lsd": "ميطط ميقات ني هدايات انے ضوابط ني تباعة كريس.",
+    "page": "25 (2 pages)",
+    "list": "permanent"
+  },
+  "I confirm that all the information provided is accurate.": {
+    "lsd": "ميطط تحقيق كروں چھوں كھ  اْ سگلي معلومات صحيح چھے.",
+    "page": "25",
+    "list": "permanent"
+  },
+  "Please enter the number of meals required.": {
+    "lsd": "‏ ضرورت مطابق جمن ني گنتي داخل كرو.",
+    "page": "26",
+    "list": "permanent"
+  },
+  "Added members": {
+    "lsd": "‏شامل تهئيلا ممبرو",
+    "page": "27",
+    "list": "permanent"
+  },
+  "Caregiver + dependent": {
+    "lsd": "معاون + تابع",
+    "page": "27 (23 pages)",
+    "list": "permanent"
+  },
+  "Check your group before submitting. You can go back to edit any step.": {
+    "lsd": "اْثث نو گروپ جوئي لو. بدلوا واسطے اْثث پاچھا جئي سكو چھو.",
+    "page": "27",
+    "list": "permanent"
+  },
+  "Edit": {
+    "lsd": "‏تبديل",
+    "page": "27 (2 pages)",
+    "list": "permanent"
+  },
+  "Guardian + dependent": {
+    "lsd": "‏ولي + تابع",
+    "page": "27 (8 pages)",
+    "list": "permanent"
+  },
+  "Invitations": {
+    "lsd": "اذن",
+    "page": "27 (6 pages)",
+    "list": "permanent"
+  },
+  "My family members": {
+    "lsd": "‏مارا اهل",
+    "page": "27",
+    "list": "permanent"
+  },
+  "READY FOR REGISTRATION": {
+    "lsd": "‏Registration واسطے تيار",
+    "page": "27",
+    "list": "permanent"
+  },
+  "reserve together": {
+    "lsd": "‏ساتھے reserve كرو",
+    "page": "27 (28 pages)",
+    "list": "permanent"
+  },
+  "Review & Register": {
+    "lsd": "‏جوئي نے Register كرو",
+    "page": "27",
+    "list": "permanent"
+  },
+  "Review & Submit": {
+    "lsd": "‏جوئي نے پيش كرو",
+    "page": "27",
+    "list": "permanent"
+  },
+  "Summary": {
+    "lsd": "‏خلاصة",
+    "page": "27",
+    "list": "permanent"
+  },
+  "Total Headcount": {
+    "lsd": "‏كل گنتي",
+    "page": "27",
+    "list": "permanent"
+  },
+  "City selection open on": {
+    "lsd": "اختيار ‏الشہر كھلسے:",
+    "page": "28",
+    "list": "permanent"
+  },
+  "Members included": {
+    "lsd": "‏شامل تهئيلا ممبرو",
+    "page": "28",
+    "list": "permanent"
+  },
+  "Registration status": {
+    "lsd": "‏Registration نو حال",
+    "page": "28 (5 pages)",
+    "list": "permanent"
+  },
+  "Registration successful": {
+    "lsd": "‏Registration كامياب تهيو",
+    "page": "28",
+    "list": "permanent"
+  },
+  "5 members": {
+    "lsd": "‏5 ممبرو",
+    "page": "29 (7 pages)",
+    "list": "permanent"
+  },
+  "5 Registered members": {
+    "lsd": "‏5 Register تهئيلا ممبرو",
+    "page": "29",
+    "list": "permanent"
+  },
+  "Members": {
+    "lsd": "‏ممبرو",
+    "page": "29 (3 pages)",
+    "list": "permanent"
+  },
+  "Registered together": {
+    "lsd": "‏ساتھے Register تهئيلا",
+    "page": "29",
+    "list": "permanent"
+  },
+  "5. Accessibility Requirements": {
+    "lsd": "‏5. سهوليات ني ضرورة",
+    "page": "30",
+    "list": "permanent"
+  },
+  "6. Emergency Contact": {
+    "lsd": "اتصال الطوارع",
+    "page": "30",
+    "list": "permanent"
+  },
+  "7. Confirmation": {
+    "lsd": "‏7. تمام",
+    "page": "30",
+    "list": "permanent"
+  },
+  "AGREED TO GUIDELINES": {
+    "lsd": "‏هدايات إقرار كيدي",
+    "page": "30",
+    "list": "permanent"
+  },
+  "INFORMATION ACCURATE": {
+    "lsd": "‏معلومات صحيح",
+    "page": "30",
+    "list": "permanent"
+  },
+  "Manage City Layout": {
+    "lsd": "‏شہر ني ترتيب ني تدبير كرو",
+    "page": "31 (2 pages)",
+    "list": "permanent"
+  },
+  "Registration ends in": {
+    "lsd": "‏Registration پوري تهاوا ما",
+    "page": "31 (2 pages)",
+    "list": "permanent"
+  },
+  "CITY SELECTION CLOSED": {
+    "lsd": "اختيار ‏الشہر بند",
+    "page": "32 (6 pages)",
+    "list": "permanent"
+  },
+  "Select zone": {
+    "lsd": "‏zone اختيار كرو",
+    "page": "32",
+    "list": "permanent"
+  },
+  "Link Syed to someone staying, so they keep their place.": {
+    "lsd": "‏﴿ممبر﴾ نے كوئيي رهنار ساتھے جوڑو، جھ سي اهني جگہ باقي رهے.",
+    "page": "33 (2 pages)",
+    "list": "permanent"
+  },
+  "Linked Members": {
+    "lsd": "‏جوڑايل ممبرو",
+    "page": "33",
+    "list": "permanent"
+  },
+  "Reserved": {
+    "lsd": "‏reserve تهئيلا",
+    "page": "33 (11 pages)",
+    "list": "permanent"
+  },
+  "This member is reserved together with a dependent. To keep the dependent's place, transfer them to someone staying before you change or cancel your own reservation.": {
+    "lsd": "‏اْ ممبر ايك تابع ساتھے reserve تهئيلا چھے. تابع ني جگہ باقي راكھوا واسطے، اْثثنو پوتانو reservation بدليا يا منسوخ كيدا اهنا پہلا اهنے كوئي رهنار نے سونپي دو.",
+    "page": "33",
+    "list": "permanent"
+  },
+  "Transfer →": {
+    "lsd": "‏بدلو ←",
+    "page": "33 (6 pages)",
+    "list": "permanent"
+  },
+  "Cancel my reservation": {
+    "lsd": "‏مارو reservation هضضاوو",
+    "page": "34 (14 pages)",
+    "list": "permanent"
+  },
+  "Choose how you'd like to update your reservation. Only the options applicable to your current reservation are shown.": {
+    "lsd": "‏اْثث reservation  كئي طرح بدلوا چاهو چھو يھ چنو.",
+    "page": "34 (7 pages)",
+    "list": "permanent"
+  },
+  "Edit registration": {
+    "lsd": "‏Registration ما تبديل",
+    "page": "34 (5 pages)",
+    "list": "permanent"
+  },
+  "Linked to your reservation": {
+    "lsd": "‏اْثثنا reservation ساتھے جوڑايل",
+    "page": "34 (6 pages)",
+    "list": "permanent"
+  },
+  "Update your family members, guardians, and other details.": {
+    "lsd": "اْثثنا اهل ، ولي انے بيجي تفاصيل بدلو.",
+    "page": "34 (5 pages)",
+    "list": "permanent"
+  },
+  "What would you like to do?": {
+    "lsd": "اْثث سوطط كروا چاهو چھو؟",
+    "page": "34 (11 pages)",
+    "list": "permanent"
+  },
+  "Current": {
+    "lsd": "الحال",
+    "page": "35 (6 pages)",
+    "list": "permanent"
+  },
+  "Okay": {
+    "lsd": "برابر",
+    "page": "36",
+    "list": "permanent"
+  },
+  "Syed is reserved together with you. Transfer Syed to another guardian first, then you can cancel your reservation.": {
+    "lsd": "‏﴿ممبر﴾ اْثثنا ساتھے reserve تهئيلا چھے. پہلا ﴿ممبر﴾ نے بيجا ولي نے سونپي دو، اهنا بعد اْثث اْثثنو reservation منسوخ كري سكسو.",
+    "page": "36",
+    "list": "permanent"
+  },
+  "Transfer Syed first": {
+    "lsd": "‏پہلا ﴿ممبر﴾ نے سونپي دو",
+    "page": "36",
+    "list": "permanent"
+  },
+  "Acceptance Pending": {
+    "lsd": "‏قبوليت باقي",
+    "page": "37",
+    "list": "permanent"
+  },
+  "Transfer request sent to Sakina Husain. Syed's place is held and stays pending until Syed accepts the invitation.": {
+    "lsd": "‏سونپوا ني عرض ﴿نام﴾ نے موكلي دي دھي چھے. ﴿ممبر﴾ ني جگہ روكايل چھے انے ﴿ممبر﴾ اذن قبول كرے اهنا لگي باقي رهسے.",
+    "page": "37",
+    "list": "permanent"
+  },
+  "Waiting for Syed to accept": {
+    "lsd": "‏﴿ممبر﴾ ني قبوليت نو انتظار چھے",
+    "page": "38",
+    "list": "permanent"
+  },
+  "You've sent a transfer request to Syed. You can cancel your reservation only after Syed accepts it.": {
+    "lsd": "‏اْثث ﴿ممبر﴾ نے سونپوا ني عرض موكلي چھے. ﴿ممبر﴾ قبول كرے اهنا بعد ئي اْثث اْثثنو reservation منسوخ كري سكسو.",
+    "page": "38",
+    "list": "permanent"
+  },
+  "Keep reservation": {
+    "lsd": "‏reservation باقي راكھو",
+    "page": "39",
+    "list": "permanent"
+  },
+  "This will cancel your reservation for this Miqaat. This action can't be undone.": {
+    "lsd": "‏اْ ميقات واسطے اْثثنو reservation هضضي جاسے. اْ بدلي نظظيطط سكائسس.",
+    "page": "39",
+    "list": "permanent"
+  },
+  "Reservation Cancelled": {
+    "lsd": "‏reservation هضضي ككيو",
+    "page": "40",
+    "list": "permanent"
+  },
+  "Your reservation has been cancelled. You can Register for this event again anytime.": {
+    "lsd": "‏اْثثنو reservation هضضي گيو چھے. اْثث اْ ميقات واسطے دوباره Register تھئي سكو چھو.",
+    "page": "40",
+    "list": "permanent"
+  },
+  "Add": {
+    "lsd": "‏شامل كرو",
+    "page": "41 (2 pages)",
+    "list": "permanent"
+  },
+  "Match found": {
+    "lsd": "ملو",
+    "page": "41",
+    "list": "permanent"
+  },
+  "Invitation sent. They will appear here once they accept your request.": {
+    "lsd": "اذن موكلائي ككيو. يھ اْثثني عرض قبول كرسے اهنا بعد جوواسسس",
+    "page": "42",
+    "list": "permanent"
+  },
+  "Others": {
+    "lsd": "‏بيجا",
+    "page": "43 (2 pages)",
+    "list": "permanent"
+  },
+  "You missed some members": {
+    "lsd": "‏بعض ممبرو رهي گيا چھے",
+    "page": "44 (2 pages)",
+    "list": "permanent"
+  },
+  "Assign a caregiver for Amatullah Bhen before selecting this member.": {
+    "lsd": "‏اْ ممبر نے ححجديد پہلا ﴿نام﴾ واسطے معاون مقرر كرو.",
+    "page": "45",
+    "list": "permanent"
+  },
+  "Guardian: Sakina Husain": {
+    "lsd": "‏ولي: سكينه حسين",
+    "page": "45 (2 pages)",
+    "list": "permanent"
+  },
+  "City ends in": {
+    "lsd": "اختيار ‏الشہر پورو تهاوا ما",
+    "page": "46 (2 pages)",
+    "list": "permanent"
+  },
+  "6 members": {
+    "lsd": "‏6 ممبرو",
+    "page": "47 (4 pages)",
+    "list": "permanent"
+  },
+  "CITY ARRANGEMENT": {
+    "lsd": "‏شہر ني ترتيب",
+    "page": "47 (3 pages)",
+    "list": "permanent"
+  },
+  "Edit your layout": {
+    "lsd": "اْثثني ترتيب بدلو",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "Guest": {
+    "lsd": "‏مهمان",
+    "page": "47",
+    "list": "permanent"
+  },
+  "Members 2/6": {
+    "lsd": "‏ممبرو 2/6",
+    "page": "47 (5 pages)",
+    "list": "permanent"
+  },
+  "Other Cities (45)": {
+    "lsd": "‏بيجا شہرو ﴿45﴾",
+    "page": "47 (3 pages)",
+    "list": "permanent"
+  },
+  "Save my layout": {
+    "lsd": "‏ماري ترتيب محفوظ كرو",
+    "page": "47",
+    "list": "permanent"
+  },
+  "Save your city layout": {
+    "lsd": "اْثثني شہر ني ترتيب محفوظ كرو",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "Search city names...": {
+    "lsd": "‏شہر نا نامو..",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "STATUS": {
+    "lsd": "‏حال",
+    "page": "47 (3 pages)",
+    "list": "permanent"
+  },
+  "These members will go through City Selection with the layout you set on the left. Reservations happen there — not on this screen.": {
+    "lsd": "‏اْ ممبرو اْثثني ڈابي طرف مقرر  ترتيب نا حساب سي اختيار ‏الشہر ما جاسے. reservation اهيں يھ مرحلا ما تھاسسس",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "Top preferred cities": {
+    "lsd": "احب شهرو",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "United States": {
+    "lsd": "‏امريكا",
+    "page": "47 (8 pages)",
+    "list": "permanent"
+  },
+  "Valid for allocation": {
+    "lsd": "‏تعيين واسطے جائز",
+    "page": "47 (10 pages)",
+    "list": "permanent"
+  },
+  "Your Members": {
+    "lsd": "اْثثنا ممبرو",
+    "page": "47 (3 pages)",
+    "list": "permanent"
+  },
+  "Your Preferred Cities": {
+    "lsd": "اْثثنا احب شہرو",
+    "page": "47 (2 pages)",
+    "list": "permanent"
+  },
+  "Chennai": {
+    "lsd": "‏چني",
+    "page": "48 (3 pages)",
+    "list": "permanent"
+  },
+  "Indore": {
+    "lsd": "‏اندور",
+    "page": "48 (3 pages)",
+    "list": "permanent"
+  },
+  "Indore Relay City": {
+    "lsd": "‏اندور ريلسس موضع",
+    "page": "48 (2 pages)",
+    "list": "permanent"
+  },
+  "Kolkata": {
+    "lsd": "كلكته",
+    "page": "48 (3 pages)",
+    "list": "permanent"
+  },
+  "RELAY *(city-type tag)*": {
+    "lsd": "‏ريلے",
+    "page": "48",
+    "list": "permanent"
+  },
+  "RELAY CITY": {
+    "lsd": "‏ريلے موضع",
+    "page": "48 (25 pages)",
+    "list": "permanent"
+  },
+  "City arrangement saved": {
+    "lsd": "‏شہر ني ترتيب محفوظ تھئي",
+    "page": "49",
+    "list": "permanent"
+  },
+  "Your preferred city layout has been updated successfully.": {
+    "lsd": "اْثثنا احب شہر ني ترتيب بدلائي گئي چھے.",
+    "page": "49",
+    "list": "permanent"
+  },
+  "At the exact start time everyone on this page is assigned a random queue position — an equal chance for all.": {
+    "lsd": "‏مقرر وقت پر سككلا نے ليوا ما اْوسے ، سككلا نسس  برابر موقع اْثثوا ما اؤسسس",
+    "page": "50",
+    "list": "permanent"
+  },
+  "Coming early does not give you an earlier position.": {
+    "lsd": "‏جلدي اْووا سي ثثظظلا جگہ نتهي ملے.",
+    "page": "50",
+    "list": "permanent"
+  },
+  "Note: City Selection is only available for those with valid travel documents and a completed registration.": {
+    "lsd": "‏نوٹ: اختيار ‏الشہر فقط اهنا واسطے چھے جھ نا پاسے صحيح سفر نا وثائق انے ‏Registration ثثورو هويھ.",
+    "page": "50",
+    "list": "permanent"
+  },
+  "SEC LEFT": {
+    "lsd": "‏سيكنڈ باقي",
+    "page": "50",
+    "list": "permanent"
+  },
+  "Self Allocation not open yet": {
+    "lsd": "‏پوتاني پسندگي هجي كھلي نتهي",
+    "page": "50",
+    "list": "permanent"
+  },
+  "Stay on this page and wait for the queue to begin.": {
+    "lsd": "‏اْ صفحا پر ئي رهجو انے قطار شروع تهاوا نو انتظار كرجو.",
+    "page": "50",
+    "list": "permanent"
+  },
+  "THERE IS": {
+    "lsd": "‏باقي چھے",
+    "page": "50",
+    "list": "permanent"
+  },
+  "THIS QUEUE WILL OPEN ON": {
+    "lsd": "‏اْ قطار كھلسے",
+    "page": "50",
+    "list": "permanent"
+  },
+  "Do not refresh or close this page. Refreshing may cause you to lose your queue position.": {
+    "lsd": "‏اْ صفحو فري سي load نا كرو انے بند نا كرو. فري سي load كيدا سي قطار ما اْثثني جگہ جائي سكے چھے.",
+    "page": "51",
+    "list": "permanent"
+  },
+  "Estimated wait < 2 minutes": {
+    "lsd": "‏تخمين انتظار < 2 منٹ",
+    "page": "51",
+    "list": "permanent"
+  },
+  "people ahead of you": {
+    "lsd": "اْثثنا اْگل نا افراد",
+    "page": "51",
+    "list": "permanent"
+  },
+  "Queue started": {
+    "lsd": "‏قطار شروع تھئي",
+    "page": "51",
+    "list": "permanent"
+  },
+  "We're moving participants through as capacity becomes available": {
+    "lsd": "‏گنجائش خالي تھتي جايھ اهنا حساب سي اپن حاضرين نے اْگل موكلي رهيا چھيے",
+    "page": "51",
+    "list": "permanent"
+  },
+  "Your position has been assigned. Remain on this page while we process entries.": {
+    "lsd": "اْثثني جگہ مقرر تھئي گئي چھے. اپن داخلا ني عمل كريے چھيے اهنا لگي اْ صفحا پر ئي رهجو.",
+    "page": "51",
+    "list": "permanent"
+  },
+  "Canada": {
+    "lsd": "‏كينيڈا",
+    "page": "52",
+    "list": "permanent"
+  },
+  "Choose a City": {
+    "lsd": "‏شہر اختيار كرو",
+    "page": "52 (4 pages)",
+    "list": "permanent"
+  },
+  "Filling fast": {
+    "lsd": "‏جلدي بھرائي رهيو چھے",
+    "page": "52 (13 pages)",
+    "list": "permanent"
+  },
+  "First, choose your preferred Host or Relay City based on availability.": {
+    "lsd": "‏پہلا، موجودگي نا حساب سي اْثثنو احب Host يا Relay City اختيار كرو.",
+    "page": "52",
+    "list": "permanent"
+  },
+  "Germany": {
+    "lsd": "‏جرمني",
+    "page": "52",
+    "list": "permanent"
+  },
+  "India": {
+    "lsd": "‏هندوستان",
+    "page": "52",
+    "list": "permanent"
+  },
+  "My Preferred City": {
+    "lsd": "‏مارو احب شہر",
+    "page": "52 (6 pages)",
+    "list": "permanent"
+  },
+  "Other Cities (44)": {
+    "lsd": "‏بيجا شہرو ﴿44﴾",
+    "page": "52 (12 pages)",
+    "list": "permanent"
+  },
+  "Reserve all": {
+    "lsd": "‏سگلا نے reserve كرو",
+    "page": "52 (5 pages)",
+    "list": "permanent"
+  },
+  "Selected": {
+    "lsd": "‏اختيار تهئيلا",
+    "page": "52 (23 pages)",
+    "list": "permanent"
+  },
+  "STEP 1 OF 3": {
+    "lsd": "‏مرحلو 1 / 3",
+    "page": "52 (2 pages)",
+    "list": "permanent"
+  },
+  "Top preferred city": {
+    "lsd": "‏سگلا ما احب شہر",
+    "page": "52 (11 pages)",
+    "list": "permanent"
+  },
+  "United Kingdom": {
+    "lsd": "‏برطانيه",
+    "page": "52 (3 pages)",
+    "list": "permanent"
+  },
+  "ACTION": {
+    "lsd": "عمل",
+    "page": "53 (10 pages)",
+    "list": "permanent"
+  },
+  "London allocation opens … You can reserve Jumana then.": {
+    "lsd": "‏﴿شہر﴾ ني تعيين … كھلسے. اهنا وقت اْثث ﴿ممبر﴾ نے reserve كري سكسو.",
+    "page": "53 (3 pages)",
+    "list": "permanent"
+  },
+  "Not available": {
+    "lsd": "‏موجود نتهي",
+    "page": "53 (9 pages)",
+    "list": "permanent"
+  },
+  "Reserve in Colombo": {
+    "lsd": "‏﴿شہر﴾ ما reserve كرو",
+    "page": "53 (3 pages)",
+    "list": "permanent"
+  },
+  "Reserve Your Members": {
+    "lsd": "‏اْثثنا ممبرو نے reserve كرو",
+    "page": "53 (2 pages)",
+    "list": "permanent"
+  },
+  "STEP 2 OF 3": {
+    "lsd": "‏مرحلو 2 / 3",
+    "page": "53 (2 pages)",
+    "list": "permanent"
+  },
+  "Then reserve each eligible member to your chosen city. Members marked \"Not available\" can't be allocated here.": {
+    "lsd": "‏اهنا بعد هر مستحق ممبر نے اْثث اختيار كريل شہر ما reserve كرو. موجود نتهي نشان والا ممبرو ني تعيين اهيں نه تھئي سكے.",
+    "page": "53",
+    "list": "permanent"
+  },
+  "Close in": {
+    "lsd": "‏بند تهاوا ما",
+    "page": "54 (7 pages)",
+    "list": "permanent"
+  },
+  "Confirm in Time": {
+    "lsd": "‏وقت ني اندر تمام كرو",
+    "page": "54 (2 pages)",
+    "list": "permanent"
+  },
+  "STEP 3 OF 3": {
+    "lsd": "‏مرحلو 3 / 3",
+    "page": "54 (2 pages)",
+    "list": "permanent"
+  },
+  "Your seats are held while the timer runs. Tap Confirm before it reaches zero to lock in the allocation.": {
+    "lsd": "‏گھڑي چالے چھے اهنا لگي اْثثني جگہ روكايل رهسے. تعيين پكو كروا واسطے صفر تھيا اهنا پہلا تمام كرو دبائو.",
+    "page": "54",
+    "list": "permanent"
+  },
+  "Allocate Your Group": {
+    "lsd": "اْثثنا گروپ ني تعيين كرو",
+    "page": "55 (4 pages)",
+    "list": "permanent"
+  },
+  "Members 0/6": {
+    "lsd": "‏ممبرو 0/6",
+    "page": "55 (6 pages)",
+    "list": "permanent"
+  },
+  "Selected Host city Colombo": {
+    "lsd": "‏اختيار تهئيلو موضع الفصل ﴿شہر﴾",
+    "page": "55 (9 pages)",
+    "list": "permanent"
+  },
+  "Selected Host city Colombo — select members below": {
+    "lsd": "‏اختيار تهئيلو موضع الفصل ﴿شہر﴾ — نيچے سي ممبرو چنو",
+    "page": "55 (7 pages)",
+    "list": "permanent"
+  },
+  "Mohammed Husain & Amatullah Bhen reserved in Colombo.": {
+    "lsd": "‏﴿نام﴾ انے ﴿نام﴾ ﴿شہر﴾ ما reserve تھئي گيا چھے.",
+    "page": "57",
+    "list": "permanent"
+  },
+  "LIVE": {
+    "lsd": "شروع",
+    "page": "58",
+    "list": "permanent"
+  },
+  "PHASE 1": {
+    "lsd": "‏مرحلو 1",
+    "page": "58",
+    "list": "permanent"
+  },
+  "Remove all": {
+    "lsd": "‏سگلا نے نكالو",
+    "page": "58 (3 pages)",
+    "list": "permanent"
+  },
+  "1 added": {
+    "lsd": "‏1 شامل تھيو",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "Members 4/6": {
+    "lsd": "‏ممبرو 4/6",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "Please allocate the remaining members before continuing.": {
+    "lsd": "‏اْگل ودھوا پہلا باقي ممبرو ني تعيين كرو.",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "Selected relay city Mumbai — select members below": {
+    "lsd": "‏اختيار تهئيلا ريلسس موضع﴿شہر﴾ — نيچے سي ممبرو چنو",
+    "page": "59 (6 pages)",
+    "list": "permanent"
+  },
+  "Swap all to Mumbai": {
+    "lsd": "‏سگلا نے ﴿شہر﴾ ما swap كرو",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "Swap to Mumbai": {
+    "lsd": "‏﴿شہر﴾ ما swap كرو",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "You're reserved in Colombo — do you want to swap it?": {
+    "lsd": "‏اْثث ﴿شہر﴾ ما reserve تهئيلا چھو — اهنے بدلوا چاهو چھو؟",
+    "page": "59 (2 pages)",
+    "list": "permanent"
+  },
+  "05 members allocated": {
+    "lsd": "‏05 ممبرو ني تعيين تھيو",
+    "page": "61 (2 pages)",
+    "list": "permanent"
+  },
+  "1 member": {
+    "lsd": "‏1 ممبر",
+    "page": "61 (6 pages)",
+    "list": "permanent"
+  },
+  "3 members": {
+    "lsd": "‏3 ممبرو",
+    "page": "61 (14 pages)",
+    "list": "permanent"
+  },
+  "City Confirmed": {
+    "lsd": "‏شہر  تمام تھيو",
+    "page": "61 (4 pages)",
+    "list": "permanent"
+  },
+  "Colombo Host City": {
+    "lsd": "‏﴿شہر﴾ موضع الفصل",
+    "page": "61 (8 pages)",
+    "list": "permanent"
+  },
+  "Go Home": {
+    "lsd": "‏Home",
+    "page": "61 (2 pages)",
+    "list": "permanent"
+  },
+  "Members allocated": {
+    "lsd": "‏ممبرو ني تعيين تھيو",
+    "page": "61 (13 pages)",
+    "list": "permanent"
+  },
+  "Opening later": {
+    "lsd": "ثثححهي ما كھلسے",
+    "page": "61 (2 pages)",
+    "list": "permanent"
+  },
+  "Zone selection open": {
+    "lsd": "اختيار الموضع كھولو چھے",
+    "page": "61 (5 pages)",
+    "list": "permanent"
+  },
+  "City closes in": {
+    "lsd": "اختيار ‏الشہر بند تهاوا ما",
+    "page": "63",
+    "list": "permanent"
+  },
+  "Done": {
+    "lsd": "تمام",
+    "page": "64 (4 pages)",
+    "list": "permanent"
+  },
+  "Not issued yet": {
+    "lsd": "‏هجي تهيو نتهي",
+    "page": "64 (3 pages)",
+    "list": "permanent"
+  },
+  "Raza": {
+    "lsd": "‏رزا",
+    "page": "64 (6 pages)",
+    "list": "permanent"
+  },
+  "Status Tracking": {
+    "lsd": "حال ديكهو",
+    "page": "64",
+    "list": "permanent"
+  },
+  "Track your reservation progress from Registration to City Allocation, Zone Allocation, and Raza.": {
+    "lsd": "‏Registration سي لئي نے شہر ني تعيين، zone ني تعيين انے رزا لگ اْثثنا reservation نو حال ديكهو.",
+    "page": "64",
+    "list": "permanent"
+  },
+  "View Members": {
+    "lsd": "‏ممبرو ديكهو",
+    "page": "64 (4 pages)",
+    "list": "permanent"
+  },
+  "YOUR STATUS": {
+    "lsd": "اْثثني حالت",
+    "page": "64 (3 pages)",
+    "list": "permanent"
+  },
+  "Note: Please carry a valid photo ID and this document (or a digital copy) during travel and at the venue.": {
+    "lsd": "‏نوٹ: سفر درميان انے ميقات ني جگہ پر معتبر فوٹو ID انے اْ وثائق ﴿يا اهني digital نقل﴾ ساتھے راكھجو.",
+    "page": "65",
+    "list": "permanent"
+  },
+  "Please read the following guidelines carefully before and during your Miqaat journey.": {
+    "lsd": "اْثثنا ميقات نا سفر اهنا پہلا انے درميان نيچے ني هدايات دھيان سي وانچجو.",
+    "page": "65",
+    "list": "permanent"
+  },
+  "Form locked. Reach out to your Miqaat coordinator if something here needs correcting.": {
+    "lsd": "‏form بند تمام چھے. اهيں كئي درست كروا نو هويھ تو اْثثنا ميقات نا منتظم نے ملجو.",
+    "page": "66",
+    "list": "permanent"
+  },
+  "No": {
+    "lsd": "لا",
+    "page": "66",
+    "list": "permanent"
+  },
+  "Registration Responses": {
+    "lsd": "‏Registration نا جوابو",
+    "page": "66",
+    "list": "permanent"
+  },
+  "REQUIRES ACCOMMODATION?": {
+    "lsd": "‏رهائش ني ضرورة چھے؟",
+    "page": "66",
+    "list": "permanent"
+  },
+  "REQUIRES FOOD ARRANGEMENTS?": {
+    "lsd": "جمن نا انتظام ني ضرورة چھے؟",
+    "page": "66",
+    "list": "permanent"
+  },
+  "REQUIRES TRANSPORTATION?": {
+    "lsd": "‏اْوا جاوا نا انتظام ني ضرورة چھے؟",
+    "page": "66",
+    "list": "permanent"
+  },
+  "Your registration is confirmed and City Selection has opened, so these responses can no longer be changed.": {
+    "lsd": "‏اْثثني ‏Registration  تمام تھيو گئي چھے انے اختيار ‏الشہر كھلي گئي چھے، اهنا سبب اْ جوابو هوے بدلي نه سكائسس.",
+    "page": "66",
+    "list": "permanent"
+  },
+  "City allocated": {
+    "lsd": "‏شہر ني تعيين تھيو",
+    "page": "67 (8 pages)",
+    "list": "permanent"
+  },
+  "What would you like to modify or cancel?": {
+    "lsd": "اْثث شوں بدلوا ياهضضاؤا چاهو چھو؟",
+    "page": "67",
+    "list": "permanent"
+  },
+  "Zone": {
+    "lsd": "زون",
+    "page": "67 (7 pages)",
+    "list": "permanent"
+  },
+  "0 added": {
+    "lsd": "‏0 شامل تھيا",
+    "page": "68 (2 pages)",
+    "list": "permanent"
+  },
+  "Members 0/5": {
+    "lsd": "‏ممبرو 0/5",
+    "page": "68 (2 pages)",
+    "list": "permanent"
+  },
+  "NEW": {
+    "lsd": "‏جديد",
+    "page": "68 (5 pages)",
+    "list": "permanent"
+  },
+  "Select at least one member to move.": {
+    "lsd": "‏سونپوا واسطے كم ما كم ايك ممبر چنو.",
+    "page": "68 (2 pages)",
+    "list": "permanent"
+  },
+  "Select the destination city, then choose the members to move.": {
+    "lsd": "‏پہلا جانار شہر اختيار كرو، اهنا بعد سونپوا نا ممبرو چنو.",
+    "page": "68 (5 pages)",
+    "list": "permanent"
+  },
+  "Selected relay city Indore — select members below": {
+    "lsd": "‏اختيار تهئيلا ريلسس موضع﴿شہر﴾ — نيچے سي ممبرو چنو",
+    "page": "68 (3 pages)",
+    "list": "permanent"
+  },
+  "Switch all to Indore": {
+    "lsd": "‏سگلا نے ﴿شہر﴾ ما بدلو",
+    "page": "68 (2 pages)",
+    "list": "permanent"
+  },
+  "Switch to a different city": {
+    "lsd": "‏بيجا شہر ما بدلو",
+    "page": "68 (11 pages)",
+    "list": "permanent"
+  },
+  "Switch to Indore": {
+    "lsd": "‏﴿شہر﴾ ما بدلو",
+    "page": "68 (2 pages)",
+    "list": "permanent"
+  },
+  "Who are you moving?": {
+    "lsd": "اْثث كون نے هضضاؤ چھو؟",
+    "page": "68 (11 pages)",
+    "list": "permanent"
+  },
+  "Move to a different city.": {
+    "lsd": "‏بيجا شہر ما جاوو.",
+    "page": "70 (5 pages)",
+    "list": "permanent"
+  },
+  "2 members": {
+    "lsd": "‏2 ممبرو",
+    "page": "71 (10 pages)",
+    "list": "permanent"
+  },
+  "Choose a Zone": {
+    "lsd": "‏zone اختيار كرو",
+    "page": "71 (9 pages)",
+    "list": "permanent"
+  },
+  "Colombo zones (22)": {
+    "lsd": "‏﴿شہر﴾ نا zone ﴿22﴾",
+    "page": "71 (15 pages)",
+    "list": "permanent"
+  },
+  "First, pick a zone within your allocated city.": {
+    "lsd": "‏پہلا، اْثثنا تعيين تهئيلا شہر ما سي zone اختيار كرو.",
+    "page": "71",
+    "list": "permanent"
+  },
+  "Full": {
+    "lsd": "‏بھرايل",
+    "page": "71",
+    "list": "permanent"
+  },
+  "Members allocated cities": {
+    "lsd": "‏ممبرو نے تعيين تهئيلا شہرو",
+    "page": "71 (8 pages)",
+    "list": "permanent"
+  },
+  "Search zone names...": {
+    "lsd": "‏zone نا نامو...",
+    "page": "71 (3 pages)",
+    "list": "permanent"
+  },
+  "Zone A - Main Hall": {
+    "lsd": "‏zone ا - هال اعظم",
+    "page": "71 (18 pages)",
+    "list": "permanent"
+  },
+  "Zone B - East Wing": {
+    "lsd": "‏zone ب - مشرقي حصة",
+    "page": "71 (16 pages)",
+    "list": "permanent"
+  },
+  "Zone C - West Wing": {
+    "lsd": "‏zone ج - مغربي حصة",
+    "page": "71 (15 pages)",
+    "list": "permanent"
+  },
+  "Zone D - South Wing": {
+    "lsd": "‏zone د - جنوبي حصة",
+    "page": "71 (14 pages)",
+    "list": "permanent"
+  },
+  "Zone E - North Wing": {
+    "lsd": "‏zone ه - شمالي حصة",
+    "page": "71 (18 pages)",
+    "list": "permanent"
+  },
+  "Zone F - Balcony": {
+    "lsd": "‏zone و - شرفة",
+    "page": "71 (16 pages)",
+    "list": "permanent"
+  },
+  "Zone G - Annexe": {
+    "lsd": "‏zone ز - ملحق",
+    "page": "71 (16 pages)",
+    "list": "permanent"
+  },
+  "Zone H - Courtyard": {
+    "lsd": "‏zone ح - چوك",
+    "page": "71 (16 pages)",
+    "list": "permanent"
+  },
+  "Reserve": {
+    "lsd": "‏reserve كرو",
+    "page": "72",
+    "list": "permanent"
+  },
+  "Select this city to choose a zone for them": {
+    "lsd": "‏اهنا واسطے zone اختيار كروا اْ شہر چنو",
+    "page": "72 (9 pages)",
+    "list": "permanent"
+  },
+  "Then choose which members to reserve in that zone using the Reserve action.": {
+    "lsd": "‏اهنا بعد يھ zone ما كيا ممبرو نے reserve كروا چھے يھ چنو.",
+    "page": "72",
+    "list": "permanent"
+  },
+  "Your slot is temporarily held while the timer runs. Tap Confirm before it expires to complete your reservation.": {
+    "lsd": "",
+    "page": "73",
+    "list": "permanent"
+  },
+  "City & zone": {
+    "lsd": "‏شہر انے zone",
+    "page": "74 (14 pages)",
+    "list": "permanent"
+  },
+  "Mumbai Relay City": {
+    "lsd": "‏﴿شہر﴾ ريلسس موضع",
+    "page": "74 (6 pages)",
+    "list": "permanent"
+  },
+  "Pick a city, then a zone, then choose who to reserve.": {
+    "lsd": "‏پہلا شہر، اهنا بعد zone اختيار كرو، انے بعد ماكون نے reserve كروا چھے يھ چنو.",
+    "page": "74 (7 pages)",
+    "list": "permanent"
+  },
+  "Confirm": {
+    "lsd": "صحيح",
+    "page": "76 (3 pages)",
+    "list": "permanent"
+  },
+  "Please select a zone first.": {
+    "lsd": "‏پہلا zone اختيار كرو.",
+    "page": "76",
+    "list": "permanent"
+  },
+  "Reserve in Zone A - Main Hall": {
+    "lsd": "‏zone A - هال اعظم ما reserve كرو",
+    "page": "77 (3 pages)",
+    "list": "permanent"
+  },
+  "Selected zone Zone A - Main Hall — select members below": {
+    "lsd": "‏اختيار تهئيلا zone A - هال اعظم — نيچے سي ممبرو چنو",
+    "page": "77 (3 pages)",
+    "list": "permanent"
+  },
+  "Zone A - Main Hall — select members below": {
+    "lsd": "‏zone A - هال اعظم — نيچے سي ممبرو چنو",
+    "page": "77 (6 pages)",
+    "list": "permanent"
+  },
+  "Confirm(2)": {
+    "lsd": "‏تمام﴿2﴾",
+    "page": "78 (3 pages)",
+    "list": "permanent"
+  },
+  "Members 2/2": {
+    "lsd": "‏ممبرو 2/2",
+    "page": "78 (3 pages)",
+    "list": "permanent"
+  },
+  "4 members are not allocated to a zone yet. Continue without them?": {
+    "lsd": "‏4 ممبرو نو zone ما هجي تعيين تھيو نتهي. اهنا وگر اْگل ودھوں؟",
+    "page": "79",
+    "list": "permanent"
+  },
+  "Cancel": {
+    "lsd": "هضضاؤ",
+    "page": "79",
+    "list": "permanent"
+  },
+  "Reserve in Zone B - East Wing": {
+    "lsd": "‏zone B - مشرقي حصة ما reserve كرو",
+    "page": "80 (5 pages)",
+    "list": "permanent"
+  },
+  "Selected zone Zone B - East Wing — select members below": {
+    "lsd": "‏اختيار تهئيلا zone B - مشرقي حصة — نيچے سي ممبرو چنو",
+    "page": "80 (5 pages)",
+    "list": "permanent"
+  },
+  "Swap all to Zone B - East Wing": {
+    "lsd": "‏سگلا نے zone B - مشرقي حصة ما swap كرو",
+    "page": "80 (5 pages)",
+    "list": "permanent"
+  },
+  "Swap to Zone B - East Wing": {
+    "lsd": "‏zone B - مشرقي حصة ما swap كرو",
+    "page": "80 (5 pages)",
+    "list": "permanent"
+  },
+  "You're reserved in Zone A - Main Hall — do you want to swap it?": {
+    "lsd": "‏اْثث zone A - هال اعظم ما reserve تهئيلا چھو — اهنے بدلوا چاهو چھو؟",
+    "page": "80 (5 pages)",
+    "list": "permanent"
+  },
+  "1 members": {
+    "lsd": "‏1 ممبر",
+    "page": "81 (3 pages)",
+    "list": "permanent"
+  },
+  "Change your zone": {
+    "lsd": "‏اْثثنو zone بدلو",
+    "page": "84 (7 pages)",
+    "list": "permanent"
+  },
+  "Stay in Mumbai and pick a different zone.": {
+    "lsd": "‏﴿شہر﴾ ما ئي رهي نے بيجو zone اختيار كرو.",
+    "page": "84 (3 pages)",
+    "list": "permanent"
+  },
+  "Members 0/2": {
+    "lsd": "‏ممبرو 0/2",
+    "page": "85 (2 pages)",
+    "list": "permanent"
+  },
+  "Moving alone? Transfer the dependent first.": {
+    "lsd": "‏اكيلا جاؤ چھو؟ پہلا تابع بيجا نے سونپي دو.",
+    "page": "85",
+    "list": "permanent"
+  },
+  "Select a destination zone, then choose the members to move.": {
+    "lsd": "‏پہلا جانار zone اختيار كرو، اهنا بعد سونپوا نا ممبرو چنو.",
+    "page": "85 (7 pages)",
+    "list": "permanent"
+  },
+  "Guardian updated to Sakina": {
+    "lsd": "‏ولي بدلي نے ﴿نام﴾ تھيا",
+    "page": "86",
+    "list": "permanent"
+  },
+  "Colombo : Zone E - North Wing": {
+    "lsd": "‏﴿شہر﴾ : zone E - شمالي حصة",
+    "page": "87 (4 pages)",
+    "list": "permanent"
+  },
+  "Zone E - North Wing — select members below": {
+    "lsd": "‏zone E - شمالي حصة — نيچے سي ممبرو چنو",
+    "page": "87 (2 pages)",
+    "list": "permanent"
+  },
+  "Zone updated successfully": {
+    "lsd": "‏zone كامياب طور پر بدلائي گيو",
+    "page": "88",
+    "list": "permanent"
+  },
+  "Stay in Colombo and pick a different zone.": {
+    "lsd": "‏﴿شہر﴾ ما ئي رهي نے بيجو zone اختيار كرو.",
+    "page": "89 (2 pages)",
+    "list": "permanent"
+  },
+  "Bangalore": {
+    "lsd": "‏بينگلور",
+    "page": "90 (4 pages)",
+    "list": "permanent"
+  },
+  "Hyderabad": {
+    "lsd": "‏حيدراباد",
+    "page": "90 (5 pages)",
+    "list": "permanent"
+  },
+  "Raza issues on": {
+    "lsd": "‏رزا تهاسسس:",
+    "page": "91",
+    "list": "permanent"
+  },
+  "Issued": {
+    "lsd": "تهئي گئي",
+    "page": "92 (2 pages)",
+    "list": "permanent"
+  },
+  "View →": {
+    "lsd": "ديكهو ←",
+    "page": "92",
+    "list": "permanent"
+  },
+  "City Selection has opened. Your responses can no longer be changed": {
+    "lsd": "اختيار ‏الشہر كھلي گيو چھے. اْثثنا جوابو هوے بدلي نهيطط سكائسس",
+    "page": "94",
+    "list": "permanent"
+  },
+  "Last updated:": {
+    "lsd": "‏اْخري تبديلي:",
+    "page": "94",
+    "list": "permanent"
+  },
+  "Locked": {
+    "lsd": "‏بند",
+    "page": "94",
+    "list": "permanent"
+  },
+  "Registration Form": {
+    "lsd": "‏Registration فارم",
+    "page": "94 (3 pages)",
+    "list": "permanent"
+  },
+  "Reservation confirmed": {
+    "lsd": "‏reservation تمام تھيو",
+    "page": "94 (2 pages)",
+    "list": "permanent"
+  },
+  "View Raza": {
+    "lsd": "‏رزا ديكهو",
+    "page": "94",
+    "list": "permanent"
+  },
+  "View Responses": {
+    "lsd": "‏جوابو ديكهو",
+    "page": "94",
+    "list": "permanent"
+  },
+  "248 KB": {
+    "lsd": "248 KB",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Admin Registered on your behalf": {
+    "lsd": "‏منتظم يھ اْثثنا طرف سي Register كري ديدو",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "An Idaratul Miqaat admin Registered you for Eid-e-Ghadeer 1447H": {
+    "lsd": "‏ادارة الميقات نا منتظم يھ اْثثنسس   عيد الغدير 1447ھ واسطے Register كيدا چھے",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "City selection window open": {
+    "lsd": "اختيار ‏الشہر نو وقت كھولو چھے",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "EARLIER": {
+    "lsd": "‏اهنا پہلا",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Guardian assigned": {
+    "lsd": "‏ولي مقرر تھيا",
+    "page": "96 (3 pages)",
+    "list": "permanent"
+  },
+  "Mark all read": {
+    "lsd": "‏سگلا نے وانچيل نشان كرو",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Murtaza bhai Moiz bhai Gheewala has been assigned as your guardian. Please accept the request to continue": {
+    "lsd": "‏﴿نام﴾ نے اْثثنا ولي مقرر كيدا چھے. اْگل ودھوا واسطے  عرض قبول كرجو",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Notifications": {
+    "lsd": "‏اطلاعات",
+    "page": "96 (3 pages)",
+    "list": "permanent"
+  },
+  "PDF": {
+    "lsd": "PDF",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Raza issued": {
+    "lsd": "‏رزا ملي گئي",
+    "page": "96 (3 pages)",
+    "list": "permanent"
+  },
+  "Raza letter - Eid-e-Ghadeer 1447H": {
+    "lsd": "‏رزا كاغذ - عيد الغدير 1447ھ",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Registration confirmed": {
+    "lsd": "‏Registration  تمام تھيو",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Slot Requests": {
+    "lsd": "‏slot ني عرضو",
+    "page": "96 (3 pages)",
+    "list": "permanent"
+  },
+  "Tabs: New Miqaat": {
+    "lsd": "‏Tab: جديد ميقات",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "YESTERDAY": {
+    "lsd": "‏گئي كالے",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Your city selection is confirmed: Colombo. This applies to you and your dependent.": {
+    "lsd": "اْثثنو اختيار ‏الشہر  تمام تھيو: ﴿شہر﴾. اْ اْثثنا انے اْثثنا تابع واسطسس چھے.",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Your Phase 1 slot is active from 19 Jun 09:00 AM to 20 Jun 09:00 AM IST.": {
+    "lsd": "‏اْثثنو مرحلو 1 نو وقت 19 Jun 09:00 AM سي 20 Jun 09:00 AM IST لگي چالو چھے.",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Your Raza for Eid-e-Ghadeer 1447H has been issued": {
+    "lsd": "‏اْثثني عيد الغدير 1447ھ ني رزا نكلي گئي چھے",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Your registration for Eid-e-Ghadeer 1447H was submitted successfully.": {
+    "lsd": "‏اْثثني عيد الغدير 1447ھ ني ‏Registration كامياب طور پر پيش تھئي گئي چھے.",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Zone selection active": {
+    "lsd": "اختيار الموضع چالو چھے",
+    "page": "96 (3 pages)",
+    "list": "permanent"
+  },
+  "Zone selection is now open for Colombo. Pick your zone before it closes on 21 Jun.": {
+    "lsd": "‏﴿شہر﴾ واسطے اختيار الموضع هوے كھلي چھے. 21 Jun نا روز بند تھايھ اهنا پہلا اْثثنو zone اختيار كرجو.",
+    "page": "96 (2 pages)",
+    "list": "permanent"
+  },
+  "Which event needs city help?": {
+    "lsd": "‏كيا ميقات ما شہر ني مدد جوئيے چھے؟",
+    "page": "100",
+    "list": "permanent"
+  },
+  "Which event needs zone help?": {
+    "lsd": "‏كيا ميقات ما zone ني مدد جوئيے چھے؟",
+    "page": "101",
+    "list": "permanent"
+  },
+  "You don't have any pending requests right now.": {
+    "lsd": "‏هال ما اْثثني كوئي پن عرض باقي نتهي چھے.",
+    "page": "102",
+    "list": "permanent"
+  },
+  "Current Guardian": {
+    "lsd": "الحال ولي",
+    "page": "103 (3 pages)",
+    "list": "permanent"
+  },
+  "Remove Guardian": {
+    "lsd": "‏ولي نے خارج كرو",
+    "page": "103 (3 pages)",
+    "list": "permanent"
+  },
+  "Log Out": {
+    "lsd": "‏باهر نكلو",
+    "page": "104",
+    "list": "permanent"
+  },
+  "Log Out?": {
+    "lsd": "‏باهر نكلو؟",
+    "page": "104",
+    "list": "permanent"
+  },
+  "Miqaat detail page": {
+    "lsd": "‏ميقات تفاصيل",
+    "page": "104",
+    "list": "permanent"
+  },
+  "Members 1/4": {
+    "lsd": "‏ممبرو 1/4",
+    "page": "105 (2 pages)",
+    "list": "permanent"
+  },
+  "Cities: Mumbai": {
+    "lsd": "‏شہرو: ممبئي",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Delhi": {
+    "lsd": "‏دلي",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Gujarat": {
+    "lsd": "‏گجرات",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Hamburg": {
+    "lsd": "‏هيمبرگ",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Kerala": {
+    "lsd": "‏كيريلا",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Members 2/4": {
+    "lsd": "‏ممبرو 2/4",
+    "page": "106 (5 pages)",
+    "list": "permanent"
+  },
+  "Noida": {
+    "lsd": "‏نويڈا",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Pune": {
+    "lsd": "‏پونھ",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Request all to Mumbai": {
+    "lsd": "‏سگلا واسطے ﴿شہر﴾ ني عرض كرو",
+    "page": "106 (3 pages)",
+    "list": "permanent"
+  },
+  "Request to Mumbai": {
+    "lsd": "‏﴿شہر﴾ ني عرض كرو",
+    "page": "106 (3 pages)",
+    "list": "permanent"
+  },
+  "Requested": {
+    "lsd": "‏عرض تهئيلا",
+    "page": "106 (5 pages)",
+    "list": "permanent"
+  },
+  "Send City Change Request": {
+    "lsd": "‏شہر بدلوا ني عرض موكلو",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "Submit Request": {
+    "lsd": "‏عرض پيش كرو",
+    "page": "106 (5 pages)",
+    "list": "permanent"
+  },
+  "This city change will be sent to the admin for approval.": {
+    "lsd": "‏اْ شہر ني تبديلي منظوري واسطے منتظم نے موكلوا ما اْوسے.",
+    "page": "106 (2 pages)",
+    "list": "permanent"
+  },
+  "1 pending request": {
+    "lsd": "‏1 عرض باقي",
+    "page": "108 (2 pages)",
+    "list": "permanent"
+  },
+  "2 pending requests": {
+    "lsd": "‏2 عرضو باقي",
+    "page": "108 (3 pages)",
+    "list": "permanent"
+  },
+  "Awaiting approval": {
+    "lsd": "‏منظوري نا انتظار ما",
+    "page": "108 (3 pages)",
+    "list": "permanent"
+  },
+  "Requests in progress": {
+    "lsd": "في الحال عرضو",
+    "page": "108 (3 pages)",
+    "list": "permanent"
+  },
+  "Tap to view details or cancel a request": {
+    "lsd": "‏تفاصيل جووا يا عرضهضضاؤا دبائو",
+    "page": "108 (2 pages)",
+    "list": "permanent"
+  },
+  "These changes have been sent for approval. You can cancel a request while it's still under review.": {
+    "lsd": "‏اْ تبديليو منظوري واسطے موكلي دي دھي چھے. جيان لگي جائزو چالو چھے تيان لگي اْثث عرض منسوخ كري سكو چھو.",
+    "page": "108 (3 pages)",
+    "list": "permanent"
+  },
+  "Request submitted for approval": {
+    "lsd": "‏عرض منظوري واسطے پيش تھئي",
+    "page": "110",
+    "list": "permanent"
+  },
+  "Hamburg Relay City": {
+    "lsd": "‏﴿شہر﴾ ريلسس موضع",
+    "page": "112",
+    "list": "permanent"
+  },
+  "Indore zones (22)": {
+    "lsd": "‏﴿شہر﴾ نا zone ﴿22﴾",
+    "page": "112",
+    "list": "permanent"
+  },
+  "Kerala Relay City": {
+    "lsd": "‏﴿شہر﴾ ريلسس موضع",
+    "page": "112",
+    "list": "permanent"
+  },
+  "Choose zone": {
+    "lsd": "‏zone اختيار كرو",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Members 0/4": {
+    "lsd": "‏ممبرو 0/4",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Please select a destination zone first.": {
+    "lsd": "‏پہلا جانار zone اختيار كرو.",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Request all to Colombo": {
+    "lsd": "‏سگلا واسطے ﴿شہر﴾ ني عرض كرو",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Request to Colombo": {
+    "lsd": "‏﴿شہر﴾ ني عرض كرو",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Send Zone Change Request": {
+    "lsd": "‏zone بدلوا ني عرض موكلو",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "This zone change will be sent to the admin for approval.": {
+    "lsd": "‏اْ zone ني تبديلي منظوري واسطے منتظم نے موكلوا ما اْوسے.",
+    "page": "114 (3 pages)",
+    "list": "permanent"
+  },
+  "Editable until City Selection": {
+    "lsd": "اختيار ‏الشہر لگي بدلي سكائسس",
+    "page": "117",
+    "list": "permanent"
+  },
+  "Invite guests with their ITS ID - they appear once they accept.": {
+    "lsd": "‏مهمانو نے اهنا ITS ID سي اذن اْپو - يھ قبول كرسے تو اْثث نسس جوواسسس.",
+    "page": "117",
+    "list": "permanent"
+  },
+  "Invite Mehmaan": {
+    "lsd": "‏مهمان نے اذن اْپو",
+    "page": "117 (3 pages)",
+    "list": "permanent"
+  },
+  "Invite now": {
+    "lsd": "اذن اْپو",
+    "page": "117",
+    "list": "permanent"
+  },
+  "Not yet opened": {
+    "lsd": "‏هجي كھولو نتهي",
+    "page": "117",
+    "list": "permanent"
+  },
+  "Araz": {
+    "lsd": "‏عرض",
+    "page": "118",
+    "list": "permanent"
+  },
+  "Host 5": {
+    "lsd": "‏موضع الفصل 5",
+    "page": "118",
+    "list": "permanent"
+  },
+  "Relay 7 preferences available": {
+    "lsd": "‏7 احب ريلسس مواضع موجود",
+    "page": "118",
+    "list": "permanent"
+  },
+  "Submit your preferred Host and Relay City selections early. This is a preference only — it does not guarantee your final city allocation.": {
+    "lsd": "‏اْثثنا احب Host انے Relay City ني پسندگي جلدي پيش كرجو. اْ فقط پسندگي چھے — اْ سي اْخري شہر نا تعيين ني ضمانة نتهي ملتي.",
+    "page": "118",
+    "list": "permanent"
+  },
+  "2 / 2 remaining": {
+    "lsd": "‏2 / 2 باقي",
+    "page": "119",
+    "list": "permanent"
+  },
+  "All available": {
+    "lsd": "‏سگلا موجود",
+    "page": "119",
+    "list": "permanent"
+  },
+  "Each accepted invitation counts toward your Mehmaan quota for this Miqaat.": {
+    "lsd": "‏هر قبول تهئيلا اذن اْ ميقات واسطے اْثثني مهمان ني حدود ما شمار تھاسے.",
+    "page": "119 (2 pages)",
+    "list": "permanent"
+  },
+  "Invitation quota": {
+    "lsd": "اذن ني حد",
+    "page": "119 (2 pages)",
+    "list": "permanent"
+  },
+  "No invitations added yet": {
+    "lsd": "‏هجي كوئي اذن شامل تھئي نتهي",
+    "page": "119",
+    "list": "permanent"
+  },
+  "Start by entering an ITS ID to invite a Mumineen. Invited members will appear here and count toward your available quota.": {
+    "lsd": "‏مؤمن نے اذن اْپوا واسطے ITS ID داخل كري نے شروع كرو. اذن اْپيل ممبرو اهيں ظاهر تھاسے انے اْثثني موجود حدود ما شمار تھاسے.",
+    "page": "119",
+    "list": "permanent"
+  },
+  "1 / 2 remaining": {
+    "lsd": "‏1 / 2 باقي",
+    "page": "120",
+    "list": "permanent"
+  },
+  "1 invited": {
+    "lsd": "‏1 اذن كري ححكا",
+    "page": "120",
+    "list": "permanent"
+  },
+  "1 used": {
+    "lsd": "‏1 استعمال تھيو",
+    "page": "120",
+    "list": "permanent"
+  },
+  "Invitation sent. The member will appear here once they accept your request.": {
+    "lsd": "اذن موكلي ححكا. ممبر اْثثني عرض قبول كرسے اهنا بعد ديكهي سكاسسس",
+    "page": "120",
+    "list": "permanent"
+  },
+  "Mehmaan members": {
+    "lsd": "‏مهمان ممبرو",
+    "page": "120",
+    "list": "permanent"
+  },
+  "Mehmaan will be added once they accept the invitation.": {
+    "lsd": "‏مهمان اذن قبول كرسے اهنا بعد شامل تھئي جاسے.",
+    "page": "120",
+    "list": "permanent"
+  },
+  "Remove": {
+    "lsd": "نكالو",
+    "page": "120",
+    "list": "permanent"
+  },
+  "URS MUBARAK SYEDNA ABDULQADIR NAJMUDDIN RA": {
+    "lsd": "‏عرس مبارك سيدنا عبد القادر نجم الدين رض",
+    "page": "120",
+    "list": "permanent"
+  },
+  "Ask Help": {
+    "lsd": "‏مدد",
+    "page": "persistent",
+    "list": "permanent"
+  },
+  "Go back": {
+    "lsd": "‏پاچھل",
+    "page": "persistent",
+    "list": "permanent"
+  },
+  "Home": {
+    "lsd": "Home",
+    "page": "persistent",
+    "list": "permanent"
+  },
+  "Ahmedabad": {
+    "lsd": "‏احمداباد",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Vadodara": {
+    "lsd": "‏وڈودرا",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Rajkot": {
+    "lsd": "‏راجكوٹ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Udaipur": {
+    "lsd": "‏ادئپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Nashik": {
+    "lsd": "‏ناسك",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Aurangabad": {
+    "lsd": "‏اورنگاباد",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Nagpur": {
+    "lsd": "‏ناگپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Bhopal": {
+    "lsd": "‏بھوپال",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Jaipur": {
+    "lsd": "‏جئپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Lucknow": {
+    "lsd": "‏لكھنؤ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Kanpur": {
+    "lsd": "‏كانپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Patna": {
+    "lsd": "‏پٹنا",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Varanasi": {
+    "lsd": "‏وارانسي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Agra": {
+    "lsd": "‏اْگرا",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Amritsar": {
+    "lsd": "‏امرتسر",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Chandigarh": {
+    "lsd": "‏چنڈيگڑھ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Coimbatore": {
+    "lsd": "كوئيمبتور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Kochi": {
+    "lsd": "‏كوچي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Visakhapatnam": {
+    "lsd": "‏وشاكھاپٹنم",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Ujjain": {
+    "lsd": "‏اجّين",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Dar es Salaam": {
+    "lsd": "‏دار السلام",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Mombasa": {
+    "lsd": "‏ممباسا",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Doha": {
+    "lsd": "‏دوحه",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Muscat": {
+    "lsd": "‏مسقط",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Jeddah": {
+    "lsd": "‏جده",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Singapore": {
+    "lsd": "‏سنگاپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Kuala Lumpur": {
+    "lsd": "‏كوالالمپور",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Toronto": {
+    "lsd": "‏ٹورونٹو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "New York": {
+    "lsd": "جديديارك",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Sydney": {
+    "lsd": "‏سڈني",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Assign": {
+    "lsd": "‏سونپو",
+    "page": "AddPeople",
+    "list": "permanent"
+  },
+  "Remove from group": {
+    "lsd": "‏گروپ سي نكالو",
+    "page": "AddPeople",
+    "list": "permanent"
+  },
+  "No members found": {
+    "lsd": "كوئيي نتهي",
+    "page": "AddPeople / Araz / InviteMehmaan",
+    "list": "permanent"
+  },
+  "Search": {
+    "lsd": "بحث كرو",
+    "page": "AddPeople / Araz / InviteMehmaan",
+    "list": "permanent"
+  },
+  "Guardian + dependent · added together": {
+    "lsd": "‏ولي + تابع · ساتھے شامل تھيا",
+    "page": "AddPeople / InviteMehmaan",
+    "list": "permanent"
+  },
+  "Try searching with a different ITS ID or member name.": {
+    "lsd": "‏بيجا ITS ID نے search كري نے كوشش كرو",
+    "page": "AddPeople / InviteMehmaan",
+    "list": "permanent"
+  },
+  "Member": {
+    "lsd": "‏ممبر",
+    "page": "AddPeople / JoinGroup / Review",
+    "list": "permanent"
+  },
+  "Group": {
+    "lsd": "‏گروپ",
+    "page": "AddPeople / Review",
+    "list": "permanent"
+  },
+  "Invited Mehmaan": {
+    "lsd": "اذن اْثثيلا مهمان",
+    "page": "AddPeople / Review / Roster",
+    "list": "permanent"
+  },
+  "Raza status": {
+    "lsd": "‏رزا حال",
+    "page": "AllocationGroupCard / RazaStatusCard / MiqaatList / Roster",
+    "list": "permanent"
+  },
+  "Account menu": {
+    "lsd": "‏account ني فهرست",
+    "page": "AppBar",
+    "list": "permanent"
+  },
+  "Logout": {
+    "lsd": "‏باهر نكلو",
+    "page": "AppBar / MiqaatList",
+    "list": "permanent"
+  },
+  "Add family member": {
+    "lsd": "‏اْپ نا اهل نے ساتھے جوڑو",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Choose your cities": {
+    "lsd": "‏شہرو نے اختيار كرو",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "City preference": {
+    "lsd": "‏احب البلدة",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "No members in the table. Tap Add to include a family member.": {
+    "lsd": "‏جدول ما كوئيي ممبر نتهي. اهل ما ممبر شامل كروا واسطے",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "No members in the table. Use Add to include a family member.": {
+    "lsd": "‏جدول ما كوئيي ممبر نتهي. اهل ما ممبر شامل كروا واسطے",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Preferences submitted": {
+    "lsd": "تفضيل پيش تھئي",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Preferences Submitted": {
+    "lsd": "تفضيل پيش تھئي",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Preferred City Selection": {
+    "lsd": "اختيار ‏الشہر تفضيل",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Quota": {
+    "lsd": "‏جگہ",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Relay City": {
+    "lsd": "‏ريلے موضع",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Remaining": {
+    "lsd": "‏باقي",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Remove member": {
+    "lsd": "‏ممبر نے نكالو",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Submit Preferred Cities": {
+    "lsd": "شہرو ني تفضيل پيش كرو",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Try searching with a different ITS ID.": {
+    "lsd": "‏بيجا ITS ID سي بحث كري ديكهو.",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "Your preferences": {
+    "lsd": "‏اْپ نا تفاضيل",
+    "page": "Araz",
+    "list": "permanent"
+  },
+  "No cities found.": {
+    "lsd": "كوئيي شہر نتھي",
+    "page": "Araz / ArrangeCities / CitySelection / HostCityMove",
+    "list": "permanent"
+  },
+  "Quota full": {
+    "lsd": "‏جگہ تمام",
+    "page": "Araz / InviteMehmaan",
+    "list": "permanent"
+  },
+  "Change": {
+    "lsd": "‏بدلو",
+    "page": "ArrangeCities / ManageReservations",
+    "list": "permanent"
+  },
+  "Change city": {
+    "lsd": "‏شہر بدلو",
+    "page": "ArrangeCities / ManageReservations",
+    "list": "permanent"
+  },
+  "Back": {
+    "lsd": "‏پاچھل",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Cancel your registration for this event": {
+    "lsd": "‏اْپ نو ‏Registration هٹاوو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "From": {
+    "lsd": "‏طرف سي",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Register for an event": {
+    "lsd": "‏ميقات واسطے Register كرو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Request or change your allocated city": {
+    "lsd": "اْثثنا تعيين تهئيلا شہر ني عرض كرو يا بدلو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Request or change your allocated zone": {
+    "lsd": "‏اْثثنا تعيين تهئيلا zone ني عرض كرو يا بدلو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "See status of submitted requests": {
+    "lsd": "‏پيش تهئيلا عرضو ني حالت ديكهو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Sign up yourself or your family": {
+    "lsd": "‏اْثث پوتے يا اْثثنا اهل نے Register كرو",
+    "page": "AskHelpChat",
+    "list": "permanent"
+  },
+  "Close": {
+    "lsd": "‏بند كرو",
+    "page": "AskHelpChat / BottomSheet / InvitationPopup / AddPeople / MiqaatDetail",
+    "list": "permanent"
+  },
+  "Cancel reservation": {
+    "lsd": "‏reservationهضضاؤ",
+    "page": "AskHelpChat / CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "Added by ITS": {
+    "lsd": "‏ITS سي شامل تهئيلا",
+    "page": "ChatMemberSelect",
+    "list": "permanent"
+  },
+  "City Allocation": {
+    "lsd": "‏شہر ني تعيين",
+    "page": "CityAllocation",
+    "list": "permanent"
+  },
+  "All Relay Cities": {
+    "lsd": "‏سگلا ريلسس موضع",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Already in this city": {
+    "lsd": "‏پہلا سي اْ شہر ما ححهو",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Capacity is full.": {
+    "lsd": "جككه پوري تھئي گئي چھے.",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Choose a city": {
+    "lsd": "‏شہر اختيار كرو",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Coming early does": {
+    "lsd": "‏جلدي اْووا سي",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Confirm before time expires": {
+    "lsd": "‏وقت پورو تھيا اهنا پہلا تمام كرو",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Do not refresh or close this page.": {
+    "lsd": "‏اْ صفحو فري سي load نا كرو انے بند نا كرو.",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "It's your Jamaat's. Book your group before 2:00 PM today.": {
+    "lsd": "‏اْ اْثثني جماعة ني چھے. اْج 2:00 PM اهنا پہلا اْثثنا گروپ نے reserve كرو.",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Min · Sec Left": {
+    "lsd": "‏منٹ · سيكنڈ باقي",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Not Available": {
+    "lsd": "‏موجود نتهي",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Now": {
+    "lsd": "‏هوے",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Phase 1 · Live": {
+    "lsd": "‏مرحلو 1 · Live",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Phase 1 info": {
+    "lsd": "‏مرحلو 1 ني معلومات",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Phase2": {
+    "lsd": "‏مرحلو 2",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Please choose a different city.": {
+    "lsd": "بيجو شہر اختيار كرو.",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Reserve your slot": {
+    "lsd": "‏اْثثني جگہ reserve كرو",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Select a zone": {
+    "lsd": "‏zone اختيار كرو",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "This city is full — choose another.": {
+    "lsd": "‏اْ شہر بھرائي گيو چھے — بيجو اختيار كرو.",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Who's in which city": {
+    "lsd": "‏كون كيا شہر ما چھے",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Why not available?": {
+    "lsd": "‏كيم موجود نتهي؟",
+    "page": "CitySelection",
+    "list": "permanent"
+  },
+  "Other Cities": {
+    "lsd": "‏بيجا شہرو",
+    "page": "CitySelection / HostCityMove",
+    "list": "permanent"
+  },
+  "No zones found.": {
+    "lsd": "‏كوئي zone مليو نتهي.",
+    "page": "CitySelection / HostCityMove / ZoneSelection",
+    "list": "permanent"
+  },
+  "Note:": {
+    "lsd": "‏نوٹ:",
+    "page": "CitySelection / MiqaatDetail",
+    "list": "permanent"
+  },
+  "Phase 1 · Slot Closed": {
+    "lsd": "‏مرحلو 1 · slot بند",
+    "page": "CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "Phase 2": {
+    "lsd": "‏مرحلو 2",
+    "page": "CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "Remove reservation": {
+    "lsd": "‏reservation خارج كرو",
+    "page": "CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "You missed your turn": {
+    "lsd": "اْثثني وارو نكلي گيو",
+    "page": "CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "Zone Confirmed": {
+    "lsd": "‏zone  تمام تھيو",
+    "page": "CitySelection / ZoneSelection",
+    "list": "permanent"
+  },
+  "Close City Selection": {
+    "lsd": "اختيار ‏الشہر بند كرو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Close Registration": {
+    "lsd": "‏Registration بند كرو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Close Zone Selection": {
+    "lsd": "اختيار الموضع بند كرو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Issue Raza": {
+    "lsd": "‏رزا نكالو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Open City Selection": {
+    "lsd": "اختيار ‏الشہر كھولو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Open Registration": {
+    "lsd": "‏Registration كھولو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Open Zone Selection": {
+    "lsd": "اختيار الموضع كھولو",
+    "page": "DemoProgressionControl",
+    "list": "permanent"
+  },
+  "Back to Event": {
+    "lsd": "‏ميقات پر پاچھا جاوو",
+    "page": "EditRegistrationForm",
+    "list": "permanent"
+  },
+  "Form locked.": {
+    "lsd": "‏form بند تمام چھے.",
+    "page": "EditRegistrationForm",
+    "list": "permanent"
+  },
+  "Save & Close": {
+    "lsd": "‏محفوظ كري نے بند كرو",
+    "page": "EditRegistrationForm",
+    "list": "permanent"
+  },
+  "Closes": {
+    "lsd": "‏بند تھاسے",
+    "page": "EventJourney",
+    "list": "permanent"
+  },
+  "Opens": {
+    "lsd": "‏كھلسے",
+    "page": "EventJourney",
+    "list": "permanent"
+  },
+  "All relay cities": {
+    "lsd": "‏سگلا ريلسس موضع",
+    "page": "HostCityMove",
+    "list": "permanent"
+  },
+  "Already requested": {
+    "lsd": "‏پہلا سي عرض تهئيلا",
+    "page": "HostCityMove",
+    "list": "permanent"
+  },
+  "Assign guardian": {
+    "lsd": "‏ولي مقرر كرو",
+    "page": "HostCityMove",
+    "list": "permanent"
+  },
+  "Host": {
+    "lsd": "موضع الفصل",
+    "page": "HostCityMove",
+    "list": "permanent"
+  },
+  "New": {
+    "lsd": "جديد",
+    "page": "HostCityMove",
+    "list": "permanent"
+  },
+  "Search zones...": {
+    "lsd": "‏zone بحث كرو...",
+    "page": "HostCityMove / ZoneSelection",
+    "list": "permanent"
+  },
+  "Dismiss notification": {
+    "lsd": "‏اطلاع بند كرو",
+    "page": "InvitationBanner",
+    "list": "permanent"
+  },
+  "Status :": {
+    "lsd": "‏حالت :",
+    "page": "InvitedMembers / CitySelection",
+    "list": "permanent"
+  },
+  "Invite": {
+    "lsd": "اذن اْپو",
+    "page": "InviteMehmaan",
+    "list": "permanent"
+  },
+  "Confirm it's you": {
+    "lsd": "تحقيق كرو كھ اْ اْثث چھو",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Didn't get it?": {
+    "lsd": "نھ ميلو؟",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Eid-e-Ghadeer 1447H": {
+    "lsd": "‏عيد غديرخم 1447ھ",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Group members": {
+    "lsd": "‏گروپ نا ممبرو",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Join group": {
+    "lsd": "‏گروپ ما شامل تھاوو",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Request cancelled": {
+    "lsd": "‏عرض هضضي ككئي",
+    "page": "JoinGroup",
+    "list": "permanent"
+  },
+  "Leave city selection?": {
+    "lsd": "اختيار ‏الشہر سي نكلوو؟",
+    "page": "LeaveCityConfirmSheet",
+    "list": "permanent"
+  },
+  "ITS id": {
+    "lsd": "ITS ID",
+    "page": "Login",
+    "list": "permanent"
+  },
+  "Miqaat Registration": {
+    "lsd": "‏ميقات registration",
+    "page": "Login",
+    "list": "permanent"
+  },
+  "Approved": {
+    "lsd": "‏منظور تهئيلا",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel event": {
+    "lsd": "‏ميقات هضضاوو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel my reservation?": {
+    "lsd": "‏مارو reservation هضضاوو؟",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel Transfer": {
+    "lsd": "‏سونپوا ني عرض هضضاؤ",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel your city selection?": {
+    "lsd": "اْثثني اختيار ‏الشہر هضضاوو؟",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel your reservation for this Miqaat.": {
+    "lsd": "‏اْ ميقات واسطے اْثثنو reservation هضضاؤ.",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Cancel your zone selection?": {
+    "lsd": "اْثثنو اختيار الموضع هضضاوو؟",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Change reservation": {
+    "lsd": "‏reservation بدلو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "City not opened yet": {
+    "lsd": "‏شہر هجي كھولو نتهي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "City selection cancelled": {
+    "lsd": "اختيار ‏الشہر هضضي ككيو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Current city": {
+    "lsd": "‏في الحال شہر",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Current zone": {
+    "lsd": "‏في الحال zone",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "From you": {
+    "lsd": "اْثثنا طرف سي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Guardian + dependent · reserve together": {
+    "lsd": "‏ولي + تابع · ساتھے reserve تھيا چھے",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Move to a different city and pick a zone there.": {
+    "lsd": "‏بيجا شہر ما جاوو انے وهاطط zone اختيار كرو.",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "New guardian": {
+    "lsd": "جديد ولي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Pending acceptance": {
+    "lsd": "‏قبول باقي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Pick a different zone for your allocated members.": {
+    "lsd": "‏اْثثنا تعيين تهئيلا ممبرو واسطے بيجو zone اختيار كرو.",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Pick new city": {
+    "lsd": "جديد شہر اختيار كرو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Pick new zone": {
+    "lsd": "‏جديد zone اختيار كرو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Place secured": {
+    "lsd": "‏جگہ محفوظ تھئي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Registration updated": {
+    "lsd": "‏Registration ما تبديلي تھئي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Request submitted": {
+    "lsd": "‏عرض پيش تھئي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Requested changes": {
+    "lsd": "‏عرض تهئيلا تبديليو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Reservation updated": {
+    "lsd": "‏reservation ما تبديلي تھئي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Send request": {
+    "lsd": "‏عرض موكلو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Transfer": {
+    "lsd": "‏سونپي دو",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Transfering": {
+    "lsd": "‏سونپي رهيا چھيے",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "What would you like to cancel?": {
+    "lsd": "اْثث شوںهضضاؤا چاهو چھو؟",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "What would you like to change?": {
+    "lsd": "اْثث شوں بدلوا چاهو چھو؟",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Your city and zone allocation has been updated successfully.": {
+    "lsd": "‏اْثثنا شہر انے zone ني تعيين كامياب طور پر بدلائي گيو چھے.",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Your registration details have been saved successfully.": {
+    "lsd": "‏اْثثني ‏Registration ني تفاصيل كامياب طور پر محفوظ تھئي گئي چھے.",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Zone selection cancelled": {
+    "lsd": "اختيار الموضع منسوخ تھئي",
+    "page": "ManageReservations",
+    "list": "permanent"
+  },
+  "Pending approval": {
+    "lsd": "‏منظوري باقي",
+    "page": "ManageReservations / MiqaatList / Roster",
+    "list": "permanent"
+  },
+  "Change zone": {
+    "lsd": "‏zone بدلو",
+    "page": "ManageReservations / ZoneAllocation",
+    "list": "permanent"
+  },
+  "About": {
+    "lsd": "‏تعارف",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Documents": {
+    "lsd": "وثائق",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Important Notice": {
+    "lsd": "‏اهم هدايات",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "New Questions Added": {
+    "lsd": "جديد سؤالو شامل تھيا",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Requested · Pending approval": {
+    "lsd": "‏عرض تهئيلا · منظوري باقي",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Your Status": {
+    "lsd": "اْثثني حالت",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Register Now": {
+    "lsd": "‏هوے Register كرو",
+    "page": "MiqaatDetail / MiqaatList",
+    "list": "permanent"
+  },
+  "Dismiss": {
+    "lsd": "‏بند كرو",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "Miqaats where you've asked to reopen a missed step — awaiting admin approval.": {
+    "lsd": "‏اهوا مواقيت جھ ما اْثث رهي گيل مرحلو فري كھولوا ني عرض كري چھے — منتظم ني منظوري نا انتظار ما.",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "Registration has closed.": {
+    "lsd": "‏Registration بند تھئي گئي چھے.",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "Request Sent": {
+    "lsd": "‏عرض تهئي ككئي",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "Status": {
+    "lsd": "‏حالت",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "This Miqaat can no longer be Registered for.": {
+    "lsd": "‏اْ ميقات واسطے هوے Register نهيطط تهئي سكائسس.",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "View details": {
+    "lsd": "‏تفاصيل ديكهو",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "Yes, confirm": {
+    "lsd": "‏نعم، تمام كرو",
+    "page": "MissedMemberSheet",
+    "list": "permanent"
+  },
+  "No notifications": {
+    "lsd": "كوئي اطلاع نتهي",
+    "page": "Notifications",
+    "list": "permanent"
+  },
+  "Notification": {
+    "lsd": "‏اطلاع",
+    "page": "Notifications",
+    "list": "permanent"
+  },
+  "Allocation depends on availability": {
+    "lsd": "‏تعيين موجودگي نا حساب سي تھاسے",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "No cities added yet": {
+    "lsd": "‏هجي كوئي شہر شامل تھيو نتهي",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Post Registration Details": {
+    "lsd": "‏Registration بعد ني تفاصيل",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Preferred city": {
+    "lsd": "احب شہر",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Remove city": {
+    "lsd": "‏شہر خارج كرو",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Select Your Preferred Cities": {
+    "lsd": "اْثثنا احب شہرو اختيار كرو",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Your city choices": {
+    "lsd": "اْثثني اختيار ‏الشہر",
+    "page": "PreferredCity",
+    "list": "permanent"
+  },
+  "Accessibility Requirements": {
+    "lsd": "‏سهوليات ني ضرورة",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Accommodation": {
+    "lsd": "‏رهائش",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Agreed to guidelines": {
+    "lsd": "‏هدايات نو اتباع منظور",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Airport pickup assistance": {
+    "lsd": "‏airport سي لئي جاوا ني مدد",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Alternate Contact Number": {
+    "lsd": "‏متبادل رابطا نو نمبر",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Alternate Contact Number (Optional)": {
+    "lsd": "‏متبادل رابطا نو نمبر ﴿اختياري﴾",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Any dietary requirements?": {
+    "lsd": "جمن ما كوئي خاص ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Any member below 10 years of age?": {
+    "lsd": "‏كوئي ممبر 10 ورس سي نانو چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Any member requires a Caregiver?": {
+    "lsd": "كوئي ممبر نے معاون ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Any member requires a Guardian?": {
+    "lsd": "كوئي ممبر نے ولي ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Arrival Date": {
+    "lsd": "‏پهونچوا ني تاريخ",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Assistance needed": {
+    "lsd": "‏ضروري مدد",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Attendance Details": {
+    "lsd": "‏حاضري ني تفاصيل",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Confirmation": {
+    "lsd": "تمام",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Contact Name": {
+    "lsd": "‏رابطا نو نام",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Departure Date": {
+    "lsd": "‏روانگي ني تاريخ",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Dependents": {
+    "lsd": "تابع",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Dietary requirements": {
+    "lsd": "جمن ني خاص ضرورة",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you need airport pickup assistance?": {
+    "lsd": "‏اْثثنسس   airport سي لئي جاوا ني مدد جوئيے چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you require accommodation?": {
+    "lsd": "اْثثنسس   رهائش ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you require any special assistance? Select all that apply.": {
+    "lsd": "اْثثنسس   كوئي خاص مدد ني ضرورة چھے؟ جھ لاگو تھايھ يھ سگلا چنو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you require food arrangements?": {
+    "lsd": "اْثثنسس   جمن نو انتظام جوئيے چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you require medical assistance during the event?": {
+    "lsd": "‏ميقات درميان اْثثنسس   طبي مدد ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Do you require transportation?": {
+    "lsd": "اْثثنسس   اْوا جاوا نو انتظام جوئيے چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Does any member require a Caregiver?": {
+    "lsd": "كوئي ممبر نے معاون ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Does any member require a Guardian?": {
+    "lsd": "كوئي ممبر نے ولي ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Email Address": {
+    "lsd": "‏email نو پتو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Email Address (Optional)": {
+    "lsd": "‏email نو پتو ﴿اختياري﴾",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Emergency Contact": {
+    "lsd": "‏هنگامي رابطو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Enter your email address": {
+    "lsd": "‏اْثثنو email نو پتو داخل كرو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Enter your mobile number": {
+    "lsd": "اْثثنو موبائل نمبر داخل كرو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Food Arrangements": {
+    "lsd": "جمن نو انتظام",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Full Name (Auto-filled)": {
+    "lsd": "‏پورو نام ﴿خود بخود بھرايل﴾",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Information accurate": {
+    "lsd": "‏معلومات صحيح",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Is any member below 10 years of age?": {
+    "lsd": "‏كوئي ممبر 10 ورس سي نانو چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "ITS ID (Auto-filled)": {
+    "lsd": "‏ITS ID ﴿خود بخود بھرايل﴾",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Medical Assistance": {
+    "lsd": "‏طبي مدد",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Mobile Number": {
+    "lsd": "‏موبائل نمبر",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Mode of Travel": {
+    "lsd": "‏سفر نو ذريعو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Number of meals": {
+    "lsd": "جمن ني گنتي",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Number of meals required": {
+    "lsd": "‏ضروري جمن ني گنتي",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Number of people": {
+    "lsd": "‏افراد ني گنتي",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Number of people requiring accommodation": {
+    "lsd": "‏رهائش ني ضرورة والا افراد ني گنتي",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Personal Information": {
+    "lsd": "‏ذاتي معلومات",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please answer whether any member is below 10 years of age.": {
+    "lsd": "‏جواب اْپو كه كوئي ممبر 10 ورس سي نانو چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please answer whether any member requires a Caregiver.": {
+    "lsd": "جواب اْپو كه كوئي ممبر نے معاون ني ضرورة چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please answer whether any member requires a Guardian.": {
+    "lsd": "جواب اْپو كه كوئي ممبر نے ولي ني ضرورة چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please complete all emergency contact fields.": {
+    "lsd": "هنگامي رابطا نا سگلا خانا بھرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please confirm both statements to submit.": {
+    "lsd": "‏پيش كروا واسطے  بنے بيانو ني تمام كرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please enter the number of people requiring accommodation.": {
+    "lsd": "رهائش ني ضرورة والا افراد ني گنتي داخل كرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please enter your arrival date.": {
+    "lsd": "اْثثني پهونچوا ني تاريخ داخل كرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please enter your departure date.": {
+    "lsd": "اْثثني روانگي ني تاريخ داخل كرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please enter your mobile number.": {
+    "lsd": "اْثثنو موبائل نمبر داخل كرو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select a mode of travel.": {
+    "lsd": "سفر نو ذريعو چنو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select a preferred accommodation type.": {
+    "lsd": "احب رهائش نو قسم چنو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select at least one medical assistance option.": {
+    "lsd": "كم ما كم ايك طبي مدد نو اختيار چنو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select whether you require accommodation.": {
+    "lsd": "چنو كه اْثثنسس   رهائش ني ضرورة چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select whether you require food arrangements.": {
+    "lsd": "چنو كه اْثثنسس   جمن نو انتظام جوئيے چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select whether you require medical assistance.": {
+    "lsd": "چنو كه اْثثنسس   طبي مدد ني ضرورة چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select whether you require transportation.": {
+    "lsd": "چنو كه اْثثنسس   اْوا جاوا نو انتظام جوئيے چھے كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select whether you will be attending.": {
+    "lsd": "چنو كه اْثث حاضر تھاسو كه نتهي.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Please select who you are Registering.": {
+    "lsd": "‏چنو كه اْثثكون نے Register كرو چھو.",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Preferred accommodation type": {
+    "lsd": "احب رهائش نو قسم",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Preferred type": {
+    "lsd": "احب قسم",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Relationship": {
+    "lsd": "‏رشتو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Requires accommodation?": {
+    "lsd": "‏رهائش ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Requires food arrangements?": {
+    "lsd": "جمن نا انتظام ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Requires medical assistance?": {
+    "lsd": "‏طبي مدد ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Requires transportation?": {
+    "lsd": "‏اْوا جاوا نا انتظام ني ضرورة چھے؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Select all that apply": {
+    "lsd": "‏جھ لاگو تھايھ يھ سگلا چنو",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Special assistance": {
+    "lsd": "‏خاص مدد",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Travel Details": {
+    "lsd": "‏سفر ني تفاصيل",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Visa Document": {
+    "lsd": "‏visa وثائق",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Who are you Registering?": {
+    "lsd": "‏اْثثكون نے Register كرو چھو؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Will you be attending this Miqaat?": {
+    "lsd": "اْثث اْ ميقات ما حاضر تھاسو؟",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Yes": {
+    "lsd": "‏نعم",
+    "page": "QuestionnaireFields",
+    "list": "permanent"
+  },
+  "Registration Questionnaire": {
+    "lsd": "‏Registration نو سؤال نامو",
+    "page": "RegistrationQuestionnaire",
+    "list": "permanent"
+  },
+  "Submit": {
+    "lsd": "‏پيش كرو",
+    "page": "RegistrationQuestionnaire",
+    "list": "permanent"
+  },
+  "No family members selected.": {
+    "lsd": "اهل نو كوئي ممبر چنيل نتهي.",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "No mehmaan invited.": {
+    "lsd": "كوئي مهمان نے اذن اْپي نتهي.",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "No members selected.": {
+    "lsd": "كوئي ممبر چنيل نتهي.",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "Participant Count": {
+    "lsd": "‏حاضرين ني گنتي",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "Your family": {
+    "lsd": "اْثثنا اهل",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "YOUR FAMILY": {
+    "lsd": "اْثثنا اهل",
+    "page": "Review",
+    "list": "permanent"
+  },
+  "Guardian": {
+    "lsd": "‏ولي",
+    "page": "RoleBadge",
+    "list": "permanent"
+  },
+  "Show walkthrough for this page": {
+    "lsd": "‏اْ صفحا ني رهنمائي ظاهر كرو",
+    "page": "TourHelpButton",
+    "list": "permanent"
+  },
+  "Product walkthrough": {
+    "lsd": "‏رهنمائي",
+    "page": "TourOverlay",
+    "list": "permanent"
+  },
+  "Zone Allocation": {
+    "lsd": "‏zone ني تعيين",
+    "page": "ZoneAllocation",
+    "list": "permanent"
+  },
+  "Zone Selection": {
+    "lsd": "اختيار الموضع",
+    "page": "ZoneSelection",
+    "list": "permanent"
+  },
+  "Auto-allocated": {
+    "lsd": "‏خود بخود تعيين تهئيلا",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "City & Zone": {
+    "lsd": "‏شہر انے zone",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "City opens in": {
+    "lsd": "‏شہر كھولوا ما",
+    "page": "MiqaatList",
+    "list": "permanent"
+  },
+  "City selection closed": {
+    "lsd": "اختيار ‏الشہر بند",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "ITS ID must be exactly 8 digits": {
+    "lsd": "‏ITS ID برابر 8 عدد نو هووو جوئيے",
+    "page": "Login",
+    "list": "permanent"
+  },
+  "Zone selection closed": {
+    "lsd": "اختيار الموضع بند",
+    "page": "MiqaatDetail",
+    "list": "permanent"
+  },
+  "Accept invitation": {
+    "lsd": "اذن قبول كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Add someone by ITS": {
+    "lsd": "‏ITS سي كوئي نے شامل كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Add the cities you'd prefer to attend in. You can rank them after adding — your highest available choice is honored first.": {
+    "lsd": "‏جھ شہرو ما اْثث حاضر تھاوو پسند كرو چھو يھ شامل كرو. شامل كيدا بعد اْثث اهنو ترتيب گوٹھوي سكو چھو — سگلا ما اوپر ني موجود پسندگي پہلا منظور تھاسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "All will be added to your list. A seat is only used when each one accepts.": {
+    "lsd": "‏سگلا اْثثني فهرست ما شامل تھاسے. هر ايك قبول كرے تيوارے ئي جگہ استعمال تھايھ چھے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Already in table": {
+    "lsd": "‏پہلا سي ئي جدول ما",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Are you sure you want to leave?": {
+    "lsd": "اْثث نكلوا چاهو چھو؟",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Are you sure you want to log out of your Miqaat Registration account?": {
+    "lsd": "‏اْثث واقعي اْثثنا ميقات ‏Registration نا account ما سي باهر نكلوا چاهو چھو؟",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Cancel my city": {
+    "lsd": "‏مارو شہرهضضاؤ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Cancel my zone": {
+    "lsd": "‏مارو zoneهضضاؤ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Cancel one to make those members selectable again.": {
+    "lsd": "‏يھ ممبرو فري چني سكايھ اهنا واسطے ايك عرضهضضاؤ.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Cancel request": {
+    "lsd": "‏عرضهضضاؤ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Choose what you'd like to cancel for this reservation.": {
+    "lsd": "‏اْ reservation ما سي اْثث شوںهضضاؤا چاهو چھو يھ اختيار كرو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Choose which city appears in each card. This only sets up how City Selection will look — nothing is reserved here.": {
+    "lsd": "‏هر card ما كيو شہر ظاهر تھايھ يھ اختيار كرو. اْ سي فقط اختيار ‏الشہر كيم دكھاسے يھ مقرر تھايھ چھے — اهيں كئي reserve نتهي تھاتو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "City Selection has opened. Your responses can no longer be changed.": {
+    "lsd": "اختيار ‏الشہر كھلي گئي چھے. اْثثنا جوابو هوے بدلي نه سكائسس.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Continue": {
+    "lsd": "‏اْْگل",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Decline": {
+    "lsd": "منع",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Decline Request": {
+    "lsd": "‏منع عرض",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Download": {
+    "lsd": "‏اتاري لو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Drag the handle to reorder — your highest available choice is honored first.": {
+    "lsd": "‏ترتيب بدلوا واسطے نشان نے كھينچو — سگلا ما اوپر ني موجود پسندگي پہلا منظور تھاسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Group Members": {
+    "lsd": "‏گروپ نا ممبرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "ITS Productions | © 2003 - 2026 IDARAT AL-TA'REEF AL-SHAKHSI TRUST | All Rights Reserved | Terms & Conditions": {
+    "lsd": "‏ITS Productions | © 2003 - 2026 IDARAT AL-TA'REEF AL-SHAKHSI TRUST | سگلا حقوق محفوظ | شرائط و ضوابط",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Invitation request received": {
+    "lsd": "اذن ني عرض مليل چھے",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Invite guests with their ITS ID — they appear once they accept.": {
+    "lsd": "‏مهمانو نے اهنا ITS ID سي اذن اْپو — قبول كرسے اهنا بعد اهيں ظاهر تھاسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Keep my reservation": {
+    "lsd": "‏مارو reservation باقي راكھو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Kindly keep this page open and wait for your turn": {
+    "lsd": "اْ صفحو كھولو راكھجو انے اْثثني وارو ني انتظار كرجو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Miqaat Event Registration Questionnaire": {
+    "lsd": "‏ميقات ‏Registration نو سؤال نامو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "No city selected": {
+    "lsd": "كوئي شہر اختيار نتهي كيدو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "No members allocated yet. Select a zone and check members above.": {
+    "lsd": "‏هجي كوئي ممبر ني تعيين تھيو نتهي. zone اختيار كرو انے اوپر ممبرو ديكهو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Not allocated to a city yet": {
+    "lsd": "‏هجي كوئي شہر ما تعيين تھيو نتهي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Not enough invitations": {
+    "lsd": "اذن باقي نتهي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Not valid for allocation": {
+    "lsd": "‏تعيين واسطے جائز نتهي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Nothing available right now.": {
+    "lsd": "‏هال ما كئي موجود نتهي.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Official Fasal Announcement": {
+    "lsd": "‏فصل اعلان",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Opening Soon": {
+    "lsd": "‏جلدي كھلسے",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Other selected members will also need to verify with the OTP sent to their Registered mobile numbers.": {
+    "lsd": "‏بيجا چنيلا ممبرو نے بهي اهنا Register تهئيلا موبائل نمبر پر موكليلا OTP سي تمام كروو پڑسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Phase 1 self-allocation is live. Reserve your group before the timer closes.": {
+    "lsd": "‏مرحلو 1 ني پوتاني پسندگي چالو چھے. گھڑي پوري تھيا اهنا پہلا اْثثنا گروپ نے reserve كرو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Please complete every section below before submitting your registration.": {
+    "lsd": "‏اْثثني ‏Registration پيش كيدا اهنا پہلا نيچے نا سگلا حصا پورا كرجو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Please keep this page open. Refreshing is not required.": {
+    "lsd": "‏اْ صفحو كھولو راكھجو. فري سي load كروا ني ضرورة نتهي.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Preferred": {
+    "lsd": "احب",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Raza letter": {
+    "lsd": "‏رزا كاغذ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Relay Centers": {
+    "lsd": "‏ريلے مراكز",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Resend code": {
+    "lsd": "‏code دوباره موكلو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Same zone for all": {
+    "lsd": "‏سگلا واسطے ايك zone",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Search by ITS ID to add a family member to the preference table.": {
+    "lsd": "‏پسندگي نا جدول ما اهل نو ممبر شامل كروا واسطے ITS ID سي تلاش كرو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Select a zone above to start allocating your members": {
+    "lsd": "‏اْثثنا ممبرو ني تعيين شروع كروا واسطے اوپر سي zone اختيار كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Select host or relay": {
+    "lsd": "‏هوسٹ يا ريلے اختيار كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Simulate Approval": {
+    "lsd": "‏منظوري نو تجربو كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Submit your preferred Host and Relay City choices. Final city allocation will be confirmed during the official allocation phase.": {
+    "lsd": "اْثثنا احب هوسٹ انے ريلے موضع ني پسندگي پيش كرو. اْخري شہر ني تعيين رسمي تعيين نا مرحلا ما تمام تھاسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Swap": {
+    "lsd": "‏تبادل كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Tap to view details or cancel a request.": {
+    "lsd": "‏تفاصيل جووا يا عرضهضضاؤا دبائو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "These members already have a change request in review. Cancel one to make it selectable again.": {
+    "lsd": "‏اْ ممبرو ني تبديلي ني عرض پہلا سي ئي جائزا ما چھے. فري چني سكايھ اهنا واسطے ايكهضضاؤ.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "These members will go through City Selection with this layout.": {
+    "lsd": "‏اْ ممبرو اْ ترتيب مطابق اختيار ‏الشہر ما جاسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "This registration request is awaiting admin approval — these are the members you requested.": {
+    "lsd": "‏اْ ‏Registration ني عرض منتظم ني منظوري نا انتظار ما چھے — اْ يھ ممبرو چھے جھ ني اْثث عرض كري چھے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Timeline": {
+    "lsd": "‏وقت نامو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Track my request": {
+    "lsd": "‏ماري عرض ني حالت ديكهو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Upload your visa": {
+    "lsd": "‏اْثثنو visa upload كرو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "View": {
+    "lsd": "ديكهو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "View all": {
+    "lsd": "‏سگلا ديكهو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "View all →": {
+    "lsd": "‏سگلا ديكهو ←",
+    "page": "added",
+    "list": "permanent"
+  },
+  "View document": {
+    "lsd": "وثائق ديكهو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "View invitation": {
+    "lsd": "اذن ديكهو",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Watch Introduction · Purpose & Travel Guidance": {
+    "lsd": "‏تعارف ديكهو · مقصد انے سفر ني ارشاد",
+    "page": "added",
+    "list": "permanent"
+  },
+  "We'll try to assign your highest available preference.": {
+    "lsd": "‏اپن اْثثني سگلا ما اوپر ني موجود پسندگي مقرر كروا ني كوشش كرسيے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "What would you like help with?": {
+    "lsd": "اْثثنسس  كون بابت ما مدد جوئيے چھے؟",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Who's in which zone": {
+    "lsd": "‏كون كيا zone ما چھے",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Yes, cancel reservation": {
+    "lsd": "‏نعم، reservationهضضاؤ",
+    "page": "added",
+    "list": "permanent"
+  },
+  "You have received an invitation to join this Miqaat. Review and respond to continue your reservation.": {
+    "lsd": "‏اْثثنسس   اْ ميقات ما شامل تهاوا ني اذن مليل چھے. اْثثنو reservation اْگل ودھاروا واسطے جوئي نے جواب اْپو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "You will be notified once city allocation begins. No further action is needed for now": {
+    "lsd": "‏شہر ني تعيين شروع تھاسے تيوارے اْثثنسس   خبر اْپوا ما اْوسے. هال ما بيجي كوئي عمل ني ضرورة نتهي",
+    "page": "added",
+    "list": "permanent"
+  },
+  "You'll lose your place in the queue. Rejoining will require waiting again.": {
+    "lsd": "‏قطار ما اْثثني جگہ جتي جاسے. فري شامل تھاوا واسطے فري سي انتظار كروو پڑسے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Your Jamaat's booking time is over. You can book again in Round 2, open for everyone.": {
+    "lsd": "‏اْثثني جماعة نو وقت پورو تمام چھے. اْثث Round 2 ما فري reserve كري سكو چھو، جھ سگلا واسطے كھولو چھے.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Your current reservation stays as it is until the request is approved. You can track or cancel it on the Modify Reservation screen.": {
+    "lsd": "‏عرض منظور تھايھ تيان لگي اْثثنو هال نو reservation اهم نو اهم رهسے. اْثث اهني حالت reservation ما تبديلي كرو نا صفحا پر جوئي سكو چھو يا منسوخ كري سكو چھو.",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Your reservation": {
+    "lsd": "‏اْثثنو reservation",
+    "page": "added",
+    "list": "permanent"
+  },
+  "Amatullah Bhen": {
+    "lsd": "‏امة الله بہن",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Fatema Husain": {
+    "lsd": "‏فاطمة حسين",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Hussain bhai Gheewala": {
+    "lsd": "‏حسين بھائي گھيوالا",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Mohammed Husain": {
+    "lsd": "‏محمد حسين",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Ruqaiya Bhen": {
+    "lsd": "‏رقية بہن",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Sakina Husain": {
+    "lsd": "‏سكينة حسين",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Syed Nazia": {
+    "lsd": "‏سيد نازية",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Taha bhai Gheewala": {
+    "lsd": "‏طه بھائي گھيوالا",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Yusuf Husain": {
+    "lsd": "‏يوسف حسين",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Zainab Bhen": {
+    "lsd": "‏زينب بہن",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "(You)": {
+    "lsd": "‏﴿تميں﴾",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Brother": {
+    "lsd": "‏بھائي",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Grandmother": {
+    "lsd": "‏دادي",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Sister": {
+    "lsd": "‏بہن",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Son": {
+    "lsd": "‏دكرو",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Uncle": {
+    "lsd": "‏چاچا",
+    "page": "seed.ts family",
+    "list": "permanent"
+  },
+  "Dehiwala": {
+    "lsd": "‏دهيوالا",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "Marol": {
+    "lsd": "‏مارول",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "Kenya": {
+    "lsd": "‏كينيا",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "Pakistan": {
+    "lsd": "‏پاكستان",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "Sri Lanka": {
+    "lsd": "‏سري لنكا",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "UAE": {
+    "lsd": "‏امارات",
+    "page": "seed.ts liveCities",
+    "list": "permanent"
+  },
+  "Zone I - Gallery": {
+    "lsd": "‏zone ط - دالان",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone J - Mezzanine": {
+    "lsd": "‏zone ي - درمياني طبقو",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone K - Terrace": {
+    "lsd": "‏zone ك - سطح",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone L - Pavilion": {
+    "lsd": "‏zone ل - سائبان",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone M - Saqifa": {
+    "lsd": "‏zone م - سقيفة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone N - Sehan": {
+    "lsd": "‏zone ن - صحن",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone O - Riwaq": {
+    "lsd": "‏zone س - رواق",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone P - Front Hall": {
+    "lsd": "‏zone ع - هال اول",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone Q - Main Hall": {
+    "lsd": "‏zone ف - هال اعظم",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone R - East Wing": {
+    "lsd": "‏zone ص - مشرقي حصة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone S - West Wing": {
+    "lsd": "‏zone ق - مغربي حصة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone T - South Wing": {
+    "lsd": "‏zone ر - جنوبي حصة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone U - North Wing": {
+    "lsd": "‏zone ش - شمالي حصة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Zone V - Balcony": {
+    "lsd": "‏zone ت - شرفة",
+    "page": "seed.ts genZones",
+    "list": "permanent"
+  },
+  "Annexe": {
+    "lsd": "‏ملحق",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Balcony": {
+    "lsd": "‏شرفة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Courtyard": {
+    "lsd": "‏چوك",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "East Wing": {
+    "lsd": "‏مشرقي حصة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Front Hall": {
+    "lsd": "‏هال اول",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Gallery": {
+    "lsd": "‏دالان",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Main Hall": {
+    "lsd": "‏هال اعظم",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Mezzanine": {
+    "lsd": "‏درمياني طبقو",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "North Wing": {
+    "lsd": "‏شمالي حصة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Pavilion": {
+    "lsd": "‏سائبان",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Riwaq": {
+    "lsd": "‏رواق",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Saqifa": {
+    "lsd": "‏سقيفة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Sehan": {
+    "lsd": "‏صحن",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "South Wing": {
+    "lsd": "‏جنوبي حصة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Terrace": {
+    "lsd": "‏سطح",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "West Wing": {
+    "lsd": "‏مغربي حصة",
+    "page": "seed.ts ZONE_SUFFIXES",
+    "list": "permanent"
+  },
+  "Chehlum Imam Husain (AS)": {
+    "lsd": "‏چہلم امام حسين ع م",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Milad Imam uz Zaman (AS)": {
+    "lsd": "‏ميلاد امام الزمان ع م",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Milad Rasul (SAW)": {
+    "lsd": "‏ميلاد رسول الله صلع",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Milad Syedna RA": {
+    "lsd": "‏ميلاد سيدنا رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Milad Syedna Yusuf Najmuddin RA": {
+    "lsd": "‏ميلاد سيدنا يوسف نجم الدين رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Shahadat Imam Ali (AS)": {
+    "lsd": "‏شهادة امام علي ع م",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Urs Mubarak Syedna Abdulqadir Najmuddin RA": {
+    "lsd": "‏عرس مبارك سيدنا عبد القادر نجم الدين رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Urs Mubarak Syedna Ismail Badruddin RA": {
+    "lsd": "‏عرس مبارك سيدنا اسماعيل بدر الدين رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Urs Mubarak Syedna Mohammed Burhanuddin RA": {
+    "lsd": "‏عرس مبارك سيدنا محمد برهان الدين رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Urs Mubarak Syedna Taher Saifuddin RA": {
+    "lsd": "‏عرس مبارك سيدنا طاهر سيف الدين رض",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Fri, 03 Jul 2026": {
+    "lsd": "‏يوم الجمعة، ٠٣ شهر جولائي ٢٠٢٦ ﴿١٧ شهر محرم الحرام ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Fri, 26 Jun 2026": {
+    "lsd": "‏يوم الجمعة، ٢٦ شهر جون ٢٠٢٦ ﴿١٠ شهر محرم الحرام ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sat, 25 Jul 2026": {
+    "lsd": "‏يوم السبت، ٢٥ شهر جولائي ٢٠٢٦ ﴿٠٩ شهر صفر المظفر ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sat, 26 Sep 2026": {
+    "lsd": "‏يوم السبت، ٢٦ شهر ستمبر ٢٠٢٦ ﴿١٣ شهر ربيع الاخر ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sat, 29 Aug 2026": {
+    "lsd": "‏يوم السبت، ٢٩ شهر اگست ٢٠٢٦ ﴿١٥ شهر ربيع الاول ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sun, 19 Jul 2026": {
+    "lsd": "‏يوم الاحد، ١٩ شهر جولائي ٢٠٢٦ ﴿٠٣ شهر صفر المظفر ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sun, 23 Aug 2026": {
+    "lsd": "‏يوم الاحد، ٢٣ شهر اگست ٢٠٢٦ ﴿٠٩ شهر ربيع الاول ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sun, 28 Jun 2026": {
+    "lsd": "‏يوم الاحد، ٢٨ شهر جون ٢٠٢٦ ﴿١٢ شهر محرم الحرام ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Sun, 30 Aug 2026": {
+    "lsd": "‏يوم الاحد، ٣٠ شهر اگست ٢٠٢٦ ﴿١٦ شهر ربيع الاول ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Thu, 30 Jul 2026": {
+    "lsd": "‏يوم الخميس، ٣٠ شهر جولائي ٢٠٢٦ ﴿١٤ شهر صفر المظفر ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Wed, 29 Jul 2026": {
+    "lsd": "‏يوم الاربعاء، ٢٩ شهر جولائي ٢٠٢٦ ﴿١٣ شهر صفر المظفر ١٤٤٨ھ﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "05:00 AM IST": {
+    "lsd": "‏٠٥:٠٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "06:00 AM IST": {
+    "lsd": "‏٠٦:٠٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "06:30 AM IST": {
+    "lsd": "‏٠٦:٣٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "07:00 AM IST": {
+    "lsd": "‏٠٧:٠٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "08:00 AM IST": {
+    "lsd": "‏٠٨:٠٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "09:00 AM IST": {
+    "lsd": "‏٠٩:٠٠ AM IST",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Araz submission closes on Tue, 30 Jun 2026 - 11:59 PM IST (before City Selection opens)": {
+    "lsd": "‏اراز پيش كروا نو وقت يوم الثلاثاء، ٣٠ شهر جون ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھاسے ﴿شہر ني پسندگي كھلے اهنا پہلا﴾",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "City selection closed on Wed, 08 Jul 2026 - 11:59 PM IST": {
+    "lsd": "‏شہر ني پسندگي يوم الاربعاء، ٠٨ شهر جولائي ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھئي",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "City selection closes on Wed, 05 Aug 2026 - 11:59 PM IST": {
+    "lsd": "‏شہر ني پسندگي يوم الاربعاء، ٠٥ شهر اگست ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration closed on Tue, 02 Jun 2026 - 11:59 PM IST": {
+    "lsd": "‏Registration يوم الثلاثاء، ٠٢ شهر جون ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھئي",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration closes in Thu, 25 Jun 2026 - 11:59 PM IST": {
+    "lsd": "‏Registration يوم الخميس، ٢٥ شهر جون ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration ends in Fri, 17 Jul 2026 - 11:59 PM IST": {
+    "lsd": "‏Registration يوم الجمعة، ١٧ شهر جولائي ٢٠٢٦ - ١١:٥٩ PM IST نا روز پوري تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration ends in Mon, 03 Aug 2026 - 11:59 PM IST": {
+    "lsd": "‏Registration يوم الاثنين، ٠٣ شهر اگست ٢٠٢٦ - ١١:٥٩ PM IST نا روز پوري تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration ends in Mon, 07 Sep 2026 - 09:00 AM IST": {
+    "lsd": "‏Registration يوم الاثنين، ٠٧ شهر ستمبر ٢٠٢٦ - ٠٩:٠٠ AM IST نا روز پوري تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration ends in Thu, 02 Jul 2026 - 11:59 PM IST": {
+    "lsd": "‏Registration يوم الخميس، ٠٢ شهر جولائي ٢٠٢٦ - ١١:٥٩ PM IST نا روز پوري تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Registration opens on Wed, 08 Jul 2026 - 09:00 AM IST": {
+    "lsd": "‏Registration يوم الاربعاء، ٠٨ شهر جولائي ٢٠٢٦ - ٠٩:٠٠ AM IST نا روز كھلسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Zone selection closed on Mon, 13 Jul 2026 - 11:59 PM IST": {
+    "lsd": "‏ااختيار الموضع يوم الاثنين، ١٣ شهر جولائي ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھئي",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Zone selection closes on Thu, 13 Aug 2026 - 11:59 PM IST": {
+    "lsd": "‏اختيار الموضع يوم الخميس، ١٣ شهر اگست ٢٠٢٦ - ١١:٥٩ PM IST نا روز بند تھاسے",
+    "page": "seed.ts miqaats",
+    "list": "permanent"
+  },
+  "Friday": {
+    "lsd": "‏يوم الجمعة",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Monday": {
+    "lsd": "‏يوم الاثنين",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Saturday": {
+    "lsd": "‏يوم السبت",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Sunday": {
+    "lsd": "‏يوم الاحد",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Thursday": {
+    "lsd": "‏يوم الخميس",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Tuesday": {
+    "lsd": "‏يوم الثلاثاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Wednesday": {
+    "lsd": "‏يوم الاربعاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Fri": {
+    "lsd": "‏يوم الجمعة",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Mon": {
+    "lsd": "‏يوم الاثنين",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Sat": {
+    "lsd": "‏يوم السبت",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Sun": {
+    "lsd": "‏يوم الاحد",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Thu": {
+    "lsd": "‏يوم الخميس",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Tue": {
+    "lsd": "‏يوم الثلاثاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Wed": {
+    "lsd": "‏يوم الاربعاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Fr": {
+    "lsd": "‏يوم الجمعة",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Mo": {
+    "lsd": "‏يوم الاثنين",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Sa": {
+    "lsd": "‏يوم السبت",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Su": {
+    "lsd": "‏يوم الاحد",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Th": {
+    "lsd": "‏يوم الخميس",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Tu": {
+    "lsd": "‏يوم الثلاثاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "We": {
+    "lsd": "‏يوم الاربعاء",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "April": {
+    "lsd": "‏شهر اپريل",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "August": {
+    "lsd": "‏شهر اگست",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "December": {
+    "lsd": "‏شهر ڈسمبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "February": {
+    "lsd": "‏شهر فبروري",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "January": {
+    "lsd": "‏شهر جنوري",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "July": {
+    "lsd": "‏شهر جولائي",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "June": {
+    "lsd": "‏شهر جون",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "March": {
+    "lsd": "‏شهر مارچ",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "May": {
+    "lsd": "‏شهر مئي",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "November": {
+    "lsd": "‏شهر نومبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "October": {
+    "lsd": "‏شهر اكتوبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "September": {
+    "lsd": "‏شهر ستمبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Apr": {
+    "lsd": "‏شهر اپريل",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Aug": {
+    "lsd": "‏شهر اگست",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Dec": {
+    "lsd": "‏شهر ڈسمبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Feb": {
+    "lsd": "‏شهر فبروري",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Jan": {
+    "lsd": "‏شهر جنوري",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Jul": {
+    "lsd": "‏شهر جولائي",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Jun": {
+    "lsd": "‏شهر جون",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Mar": {
+    "lsd": "‏شهر مارچ",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Nov": {
+    "lsd": "‏شهر نومبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Oct": {
+    "lsd": "‏شهر اكتوبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Sep": {
+    "lsd": "‏شهر ستمبر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Dhu al-Hijjah": {
+    "lsd": "شهر ذي الحجة الحرام",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Dhu al-Qadah": {
+    "lsd": "شهر ذي القعدة الحرام",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Jumada al-Ukhra": {
+    "lsd": "شهر جمادى الاخرى",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Jumada al-Ula": {
+    "lsd": "شهر جمادى الاولى",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Muharram": {
+    "lsd": "شهر محرم الحرام",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Rabi al-Akhir": {
+    "lsd": "شهر ربيع الاخر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Rabi al-Awwal": {
+    "lsd": "شهر ربيع الاول",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Rajab": {
+    "lsd": "شهر رجب الاصب",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Ramadan": {
+    "lsd": "شهر رمضان المعظم",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Safar": {
+    "lsd": "شهر صفر المظفر",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Shaban": {
+    "lsd": "شهر شعبان الكريم",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Shawwal": {
+    "lsd": "شهر شوال المكرم",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "AM": {
+    "lsd": "AM",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Earlier": {
+    "lsd": "‏اهنا پہلا",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "IST": {
+    "lsd": "IST",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "PM": {
+    "lsd": "PM",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Today": {
+    "lsd": "‏اْج",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Tomorrow": {
+    "lsd": "‏اْوتي كالے",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "Yesterday": {
+    "lsd": "‏گئي كالے",
+    "page": "calendar",
+    "list": "permanent"
+  },
+  "d": {
+    "lsd": "d",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "Days": {
+    "lsd": "‏دن",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "h": {
+    "lsd": "h",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "Hours": {
+    "lsd": "‏كلاك",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "m left": {
+    "lsd": "‏m باقي",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "Min": {
+    "lsd": "‏منٹ",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "Sec": {
+    "lsd": "‏سيكنڈ",
+    "page": "countdown",
+    "list": "permanent"
+  },
+  "Update Form": {
+    "lsd": "‏form ما تبديلي كرو",
+    "page": "src/screens/MiqaatDetail.tsx",
+    "list": "permanent"
+  },
+  "Event Timeline": {
+    "lsd": "ميقات جدول",
+    "page": "src/tour/steps.ts",
+    "list": "permanent"
+  },
+  "Invite guests with their ITS ID. They join your group once they accept the invitation.": {
+    "lsd": "مظظمان نسس اذن اْثثو ، يھ قبول كرسسس تو ساتهسس جوواسسس",
+    "page": "src/tour/steps.ts",
+    "list": "permanent"
+  },
+  "Modify Your Reservation": {
+    "lsd": "‏reservation ما تبديلي",
+    "page": "src/tour/steps.ts",
+    "list": "permanent"
+  },
+  "Pick from the List": {
+    "lsd": "‏list ما سي ححنو",
+    "page": "src/tour/steps.ts",
+    "list": "permanent"
+  },
+  "Search for a City": {
+    "lsd": "‏شهر search كرو",
+    "page": "src/tour/steps.ts",
+    "list": "permanent"
+  },
+  "Allocation date": {
+    "lsd": "تعيين تهاوا ني تأريخ",
+    "page": "src/data/seed.ts",
+    "list": "permanent"
+  },
+  "An Idaratul Miqaat admin Registered you for Eid-e-Ghadeer 1447H.": {
+    "lsd": "‏إدارة الميقات نا خدمةككزار يھ اْثث نسس عيد غديرخم واسطسس Register كيدا ؛",
+    "page": "src/data/notifications.ts",
+    "list": "permanent"
+  },
+  "City change": {
+    "lsd": "شهر تبديل",
+    "page": "src/chat/useAskHelpChat.ts",
+    "list": "permanent"
+  },
+  "City confirmed": {
+    "lsd": "‏شهر confirmed",
+    "page": "src/data/notifications.ts",
+    "list": "permanent"
+  },
+  "City Selection": {
+    "lsd": "اختيار الشهر",
+    "page": "src/lib/miqaatStatus.ts",
+    "list": "permanent"
+  },
+  "Event date": {
+    "lsd": "ميقات تأريخ",
+    "page": "src/data/seed.ts",
+    "list": "permanent"
+  },
+  "Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant all the toufeeq of hazri.": {
+    "lsd": "‏فصل! مؤمنين نسس العشرة المباركة 1448ھ واسطسس رزا طلب كروا نو اذن ؛ ، خدا تع سككلا نسس ياري انسس توفيق اْثثسس",
+    "page": "src/data/seed.ts",
+    "list": "permanent"
+  },
+  "Guardian + dependent · Registered together": {
+    "lsd": "‏ولي + تابع + Registered سككلا ساتهسس",
+    "page": "src/lib/group.ts",
+    "list": "permanent"
+  },
+  "Invitation received": {
+    "lsd": "اذن اْيو ؛",
+    "page": "src/data/notifications.ts",
+    "list": "permanent"
+  },
+  "Issue date": {
+    "lsd": "ملوا ني تأريخ",
+    "page": "src/data/seed.ts",
+    "list": "permanent"
+  },
+  "Your city selection is confirmed: Colombo. This applies to you and your dependents.": {
+    "lsd": "‏اْثث نو شهر كولمبو confirm تهيو ؛، اْ اْثث انسس اْثثنا تابع سككلا نا واسطسس ؛",
+    "page": "src/data/notifications.ts",
+    "list": "permanent"
+  },
+  "Your Raza for Eid-e-Ghadeer 1447H has been issued. View and download your letter below.": {
+    "lsd": "‏اْثث نسس عيد غديرخم واسطسس رزا فضل تهئي ؛ ، يظظاطط اْثث ني رزا ديكهي download كري سكائسس ؛",
+    "page": "src/data/notifications.ts",
+    "list": "permanent"
+  },
+  "Zone change": {
+    "lsd": "زون تبديل",
+    "page": "src/chat/useAskHelpChat.ts",
+    "list": "permanent"
+  }
+}

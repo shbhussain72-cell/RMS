@@ -75,9 +75,22 @@ showed **8 new OVERLAY findings** on `/success` — the large clipped header orn
 width, in both languages. Isolated by reverting only this file and re-running: 4 findings with
 the change, 0 without.
 
-So the substitution altered paint/hit-test order without moving anything. The mechanism was
-not established, and `Success.tsx` already carried a comment recording that the centring there
-was a deliberate choice. Shipping an unexplained change to override a documented decision, on
+**Mechanism - since confirmed.** A `transform` other than `none` creates a stacking context
+(CSS Transforms section 3). `-translate-x-1/2` therefore did two jobs: it centred the element,
+and it gave that subtree its own stacking context. `mx-auto` does the first and not the second,
+so removing the translate removed the context and changed paint and hit-test order while
+leaving every box pixel-identical.
+
+Measured with `scripts/probe-stacking.mjs`, which walks the routes in order so `/success`
+renders its real content, then reads `elementFromPoint` at the heading centroid:
+
+| | heading hit-tests as | transform-bearing elements in that subtree |
+|---|---|---|
+| reverted (current) | itself, `isSelfOrKin: true` | 3 |
+| converted | `div.flex.h-[4270.95px]`, the ornament | 1 |
+
+Identical in `en` and `lsd`, at 390px and 1440px. `Success.tsx` already carried a comment
+recording that the centring there was a deliberate choice. Shipping an unexplained change to override a documented decision, on
 the one screen with a giant clipped ornament, is not a good trade for removing three physical
 utilities.
 
@@ -97,9 +110,38 @@ next person does not retry the same conversion and rediscover it.
 - Full `check-layout.mjs` pass afterwards is identical to the pre-pass baseline: 249 findings,
   177 failing, OVERLAY 72.
 
-**Coverage limit, stated plainly:** 9 of the 12 eliminated sites were verified by measurement.
-The other 3 — the AppBar bell icon and two avatar initial spans — sit behind states a plain
-route visit does not reach, so their equivalence rests on construction rather than measurement:
-each is a single child centred in a fixed-size box whose parent now carries
-`flex items-center justify-center`. The AppBar case is the strongest of the three, since its
-parent already had `flex items-center justify-center` and the absolute positioning was inert.
+### Second pass — all four widths, and the invariant instead of a baseline
+
+The first pass measured only 390 and 1440, the two widths where the PhoneScreen desktop branch
+and its known occlusion class do not appear. It also could not be re-run after the fact: once
+the elimination lands, the tagger keys off the CENTRING census and so only finds the sites that
+were NOT eliminated.
+
+`scripts/check-centred.mjs` replaces it with a stronger question. Rather than "did it move", it
+asserts the invariant directly: **an eliminated element's centre must coincide with its
+containing block's centre.** That holds at any width, in either language, with no baseline to
+drift, and it is exactly the property that makes `start-0 end-0 mx-auto` equivalent to
+`left-1/2 -translate-x-1/2`.
+
+> **304 rendered instances, `en` and `lsd`, at 390 / 768 / 1024 / 1440 — 0 off-centre.**
+
+That includes **148 instances of the three sites previously verified by construction only**
+(the AppBar bell and the two avatar initial spans). They do render; the earlier pass missed
+them for a tooling reason, not because they were unreachable. They are now measured rather than
+asserted.
+
+The full `check-layout` pass at all four widths is also unchanged from baseline (249 findings,
+177 failing), which is the paint-order check for the other nine: the Success regression showed
+up there at every width, so that pass is what would catch the same class elsewhere.
+
+### Do the nowrap exemptions clip?
+
+Symmetric overflow is still lost text if an ancestor clips, so the five exemptions were checked
+rather than assumed:
+
+> **78 rendered instances — all 78 sit inside a clipping ancestor, 0 actually clip.**
+
+Tightest margin is **13px**: the `MH` avatar initials, 23px wide inside a 36px `overflow-clip`
+circle, on `/review` and `/roster`. That one is bounded rather than lucky, because `initials()`
+takes the first letter of at most two words, so the string cannot grow. The other three are
+section headings with no clipping ancestor close enough to matter.

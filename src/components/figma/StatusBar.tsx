@@ -20,19 +20,29 @@ export default function StatusBar({ tone = "light" }: { tone?: Tone }) {
   const color = COLOR[tone];
   return (
     <div className="relative h-[44px] w-full shrink-0" data-node-id="29:1998" data-name="status-bar">
-      {/* Time.
+      {/* Time — centred ON the 48px mark, without assuming how wide it renders.
 
-          `start-[33px]`, not `left-[48px] -translate-x-1/2`. Two things were wrong with the
-          original. The inset was PHYSICAL while every icon to its right already used logical
-          `end-`, so under RTL the icons moved to the left edge and the clock stayed put —
-          both ends of the bar landing on the same side. And the translate was a centring
-          compensation for the fixed `w-[30px]` box, which does not flip: pairing it with a
-          logical inset is the `start-` + `-translate-x-` bug class exactly.
+          The original was `left-[48px] w-[30px] -translate-x-1/2`: physical, while every icon
+          to its right already used logical `end-`, so under RTL the icons moved to the left
+          edge and the clock stayed put — both ends of the bar on the same side.
 
-          33 = 48 - 30/2. Centring a fixed-width box on a fixed offset is just arithmetic, so
-          the translate is removed rather than made conditional. No exception needed. */}
+          The first fix was `start-[33px]` (33 = 48 - 30/2). That is correct only while the
+          clock really is 30px wide, and `w-[30px]` is a Figma decree rather than a
+          measurement: LSD forces a different font family across the whole document, so the
+          rendered digits need not match. Trading a direction bug for a width assumption is
+          not a fix, it is a quieter bug.
+
+          `start-[48px] w-0` + `flex justify-center` centres on a POINT instead: a zero-width
+          box at the 48px mark whose content overflows it symmetrically, whatever width that
+          content turns out to be. Direction-neutral, no transform, no magic constant — and
+          the same "centre on a point" behaviour that keeps the nowrap exemptions physical
+          elsewhere, expressed without a physical inset.
+
+          NOTE: this component is currently imported by nothing, so none of this can be
+          verified in the running app. It is fixed rather than left because an unmounted
+          component is exactly where a latent assumption survives until someone mounts it. */}
       <p
-        className="absolute start-[33px] top-[calc(50%-6px)] h-[17px] w-[30px] text-center text-[14px] tracking-[-0.28px] leading-[normal]"
+        className="absolute start-[48px] top-[calc(50%-6px)] flex h-[17px] w-0 justify-center whitespace-nowrap text-[14px] tracking-[-0.28px] leading-[normal]"
         style={{ fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif', fontWeight: 600, color }}
       >
         9:41

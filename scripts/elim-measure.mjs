@@ -24,7 +24,17 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = resolve(ROOT, process.argv[2] || 'artifacts/elim.json')
 const MIQAAT = 'ashara-1448'
-const WIDTHS = [390, 1440]
+/**
+ * Widths from argv, defaulting to the extremes.
+ *
+ *   node scripts/elim-measure.mjs out.json 768 1024
+ *
+ * The first pass ran only 390 and 1440 — which, as it turned out, are exactly the widths
+ * where the known desktop-branch occlusion class does NOT appear. 768 and 1024 are where the
+ * PhoneScreen desktop branch kicks in and where the Request-all-over-Host-city overlap lives,
+ * so a centring change verified only at the extremes is verified in the wrong places.
+ */
+const WIDTHS = process.argv.slice(3).length ? process.argv.slice(3).map(Number) : [390, 1440]
 const LANGS = ['en', 'lsd']
 
 const routes = [...new Set(

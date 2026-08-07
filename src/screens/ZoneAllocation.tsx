@@ -82,7 +82,7 @@ export default function ZoneAllocation() {
     >
       <AppBar notificationCount={3} />
 
-      <div className="ms-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ms-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },

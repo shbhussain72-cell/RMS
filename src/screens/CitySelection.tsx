@@ -871,7 +871,7 @@ export function HostCityCard({
         </div>
         {/* Desktop-only: Reserve/Remove all (or Swap all) + Select pill, right-aligned. Reserve all and
             Swap all never apply at the same time. */}
-        <div className="hidden shrink-0 flex-wrap items-center justify-end gap-[8px] sm:ml-auto sm:flex">
+        <div className="hidden shrink-0 flex-wrap items-center justify-end gap-[8px] sm:ms-auto sm:flex">
           {isCurrentCity && (
             <span className="flex h-[34px] shrink-0 items-center gap-[7px] rounded-full border-[1.5px] border-[#d9d2c2] bg-white px-[14px]" style={{ fontFamily: FONT }}>
               <PinDot />
@@ -2122,7 +2122,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
 function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null }) {
   if (!tip) return null
   return (
-    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
+    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:end-[var(--content-px)]" role="status" aria-live="polite">
       <div
         className={`flex max-w-[calc(100vw-32px)] items-center gap-[9px] rounded-full px-[16px] py-[10px] ${tip.phase === 'in' ? 'reserve-tip-in' : 'reserve-tip-out'}`}
         style={{ background: '#1f5a44', boxShadow: '0 12px 30px -8px rgba(21,64,47,0.5)' }}
@@ -3443,7 +3443,7 @@ export default function CitySelection() {
 
         {/* ═══════════════════════ MOBILE — unchanged single-column flow ═══════════════════════ */}
         <div className="contents sm:hidden">
-        <div className="ms-[16px] sm:ml-0 mt-[12px]">
+        <div className="ms-[16px] sm:ms-0 mt-[12px]">
           <Breadcrumb
             items={cityBreadcrumb}
             onNavigate={(to) => nav(to)}

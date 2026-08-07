@@ -86,7 +86,7 @@ function CoveragePanelInner() {
     <div
       {...{ [SCANNER_IGNORE_ATTR]: '' }}
       dir="ltr"
-      className="pointer-events-none fixed bottom-[16px] left-[16px] z-[120] flex flex-col items-start gap-[6px]"
+      className="pointer-events-none fixed bottom-[16px] start-[16px] z-[120] flex flex-col items-start gap-[6px]"
     >
       {open && (
         <div className="pointer-events-auto max-h-[60vh] w-[360px] overflow-y-auto rounded-[12px] border border-[#d8cfb8] bg-white p-[12px] shadow-[0_12px_36px_-10px_rgba(21,64,47,0.4)]">
@@ -114,11 +114,11 @@ function CoveragePanelInner() {
                 <>
                   <dl className="grid grid-cols-2 gap-x-[8px] gap-y-[3px] text-[11px]" style={{ fontFamily: FONT_SANS }}>
                     <dt className="text-[#5a6660]">This screen</dt>
-                    <dd className="text-right font-bold text-[#23302a]">{scan?.total ?? '—'}</dd>
+                    <dd className="text-end font-bold text-[#23302a]">{scan?.total ?? '—'}</dd>
                     <dt className="text-[#5a6660]">Distinct, all routes</dt>
-                    <dd className="text-right font-bold text-[#23302a]">{totals.distinctStrings}</dd>
+                    <dd className="text-end font-bold text-[#23302a]">{totals.distinctStrings}</dd>
                     <dt className="text-[#5a6660]">Routes walked</dt>
-                    <dd className="text-right font-bold text-[#23302a]">{totals.routesVisited}</dd>
+                    <dd className="text-end font-bold text-[#23302a]">{totals.routesVisited}</dd>
                   </dl>
 
                   <div className="mt-[8px] grid grid-cols-3 gap-[6px] text-center" style={{ fontFamily: FONT_SANS }}>
@@ -162,11 +162,11 @@ function CoveragePanelInner() {
             <div className="mt-[10px]">
               <dl className="grid grid-cols-2 gap-x-[8px] gap-y-[3px] text-[11px]" style={{ fontFamily: FONT_SANS }}>
                 <dt className="text-[#5a6660]">Dictionary entries</dt>
-                <dd className="text-right font-bold text-[#23302a]">{r.dictionaryEntries}</dd>
+                <dd className="text-end font-bold text-[#23302a]">{r.dictionaryEntries}</dd>
                 <dt className="text-[#5a6660]">Resolved in app</dt>
-                <dd className="text-right font-bold text-[#1f5a44]">{r.resolvedInApp} ({r.resolvedPct}%)</dd>
+                <dd className="text-end font-bold text-[#1f5a44]">{r.resolvedInApp} ({r.resolvedPct}%)</dd>
                 <dt className="text-[#5a6660]">Missed via t()</dt>
-                <dd className="text-right font-bold text-[#b23b3b]">{r.missCount}</dd>
+                <dd className="text-end font-bold text-[#b23b3b]">{r.missCount}</dd>
               </dl>
               <p className="mt-[6px] text-[9.5px] leading-[13px] text-[#8a938e]" style={{ fontFamily: FONT_SANS }}>
                 Counts only strings that call <code>t()</code>. Hardcoded JSX is invisible here —

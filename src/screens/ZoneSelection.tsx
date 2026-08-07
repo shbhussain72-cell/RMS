@@ -871,7 +871,7 @@ function ZoneBrowseDesktopTable({
 function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null }) {
   if (!tip) return null
   return (
-    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:right-[var(--content-px)]" role="status" aria-live="polite">
+    <div className="pointer-events-none fixed bottom-[128px] end-[16px] z-[95] flex justify-end sm:end-[var(--content-px)]" role="status" aria-live="polite">
       <div
         className={`flex max-w-[calc(100vw-32px)] items-center gap-[9px] rounded-full px-[16px] py-[10px] ${tip.phase === 'in' ? 'reserve-tip-in' : 'reserve-tip-out'}`}
         style={{ background: '#1f5a44', boxShadow: '0 12px 30px -8px rgba(21,64,47,0.5)' }}
@@ -1518,7 +1518,7 @@ export default function ZoneSelection() {
 
       {/* City tabs (horizontal scroll) */}
       <div
-        className="overflow-x-auto ps-[16px] sm:pl-0 pe-[16px] mb-[18px]"
+        className="overflow-x-auto ps-[16px] sm:ps-0 pe-[16px] mb-[18px]"
         style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
       >
         <div className="flex gap-[10px] w-max">
@@ -1546,7 +1546,7 @@ export default function ZoneSelection() {
       {/* Zone cards (horizontal scroll) */}
       <div
         data-tour="zone-list"
-        className="overflow-x-auto ps-[16px] sm:pl-0 pe-[16px] mb-[14px]"
+        className="overflow-x-auto ps-[16px] sm:ps-0 pe-[16px] mb-[14px]"
         style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
       >
         <div className="flex gap-[10px] w-max">

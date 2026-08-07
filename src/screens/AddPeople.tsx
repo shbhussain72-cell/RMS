@@ -759,7 +759,7 @@ export default function AddPeople() {
       <div className="contents sm:hidden">
 
         {/* ── breadcrumb ── */}
-        <div className="ms-[16px] sm:ml-0 mt-[13px] flex sm:mt-6">
+        <div className="ms-[16px] sm:ms-0 mt-[13px] flex sm:mt-6">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -782,7 +782,7 @@ export default function AddPeople() {
         {/* ── section title + ITS search — hidden in the read-only edit-registration view ── */}
         {!viewMode && (
           <>
-            <h2 className="ms-[16px] sm:ml-0 mt-[22px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:mt-8 sm:text-[26px]"
+            <h2 className="ms-[16px] sm:ms-0 mt-[22px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:mt-8 sm:text-[26px]"
               style={{ fontFamily: FONT_SERIF }} {...tx('Add People to group')} />
 
             {/* ── ITS input + Add button ── */}
@@ -1083,7 +1083,7 @@ export default function AddPeople() {
 
       {/* ── success toast (shared) ── */}
       {toast && (
-        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:start-auto sm:end-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#1f5a44] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(21,64,47,0.3)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>
@@ -1098,7 +1098,7 @@ export default function AddPeople() {
 
       {/* ── validation / blocked-selection error toast (shared) ── */}
       {err && (
-        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:start-auto sm:end-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>

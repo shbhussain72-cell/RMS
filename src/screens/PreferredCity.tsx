@@ -519,7 +519,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
             onBack={() => nav(-1)}
           />
           <h2 className="mt-[22px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[26px]" style={FM} {...tx('Post Registration Details')} />
-          <p className="mt-[10px] pe-[90px] text-[14px] leading-[20px] text-[#5a6660] sm:pr-0" style={FMU} {...tx('Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.')} />
+          <p className="mt-[10px] pe-[90px] text-[14px] leading-[20px] text-[#5a6660] sm:pe-0" style={FMU} {...tx('Share your requirements so we can make your Miqaat journey comfortable, safe, and well organized.')} />
 
           {/* full-width stacked section cards (application-form layout) */}
           <div className="mt-[18px]">
@@ -529,7 +529,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
         {/* validation error toast (same as the standard screen) */}
         {err && (
-          <div className="fixed bottom-[24px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+          <div className="fixed bottom-[24px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:start-auto sm:end-[var(--content-px)] sm:w-[380px]">
             <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
               <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
                 <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)" />
@@ -713,7 +713,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
 
       {/* ── validation error toast ── */}
       {err && (
-        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:start-auto sm:end-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#c53030] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(165,42,42,0.35)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)"/>

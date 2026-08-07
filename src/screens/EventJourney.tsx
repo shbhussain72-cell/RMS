@@ -501,7 +501,7 @@ export default function EventJourney() {
         </div>
 
         {/* Breadcrumb */}
-        <div className="ms-[16px] mt-[12px] sm:ml-0">
+        <div className="ms-[16px] mt-[12px] sm:ms-0">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },

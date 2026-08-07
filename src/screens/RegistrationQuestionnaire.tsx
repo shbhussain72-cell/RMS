@@ -39,7 +39,7 @@ export default function RegistrationQuestionnaire() {
         <AppBar notificationCount={3} onBellClick={() => {}} />
       </div>
 
-      <div className="ms-[16px] mt-[13px] sm:ml-0 sm:mt-6">
+      <div className="ms-[16px] mt-[13px] sm:ms-0 sm:mt-6">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },

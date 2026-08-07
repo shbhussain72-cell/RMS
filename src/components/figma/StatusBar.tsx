@@ -22,7 +22,7 @@ export default function StatusBar({ tone = "light" }: { tone?: Tone }) {
     <div className="relative h-[44px] w-full shrink-0" data-node-id="29:1998" data-name="status-bar">
       {/* Time */}
       <p
-        className="absolute start-[48px] top-[calc(50%-6px)] h-[17px] w-[30px] -translate-x-1/2 text-center text-[14px] tracking-[-0.28px] leading-[normal]"
+        className="absolute left-[48px] top-[calc(50%-6px)] h-[17px] w-[30px] -translate-x-1/2 text-center text-[14px] tracking-[-0.28px] leading-[normal]"
         style={{ fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif', fontWeight: 600, color }}
       >
         9:41

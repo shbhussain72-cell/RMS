@@ -37,7 +37,7 @@ export default function Toast({ toast, align = 'center' }: { toast: ToastMsg | n
   return (
     <div
       className={`pointer-events-none fixed inset-x-0 bottom-[118px] z-[90] flex px-[16px] ${
-        align === 'right' ? 'justify-end sm:pr-[var(--content-px)]' : 'justify-center'
+        align === 'right' ? 'justify-end sm:pe-[var(--content-px)]' : 'justify-center'
       }`}
       role="status"
       aria-live="polite"

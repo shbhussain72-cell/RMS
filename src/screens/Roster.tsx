@@ -229,7 +229,7 @@ export default function Roster() {
         <AppBar notificationCount={3} />
       </div>
 
-      <div className="ms-[16px] sm:ml-0 mt-[12px]">
+      <div className="ms-[16px] sm:ms-0 mt-[12px]">
         <Breadcrumb
           items={[
             { label: 'Home', to: '/miqaats' },

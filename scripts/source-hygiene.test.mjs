@@ -110,3 +110,55 @@ describe('no LSD translations hard-coded in UI source', () => {
     expect(offenders).toEqual([])
   })
 })
+
+describe('directional CSS', () => {
+  /**
+   * The bug class this makes un-reintroducible.
+   *
+   * `left-<x>` + `-translate-x-1/2` is the CENTRING idiom: the offset puts one edge at the
+   * midpoint, the translate pulls the element back by half its own width. It is
+   * direction-INDEPENDENT — the same visual result is wanted in both languages — so the
+   * physical property is correct there.
+   *
+   * Rewriting the offset to `start-` while leaving the translate physical produces
+   * `right: 50%` under RTL with a translate that still moves LEFT, so the element lands
+   * off-centre by its own width. A logical-properties codemod did this to four sites; the
+   * fix was reverted, the codemod re-broke the same four, and only then did it stay fixed.
+   * A comment would not have caught the second occurrence. This does.
+   */
+  const CLASS_ATTR = /\w*[cC]lassName\s*=\s*(?:"([^"]*)"|\{`([^`]*)`\})/g
+
+  it('never combines a logical inset with a physical translate-x', () => {
+    const offenders = []
+    for (const file of uiFiles) {
+      const src = readFileSync(file, 'utf8')
+      for (const m of src.matchAll(CLASS_ATTR)) {
+        const cls = m[1] ?? m[2] ?? ''
+        const hasLogicalInset = /(?<![0-9A-Za-z_-])(start|end)-/.test(cls)
+        const hasPhysicalTranslateX = /(?<![0-9A-Za-z_-])-?translate-x-/.test(cls)
+        if (hasLogicalInset && hasPhysicalTranslateX) {
+          const line = src.slice(0, m.index).split(NEWLINE).length
+          offenders.push(`${rel(file)}:${line}  ${cls.slice(0, 80)}`)
+        }
+      }
+    }
+    expect(offenders).toEqual([])
+  })
+
+  it('has no physical margin/padding/text-align utilities left in screens', () => {
+    const offenders = []
+    for (const file of uiFiles) {
+      if (!rel(file).startsWith('src/screens/')) continue
+      const src = readFileSync(file, 'utf8')
+      for (const m of src.matchAll(CLASS_ATTR)) {
+        const cls = m[1] ?? m[2] ?? ''
+        const bad = cls.match(/(?<![0-9A-Za-z_-])(?:-?m[lr]-|p[lr]-|text-(?:left|right))(?![0-9A-Za-z_-]*:)[0-9A-Za-z_[]/g)
+        if (bad) {
+          const line = src.slice(0, m.index).split(NEWLINE).length
+          offenders.push(`${rel(file)}:${line}  ${[...new Set(bad)].join(' ')}`)
+        }
+      }
+    }
+    expect(offenders).toEqual([])
+  })
+})

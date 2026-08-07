@@ -1267,7 +1267,7 @@ export default function MiqaatDetail() {
         <div>
           <AppBar notificationCount={3} onBellClick={() => {}} />
         </div>
-        <div className="ms-[16px] mt-[12px] sm:ml-0">
+        <div className="ms-[16px] mt-[12px] sm:ms-0">
           <Breadcrumb
             items={[
               { label: 'Home', to: '/miqaats' },
@@ -1396,7 +1396,7 @@ export default function MiqaatDetail() {
         onToast={showHelpToast}
         scopedMiqaatId={m.id}
         returnTo={`/miqaats/${m.id}`}
-        floaterClassName="fixed z-[100] right-[16px] bottom-[calc(env(safe-area-inset-bottom,0px)+96px)] sm:bottom-[24px] sm:right-[20px]"
+        floaterClassName="fixed z-[100] end-[16px] bottom-[calc(env(safe-area-inset-bottom,0px)+96px)] sm:bottom-[24px] sm:end-[20px]"
       />
     </PhoneScreen>
   )

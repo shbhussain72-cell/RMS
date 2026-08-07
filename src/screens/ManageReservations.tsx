@@ -2042,7 +2042,7 @@ export default function ManageReservations() {
 
         {/* ═══════════════════════ MOBILE — single column (unchanged) ═══════════════════════ */}
         <div className="sm:hidden">
-        <div className="ms-[16px] sm:ml-0 mt-[12px]">
+        <div className="ms-[16px] sm:ms-0 mt-[12px]">
           <Breadcrumb
             items={[{ label: 'Home', to: '/miqaats' }, { label: t('Modify Reservation') }]}
             onNavigate={(to) => nav(to)}

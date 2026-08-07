@@ -68,7 +68,7 @@ export default function Notifications() {
       </div>
 
       {/* Breadcrumb */}
-      <div className="ms-[16px] mt-[10px] sm:ml-0">
+      <div className="ms-[16px] mt-[10px] sm:ms-0">
         <Breadcrumb
           items={[{ label: 'Home', to: '/miqaats' }, { label: t('Notification') }]}
           onNavigate={(to) => nav(to)}

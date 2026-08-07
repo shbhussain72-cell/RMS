@@ -394,7 +394,7 @@ export default function InviteMehmaan() {
 
       {/* ── Invitation sent toast (shared) ── */}
       {toast && (
-        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:left-auto sm:right-[var(--content-px)] sm:w-[380px]">
+        <div className="fixed bottom-[110px] start-[16px] end-[16px] z-50 animate-[noticeIn_320ms_ease-out] sm:start-auto sm:end-[var(--content-px)] sm:w-[380px]">
           <div className="flex items-start gap-[10px] rounded-[14px] bg-[#1f5a44] px-[14px] py-[12px] shadow-[0_8px_24px_-8px_rgba(21,64,47,0.3)]">
             <svg viewBox="0 0 24 24" className="mt-[1px] size-[16px] shrink-0" fill="none">
               <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.2)" />

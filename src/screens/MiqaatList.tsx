@@ -527,7 +527,7 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
       {/* Content — info left, actions right (vertically centred) on web; stacked on mobile.
           Two-column split fills the horizontal space so the CTAs sit next to the text
           instead of stranded on their own row with dead whitespace. */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-[14px] p-[15px] sm:flex-row sm:items-center sm:gap-[18px] sm:py-[16px] sm:pl-[18px] sm:pr-[20px]">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-[14px] p-[15px] sm:flex-row sm:items-center sm:gap-[18px] sm:py-[16px] sm:ps-[18px] sm:pe-[20px]">
         <div className="min-w-0 sm:flex-1">
           <CardTitleBlock m={m} size={16} arabicSize={12} />
           <DateTimeRow m={m} className="mt-[9px]" />
@@ -1285,7 +1285,7 @@ function InviteToast({ message, onClose }: { message: string | null; onClose: ()
   if (!mounted) return null
   return createPortal(
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-[40px] z-[95] flex justify-center px-[16px] sm:inset-x-auto sm:bottom-auto sm:right-[24px] sm:top-[84px] sm:px-0"
+      className="pointer-events-none fixed inset-x-0 bottom-[40px] z-[95] flex justify-center px-[16px] sm:inset-x-auto sm:bottom-auto sm:end-[24px] sm:top-[84px] sm:px-0"
       role="status"
       aria-live="polite"
     >

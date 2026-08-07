@@ -20,9 +20,19 @@ export default function StatusBar({ tone = "light" }: { tone?: Tone }) {
   const color = COLOR[tone];
   return (
     <div className="relative h-[44px] w-full shrink-0" data-node-id="29:1998" data-name="status-bar">
-      {/* Time */}
+      {/* Time.
+
+          `start-[33px]`, not `left-[48px] -translate-x-1/2`. Two things were wrong with the
+          original. The inset was PHYSICAL while every icon to its right already used logical
+          `end-`, so under RTL the icons moved to the left edge and the clock stayed put —
+          both ends of the bar landing on the same side. And the translate was a centring
+          compensation for the fixed `w-[30px]` box, which does not flip: pairing it with a
+          logical inset is the `start-` + `-translate-x-` bug class exactly.
+
+          33 = 48 - 30/2. Centring a fixed-width box on a fixed offset is just arithmetic, so
+          the translate is removed rather than made conditional. No exception needed. */}
       <p
-        className="absolute left-[48px] top-[calc(50%-6px)] h-[17px] w-[30px] -translate-x-1/2 text-center text-[14px] tracking-[-0.28px] leading-[normal]"
+        className="absolute start-[33px] top-[calc(50%-6px)] h-[17px] w-[30px] text-center text-[14px] tracking-[-0.28px] leading-[normal]"
         style={{ fontFamily: '-apple-system, "SF Pro Text", system-ui, sans-serif', fontWeight: 600, color }}
       >
         9:41

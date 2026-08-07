@@ -80,7 +80,12 @@ export default function Success() {
 
           {/* title */}
           <p
-            className="absolute start-[calc(50%+0.5px)] top-[94px] flex -translate-x-1/2 -translate-y-1/2 flex-col justify-center whitespace-nowrap text-center text-[24px] tracking-[0.2px] text-white"
+            // `left-1/2` + `-translate-x-1/2` is the CENTRING idiom and is deliberately
+            // physical: it must produce the same result in both directions. Writing it as
+            // `start-[50%]` makes it `right: 50%` under RTL while the translate still moves
+            // left, which throws the title off-centre by its own width.
+            // `whitespace-nowrap` is gone because the LSD title is longer than the card.
+            className="absolute left-1/2 top-[94px] flex w-[calc(100%-28px)] -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center text-[24px] tracking-[0.2px] text-white"
             style={{ fontFamily: 'Marcellus, serif' }}
           >
             <span className="leading-[32px]" {...tx('Registration successful')} />
@@ -88,14 +93,15 @@ export default function Success() {
         </div>
 
         {/* Row: Registration status */}
-        <div className="absolute start-[14px] top-[141px] h-[48px] end-[14px] overflow-clip border-b border-solid border-[#e7dfc9] bg-white">
-          <div className="absolute start-0 top-[calc(50%+0.5px)] h-[20px] w-[122px] -translate-y-1/2 overflow-clip">
-            <p
-              className="absolute start-0 top-[10px] flex h-[20px] w-[177.057px] -translate-y-1/2 flex-col justify-center text-[14px] leading-[normal] text-[#757e78]"
-              style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Registration status')} />
-          </div>
-          <div className="absolute end-0 top-[8px] h-[32px] w-[101px] overflow-clip rounded-[60px] bg-[#e4f1e9]">
-            <div className="absolute left-1/2 top-[7px] flex -translate-x-1/2 items-center gap-[4px]">
+        {/* Flex, not absolute: the label was a 122px clip box holding a 177px paragraph, so the
+            English text was already 55px over and every translation was worse. A flex row with
+            `min-w-0` on the label lets it take the space it needs and shrink when it cannot. */}
+        <div className="absolute start-[14px] top-[141px] flex h-[48px] end-[14px] items-center justify-between gap-[12px] border-b border-solid border-[#e7dfc9] bg-white">
+          <p
+            className="min-w-0 flex-1 text-[14px] leading-[normal] text-[#757e78]"
+            style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 500 }} {...tx('Registration status')} />
+          <div className="shrink-0 rounded-[60px] bg-[#e4f1e9] px-[12px] py-[7px]">
+            <div className="flex items-center gap-[4px]">
               <div className="relative size-[8px] shrink-0">
                 <img src={STATUS_DOT} alt="" className="absolute inset-0 block size-full max-w-none" />
               </div>

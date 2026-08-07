@@ -17,6 +17,7 @@ import Toast, { useToast } from '../components/figma/Toast'
 import { HostCityCard } from './CitySelection'
 import { useStore, journeyFor, type ChangeRequest, type GroupCityAlloc, type GroupZoneAlloc } from '../store'
 import { useT, tNow } from '../i18n'
+import { memberTableMinWidth } from '../components/memberTable'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -1076,8 +1077,8 @@ function MoveDesktopTable({
 }) {
      const { t, tx, td } = useT()
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(96, 132, 150, 230) }}>
         <colgroup>
           <col />
           <col style={{ width: '96px' }} />
@@ -1265,8 +1266,8 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
 }) {
      const { t, tx, td } = useT()
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#f0d9a8] bg-white">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#f0d9a8] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(96, 132, 150, 230) }}>
         <colgroup>
           <col />
           <col style={{ width: '96px' }} />

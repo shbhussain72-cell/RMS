@@ -10,6 +10,7 @@ import { liveCities, family, genderByIts, miqaats, type FamilyMember, type LiveC
 import { buildAllGroups, type Group } from '../lib/group'
 import { useStore, journeyFor } from '../store'
 import { useT, tNow } from '../i18n'
+import { memberTableMinWidth } from '../components/memberTable'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -392,8 +393,8 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
     return valid(a) - valid(b)
   })
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(120, 210) }}>
         <colgroup>
           <col />
           <col style={{ width: '120px' }} />

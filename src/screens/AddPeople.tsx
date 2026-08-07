@@ -228,8 +228,8 @@ function MembersTableShell({ selectable = false, selectAllChecked = false, onSel
 }) {
      const { tx } = useT()
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: selectable ? '520px' : '460px' }}>
         <colgroup>
           {selectable && <col style={{ width: '52px' }} />}
           <col style={{ width: selectable ? '48%' : '54%' }} />

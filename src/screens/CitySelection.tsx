@@ -18,6 +18,7 @@ import Toast, { useToast } from '../components/figma/Toast'
 import { useStore, journeyFor, DEMO_PHASE_ORDER, type RankedCity } from '../store'
 import { useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
+import { memberTableMinWidth } from '../components/memberTable'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1264,8 +1265,13 @@ function AllocateDesktopTable({
     // branch below), so this stays a 5-column table exactly like the non-zone case — just with Zone
     // instead of a separate Action column. That merge is what keeps Zone visible without needing the
     // horizontal scroll a 6th column would have forced.
-    <div className={`rounded-[14px] border border-[#e7dfc9] bg-white ${showZoneColumn ? 'overflow-x-auto' : 'overflow-hidden'}`}>
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: showZoneColumn ? '840px' : undefined }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: showZoneColumn
+        // With the zone column the member col is explicitly 200px, so the floor is just the
+        // sum of the five columns — adding MEMBER_COL_MIN on top would double-count it.
+        ? '840px'
+        // Without it the member col is the unsized one, so it needs the floor added.
+        : memberTableMinWidth(110, 188, 120, 242) }}>
         <colgroup>
           <col style={showZoneColumn ? { width: '200px' } : undefined} />
           <col style={{ width: showZoneColumn ? '90px' : '110px' }} />
@@ -1609,8 +1615,8 @@ function HostDesktopTable({
 }) {
      const { tx, t, td } = useT()
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(40, 124, 172, 132) }}>
         <colgroup>
           <col style={{ width: '40px' }} />
           <col />

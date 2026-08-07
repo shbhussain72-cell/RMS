@@ -19,6 +19,7 @@ import Toast, { useToast } from '../components/figma/Toast'
 import { useStore } from '../store'
 import { useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
+import { memberTableMinWidth } from '../components/memberTable'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -757,8 +758,8 @@ function ZoneBrowseDesktopTable({
 }) {
      const { t, td } = useT()
   return (
-    <div className={`overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white ${disabled ? 'pointer-events-none' : ''}`}>
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className={`overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white ${disabled ? 'pointer-events-none' : ''}`}>
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(124, 160, 270) }}>
         <colgroup>
           <col />
           <col style={{ width: '124px' }} />

@@ -13,6 +13,7 @@ import { liveCities, family, arazExtraFamily, genderByIts, miqaats, type FamilyM
 import { type Group, type BadgeKind } from '../lib/group'
 import { useStore, journeyFor, type GroupCityAlloc } from '../store'
 import { useT, tNow } from '../i18n'
+import { memberTableMinWidth } from '../components/memberTable'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -394,8 +395,8 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
 }) {
      const { t, tx, td } = useT()
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
-      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+    <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(180, 250, 84) }}>
         <colgroup>
           <col />
           <col style={{ width: '180px' }} />

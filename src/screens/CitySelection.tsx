@@ -1300,14 +1300,19 @@ function AllocateDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {(showZoneColumn ? [t('Member'), '', t('Status'), t('City'), t('Zone')] : [t('Member'), '', t('Status'), 'Allocation', 'Action']).map((h, i) => (
+            {/* The array holds English KEYS and `t()` is applied at render, so the test below
+                compares a key against a key. Built the other way round — `[t('Zone'), …]` matched
+                against `t('Zone')` — it is correct only while both sides go through the same
+                call, and silently selects nothing the moment one of them stops. MiqaatDetail had
+                three of those and the walkthrough lost an anchor in LSD without any error. */}
+            {(showZoneColumn ? ['Member', '', 'Status', 'City', 'Zone'] : ['Member', '', 'Status', 'Allocation', 'Action']).map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>
                 {/* The ZONE column's bulk action — the zone counterpart of the city card's "Select
                     all". Without it, putting a whole party in one zone meant opening the per-row
                     dropdown once per group. */}
-                {h === t('Zone') && onOpenZoneAllDropdown ? (
+                {h === 'Zone' && onOpenZoneAllDropdown ? (
                   <span className="flex items-center justify-between gap-[10px]">
-                    <span>{h}</span>
+                    <span {...tx(h)} />
                     <button
                       type="button"
                       disabled={!canSetAllZones}
@@ -1316,7 +1321,7 @@ function AllocateDesktopTable({
                       style={{ fontFamily: FONT }}
                       title={canSetAllZones ? 'Pick one zone and apply it to every selected member' : 'Select a city for your members first'} {...tx('Same zone for all')} />
                   </span>
-                ) : h}
+                ) : h && t(h)}
               </th>
             ))}
           </tr>

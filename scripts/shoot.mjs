@@ -113,7 +113,14 @@ const seedScript = (lang) => `
 `
 
 async function main() {
-  rmSync(OUT_ROOT, { recursive: true, force: true })
+  // Clear only the per-language shot directories, NOT all of artifacts/audit.
+  //
+  // This used to be `rmSync(OUT_ROOT)`, which deletes every other artifact in that folder as a
+  // side effect of taking screenshots: the layout, bidi, numerals and route-scan reports, and
+  // the blank-row .xlsx patch that the wordlist owner is working from. Nothing warns you — the
+  // run reports "200 screenshots, none missing" and the deliverable is simply gone.
+  for (const lang of LANGS) rmSync(resolve(OUT_ROOT, lang), { recursive: true, force: true })
+  mkdirSync(OUT_ROOT, { recursive: true })
   const server = await serve()
   const browser = await chromium.launch()
   let shots = 0

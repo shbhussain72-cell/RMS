@@ -11,6 +11,22 @@
  *    the whole viewport — invisible, but on top of the backdrop everywhere. Tapping the dimmed
  *    area above the sheet therefore hit the wrapper and did nothing, on every sheet in the app.
  *    Asserted by hit-testing rather than by clicking, so a failure names the element in the way.
+ *
+ * 3. THE STICKY FOOTER MUST RESERVE ITS HEIGHT. `check-layout` reports ~75 OVERLAY findings
+ *    where PhoneScreen's footer covers text, and the obvious reading is that the scroll
+ *    container needs padding equal to the footer's height. It does not, and this is the
+ *    assertion that says why: `position: sticky` participates in normal flow, so the column
+ *    already reserves those pixels and nothing the footer covers is ever unreachable. Measured
+ *    across all 25 routes at four widths in both languages, 79 overlay findings at rest fall to
+ *    0 from the footer once every scroll container is run to its end.
+ *
+ *    `.sticky-cta` fades from transparent to opaque over its first 28px, which only makes sense
+ *    if content is meant to pass beneath it — the overlap is the design, not a defect.
+ *
+ *    So the check is on the property that makes all of that true, rather than on the finding
+ *    count. Switch that wrapper to `position: fixed` and its height stops being reserved, the
+ *    last screenful of every long page becomes unreachable, and this fails immediately — which
+ *    is the point at which padding WOULD be the right fix.
  */
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
@@ -28,6 +44,8 @@ const seed = (lang) => `try{localStorage.setItem('rms-lang',${JSON.stringify(lan
 const ROUTES = ['/miqaats', '/miqaats/ashara-1448', '/miqaats/ashara-1448/city', '/miqaats/ashara-1448/review']
 let fails = 0
 const say = (ok, msg) => { if (!ok) fails++; console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${msg}`) }
+/** Reported, not counted. A vacuous pass reads exactly like a real one, which is worse than a gap. */
+const skip = (msg) => console.log(`  --    ${msg}`)
 
 const browser = await chromium.launch()
 for (const lang of ['en', 'lsd']) {
@@ -102,6 +120,30 @@ for (const lang of ['en', 'lsd']) {
     })
     if (hit.err) say(false, hit.err)
     else say(hit.isBackdrop, `sheet top ${hit.sheetTop}px; at (${hit.at}) the dimmed area hit-tests as ${hit.isBackdrop ? 'the backdrop' : hit.got}`)
+    // ── 3. the sticky footer reserves its height ──
+    // Measured by taking it out of flow and watching the column: an assertion on the mechanism
+    // rather than on a pixel count, so it holds whatever the footer grows to.
+    const flow = await page.evaluate(() => {
+      const wrap = document.querySelector('.sticky.bottom-0')
+      const col = document.querySelector('[data-name="AppScreen"]')
+      if (!wrap || !col) return null
+      const footH = Math.round(wrap.getBoundingClientRect().height)
+      const before = col.getBoundingClientRect().height
+      const prev = wrap.style.position
+      wrap.style.position = 'fixed'
+      void col.offsetHeight
+      const after = col.getBoundingClientRect().height
+      wrap.style.position = prev
+      return { footH, reserved: Math.round(before - after) }
+    })
+    if (!flow) say(false, 'no sticky footer wrapper on /city to measure')
+    // The footer is `sm:hidden` on this screen, so at >=640px there is nothing rendered to
+    // reserve anything. Counting 0 === 0 as a pass would report the desktop widths as covered
+    // when they are not tested at all.
+    else if (flow.footH < 4) skip(`no sticky footer rendered at ${width}px on /city — nothing to reserve`)
+    else say(Math.abs(flow.reserved - flow.footH) <= 2,
+      `sticky footer reserves its ${flow.footH}px in flow (column shrank ${flow.reserved}px when taken out of it)`)
+
     await ctx.close()
   }
 }

@@ -463,7 +463,7 @@ function AllocateGroupCard({
   /** Modify-city-zone flow: the group's CURRENT (pre-change) city + zone, shown as a "Now" caption. */
   currentAlloc?: { cityName: string; cityType: 'host' | 'relay'; zoneName: string } | null
 }) {
-     const { tx, t, td } = useT()
+     const { tx, t, td, tdText } = useT()
   const linked = !!group.label
   const isAssigned = assignedCity !== null
   const foreignName = group.members.find((mm) => mm.member.opensAt)?.member.name ?? ''
@@ -527,7 +527,7 @@ function AllocateGroupCard({
           <div className="flex flex-col gap-[10px]">
             <div className="flex items-center gap-[10px]">
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }}>Current allocation · {assignedCity!.type === 'host' ? 'Host city' : 'Relay city'}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx(assignedCity!.type === 'host' ? 'Current allocation · Host city' : 'Current allocation · Relay city')} />
                 <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
               </div>
               <button type="button" onClick={(e) => { e.stopPropagation(); onRemove?.() }} aria-label={t('Cancel reservation')}
@@ -539,7 +539,7 @@ function AllocateGroupCard({
               <div className="min-w-0">
                 <p className="flex items-center gap-[4px] text-[10px] font-bold uppercase tracking-[0.5px] text-[#a8843e]" style={{ fontFamily: FONT }}>
                   <svg viewBox="0 0 16 16" fill="none" className="size-[12px] shrink-0"><path d="M8 3v9M4.5 8.5L8 12l3.5-3.5" stroke="#a8843e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Swap to · {swapTarget.type === 'host' ? 'Host city' : 'Relay city'}
+                  {t(swapTarget.type === 'host' ? 'Swap to · Host city' : 'Swap to · Relay city')}
                 </p>
                 <p className="mt-[1px] text-[16px] font-bold leading-[20px] text-[#a8843e]" style={{ fontFamily: FONT }} {...td(swapTarget.name)} />
               </div>
@@ -551,7 +551,9 @@ function AllocateGroupCard({
               </button>
             </div>
             <p className="text-[11.5px] font-semibold leading-[15px] text-[#23302a]" style={{ fontFamily: FONT }}>
-              <span className="font-bold text-[#1f7a4d]">You're selected in {assignedCity!.name}</span> — do you want to swap it?
+              <span className="font-bold text-[#1f7a4d]" {...tx("You're selected in {city}", { city: tdText(assignedCity!.name) })} />
+              {' '}
+              <span {...tx('— do you want to swap it?')} />
             </p>
           </div>
         ) : isAssigned ? (
@@ -627,7 +629,10 @@ function AllocateGroupCard({
                   className="shrink-0 inline-flex h-[30px] items-center gap-[6px] rounded-full px-[16px] text-[12.5px] font-bold transition-colors"
                   style={{ fontFamily: FONT, border: '1.5px solid #1f5a44', background: '#1f5a44', color: 'white' }}>
                   {isRequest && <svg viewBox="0 0 24 24" fill="none" className="size-[13px] shrink-0"><path d="M4.5 12l15-7.5-7 15-2.2-5.3L4.5 12z" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                  {isRequest ? 'Request' : 'Select'} {activeCityName}
+                  {/* Verb and destination in one key. `{verb} {city}` glued in JSX puts the city
+                      after the verb in every language, which is a decision the sentence has to
+                      make, not the markup. */}
+                  {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCityName) })}
                 </button>
               ) : activeCityName ? (
                 // "Reserve all" already covers everyone — redundant per-row button, muted dash instead.
@@ -844,7 +849,7 @@ export function HostCityCard({
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? t('Request all') : t('Select all')}
             </button>
           )}
           {!isCurrentCity && selected && anySwappable && onSwapAll && (
@@ -902,7 +907,7 @@ export function HostCityCard({
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? t('Request all') : t('Select all')}
             </button>
           )}
           {!isCurrentCity && selected && anySwappable && onSwapAll && (
@@ -939,7 +944,7 @@ export function HostCityCard({
               <span className="size-[13px] rounded-full border-[1.5px] border-[#c2a04e]" />
             )}
             <span className="truncate text-[13px] font-bold" style={{ fontFamily: FONT, color: selected ? 'white' : '#a8843e' }}>
-              {selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? 'Request' : 'Select')}
+              {selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? t('Request') : t('Select'))}
             </span>
           </span>
         </div>
@@ -1001,7 +1006,7 @@ function ChooseCityHeading({ isRequest = false, showPhase = true }: { isRequest?
  *  has closed (reached here via Ask Help to file a request). Maroon "SLOT CLOSED" badge, then the
  *  round-2 explainer + Phase 2 start time. */
 function SlotClosedCard() {
-  const { tx, t } = useT()
+  const { tx, t, tdText } = useT()
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#eccfca] bg-[#fbeeec]">
       <div className="px-[18px] pt-[16px] pb-[14px]">
@@ -1132,7 +1137,7 @@ function RelayCityTrigger({ label, active, onClick }: { label: string; active: b
       className="inline-flex h-[40px] min-w-[150px] max-w-[210px] items-center justify-between gap-[8px] rounded-full border border-[#1f5a44] bg-white px-[16px] transition-colors"
       style={{ fontFamily: FONT }}
     >
-      <span className="truncate text-[14px] font-bold text-[#1f5a44]">{label}</span>
+      <span className="truncate text-[14px] font-bold text-[#1f5a44]">{isolateRuns(label)}</span>
       <svg viewBox="0 0 16 16" fill="none" className={`size-[14px] shrink-0 transition-transform ${active ? 'rotate-180' : ''}`}>
         <path d="M4 6l4 4 4-4" stroke="#1f5a44" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -1260,7 +1265,7 @@ function AllocateDesktopTable({
    *  the member so the user sees what they're changing FROM. Omitted in every other flow. */
   currentAllocFor?: (gi: number) => { cityName: string; cityType: 'host' | 'relay'; zoneName: string } | null
 }) {
-     const { tx, t, td } = useT()
+     const { tx, t, td, tdText } = useT()
   // Ordering: every group that can still be reserved is listed first; groups that read "Not Available"
   // (globally not valid for allocation) always sink to the bottom. This keeps the eligibility reason
   // out of the way — the top of the list reads as "these seats are still open", and the unavailable
@@ -1524,7 +1529,7 @@ function AllocateDesktopTable({
                                   className="inline-flex h-[34px] min-w-0 items-center gap-[7px] rounded-full border border-[#2e6a7d] bg-white px-[16px] text-[13px] font-bold text-[#2e6a7d] transition-colors hover:bg-[#eef5f7] active:scale-[0.97]"
                                   style={{ fontFamily: FONT }}>
                                   <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                  <span className="truncate">Swap to {swapTarget.name}</span>
+                                  <span className="truncate">{t('Swap to {city}', { city: tdText(swapTarget.name) })}</span>
                                 </button>
                                 <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Cancel reservation')}
                                   className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
@@ -1701,7 +1706,7 @@ function HostDesktopTable({
                                 <circle cx="8" cy="8.5" r="6" stroke="#c98a2e" strokeWidth="1.4" />
                                 <path d="M8 5.4V8.5l1.9 1.2M6 2.9h4" stroke="#c98a2e" strokeWidth="1.4" strokeLinecap="round" />
                               </svg>
-                              Confirm in {fmtClock(holdSec!)}
+                              {t('Confirm in {time}', { time: fmtClock(holdSec!) })}
                             </span>
                             <div className="mt-[6px] h-[5px] w-full max-w-[160px] overflow-hidden rounded-full" style={{ background: '#f4ddae' }}>
                               <div className="h-full rounded-full transition-[width] duration-1000 ease-linear" style={{ width: `${((HOLD_SEC - holdSec!) / HOLD_SEC) * 100}%`, background: '#e8941e' }} />
@@ -1949,7 +1954,7 @@ function MyPreferredCityCard({
   onSwapAll?: () => void
   anySwappable?: boolean
 }) {
-     const { t, tx } = useT()
+     const { t, tx, tdText } = useT()
   const preferred = cities.filter((c) => c.id !== hostCityId)
   if (preferred.length === 0) return null
   const activeInThisCard = preferred.find((c) => c.id === activeCityId)
@@ -1982,7 +1987,7 @@ function MyPreferredCityCard({
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="truncate">Swap all to {activeInThisCard?.name}</span>
+            <span className="truncate">{t('Swap all to {city}', { city: tdText(activeInThisCard?.name ?? '') })}</span>
           </button>
         )}
       </div>
@@ -2023,7 +2028,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
   onSwapAll?: () => void
   anySwappable?: boolean
 }) {
-     const { tx, t, td } = useT()
+     const { tx, t, td, tdText } = useT()
   const activeCityInGrid = cities.find((c) => c.id === activeCityId)
   const activeInThisGrid = !!activeCityInGrid
   const showInlineReserveAll = !!onReserveAll && activeInThisGrid
@@ -2080,7 +2085,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="truncate">Swap all to {activeCityInGrid?.name}</span>
+            <span className="truncate">{t('Swap all to {city}', { city: tdText(activeCityInGrid?.name ?? '') })}</span>
           </button>
         )}
       </div>
@@ -2156,7 +2161,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function CitySelection() {
-  const { tx, t, td } = useT()
+  const { tx, t, td, tdText } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Where to go after filing a request — the Miqaat detail page when Ask Help was opened from there
@@ -3166,7 +3171,7 @@ export default function CitySelection() {
                             </tr>
                           )}
                           {g.members.map((mm, mi) => {
-                            const { t } = useT()
+                            const { t, tdText } = useT()
                             const isFirst = mi === 0
                             const isLast = mi === g.members.length - 1
                             return (
@@ -3621,7 +3626,7 @@ export default function CitySelection() {
               }`}
               style={{ fontFamily: FONT }}
             >
-              {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
+              {allGroupsAssigned ? t('Remove all') : isRequest ? t('Request all') : t('Select all')}
             </button>
           )}
           {/* Swap all — shown when the user has reservation(s) in another city and picks a different one.
@@ -3636,7 +3641,7 @@ export default function CitySelection() {
               style={{ fontFamily: FONT }}
             >
               <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <span className="truncate">Swap all to {activeCity?.name}</span>
+              <span className="truncate">{t('Swap all to {city}', { city: tdText(activeCity?.name ?? '') })}</span>
             </button>
           )}
         </div>
@@ -3812,7 +3817,7 @@ export default function CitySelection() {
                       }`}
                       style={{ fontFamily: FONT }}
                     >
-                      {allGroupsAssigned ? t('Remove all') : isRequest ? 'Request all' : 'Select all'}
+                      {allGroupsAssigned ? t('Remove all') : isRequest ? t('Request all') : t('Select all')}
                     </button>
                   )}
                   {/* Desktop "Swap all" used to live here too, but every case now has its own inline

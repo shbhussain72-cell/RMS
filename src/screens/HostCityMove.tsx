@@ -304,7 +304,7 @@ function MoveGroupCard({
       {linked && (
         <div className="flex h-[34px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }} {...tx(group.label!)} />
         </div>
       )}
       <div className="relative px-[13px] pt-[10px]">
@@ -848,7 +848,7 @@ function MoveSidebarCard({
    *  exist in this screen's city list. Omitted (or empty) renders nothing, same as City Selection. */
   preferredCities?: City[]
 }) {
-     const { tx, t } = useT()
+     const { tx, t, tdText } = useT()
   const zoneList = zoneSearch ? zones.filter((z) => z.name.toLowerCase().includes(zoneSearch.toLowerCase())) : zones
 
   // Host city, no zone step → the destination is fixed. HostCityCard is already a complete card
@@ -906,7 +906,7 @@ function MoveSidebarCard({
                 style={{ fontFamily: FONT }}
               >
                 <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className="truncate">{swapAll.verb}{swapAll.destName ? ` to ${swapAll.destName}` : ''}</span>
+                <span className="truncate">{swapAll.destName ? <>{t('{verb} to {city}', { verb: swapAll.verb, city: tdText(swapAll.destName) })}</> : swapAll.verb}</span>
               </button>
             )}
           </div>
@@ -1108,7 +1108,7 @@ function MoveDesktopTable({
               {linked && (
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[14px] py-[8px]">
-                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph />{g.label}</span>
+                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph /><bdi {...tx(g.label!)} /></span>
                   </td>
                 </tr>
               )}
@@ -1140,10 +1140,10 @@ function MoveDesktopTable({
                       </td>
                       <td className="px-[12px] py-[9px] align-middle">
                         <div className="flex min-h-[34px] flex-col justify-center gap-[1px]">
-                          <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{rowCityLabel}</span>
-                          <span className="truncate text-[13px] font-bold leading-[17px] text-[#23302a]" style={{ fontFamily: FONT }}>{rowCityName}</span>
+                          <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{isolateRuns(rowCityLabel)}</span>
+                          <span className="truncate text-[13px] font-bold leading-[17px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(rowCityName)} />
                           {!cityOnly && (
-                            <span className="truncate text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT }}>{rowZoneName}</span>
+                            <span className="truncate text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(rowZoneName)} />
                           )}
                         </div>
                       </td>
@@ -1157,7 +1157,7 @@ function MoveDesktopTable({
                               cityOnly ? (
                                 <DestCityCell cityLabel={isRelay ? t('Relay City') : t('Host City')} cityName={groupPendingReq!.toLabel} pending />
                               ) : (
-                                <span className="truncate text-[13px] font-bold leading-[17px] text-[#8a938e]" style={{ fontFamily: FONT }}>{groupPendingReq!.toLabel}</span>
+                                <span className="truncate text-[13px] font-bold leading-[17px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(groupPendingReq!.toLabel)} />
                               )
                             ) : cityOnly ? (
                               isAllocated
@@ -1172,7 +1172,7 @@ function MoveDesktopTable({
                               </div>
                             ) : hasActiveDest ? (
                               <div className="flex min-w-0 flex-col justify-center gap-[1px]">
-                                <span className="truncate text-[12px] leading-[15px] text-[#8a938e]" style={{ fontFamily: FONT }}>{destCityName}</span>
+                                <span className="truncate text-[12px] leading-[15px] text-[#8a938e]" style={{ fontFamily: FONT }} {...td(destCityName ?? '')} />
                                 <span className="truncate text-[13px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }} {...tx('Choose zone')} />
                               </div>
                             ) : (
@@ -1288,7 +1288,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
               {linked && (
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[14px] py-[8px]">
-                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph />{g.label}</span>
+                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph /><bdi {...tx(g.label!)} /></span>
                   </td>
                 </tr>
               )}
@@ -1312,9 +1312,9 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
                     <td className="px-[12px] py-[9px] align-middle">{mm.badge ? <RoleBadge kind={mm.badge} /> : null}</td>
                     <td className="px-[12px] py-[9px] align-middle">
                       <div className="flex min-h-[34px] flex-col justify-center gap-[1px]">
-                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{rowCityLabel}</span>
-                        <span className="truncate text-[13px] font-bold leading-[17px] text-[#23302a]" style={{ fontFamily: FONT }}>{rowCityName}</span>
-                        {!cityOnly && <span className="truncate text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT }}>{rowZoneName}</span>}
+                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{isolateRuns(rowCityLabel)}</span>
+                        <span className="truncate text-[13px] font-bold leading-[17px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(rowCityName)} />
+                        {!cityOnly && <span className="truncate text-[12px] leading-[16px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(rowZoneName)} />}
                       </div>
                     </td>
                     {/* REQUESTED + ACTION are per GROUP, not per member — one destination and one
@@ -1323,7 +1323,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
                       {isFirst && req && (
                         <div className="flex min-h-[34px] flex-col justify-center gap-[1px]">
                           <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#c2a04e]" style={{ fontFamily: FONT }} {...tx('Requested')} />
-                          <span className="truncate text-[13px] font-bold leading-[17px] text-[#9a6a1e]" style={{ fontFamily: FONT }}>{req.toLabel}</span>
+                          <span className="truncate text-[13px] font-bold leading-[17px] text-[#9a6a1e]" style={{ fontFamily: FONT }} {...td(req.toLabel)} />
                         </div>
                       )}
                     </td>

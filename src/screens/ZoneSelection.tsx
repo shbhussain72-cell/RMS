@@ -533,9 +533,7 @@ function WhosWhereSheet({
           {/* City */}
           <div className="flex items-center gap-[6px] mt-[10px]">
             <PinIcon />
-            <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-              {cityName}
-            </span>
+            <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(cityName)} />
           </div>
         </>
       )}
@@ -649,13 +647,14 @@ function MembersChip({ count }: { count: number }) {
 
 /** Sidebar city tab — city name + "N members" with a people glyph + Host/Relay tag. */
 function CityTabCard({ name, count, active, onClick, type }: { name: string; count: number; active: boolean; onClick: () => void; type?: 'host' | 'relay' }) {
+  const { td, tx } = useT()
   return (
     <button type="button" onClick={onClick}
       className="flex flex-col items-start rounded-[12px] px-[12px] py-[10px] text-start transition-all duration-200"
       style={{ border: active ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: active ? '#fffdf5' : 'white' }}>
-      <span className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }}>{name}</span>
+      <span className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(name)} />
       <span className="mt-[3px] inline-flex items-center gap-[4px] text-[12px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT }}>
-        <PeopleMini /> {count} members
+        <PeopleMini /> <bdi {...tx(plural(count, '{n} member', '{n} members'), { n: count })} />
       </span>
       <CityKindTag type={type} />
     </button>

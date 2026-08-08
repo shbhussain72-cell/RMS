@@ -237,8 +237,15 @@ export function effectiveSelectedIds(
   guardians: Record<string, string>,
   caregivers: Record<string, string>,
 ): string[] {
-  const sel = new Set(selectedIds)
-  return selectedIds.filter((id) => {
+  // Drop ids that are not in `family` BEFORE dereferencing them, exactly as buildGroups does.
+  // Without this, `byId(id)` returns undefined for a stale or foreign id and `m.role` on the next
+  // line is a TypeError — thrown during render, with no boundary below the router, which blanks
+  // the screen. The ids arrive from `flow.selectedMemberIds`, which is persisted to localStorage,
+  // so a party saved when the roster was larger reproduces it on a cold load with no SPA state.
+  // buildGroups was hardened for this and this function was not, which is why the two disagreed.
+  const ids = selectedIds.filter((id) => family.some((f) => f.id === id))
+  const sel = new Set(ids)
+  return ids.filter((id) => {
     const m = byId(id)
     if (m.role !== 'dependent') return true
     const g = guardians[id]

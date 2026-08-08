@@ -987,6 +987,17 @@ export default function MiqaatList() {
   const acceptGroupInvite = useStore((s) => s.acceptGroupInvite)
   const location = useLocation()
 
+  // One-shot notice after RequireMiqaat bounced an unknown `:id` here (a stale bookmark, a shared
+  // link to a removed event, a hand-typed URL). Shown as a toast rather than a popup: nothing was
+  // lost and there is no decision to make, so it should not interrupt.
+  useEffect(() => {
+    if ((location.state as { unknownMiqaat?: boolean } | null)?.unknownMiqaat) {
+      setReopenToast(t('That Miqaat is no longer available. Showing your Miqaats instead.'))
+      window.history.replaceState({}, '') // consume so it doesn't reappear on refresh/back
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // One-shot "Reservation Cancelled" success popup — shown here on Home after the user cancels from
   // Modify Reservation (the success lives on Home, not on the cancel screen).
   const [cancelledOpen, setCancelledOpen] = useState(false)

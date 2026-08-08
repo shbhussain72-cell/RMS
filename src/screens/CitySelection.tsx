@@ -26,6 +26,10 @@ import { memberTableMinWidth } from '../components/memberTable'
 // here instead of navigating to the separate Zone Selection screen — see `isSameDayFlow`).
 type ViewState = 'queue-waiting' | 'queue-active' | 'browse' | 'success' | 'success-zone'
 
+/** How long the demo queue holds before it opens. Named so the countdown effect and the initial
+ *  state cannot drift apart — they previously shared a bare `4`. */
+const QUEUE_WAIT_SECONDS = 4
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -2211,7 +2215,10 @@ export default function CitySelection() {
   const [relayDropdown, setRelayDropdown] = useState<{ gi: number; rect: DOMRect } | null>(null)
   const [relayCitySearch, setRelayCitySearch] = useState('')
   const [allocationTimer, setAllocationTimer] = useState(2 * 3600 + 42 * 60 + 11)
-  const [queueCountdown, setQueueCountdown] = useState(4)
+  const [queueCountdown, setQueueCountdown] = useState(QUEUE_WAIT_SECONDS)
+  // The configured duration, held in a ref so the countdown effect can seed its deadline without
+  // taking the ticking value as a dependency (which would reset the deadline once a second).
+  const queueCountdownRef = useRef(QUEUE_WAIT_SECONDS)
   // Host city: per-member selection + per-group hold ("Confirm before time expires")
   const [checkedMemberIds, setCheckedMemberIds] = useState<Set<string>>(new Set())
   const [holds, setHolds] = useState<Map<number, number>>(new Map())
@@ -2499,16 +2506,53 @@ export default function CitySelection() {
   const allHostKeys = groups.flatMap((g, gi) => g.members.map((m) => memKey(gi, m.member.id)))
   const allHostChecked = allHostKeys.length > 0 && allHostKeys.every((k) => checkedMemberIds.has(k))
 
-  // Queue waiting countdown
+  /**
+   * Queue waiting countdown — driven by a wall-clock DEADLINE, not by accumulated ticks.
+   *
+   * The previous version decremented state once per interval (`t - 1`). Browsers throttle timers
+   * in a background tab to roughly once a minute, so a user who switched away came back to a
+   * countdown that had barely moved and a queue that never opened — it was measuring "how many
+   * times this tab was allowed to run", not elapsed time. The same bug means landing after the
+   * window has already opened shows an expired countdown ticking down again from the start.
+   *
+   * Storing an absolute deadline and recomputing the remainder makes both cases fall out: the
+   * interval only refreshes the DISPLAY, and every recompute is authoritative regardless of how
+   * many ticks were missed. `visibilitychange` and `focus` cover the return-to-tab path, where
+   * the answer is needed immediately rather than up to a second later on the next tick.
+   */
   useEffect(() => {
     if (view !== 'queue-waiting') return
-    const iv = setInterval(() => {
-      setQueueCountdown((t) => {
-        if (t <= 1) { setView('queue-active'); return 0 }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(iv)
+    // Seeded once per entry into the waiting view. Reading the current state here (rather than a
+    // constant) keeps the demo's configured duration as the source of the deadline.
+    const deadline = Date.now() + queueCountdownRef.current * 1000
+
+    const sync = () => {
+      const left = Math.ceil((deadline - Date.now()) / 1000)
+      if (left <= 0) {
+        setQueueCountdown(0)
+        setView('queue-active')
+        return true
+      }
+      setQueueCountdown(left)
+      return false
+    }
+
+    // On mount: if the window is already open, transition now instead of rendering a countdown
+    // that is already expired.
+    if (sync()) return
+
+    const iv = setInterval(sync, 250)
+    const onWake = () => { if (document.visibilityState === 'visible') sync() }
+    document.addEventListener('visibilitychange', onWake)
+    window.addEventListener('focus', onWake)
+    return () => {
+      clearInterval(iv)
+      document.removeEventListener('visibilitychange', onWake)
+      window.removeEventListener('focus', onWake)
+    }
+    // `queueCountdownRef` is a ref on purpose — including the countdown VALUE here would restart
+    // the deadline on every tick and the queue would never open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view])
 
   // Allocation timer

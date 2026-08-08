@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { Count } from '../components/Bidi'
 import { memberMeta } from '../components/MemberMeta'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
@@ -10,7 +11,7 @@ import { LinkedDependentPopup, InviteLimitPopup } from '../components/figma/Invi
 import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../components/figma/InvitedMembers'
 import RoleBadge from '../components/figma/RoleBadge'
 import { useStore } from '../store'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const INFO_FILLED = '/figma/invite-info-filled.svg'
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
@@ -55,7 +56,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
 }
 
 function PersonRow({ name, age, its, gender, large = false }: { name: string; age: number; its: string; gender?: string; large?: boolean }) {
-  const { t } = useT()
+  const { t, tdAuthored } = useT()
   return (
     <div className="flex min-w-0 flex-1 items-center gap-[12px]">
       <Avatar name={name} size={large ? 52 : 36} />
@@ -120,7 +121,7 @@ function MemberRow({ name, age, its, gender, badge, linkTop, linkBottom }: { nam
 // ─── main screen ──────────────────────────────────────────────────────────────
 
 export default function InviteMehmaan() {
-  const { tx, t, td, tdText } = useT()
+  const { tx, t, td, tdText, lang, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -318,10 +319,10 @@ export default function InviteMehmaan() {
   // Badge on the quota card: fully available (green) / partially used (gold) / full (red).
   const quotaBadge =
     quotaFull
-      ? { text: 'Quota full', bg: '#fdeceb', color: '#b23b3b' }
+      ? { text: t('Quota full'), bg: '#fdeceb', color: '#b23b3b' }
       : remaining === INVITE_QUOTA
-        ? { text: 'All available', bg: '#e4f1e9', color: '#1f7a4d' }
-        : { text: `${INVITE_QUOTA - remaining} used`, bg: '#fbeecb', color: '#a9740f' }
+        ? { text: t('All available'), bg: '#e4f1e9', color: '#1f7a4d' }
+        : { text: t('{n} used', { n: INVITE_QUOTA - remaining }), bg: '#fbeecb', color: '#a9740f' }
 
   const quotaPill = (
     <div className="w-full rounded-[16px] border border-[#c2cdc4] bg-[#e2e6e0] px-[20px] py-[18px]">
@@ -336,8 +337,10 @@ export default function InviteMehmaan() {
       </div>
       <div className="mt-[10px] flex items-baseline gap-[7px]">
         <span className="size-[8px] shrink-0 translate-y-[-3px] rounded-full bg-[#c9a45c]" />
-        <span className="text-[30px] leading-none text-[#15402f]" style={{ ...FM, fontWeight: 700 }}>{remaining}</span>
-        <span className="text-[14px] text-[#5a6660]" style={FMU}>/ {INVITE_QUOTA} remaining</span>
+        <span className="text-[30px] leading-none text-[#15402f]" style={{ ...FM, fontWeight: 700 }}><Count value={remaining} lang={lang} /></span>
+        {/* One key, not a solidus glued between two numbers and a word: the whole phrase is
+            translatable and the numeral lands wherever the translation puts it. */}
+        <span className="text-[14px] text-[#5a6660]" style={FMU} {...tx('/ {total} remaining', { total: INVITE_QUOTA })} />
       </div>
       <p className="mt-[10px] text-[13px] leading-[19px] text-[#5a6660]" style={FMU} {...tx('Each accepted invitation counts toward your Mehmaan quota for this Miqaat.')} />
     </div>
@@ -347,8 +350,8 @@ export default function InviteMehmaan() {
   // Only shown once at least one Mehmaan is invited; removing them all hides the CTA again.
   const inviteFooterCta = mehmaanInvites.length > 0 ? (
     <StickyFooter
-      caption={miqaat.title}
-      title={`${mehmaanInvites.length} invited`}
+      caption={<bdi {...tdAuthored(miqaat.title)} />}
+      title={t(plural(mehmaanInvites.length, '{n} invited', '{n} invited'), { n: mehmaanInvites.length })}
       button={t('Confirm')}
       // Invite Mehmaan is opened from the event's detail-page card, so Confirm returns there (the
       // card then reads "Edit") — not the Add People / registration flow.

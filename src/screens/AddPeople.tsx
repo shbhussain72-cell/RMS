@@ -590,7 +590,7 @@ export default function AddPeople() {
   const footer = (
     <div className="sm:hidden">
       <StickyFooter
-        caption="People in your reservation"
+        caption={t('People in your reservation')}
         title={footerSummary}
         button={footerButton}
         onButton={onFooterButton}
@@ -1074,7 +1074,7 @@ export default function AddPeople() {
             {/* sticky footer CTA — restored standard StickyFooter, pinned inside the white panel */}
             <div className="shrink-0">
               <StickyFooter
-                caption="People in your reservation"
+                caption={t('People in your reservation')}
                 title={footerSummary}
                 button={footerButton}
                 onButton={onFooterButton}

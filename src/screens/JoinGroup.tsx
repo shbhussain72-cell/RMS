@@ -263,7 +263,7 @@ export default function JoinGroup() {
           className="flex-1 rounded-[12px] bg-[#1f5a44] py-[13px] text-[14px] font-semibold text-white transition-colors hover:bg-[#17472f] sm:flex-none sm:px-[28px]"
           style={FMU}
         >
-          {s.primaryBtn}
+          {t(s.primaryBtn)}
         </button>
       </div>
     </div>
@@ -385,7 +385,7 @@ export default function JoinGroup() {
             }`}
             style={FMU}
           >
-            {s.otpBtn}
+            {t(s.otpBtn)}
           </button>
         </Overlay>
       )}

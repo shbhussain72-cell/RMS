@@ -10,7 +10,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import StickyFooter from '../components/figma/StickyFooter'
 import { useStore, journeyFor } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 
 const demo = {
   selectedMemberIds: family.map((m) => m.id),
@@ -38,7 +38,7 @@ function Avatar({ name }: { name: string }) {
 }
 
 function RazaStatusStrip() {
-  const { t, tx } = useT()
+  const { t, tx, tdAuthored } = useT()
   const razaIssued = useStore((s) => s.flow.razaIssued)
   return (
     <div className="flex h-[32px] items-center justify-between rounded-[8px] px-[12px]" style={{ background: razaIssued ? '#e7f1ea' : '#fff6e5' }}>
@@ -68,6 +68,7 @@ function LinkGlyph() {
 }
 
 function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; meta: ReactNode; badge: BadgeKind; linkTop?: boolean; linkBottom?: boolean }) {
+  const { td } = useT()
   return (
     <div className="relative flex min-h-[62px] items-center gap-[6px] px-[13px] py-[10px]">
       {(linkTop || linkBottom) && (
@@ -76,7 +77,7 @@ function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; m
       <div className="relative shrink-0"><Avatar name={name} /></div>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="text-[14px] leading-[18px] text-[#23302a]"
-          style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}>{name}</p>
+          style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...td(name)} />
         <p className="text-[12px] leading-[16px] text-[#5a6660]"
           style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{meta}</p>
       </div>
@@ -190,7 +191,7 @@ function InviteCardsSection({ label, invites }: { label: string; invites: Invite
 }
 
 export default function Roster() {
-  const { tx, t, td } = useT()
+  const { tx, t, td, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Read THIS event's journey (active or archived) so the roster is correct even when a different
@@ -221,8 +222,8 @@ export default function Roster() {
     <PhoneScreen
       footer={(
         <StickyFooter
-          caption={miqaat.title}
-          title={`${total} Members`}
+          caption={<bdi {...tdAuthored(miqaat.title)} />}
+          title={t(plural(total, '{n} Member', '{n} Members'), { n: total })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

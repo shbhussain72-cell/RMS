@@ -7,7 +7,7 @@ import StickyFooter from '../components/figma/StickyFooter'
 import { cityDirectory, family, miqaats } from '../data/seed'
 import { useStore, type RankedCity, type QuestionnaireAnswers } from '../store'
 import { QuestionnaireSections, validateQuestionnaire } from '../components/questionnaire/QuestionnaireFields'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const MAX_CITIES = 5
 const CARD_H = 60
@@ -364,7 +364,7 @@ function InfoBanner() {
 /* ── component ──────────────────────────────────────────────────── */
 
 export default function PreferredCity({ backdrop = false }: { backdrop?: boolean } = {}) {
-  const { t, tx } = useT()
+  const { t, tx, tdText } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -472,8 +472,8 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
   const footer = !empty ? (
     <div className="sm:hidden">
       <StickyFooter
-        caption={`${cities.length} cities selected`}
-        title={`1st choice ${cities[0]?.name ?? ''}`}
+        caption={t(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
+        title={t('1st choice {city}', { city: tdText(cities[0]?.name ?? '') })}
         button={t('Confirm')}
         onButton={handleConfirm}
       />
@@ -700,7 +700,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
                 clicking it while no city is picked just surfaces the validation toast below. */}
             <div className="shrink-0">
               <StickyFooter
-                caption={empty ? t('No cities added yet') : `${cities.length} cities selected`}
+                caption={empty ? t('No cities added yet') : t(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
                 title={empty ? 'Add a city, or skip to continue' : `1st choice ${cities[0]?.name ?? ''}`}
                 button={t('Confirm')}
                 onButton={handleConfirm}

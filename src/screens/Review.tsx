@@ -205,7 +205,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
 }
 
 export default function Review() {
-  const { t, tx } = useT()
+  const { t, tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -286,7 +286,7 @@ export default function Review() {
 
   const footer = (
     <StickyFooter
-      caption={isRequest ? 'Submit a registration request' : 'Ready for Registration'}
+      caption={isRequest ? t('Submit a registration request') : t('Ready for Registration')}
       title={footerHint}
       button={isRequest ? t('Request') : t('Register ({n})', { n: total })}
       onButton={doSubmit}
@@ -317,7 +317,7 @@ export default function Review() {
           />
         </div>
 
-        <h1 className="mt-[20px] ps-[16px] text-[24px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM}>{miqaat.title}</h1>
+        <h1 className="mt-[20px] ps-[16px] text-[24px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM} {...tdAuthored(miqaat.title)} />
         <p className="mt-[6px] ps-[16px] text-[16px] leading-[22px] text-[#15402f]" style={FM} {...tx('Review & Register')} />
         <p className="mt-[10px] ps-[16px] pe-[16px] text-[14px] leading-[21px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('Check your group before submitting. You can go back to edit any step.')} />
 
@@ -389,7 +389,7 @@ export default function Review() {
             />
 
             <div>
-              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM}>{miqaat.title}</h1>
+              <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={FM} {...tdAuthored(miqaat.title)} />
               <p className="mt-[6px] text-[18px] leading-[24px] text-[#15402f]" style={FM} {...tx('Review & Register')} />
               <p className="mt-[12px] max-w-[360px] text-[15px] leading-[22px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('Check your group before submitting. You can go back to edit any step.')} />
             </div>

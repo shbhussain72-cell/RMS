@@ -2,14 +2,14 @@ import { useState, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
-import { Iso, isolateRuns } from '../components/Bidi'
+import { Count, Iso, isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
 import StickyFooter from '../components/figma/StickyFooter'
 import { family, genderByIts, liveCities, zonesByCityId, miqaats } from '../data/seed'
 import type { FamilyMember, LiveCity } from '../data/seed'
-import { buildAllGroups, type BadgeKind, type Group } from '../lib/group'
+import { bandLabel, buildAllGroups, type BadgeKind, type Group } from '../lib/group'
 import RoleBadge from '../components/figma/RoleBadge'
 import Checkbox from '../components/figma/Checkbox'
 import StepIndicator from '../components/figma/StepIndicator'
@@ -229,7 +229,7 @@ function CityHCard({ city, selected, added, onSelect }: { city: City; selected: 
 // ever passed them, and the zone-move branch says in its own comment that the NEW box is a plain
 // display because the zone is chosen from the chips above. Dead branch, misleading comment.
 function LocBox({ label, line, sublabel, accent, highlight, onRemove }: { label: string; line: string; sublabel?: string; accent?: boolean; highlight?: boolean; onRemove?: () => void }) {
-  const { t } = useT()
+  const { t, td } = useT()
   // `highlight` = a destination is chosen but this member hasn't been placed there yet — draw the
   // eye to the empty NEW box (dashed gold + soft ring) so it's clear the user still has to pick here.
   const emphasised = accent || highlight
@@ -238,7 +238,7 @@ function LocBox({ label, line, sublabel, accent, highlight, onRemove }: { label:
   const body = (
     <>
       <div className="flex items-center justify-between gap-[8px]">
-        <p className="text-[11px] font-bold uppercase tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }}>{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }}>{isolateRuns(label)}</p>
         {onRemove ? (
           <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label={t('Remove')}
             className="flex size-[20px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
@@ -251,13 +251,13 @@ function LocBox({ label, line, sublabel, accent, highlight, onRemove }: { label:
           <span className="mt-[2px]"><PinIcon color={emphasised ? '#b8821e' : '#5a6660'} size={14} /></span>
           <div className="min-w-0">
             <p className="text-[12px] font-semibold text-[#8a938e]" style={{ fontFamily: FONT }}>{isolateRuns(sublabel)}</p>
-            <p className="mt-[1px] text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: emphasised ? '#9a6a1e' : '#23302a' }}>{line}</p>
+            <p className="mt-[1px] text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: emphasised ? '#9a6a1e' : '#23302a' }} {...td(line)} />
           </div>
         </div>
       ) : (
         <div className="mt-[5px] flex items-start gap-[5px]">
           <span className="mt-[1px]"><PinIcon color={emphasised ? '#b8821e' : '#5a6660'} size={14} /></span>
-          <span className="text-[13px] font-bold leading-[17px]" style={{ fontFamily: FONT, color: emphasised ? '#9a6a1e' : '#23302a' }}>{line}</span>
+          <span className="text-[13px] font-bold leading-[17px]" style={{ fontFamily: FONT, color: emphasised ? '#9a6a1e' : '#23302a' }} {...td(line)} />
         </div>
       )}
     </>
@@ -658,7 +658,7 @@ function UpdatedPopup({ kind, onDone }: { kind: 'city' | 'zone'; onDone: () => v
  *  {city}" action. Falls back to plain "Reserve" when no destination city name applies (e.g. the
  *  fixed single-destination host-only stage). */
 function ReserveCityButton({ active, cityName, onClick, verb = 'Switch to' }: { active: boolean; cityName?: string; onClick: () => void; verb?: string }) {
-  const { tx } = useT()
+  const { tx, td } = useT()
   if (cityName) {
     // Same teal outlined "Switch to {city}" pill + arrows icon as City/Zone Selection's per-row swap
     // action, instead of a solid green fill with no icon. Verb becomes "Request to" while the window
@@ -668,7 +668,7 @@ function ReserveCityButton({ active, cityName, onClick, verb = 'Switch to' }: { 
         className="inline-flex h-[34px] min-w-0 items-center gap-[7px] rounded-full border border-[#2e6a7d] bg-white px-[16px] text-[13px] font-bold text-[#2e6a7d] transition-colors hover:bg-[#eef5f7] active:scale-[0.97]"
         style={{ fontFamily: FONT, opacity: active ? 1 : 0.55 }}>
         <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        <span className="truncate">{verb} {cityName}</span>
+        <span className="truncate">{verb} <bdi {...td(cityName)} /></span>
       </button>
     )
   }
@@ -682,10 +682,11 @@ function ReserveCityButton({ active, cityName, onClick, verb = 'Switch to' }: { 
 /** NEW-column cell — the destination city (type + name), matching the CURRENT column's stacked
  *  layout. `pending` (a destination picked but not yet reserved) renders it muted grey. */
 function DestCityCell({ cityLabel, cityName, pending }: { cityLabel: string; cityName: string; pending?: boolean }) {
+  const { td } = useT()
   return (
     <div className="flex min-w-0 flex-col justify-center gap-[1px]">
-      <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{cityLabel}</span>
-      <span className="truncate text-[13px] font-bold leading-[17px]" style={{ fontFamily: FONT, color: pending ? '#8a938e' : '#9a6a1e' }}>{cityName}</span>
+      <span className="truncate text-[11px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }}>{isolateRuns(cityLabel)}</span>
+      <span className="truncate text-[13px] font-bold leading-[17px]" style={{ fontFamily: FONT, color: pending ? '#8a938e' : '#9a6a1e' }} {...td(cityName)} />
     </div>
   )
 }
@@ -795,7 +796,7 @@ function MoveCityGridCard({ city, selected, added, onClick }: { city: City; sele
  *  "Reserve all": every member here already has a current allocation, so moving them is always a
  *  move away from somewhere, never a first-time reserve. */
 function SwapAllPill({ allMoved, destName, onClick, verb }: { allMoved: boolean; destName?: string; onClick: () => void; verb: string }) {
-  const { tx } = useT()
+  const { tx, t, tdText } = useT()
   return allMoved ? (
     <button type="button" onClick={onClick}
       className="ms-auto flex h-[32px] shrink-0 items-center justify-center rounded-full border border-[#e0b0aa] bg-white px-[14px] text-[13px] font-bold text-[#c0392b] transition-colors hover:bg-[#fdf3f2]"
@@ -805,7 +806,9 @@ function SwapAllPill({ allMoved, destName, onClick, verb }: { allMoved: boolean;
       className="ms-auto inline-flex h-[32px] shrink-0 items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[14px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
       style={{ fontFamily: FONT }}>
       <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      <span className="truncate">{verb}{destName ? ` to ${destName}` : ''}</span>
+      {/* "Request to {city}" is one key: the preposition belongs to the sentence, not to the
+          concatenation, and LSD does not necessarily put the city after it. */}
+      <span className="truncate">{destName ? <>{t('{verb} to {city}', { verb, city: tdText(destName) })}</> : verb}</span>
     </button>
   )
 }
@@ -965,7 +968,7 @@ function RelayCityAccordionList({ cities, search, activeCityId, addedOf, onSelec
   addedOf: (id: string) => number
   onSelectCity: (c: City | null) => void
 }) {
-     const { tx } = useT()
+     const { tx, td, lang } = useT()
   const [expanded, setExpanded] = useState<string | null>(null)
   useEffect(() => {
     const c = cities.find((c) => c.id === activeCityId)
@@ -997,9 +1000,9 @@ function RelayCityAccordionList({ cities, search, activeCityId, addedOf, onSelec
               onClick={() => setExpanded((cur) => (cur === name ? null : name))}
               className="flex w-full items-center justify-between px-[14px] py-[12px] text-start transition-colors hover:bg-[#fffdf5]"
             >
-              <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{name}</span>
+              <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(name)} />
               <span className="flex items-center gap-[8px]">
-                <span className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}>{matches.length}</span>
+                <span className="text-[12px] text-[#8a938e]" style={{ fontFamily: FONT }}><Count value={matches.length} lang={lang} /></span>
                 <svg viewBox="0 0 16 16" fill="none" className={`size-[13px] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
                   <path d="M4 6l4 4 4-4" stroke="#8a938e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -1494,7 +1497,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const windowOpen = demoPhase
     ? (cityOnlyStage ? demoPhase === 'city_open' : demoPhase === 'zone_open')
     : (miqaat?.countdownSeconds ?? 0) > 0
-  const manageBreadcrumbLabel = 'Modify Reservation'
+  const manageBreadcrumbLabel = t('Modify Reservation')
   // The move action's verb depends on the window: open → it applies immediately, so it reads
   // "Switch"; closed → clicking Done files an approval request, so it reads "Request" (same signal
   // as the amber "Requested" pill and the request sheet used once the window is closed).
@@ -1514,7 +1517,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const registeredIds = flow.selectedMemberIds.length > 0 ? flow.selectedMemberIds : family.map((f) => f.id)
   const allGroups: Group[] = buildAllGroups(registeredIds, guardians, caregivers, flow.invites).map((g) => ({
     ...g,
-    label: g.label?.replace('registered together', 'reserve together'),
+    label: g.label ? bandLabel(g.label) : undefined,
   }))
   // Move every group the option covered (a family sharing one allocation → all its members here),
   // not just the first — so "Change your zone · 3 members" actually re-seats all three.
@@ -1625,7 +1628,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
 
   const currentCityName = currentAlloc?.name ?? CITY
   const currentCityType: 'host' | 'relay' = currentAlloc?.type ?? (CITY === HOST_CITY.name ? 'host' : 'relay')
-  const currentCityTypeLabel = currentCityType === 'host' ? 'Host City' : 'Relay City'
+  const currentCityTypeLabel = currentCityType === 'host' ? t('Host City') : t('Relay City')
   const currentZoneAlloc = flow.groupZones[groupIndex]
     ?? (groupIndex === 0 && flow.confirmedZone ? { name: flow.confirmedZone.name } : null)
   const currentZoneName = currentZoneAlloc?.name ?? CURRENT_ZONE
@@ -1641,7 +1644,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
     return {
       cityId: alloc?.id ?? null,
       cityName: alloc?.name ?? CITY,
-      cityTypeLabel: cityType === 'host' ? 'Host City' : 'Relay City',
+      cityTypeLabel: cityType === 'host' ? t('Host City') : t('Relay City'),
       zoneName: zoneAlloc?.name ?? CURRENT_ZONE,
     }
   }
@@ -1939,7 +1942,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // "Request all"/"Request to {city}" action wording used everywhere else once the window is closed.
   const footer = (
     <StickyFooter
-      caption="Allocation"
+      caption={t('Allocation')}
       title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? t('Confirm ({n})', { n: movedCount }) : t('Confirm')) : (movedCount > 0 ? t('Submit request ({n})', { n: movedCount }) : t('Submit request'))}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
@@ -1948,7 +1951,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   )
   const desktopFooter = (
     <StickyFooter
-      caption="Allocation"
+      caption={t('Allocation')}
       title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}

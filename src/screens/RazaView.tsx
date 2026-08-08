@@ -8,7 +8,7 @@ import { family, zonesByCityId, miqaats } from '../data/seed'
 import { buildAllGroups } from '../lib/group'
 import { useStore } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -42,7 +42,7 @@ function RazaIssuedBanner({ issued }: { issued: boolean }) {
  * layout (same web table + mobile cards) so it reads consistently.
  */
 export default function RazaView() {
-  const { t, tx } = useT()
+  const { t, tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -85,8 +85,8 @@ export default function RazaView() {
     <PhoneScreen
       footer={(
         <StickyFooter
-          caption={miqaat.title}
-          title={`${memberTotal} Members`}
+          caption={<bdi {...tdAuthored(miqaat.title)} />}
+          title={t(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

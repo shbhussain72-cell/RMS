@@ -3284,7 +3284,7 @@ export default function CitySelection() {
 
     const successZoneFooter = (
       <StickyFooter
-        caption="Zone confirmed"
+        caption={t('Zone confirmed')}
         title={t('{n} members allocated', { n: totalAllocated || totalMembers })}
         button="Go home"
         onButton={() => nav('/miqaats')}
@@ -3442,7 +3442,7 @@ export default function CitySelection() {
   const browseFooter = (
     <StickyFooter
       dataTour="city-confirm"
-      caption={isRequest ? 'Request' : 'Allocation'}
+      caption={isRequest ? t('Request') : t('Allocation')}
       title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
@@ -3476,7 +3476,7 @@ export default function CitySelection() {
   const desktopFooter = (
     <StickyFooter
       dataTour="city-confirm"
-      caption={isRequest ? 'Request' : 'Allocation'}
+      caption={isRequest ? t('Request') : t('Allocation')}
       title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}

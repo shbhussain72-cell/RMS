@@ -14,7 +14,7 @@ import TourHelpButton from '../tour/TourHelpButton'
 import LanguageToggle from '../i18n/LanguageToggle'
 import { useT } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
-import { Ltr, toArabicDigits } from '../components/Bidi'
+import { Ltr, formatDurationText, toArabicDigits } from '../components/Bidi'
 import Toast from '../components/figma/Toast'
 import { DemoProgressionControl } from '../components/figma/DemoProgressionControl'
 import { RazaStatusCard } from '../components/figma/RazaStatusCard'
@@ -289,7 +289,19 @@ function PinBadge() {
   )
 }
 
-function LocationRow({ label, value, allocated }: { label: string; value: string; allocated: boolean }) {
+/** `Colombo` / `Colombo · Zone A - Main Hall` — each name looked up separately. */
+function AllocatedValue({ city, zone }: { city?: string; zone?: string }) {
+  const { td } = useT()
+  if (!city) return null
+  return (
+    <>
+      <bdi {...td(city)} />
+      {zone ? <> · <bdi {...td(zone)} /></> : null}
+    </>
+  )
+}
+
+function LocationRow({ label, city, zone, allocated }: { label: string; city?: string; zone?: string; allocated: boolean }) {
   const { tx } = useT()
   return (
     <div
@@ -300,14 +312,18 @@ function LocationRow({ label, value, allocated }: { label: string; value: string
         <PinBadge />
         <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(label)} />
       </span>
-      {/* An allocated value is DATA (a city/zone name) and is never looked up — only the
-          "Not allocated" placeholder is UI copy, so only that goes through the dictionary.
-          Routing data through it would flood the coverage report with false gaps. */}
+      {/* City and zone names ARE in the wordlist — `Colombo` has a row, and so does every zone.
+          They were held back on the theory that routing data through the dictionary floods the
+          coverage report with false gaps; what it actually did was render `Colombo` in English on
+          four screens while its authored LSD value sat unused in the spreadsheet. `td` is the data
+          path and it resolves. The middot stays outside both halves — each is looked up alone, as
+          `Colombo · Zone A - Main Hall` is a string the wordlist will never have a row for. */}
       <span
         className="truncate text-end text-[14px] leading-[18px]"
         style={{ fontFamily: FONT_SANS, fontWeight: allocated ? 800 : 600, color: allocated ? '#1f5a44' : '#8a938e' }}
-        {...(allocated ? { children: value } : tx(value))}
-      />
+      >
+        {allocated ? <AllocatedValue city={city} zone={zone} /> : <span {...tx('Not allocated')} />}
+      </span>
     </div>
   )
 }
@@ -330,7 +346,6 @@ function useCard(m: DisplayMiqaat, confirmedCityName?: string, confirmedZoneName
   const bypassApproved = !!reopenRequests[m.id]?.approved
   const hasCity = !!confirmedCityName
   const hasZone = !!confirmedZoneName
-  const locValue = hasZone ? `${confirmedCityName} · ${confirmedZoneName}` : hasCity ? confirmedCityName! : 'Not allocated'
   const dateText = (m.deadlineLabel.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),.*/)?.[0] ?? m.deadlineLabel).replace(' - ', ' · ')
   const goDetail = () => nav(`/miqaats/${m.id}`)
 
@@ -359,7 +374,7 @@ function useCard(m: DisplayMiqaat, confirmedCityName?: string, confirmedZoneName
     { value: cd.min, unit: 'MIN' },
     { value: cd.sec, unit: 'SEC' },
   ]
-  return { nav, cd, ended, s, razaIssued, bypassApproved, hasCity, hasZone, locValue, dateText, goDetail, primary, dualFooter, cells }
+  return { nav, cd, ended, s, razaIssued, bypassApproved, hasCity, hasZone, dateText, goDetail, primary, dualFooter, cells }
 }
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
@@ -377,7 +392,7 @@ const outlineBtn = 'border border-solid border-[#1f5a44] bg-transparent text-[#1
 
 /** Registered / in-progress miqaat — horizontal image-left card (image-top on mobile). */
 function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false, onAskHelp }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string; wide?: boolean; onAskHelp?: (init: AskHelpInit) => void }) {
-  const { nav, ended, razaIssued, bypassApproved, hasCity, hasZone, locValue, dateText, goDetail, primary, cells } = useCard(m, confirmedCityName, confirmedZoneName, onAskHelp)
+  const { nav, ended, razaIssued, bypassApproved, hasCity, hasZone, dateText, goDetail, primary, cells } = useCard(m, confirmedCityName, confirmedZoneName, onAskHelp)
   const { t, tx, isLsd } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Resuming this reservation must make its journey active BEFORE navigating, so City/Zone/Manage
@@ -440,7 +455,7 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
             <Countdown cells={cells} tone={tone} compact ended={ended} />
           </div>
 
-          <LocationRow label={hasZone ? t('City & Zone') : t('City')} value={locValue} allocated={hasCity || hasZone} />
+          <LocationRow label={hasZone ? t('City & Zone') : t('City')} city={confirmedCityName} zone={hasZone ? confirmedZoneName : undefined} allocated={hasCity || hasZone} />
         </div>
 
         {/* Every card in the "Registered" section is an owned reservation → always Modify + primary.
@@ -480,16 +495,21 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
 /** Current / upcoming miqaat — compact horizontal card for the 2-col dashboard grid. */
 function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: AskHelpInit) => void }) {
   const { nav, cd, ended, s, goDetail, primary, dateText } = useCard(m, undefined, undefined, onAskHelp)
-  const { t, tx } = useT()
+  const { t, tx, lang } = useT()
   const stop = (fn: () => void) => (e: MouseEvent) => { e.stopPropagation(); fn() }
   const isLive = s === 'live'
   // "Closes in 0d 0h left" reads as a contradiction once the deadline has actually passed — say it
   // closed instead (a reopen-request approval lets the user proceed anyway, but doesn't undo the
   // fact that the window itself closed).
   const leftLabel = isLive ? (ended ? 'Registration closed' : 'Registration closes in') : s === 'registered' ? 'City opens in' : 'Registration open in'
-  // "Closed" is UI copy; the "3d 7h left" form is composed from live countdown numbers, so it is
-  // rendered as-is rather than keyed (a per-second-changing string can never match a wordlist row).
-  const dLeft = isLive && ended ? t('Closed') : `${parseInt(cd.days, 10)}d ${parseInt(cd.hours, 10)}h left`
+  // "Closed" is UI copy. The "3d 7h left" form used to be rendered raw on the grounds that a
+  // per-second string can never match a wordlist row — true of the WHOLE string, and the reason
+  // the duration is now a parameter rather than part of the key. `{duration} left` is stable, is
+  // one row, and lets the translation decide which side the duration goes; `formatDuration`
+  // supplies the numerals in the right script.
+  const dLeft = isLive && ended
+    ? t('Closed')
+    : t('{duration} left', { duration: formatDurationText(parseInt(cd.days, 10) * 1440 + parseInt(cd.hours, 10) * 60, lang) })
   // Absolute deadline date/time (registration open/close, or city-open) shown under the countdown.
   const deadlineDateTime = dateText.replace(' IST', '')
   // "Closes in" reads urgent (red); "Open in" reads informational (teal); registered → green.
@@ -752,7 +772,6 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
   const razaIssued = s === 'raza_issued'
   const hasCity = !!confirmedCityName
   const hasZone = !!confirmedZoneName
-  const locValue = hasZone ? `${confirmedCityName} · ${confirmedZoneName}` : hasCity ? confirmedCityName! : 'Not allocated'
 
   const dateText = (m.deadlineLabel.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),.*/)?.[0] ?? m.deadlineLabel).replace(' - ', ' · ')
   // A verb phrase and a date, kept APART. Interpolating the date into the sentence with a
@@ -859,7 +878,11 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
                   <PinBadge />
                   <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(hasZone ? 'City & zone' : 'City')} />
                 </span>
-                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }} {...(hasCity || hasZone ? td(locValue) : tx(locValue))} />
+                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }} >
+                  {hasCity || hasZone
+                    ? <AllocatedValue city={confirmedCityName} zone={hasZone ? confirmedZoneName : undefined} />
+                    : <span {...tx('Not allocated')} />}
+                </span>
               </div>
             )}
           </div>

@@ -891,7 +891,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function ZoneSelection() {
-  const { tx, t, td } = useT()
+  const { tx, t, td, tdText } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   // Ask-Help-from-detail returns to the event's detail page after a request, else Home.
@@ -1323,8 +1323,8 @@ export default function ZoneSelection() {
 
     const successFooter = (
       <StickyFooter
-        caption="Zone confirmed"
-        title={`${cityName} · ${t(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })}`}
+        caption={t('Zone confirmed')}
+        title={t(plural(totalMembers, '{city} · {n} member', '{city} · {n} members'), { city: tdText(cityName), n: totalMembers })}
         button={t('Done')}
         onButton={() => nav('/miqaats')}
       />
@@ -1460,7 +1460,7 @@ export default function ZoneSelection() {
   const browseFooter = (
     <StickyFooter
       dataTour="reserve-confirm"
-      caption="Allocate"
+      caption={t('Allocate')}
       title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
       button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
       onButton={handleReserve}
@@ -1842,7 +1842,7 @@ export default function ZoneSelection() {
             <div className="shrink-0">
               <StickyFooter
                 dataTour="reserve-confirm"
-                caption="Allocation"
+                caption={t('Allocation')}
                 title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
                 button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
                 onButton={handleReserve}

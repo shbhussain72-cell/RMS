@@ -1,9 +1,9 @@
-import type { Group } from '../../lib/group'
+import { bandLabel, type Group } from '../../lib/group'
 import { isolateRuns } from '../Bidi'
 import RoleBadge from './RoleBadge'
 import { useStore } from '../../store'
 import { genderByIts } from '../../data/seed'
-import { useT, tNow } from '../../i18n'
+import { plural, useT, tNow } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -62,7 +62,7 @@ export function CityTypeTag({ type }: { type: 'host' | 'relay' }) {
 
 /** "📍 City · Host City · N members" — section header above a city's groups (optional trailing action). */
 export function CityHeader({ name, count, type, action }: { name: string; count?: number; type?: 'host' | 'relay'; action?: React.ReactNode }) {
-  const { td } = useT()
+  const { td, tx } = useT()
   return (
     <div className="flex items-center justify-between gap-[10px]">
       <div className="flex items-center gap-[8px] min-w-0">
@@ -70,7 +70,7 @@ export function CityHeader({ name, count, type, action }: { name: string; count?
         <span className="text-[20px] font-bold text-[#23302a] truncate" style={{ fontFamily: FONT }} {...td(name)} />
         {type && <CityTypeTag type={type} />}
         {count !== undefined && (
-          <span className="text-[15px] text-[#8a938e] shrink-0" style={{ fontFamily: FONT }}>· {count} members</span>
+          <span className="text-[15px] text-[#8a938e] shrink-0" style={{ fontFamily: FONT }} {...tx(plural(count, '· {n} member', '· {n} members'), { n: count })} />
         )}
       </div>
       {action}
@@ -80,10 +80,11 @@ export function CityHeader({ name, count, type, action }: { name: string; count?
 
 /** "Zone A - Main Hall · N members" — zone sub-heading inside a city. */
 export function ZoneHeader({ name, count }: { name: string; count: number }) {
+  const { td, tx } = useT()
   return (
     <p className="text-[17px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-      {name}
-      <span className="text-[15px] font-normal text-[#8a938e]"> · {count} members</span>
+      <bdi {...td(name)} />
+      <span className="text-[15px] font-normal text-[#8a938e]"> <bdi {...tx(plural(count, '· {n} member', '· {n} members'), { n: count })} /></span>
     </p>
   )
 }
@@ -98,7 +99,7 @@ export function AllocationGroupCard({ group }: { group: Group }) {
       {linked && (
         <div className="flex items-center gap-[8px] bg-[#dcebef] px-[16px] py-[11px]">
           <LinkGlyph />
-          <span className="text-[14px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label}</span>
+          <span className="text-[14px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }} {...tx(bandLabel(group.label!))} />
         </div>
       )}
       <div className="relative px-[16px] pt-[14px] pb-[6px]">

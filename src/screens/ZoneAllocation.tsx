@@ -8,13 +8,13 @@ import { family, zonesByCityId, miqaats } from '../data/seed'
 import { buildAllGroups } from '../lib/group'
 import { useStore } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
 
 function ChangeZoneButton({ onClick }: { onClick: () => void }) {
-  const { tx } = useT()
+  const { tx, tdAuthored } = useT()
   return (
     <button
       type="button"
@@ -30,7 +30,7 @@ function ChangeZoneButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function ZoneAllocation() {
-  const { t, tx } = useT()
+  const { t, tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -72,8 +72,8 @@ export default function ZoneAllocation() {
     <PhoneScreen
       footer={(
         <StickyFooter
-          caption={miqaat.title}
-          title={`${memberTotal} Members`}
+          caption={<bdi {...tdAuthored(miqaat.title)} />}
+          title={t(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

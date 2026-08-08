@@ -13,7 +13,7 @@ import { plural, useT } from '../i18n'
 const SERIF = 'Marcellus, Georgia, serif'
 
 export default function CityAllocation() {
-  const { t, tx } = useT()
+  const { t, tx, tdAuthored } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const flow = useStore((s) => s.flow)
@@ -42,7 +42,7 @@ export default function CityAllocation() {
     <PhoneScreen
       footer={(
         <StickyFooter
-          caption={miqaat.title}
+          caption={<bdi {...tdAuthored(miqaat.title)} />}
           title={t(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}

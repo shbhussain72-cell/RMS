@@ -430,6 +430,22 @@ function PdfFileIcon({ size = 20 }: { size?: number }) {
  *  the admin's latest text/upload for the event. */
 const GUIDELINES_INTRO =
   'Please read the following guidelines carefully before and during your Miqaat journey.'
+/**
+ * The organiser document's rules. Rows 2–5 are word-for-word `importantNotices` in
+ * `src/data/seed.ts`, and until §4.7 both were rendered on this page at once — the notice list,
+ * and again inside the Documents card's clipped preview.
+ *
+ * The notice list is canonical. Those five rows are the wordlist's sentinel entries: their cells
+ * hold an instruction rather than a translation, they render English on purpose, and the standing
+ * rule is that they are neither deleted nor translated. The section exists to carry them. This
+ * card is a *preview of a document* — its job is to show one exists and to open it, which it can
+ * do without restating the notices. So the rules stay here for the popup, which is where someone
+ * has asked to read the document, and the collapsed card no longer repeats them.
+ *
+ * Kept as a separate array rather than pointed at `importantNotices`: these are the document's
+ * words and those are the app's, and the fixture wording agreeing today is not a reason to fuse
+ * them — the sentinel rows in particular must keep their own identity in the wordlist.
+ */
 const GUIDELINES_RULES = [
   'Registration closes on 5 June 2026 at 11:59 PM.',
   'Children below 10 years of age must be assigned to a parent or guardian before proceeding.',
@@ -459,19 +475,21 @@ function GuidelinesCard() {
             <p className="mt-[2px] text-[12px] leading-[17px] text-[#6a746e]" style={{ fontFamily: MUL }} {...tx('Provided by the organisers for this Miqaat — tap to view.')} />
           </div>
         </div>
-        <div className="relative mx-[16px] mb-[16px] h-[150px] overflow-hidden rounded-[10px] border border-[#e7dfc9] bg-white">
-          {/* Clipped written preview of the guidelines (not a document image). */}
-          <div className="pointer-events-none absolute inset-0 px-[16px] pt-[14px]">
-            <p className="text-[13px] leading-[18px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
-            <ol className="mt-[8px] list-decimal space-y-[5px] ps-[18px]">
-              {GUIDELINES_RULES.map((r, i) => (
-                <li key={i} className="text-[11.5px] leading-[16px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(r)} />
-              ))}
-            </ol>
-          </div>
-          <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-white via-white/70 to-transparent pb-[8px]">
-            <span className="rounded-full bg-[#1f5a44] px-[12px] py-[4px] text-[11px] font-bold text-white" style={{ fontFamily: MUL }} {...tx('View document')} />
-          </div>
+        {/* Preview of the DOCUMENT, not a second copy of the notice list.
+            §4.7: this box used to render `GUIDELINES_RULES` — the same five sentences as the
+            `Important Notice` section three cards above it. Those five are the canonical ones
+            (see the note on GUIDELINES_RULES), so what belongs here is what identifies the
+            document: its title and its opening line. The full text is one tap away.
+            §4.6: with no list to clip there is nothing for a gradient to fade, so rows 2–5 can
+            no longer sit half-legible under it, and the "View document" pill moves to its own
+            row below rather than resting on top of the text. Preferred over raising a collapsed
+            height, which re-breaks every time a string changes length or language. */}
+        <div className="relative mx-[16px] overflow-hidden rounded-[10px] border border-[#e7dfc9] bg-white px-[16px] py-[14px]">
+          <p className="text-[13px] leading-[18px] text-[#15402f]" style={{ fontFamily: 'Marcellus, serif' }} {...tx('Miqaat Guidelines & Rules and Regulations')} />
+          <p className="mt-[6px] text-[11.5px] leading-[17px] text-[#5a6660]" style={{ fontFamily: MUL }} {...tx(GUIDELINES_INTRO)} />
+        </div>
+        <div className="flex items-center justify-end px-[16px] pb-[16px] pt-[10px]">
+          <span className="rounded-full bg-[#1f5a44] px-[12px] py-[4px] text-[11px] font-bold text-white" style={{ fontFamily: MUL }} {...tx('View document')} />
         </div>
       </button>
       {open && <GuidelinesPreviewPopup onClose={() => setOpen(false)} />}

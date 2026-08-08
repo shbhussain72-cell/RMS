@@ -48,6 +48,9 @@ const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG', 
 /** Marks the panel's own subtree so the scanner never reports itself. */
 export const SCANNER_IGNORE_ATTR = 'data-lsd-scanner-ignore'
 
+/** Set by `isolateRuns()` on every Latin run it cuts out of a translated dictionary value. */
+const ISOLATED_RUN_ATTR = 'data-lsd-run'
+
 export type HitClass = 'A' | 'B' | 'C'
 
 /**
@@ -137,6 +140,12 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
       for (let el = (node as Text).parentElement; el; el = el.parentElement) {
         if (SKIP_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT
         if (el.hasAttribute?.(SCANNER_IGNORE_ATTR)) return NodeFilter.FILTER_REJECT
+        // A Latin run that `isolateRuns()` cut out of a TRANSLATED value. `‏Register كرنار`
+        // and `‏zone ا - هال اعظم` are finished LSD strings whose Latin halves are loanwords
+        // the policy keeps in Latin on purpose; the scanner reads text nodes, so it sees the
+        // loanword and not the Arabic around it, and reports a translated string as English.
+        // Without this the class-A count carries a floor no amount of wiring can remove.
+        if (el.hasAttribute?.(ISOLATED_RUN_ATTR)) return NodeFilter.FILTER_REJECT
         // An element explicitly marked LTR is data (ITS id, date, file size) rather than
         // untranslated copy — but it is still reported, just attributed accurately by the
         // classifier below. Nothing is suppressed here.

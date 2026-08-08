@@ -400,7 +400,12 @@ export function isolateRuns(text: string): ReactNode {
             run.arabic ? (
               run.text
             ) : (
-              <bdi key={`r${i}`} style={{ unicodeBidi: 'isolate' }}>
+              // `data-lsd-run` marks this Latin text as having come OUT of a translated
+              // dictionary value. The coverage scanner rejects these subtrees: a loanword
+              // inside a finished LSD string (`‏Register كرنار`, `‏zone ا - هال اعظم`) is the
+              // policy working, not untranslated copy, and counting it as a gap produces an
+              // A that no amount of wiring can ever drive to zero.
+              <bdi key={`r${i}`} data-lsd-run="" style={{ unicodeBidi: 'isolate' }}>
                 {run.text}
               </bdi>
             ),

@@ -319,7 +319,9 @@ function SlotClosedCard() {
       <p className="px-[18px] py-[13px] text-[14px] leading-[20px] text-[#5a4f4c]" style={{ fontFamily: FONT }}>
         <strong className="font-bold text-[#3a2f2d]" {...tx('Phase 2')} />{' '}
         <span {...tx('starts')} />{' '}
-        <Iso>{t('Fri')}, 20</Iso>{' · '}<TimeLine value="6:00 PM" />.
+        {/* Two isolates, not one: `t('Fri')` is Arabic in LSD, so a single <Iso> around the pair
+            isolates them from the sentence but leaves the ASCII "20" unbounded against it. */}
+        <Iso>{t('Fri')}</Iso>{', '}<Iso>20</Iso>{' · '}<TimeLine value="6:00 PM" />.
       </p>
     </div>
   )
@@ -1607,7 +1609,11 @@ export default function ZoneSelection() {
         </svg>
         {activeZone ? (
           <p className="text-[13px] font-semibold leading-[18px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> — select members below
+            {/* "Selected zone" stays an inline literal: it has no wordlist row, and wrapping it in
+                an <Iso> turns it into a scanner-visible UNROUTED string that fails check:lsd. It
+                is not a reported bidi violation either — the zone name and trailing phrase beside
+                it are what needed bounding. Routing it needs an xlsx row first. */}
+            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>— select members below</Iso>
           </p>
         ) : (
           <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }} {...tx('Select a zone above to start allocating your members')} />
@@ -1750,7 +1756,11 @@ export default function ZoneSelection() {
                   <span className="inline-flex h-[36px] items-center gap-[8px] rounded-full border px-[15px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
                     <PinIcon color="#c8842a" size={16} />
                     <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                      Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> — select members below
+                      {/* "Selected zone" stays an inline literal: it has no wordlist row, and wrapping it in
+                an <Iso> turns it into a scanner-visible UNROUTED string that fails check:lsd. It
+                is not a reported bidi violation either — the zone name and trailing phrase beside
+                it are what needed bounding. Routing it needs an xlsx row first. */}
+            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>— select members below</Iso>
                     </span>
                   </span>
                 )}

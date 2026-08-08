@@ -278,7 +278,7 @@ export default function InviteMehmaan() {
             <Avatar name={result.name} size={72} />
             <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={FMU} {...td(result.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={FMU}>
-              {result.gender ? `${tdText(result.gender)} · ` : ''}{t('Age')} {result.age} · {t('ITS')} {result.its}
+              {isolateRuns(`${result.gender ? `${tdText(result.gender)} · ` : ''}${t('Age')} ${result.age} · ${t('ITS')} ${result.its}`)}
             </p>
             <div className="mt-[18px]">{inviteButton}</div>
           </div>

@@ -116,7 +116,12 @@ const PROBE = () => {
     if (!el || !el.isConnected) continue
     let skip = false
     for (let a = el; a; a = a.parentElement) {
-      if (SKIP.has(a.tagName) || a.hasAttribute?.('data-lsd-scanner-ignore')) { skip = true; break }
+      // `.toUpperCase()` is load-bearing. `Element.tagName` is uppercased only for HTML elements;
+      // foreign (SVG) elements preserve their original case, so an <svg>/<path>/<text> reports
+      // 'svg'/'path'/'text'. The 'SVG' and 'PATH' entries above could therefore never match and
+      // the intended skip was dead — an icon's <text> label (the "PDF" file badge) was reported
+      // as an unisolated run even though SVG was meant to be excluded all along.
+      if (SKIP.has(a.tagName?.toUpperCase()) || a.hasAttribute?.('data-lsd-scanner-ignore')) { skip = true; break }
     }
     if (skip) continue
     // Not rendered → cannot be visually wrong.

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { Iso, isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -77,8 +78,10 @@ function RowText({ member }: { member: FamilyMember }) {
   return (
     <div className="flex min-w-0 flex-col items-start gap-[2px]">
       <p className="w-full text-[14px] leading-[18px] text-[#23302a]" style={{ ...FMU, fontWeight: 700 }} {...td(member.name)} />
+      {/* One isolated string rather than separate JSX expressions — each expression would be its
+          own text node, leaving `ITS` and the id as bare runs inside the RTL paragraph. */}
       <p className="w-full text-[12px] leading-[16px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>
-        {tdText(member.relation)} · {tdText(member.gender)} · {t('Age')} {agePad(member.age)} · {t('ITS')} {member.its}
+        {isolateRuns(`${tdText(member.relation)} · ${tdText(member.gender)} · ${t('Age')} ${agePad(member.age)} · ${t('ITS')} ${member.its}`)}
       </p>
     </div>
   )
@@ -128,7 +131,11 @@ function StatTile({ value, numColor, line1, line2 }: { value: number; numColor: 
     <div className="relative h-[82px] flex-1 overflow-clip rounded-[8px] border border-solid border-[#e7dfc9] bg-[#fffdf8]">
       <div className="absolute start-0 end-0 top-1/2 mx-auto flex w-[64px] -translate-y-1/2 flex-col items-center gap-[2px] text-center">
         <p className="text-[18px] leading-[20px]" style={{ ...FMU, fontWeight: 700, color: numColor }}>{String(value).padStart(2, '0')}</p>
-        <p className="whitespace-nowrap text-[14px] leading-[20px] text-[#5a6660]" style={{ ...FMU, fontWeight: 700 }}>{line1}<br />{line2}</p>
+        {/* <Iso>, not isolateRuns: a tile can pair a translated `line1` with an untranslated
+            `line2` (the Group tile stacks an LSD word over the English "members"), and
+            `isolateRuns` returns a BARE string for a single-run value — so a pure-Latin half got
+            no wrapper at all and stayed unbounded inside the RTL tile. <Iso> always wraps. */}
+        <p className="whitespace-nowrap text-[14px] leading-[20px] text-[#5a6660]" style={{ ...FMU, fontWeight: 700 }}><Iso>{line1}</Iso><br /><Iso>{line2}</Iso></p>
       </div>
     </div>
   )
@@ -177,7 +184,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
                         <div className="min-w-0">
                           <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                            {tdText(m.member.relation)} · {tdText(m.member.gender)} · {t('Age')} {agePad(m.member.age)} · {t('ITS')} {m.member.its}
+                            {isolateRuns(`${tdText(m.member.relation)} · ${tdText(m.member.gender)} · ${t('Age')} ${agePad(m.member.age)} · ${t('ITS')} ${m.member.its}`)}
                           </p>
                         </div>
                       </div>

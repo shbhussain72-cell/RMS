@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import AppBar from '../components/figma/AppBar'
@@ -41,10 +41,16 @@ export default function Notifications() {
   const readIds = new Set(readNotifIds)
   const unread = unreadCount(readNotifIds, visible)
   const filtered = filterNotifications(visible, filter)
+  // Cancel the in-flight hide before arming a new one. Without this, a second toast raised while
+  // the first is still up inherits the FIRST toast's remaining time — mark-all then accept-invite
+  // half a second later left the second message on screen for 0.5s instead of 2.5s.
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>()
   const showToast = (msg: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
     setToastMsg(msg)
-    setTimeout(() => setToastMsg(null), 2500)
+    toastTimer.current = setTimeout(() => setToastMsg(null), 2500)
   }
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
   const handleMarkAll = () => {
     if (unread === 0) return
     markAll()

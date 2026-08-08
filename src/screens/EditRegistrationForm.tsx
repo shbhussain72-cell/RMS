@@ -8,6 +8,7 @@ import { useStore, type QuestionnaireAnswers } from '../store'
 import { QuestionnaireSections, QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { pendingNewQuestionKeys, isFormEditable } from '../lib/registrationForm'
 import { useT } from '../i18n'
+import { isolateRuns } from '../components/Bidi'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
@@ -83,12 +84,14 @@ export default function EditRegistrationForm() {
 
       <div className="mx-auto w-full max-w-[640px] px-[16px] pb-[32px] sm:px-0 sm:py-10">
         <h2 className="mt-[20px] text-[22px] leading-[28px] tracking-[0.2px] text-[#15402f] sm:text-[28px]" style={{ fontFamily: FONT_SERIF }}>
-          {editable ? 'Edit Registration Form' : t('Registration Responses')}
+          {isolateRuns(editable ? 'Edit Registration Form' : t('Registration Responses'))}
         </h2>
         <p className="mt-[6px] text-[14px] leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-          {editable
-            ? 'Your registration is confirmed. You can still update your accommodation, travel, food, and medical preferences below.'
-            : t('Your registration is confirmed and City Selection has opened, so these responses can no longer be changed.')}
+          {isolateRuns(
+            editable
+              ? 'Your registration is confirmed. You can still update your accommodation, travel, food, and medical preferences below.'
+              : t('Your registration is confirmed and City Selection has opened, so these responses can no longer be changed.'),
+          )}
         </p>
 
         {!editable && (

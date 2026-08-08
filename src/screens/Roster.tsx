@@ -134,7 +134,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
                       <p className="text-[14px] font-bold leading-[18px] text-[#23302a]"
                         style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...td(inv.name)} />
                       <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]"
-                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{t('Age')} {inv.age} · {t('ITS')} {inv.its}</p>
+                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{isolateRuns(`${t('Age')} ${inv.age} · ${t('ITS')} ${inv.its}`)}</p>
                     </div>
                   </div>
                 </td>
@@ -173,7 +173,7 @@ function InviteCardsSection({ label, invites }: { label: string; invites: Invite
                 <p className="truncate text-[14px] leading-[18px] text-[#23302a]"
                   style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...td(inv.name)} />
                 <p className="text-[12px] leading-[18px] text-[#5a6660]"
-                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{t('Age')} {inv.age} · {t('ITS')} {inv.its}</p>
+                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{isolateRuns(`${t('Age')} ${inv.age} · ${t('ITS')} ${inv.its}`)}</p>
               </div>
             </div>
             <div className="mx-[14px] h-px bg-[#eaeaea]" />

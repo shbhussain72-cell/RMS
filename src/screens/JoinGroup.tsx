@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AppBar from '../components/figma/AppBar'
+import { isolateRuns } from '../components/Bidi'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import RoleBadge from '../components/figma/RoleBadge'
@@ -153,8 +154,11 @@ function MemberList() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.name)} />
+            {/* Built as ONE string then isolated, not as separate JSX expressions: each expression
+                is its own text node, so `ITS` and the id landed in the RTL paragraph as bare runs
+                with nothing declaring their boundaries. */}
             <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-              {tdText(m.relation)} · {tdText(m.gender)} · {t('Age')} {String(m.age).padStart(2, '0')} · {t('ITS')} {m.its}
+              {isolateRuns(`${tdText(m.relation)} · ${tdText(m.gender)} · ${t('Age')} ${String(m.age).padStart(2, '0')} · ${t('ITS')} ${m.its}`)}
             </p>
           </div>
           {m.roleTag && <RoleBadge kind={KIND[m.roleTag]} />}
@@ -308,7 +312,7 @@ export default function JoinGroup() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={FMU} {...td(m.name)} />
                   <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                    {tdText(m.relation)} · {tdText(m.gender)} · {t('Age')} {String(m.age).padStart(2, '0')} · {t('ITS')} {m.its}
+                    {isolateRuns(`${tdText(m.relation)} · ${tdText(m.gender)} · ${t('Age')} ${String(m.age).padStart(2, '0')} · ${t('ITS')} ${m.its}`)}
                   </p>
                 </div>
                 {m.roleTag && (

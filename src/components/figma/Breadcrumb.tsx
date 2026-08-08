@@ -1,4 +1,5 @@
 import { useT } from '../../i18n'
+import { isolateRuns } from '../Bidi'
 /**
  * Breadcrumb — pixel-exact from Figma (node 29:3078).
  *
@@ -12,6 +13,16 @@ import { useT } from '../../i18n'
  * Pass `onNavigate(to)` to handle crumb clicks (router-agnostic).
  */
 export type Crumb = { label: string; to?: string };
+
+/**
+ * Crumb labels arrive as STRINGS — call sites build the trail with `t('…')`, whose string-only
+ * form does no bidi isolation (only the `tx()` spread does, and a label prop cannot be spread).
+ * So an LSD label like `‏Registration نا جوابو` reached the DOM as one mixed text node inside an
+ * RTL span, leaving the Latin run at the mercy of the bidi algorithm. Isolating HERE fixes every
+ * breadcrumb in the app at once; `isolateRuns` returns the bare string when there is nothing to
+ * isolate, so English mode adds no DOM node and is unchanged.
+ */
+const crumbText = (label: string) => isolateRuns(label);
 
 function Chevron() {
   return (
@@ -86,14 +97,14 @@ export default function Breadcrumb({
                 className={`cursor-pointer whitespace-nowrap text-start ${textSize} leading-[1.5] text-[#8a938e] underline-offset-[3px] transition-colors duration-150 hover:text-[#15402f] hover:underline focus-visible:text-[#15402f] focus-visible:outline-none`}
                 style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 400 }}
               >
-                {item.label}
+                {crumbText(item.label)}
               </button>
             ) : (
               <span
                 className={`whitespace-nowrap ${textSize} leading-[1.5]`}
                 style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 400, color: isLast ? activeColor : "#8a938e" }}
               >
-                {item.label}
+                {crumbText(item.label)}
               </span>
             )}
             {!isLast && <Chevron />}

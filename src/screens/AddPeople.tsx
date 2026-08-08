@@ -75,7 +75,9 @@ function WarnStrip({ text, onAssign, interactive = true }: { text: string; onAss
       className={`flex items-center gap-[10px] rounded-[8px] border border-solid px-[10px] py-[8px] ${interactive ? 'cursor-pointer sm:transition-colors sm:hover:bg-[rgba(254,237,201,0.35)]' : ''}`}
       style={{ backgroundColor: 'rgba(254,237,201,0.2)', borderColor: 'rgba(222,124,0,0.3)' }}>
       <img src={WARNING} alt="" className="size-[16px] shrink-0" />
-      <p className="flex-1 text-[12px] leading-[16px]" style={{ fontFamily: FONT_SANS, fontWeight: 400, color: 'rgba(51,27,6,0.9)' }}>{text}</p>
+      {/* `text` arrives as a t() string, which does no isolation — the guardian warning mixes an
+          ASCII "10" and Arabic in one node, so it needs isolating here like the meta rows below. */}
+      <p className="flex-1 text-[12px] leading-[16px]" style={{ fontFamily: FONT_SANS, fontWeight: 400, color: 'rgba(51,27,6,0.9)' }}>{isolateRuns(text)}</p>
       {interactive && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onAssign() }}
           className="flex h-[24px] shrink-0 cursor-pointer items-center gap-[4px] rounded-[12px] border border-solid px-[10px] sm:transition-all sm:duration-200 sm:hover:bg-[#fff8ec] sm:hover:shadow-[0_2px_6px_-2px_rgba(21,64,47,0.18)] sm:active:scale-[0.96] sm:focus-visible:outline-none sm:focus-visible:ring-2 sm:focus-visible:ring-[#1f5a44]/30"

@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
@@ -1716,6 +1716,8 @@ export default function ManageReservations() {
   const [assignTarget, setAssignTarget] = useState<FamilyMember | null>(null)
   const [guardianFor, setGuardianFor] = useState<Record<string, string>>({})
   const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>()
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
   const [result, setResult] = useState<{ title: string; subtext: string } | null>(null)
   // Returning from the "Edit registration" flow (Add People → Review → success → Post Registration
   // Details → here) surfaces a one-shot success popup, then clears the router state so a refresh or
@@ -1980,9 +1982,12 @@ export default function ManageReservations() {
     }))
     .filter((g) => g.members.length > 0)
 
+  // Cancel the in-flight hide before arming a new one, or a second toast raised while the first
+  // is still up inherits the FIRST one's remaining time and vanishes early.
   function showToast(msg: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast(msg)
-    setTimeout(() => setToast(null), 2200)
+    toastTimer.current = setTimeout(() => setToast(null), 2200)
   }
 
   // Linked (or awaiting transfer acceptance) → cancellation is blocked with an explainer popup.
@@ -2205,7 +2210,7 @@ export default function ManageReservations() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
                   <p className="mt-[3px] text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                    {tdText(registrant.gender)} · {t('Age')} {registrant.age} · {t('ITS')} {registrant.its}
+                    {isolateRuns(`${tdText(registrant.gender)} · ${t('Age')} ${registrant.age} · ${t('ITS')} ${registrant.its}`)}
                   </p>
                 </div>
               </div>

@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useStore } from '../store'
-import { TOUR_SCREENS, TOUR_SEEN_KEY, screensForPath, type TourScreen, type TourStep } from './steps'
+import { TOUR_SCREENS, screensForPath, type TourScreen, type TourStep } from './steps'
+import { getSeen, markSeen } from './seen'
 import TourOverlay from './TourOverlay'
 
 interface TourContextValue {
@@ -35,25 +36,6 @@ export function useTour(): TourContextValue {
 /** Never-throwing accessor for components that may render outside the provider. */
 export function useTourActive(): boolean {
   return useContext(TourContext)?.active ?? false
-}
-
-function getSeen(): string[] {
-  try {
-    const raw = localStorage.getItem(TOUR_SEEN_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-function markSeen(key: string) {
-  try {
-    const set = new Set(getSeen())
-    set.add(key)
-    localStorage.setItem(TOUR_SEEN_KEY, JSON.stringify([...set]))
-  } catch {
-    /* ignore storage failures */
-  }
 }
 
 /** Is a `data-tour` anchor currently rendered and laid out? (Mirrors the overlay's finder.) */

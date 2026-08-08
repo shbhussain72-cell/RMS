@@ -2,7 +2,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
-import { isolateRuns } from '../components/Bidi'
+import { Iso, isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
@@ -2089,11 +2089,13 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
         {(cityOnlyStage ? !!activeCity : !!activeZone) && (
           <div className="mx-[16px] mt-[12px] flex items-center gap-[8px] rounded-[12px] border px-[14px] py-[11px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
             <PinIcon color="#c8842a" size={15} />
+            {/* The English fragments sit beside a translated `Selected` in an RTL line, so each one
+                needs its own isolate; `destCity` goes through `td` like the zone name beside it,
+                which both resolves it and isolates it (it was a raw string in a bare <strong>). */}
             <span className="text-[13.5px] font-semibold leading-[19px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              
-              {t('Selected')} {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
+              {t('Selected')} <Iso>{destType} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
               {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
-              {' '}— select members below
+              {' '}<Iso>— select members below</Iso>
             </span>
           </div>
         )}
@@ -2221,10 +2223,9 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                     <span className="inline-flex h-[36px] items-center gap-[8px] rounded-full border px-[15px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
                       <PinIcon color="#c8842a" size={16} />
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        
-                        {t('Selected')} {destType} city <strong className="font-bold text-[#1f5a44]">{destCity}</strong>
+                        {t('Selected')} <Iso>{destType} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
                         {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
-                        {' '}— select members below
+                        {' '}<Iso>— select members below</Iso>
                       </span>
                     </span>
                   )}

@@ -178,7 +178,10 @@ function Section({ id, number, title, children }: { id: string; number: number; 
           of the heading. Two isolates keep the ordinal where it belongs, in both scripts. */}
       <h3 className="text-[17px] leading-[24px] text-[#15402f]" style={{ fontFamily: FONT_SERIF }}>
         {grid ? (
-          title
+          // The grid layout drops the ordinal, but the title still needs isolating — it was the
+          // one branch left rendering the raw string, so `‏visa وثائق` reached the DOM as a
+          // single mixed node on desktop while the mobile branch below was already correct.
+          isolateRuns(title)
         ) : (
           <>
             <Iso>{isLsd ? `${toArabicDigits(String(number))}.` : `${number}.`}</Iso> {isolateRuns(title)}

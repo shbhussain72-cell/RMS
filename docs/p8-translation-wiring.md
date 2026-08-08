@@ -172,28 +172,122 @@ Two genuine interpolation gaps were closed to get there: a missed key now still 
 `Request ‏كولمبو` in one unisolated node), and ten call sites used `t()` where the result is
 rendered as a JSX child — `t` returns a bare string, and only the `tx` spread can isolate it.
 
-## Open items
+## Follow-up pass — the six items
 
-**1. The `check:lsd` baseline — needs your decision, and no build can pass until it is made.**
-Outstanding is 195 against a baseline of 170; 28 of the new entries are `NO_ROW` and 1 is
-`INDIRECT`. The `INDIRECT` one is `RoleBadge`'s label, which is genuinely wired — the gate simply
-cannot see through the variable. Either apply the patch and run `build:lsd`, or re-baseline. I
-have not re-baselined.
+All six landed. `npm run build` passes end to end for the first time this session.
 
-**2. 23 date strings still reach the DOM raw.** `dateLabel` now goes through `DateLine`; these
-come from deadline and calendar labels that do not. Routing them is a formatter change, not a
-wiring one, and it is the remainder of the "every date through the formatters" objective.
+### 1. Baseline
 
-**3. Two things I could not verify and am not claiming.** Wiring the weekday headers through
-`tx()` appends a gap-marker `<sup>`, so those spans stopped being leaf text nodes and the probe
-can no longer see them — **the desktop ordering at 1440 is unconfirmed**. And the breadcrumb
-chevron flip uses two paths rather than a transform (deliberately: a transform would give each
-16px box its own stacking context, the documented `/success` mechanism), so the old
-`transform !== 'none'` test is now always 0 *by design* and proves nothing.
+Re-baselined to **198**, not the 195 quoted — three more arrived from work done after that
+number was reported. Composition of the 32 new since the old baseline of 170:
 
-**4. The screenshot harness has not been run.** `npm run shoot` calls `npm run build`, which
-fails at `check:lsd`. It unblocks with item 1.
+| count | what | expected to |
+|---:|---|---|
+| 12 | parameterised keys this session introduced (`Confirm ({n})`, `Close in {time}`, `Swap all to {city}`, `This window closed on {date}…`) | fall as rows land — they exist because a sentence stopped being assembled in code |
+| 18 | ordinary NO_ROW strings the wiring made visible for the first time | fall as rows land |
+| 2 | INDIRECT — `RoleBadge`'s label, `MiqaatDetail`'s CTA. Both genuinely wired; the gate cannot see through a variable and says so rather than guessing | stay |
 
-**5. The static sweep still reports 202 unrouted literals** outside the route walk's reach
-(modals, error states, capacity pills). 35 of the 237 raw hits are CSS values the sweep's
-machinery filter does not catch. That set is P9's, not this session's.
+Counted, not estimated at 25.
+
+### 2. The patch
+
+Left in place at `artifacts/audit/wordlist-patch.xlsx` for the dictionary editor. Not pasted.
+
+**It was destroyed mid-session and regenerated** — see item 7 below.
+
+### 3. What is not language
+
+`src/components/NotLanguage.tsx`. Marks the SITE, not a list of literals: a list would suppress
+`MH` everywhere including a real untranslated one, would need editing whenever a fixture gains a
+name, and says nothing at the call site about why the string is exempt. `rg notLanguage` lists
+every exemption in the app with its context.
+
+31 sites: 30 avatar-initial renders and the EN/LSD switcher — the one control that must NOT
+follow the current language, because `EN` in LSD script is a door with no handle. Plus
+`formatGregorian` and `DeadlineLine`'s compact branch, which is the same thing the date policy
+already says: a civil reference that stays `26 Jun 2026` in both languages so it matches the
+passport.
+
+### 4. Dates
+
+Of the 23 date rows, 19 were `DateLine` working correctly and being reported anyway — the marker
+above removes them. Four were real: the miqaat list sliced `deadlineLabel` with a regex and handed
+the result to the DOM, the last place in the app where a date reached the screen without passing a
+formatter. In LSD it read as one Latin blob in an RTL paragraph, weekday untranslated, clock in
+ASCII digits, run unisolated. `DeadlineLine` composes the three parts.
+
+**0 date strings remain in the patch.** It went 157 rows → 104, all copy.
+
+### 5. The three probes — `scripts/check-mirror.mjs`, `npm run check:mirror`
+
+A test that passes by construction is worse than no test, because it reads as evidence. All three
+were in that state.
+
+| probe | was | now |
+|---|---|---|
+| weekday order | matched leaf text nodes; the `<sup>` gap marker made the span a non-leaf and it went **quiet**, not red | selector-driven on `grid-cols-7` + `textContent`. **Runs start→end at 390 AND 1440** — the claim P8 could not make |
+| breadcrumb flip | `transform !== 'none'`, which the two-path fix made 0 forever | loads both languages and compares which path is painted: same count, different `d` in RTL, and that `d` is the mirrored twin |
+| bidi census | "they clear when rows land" was believed | every finding printed and classified. **24/24 are Latin + Arabic-INDIC-DIGIT**; a Latin + Arabic-LETTER finding fails |
+
+0 failing assertions.
+
+### 6. `=== t(...)` — a bug class
+
+Four comparisons found. **One is safe**: `CitySelection` compares a header against `t('Zone')` and
+builds the header array with `t()`, so both sides are translated. Fragile, not wrong.
+
+**Three are the bug**, all in `MiqaatDetail`. `primaryLabel`/`actionLabel` hold English keys — the
+sibling lines spread them through `tx()` — and were compared against `t('Modify Reservation')` and
+`t('Register Now')`. An English key never equals an LSD value, so in LSD:
+
+- the Modify-Reservation button silently took the wrong branch, giving that CTA the wrong chrome;
+- `data-tour="register-button"` was never set, so **the walkthrough lost its anchor** on both the
+  hero and the desktop sidebar.
+
+Neither throws. Neither shows in English. Both are invisible unless you run the tour in LSD.
+
+### 7. The screenshot harness — and what it broke
+
+250 shots: 25 routes × 5 widths (390/768/1024/1150/1440) × 2 languages, in
+`artifacts/audit/en` and `artifacts/audit/lsd`.
+
+`shoot.mjs` began with `rmSync(artifacts/audit)`. Taking screenshots therefore **deleted every
+other artifact in that folder** — the layout, bidi, numerals and route-scan reports, and the
+blank-row patch. It took mine out, along with the `shoot.txt` the run was writing its own log to:
+the shell created the file, `rmSync` unlinked it, and the redirect kept writing to a dead inode.
+The run reported success. Nothing in the output says the deliverable is gone.
+
+Now clears only the per-language directories it owns. Everything destroyed has been regenerated
+and re-verified: the patch is 104 rows with 0 non-empty LSD cells, byte-for-byte the same
+contents it had before.
+
+## Final numbers
+
+| | A | B1 | B2 | C | sentinel | total |
+|---|---|---|---|---|---|---|
+| before | **66** | 2 | 6 | 189 | 5 | 268 |
+| after | **0** | 2 | 7 | 104 | 5 | 118 |
+
+## Verification
+
+| check | result |
+|---|---|
+| `npm run build` | **passes** — build:lsd, check:lsd, tsc, vite build, dev-only dist grep |
+| `vitest run` | 77 passed |
+| `check-mirror` | 0 failing (13 assertions) |
+| `check-layout` | 136 findings, 58 failing (pre-session 133/61) |
+| `check-centred` | off-centre >1.5px: 0; nowrap exemptions clipped: 0 |
+| `check-numerals` | nodes mixing both numeral systems: 0 |
+| `check-bidi` | 24, all confirmed untranslated-key-plus-numeral |
+| `check-anchor` / `check-chrome` / `check-devdock` / `check-dictionary` | 0 failing |
+| `check-remarks` | 56/56 |
+| screenshots | 250 written, both languages, five widths |
+
+## Still open
+
+- **104 rows await translation** in `artifacts/audit/wordlist-patch.xlsx`, plus 2 B1 blanks
+  already in the wordlist. That is the whole remaining queue.
+- **The static sweep reports ~200 unrouted literals** behind states a route walk cannot reach —
+  modals, error states, capacity pills. P9's, not this session's.
+- **`routes-before.json` is gone**, destroyed by the shoot run. The before-column above survives
+  because it is written down here; the per-string JSON detail does not.

@@ -109,6 +109,43 @@ const PROBE = () => {
     }
     return true
   }
+  /**
+   * Is the point (x,y) actually inside every clipping ancestor of `el`?
+   *
+   * `getBoundingClientRect` reports GEOMETRY, not what is painted. A table row scrolled past
+   * the bottom of an `overflow-y: auto` panel — or a line inside a collapsed
+   * `overflow-hidden` accordion — still reports an on-screen rect, but nothing of it is drawn
+   * there. `elementFromPoint` at that rect's centre therefore returns whatever IS drawn there,
+   * which is usually the sticky footer or the next card, and the probe called it an occlusion.
+   *
+   * That was the single largest false-positive class in this file: measured across
+   * /araz, /city, /zone and /review at 768-1440, 51 of 53 OCCLUDED hits were text scrolled
+   * out of a clipper, not text covered by anything. It also scaled with line-height, so any
+   * typographic change looked like it had introduced dozens of collisions.
+   *
+   * Out-of-flow elements are exempted until their containing block is reached: `absolute`
+   * escapes every static ancestor and `fixed` escapes everything that is not a
+   * transform/filter/perspective containing block. Without that, a dropdown anchored inside
+   * an `overflow-hidden` card would be judged unpainted while it is plainly on screen.
+   */
+  const pointVisible = (el, x, y) => {
+    const pos = getComputedStyle(el).position
+    let escaping = pos === 'absolute' || pos === 'fixed'
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p)
+      if (escaping) {
+        const cb = pos === 'fixed'
+          ? s.transform !== 'none' || s.filter !== 'none' || s.perspective !== 'none'
+          : s.position !== 'static' || s.transform !== 'none' || s.filter !== 'none'
+        if (!cb) continue
+        escaping = false
+      }
+      if (!/^(hidden|clip|auto|scroll)$/.test(s.overflowX) && !/^(hidden|clip|auto|scroll)$/.test(s.overflowY)) continue
+      const pr = p.getBoundingClientRect()
+      if (x < pr.left - 1 || x > pr.right + 1 || y < pr.top - 1 || y > pr.bottom + 1) return false
+    }
+    return true
+  }
   const describe = (el) => {
     const cls = typeof el.className === 'string' ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join('.') : ''
     const name = el.getAttribute('data-name') || el.getAttribute('data-tour') || ''
@@ -215,6 +252,8 @@ const PROBE = () => {
     const x = Math.round(r.left + r.width / 2)
     const y = Math.round(r.top + r.height / 2)
     if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) continue
+    // On screen by geometry is not the same as painted there — see `pointVisible`.
+    if (!pointVisible(te, x, y)) continue
     const hit = document.elementFromPoint(x, y)
     if (!hit) continue
     // Descendant: normal. Ancestor: also normal — happens when the leaf itself is

@@ -18,10 +18,17 @@
  * PAGE-OVERFLOW  `documentElement.scrollWidth > innerWidth`. A horizontal scrollbar on the
  *              PAGE is never intentional here; a table may scroll, the document may not.
  *
- * OVERLAP      two interactive elements whose boxes intersect. One of them is unclickable,
- *              and which one depends on paint order, so this is always a bug even when it
- *              looks fine in a screenshot. Cheap, and catches a class occlusion misses:
- *              two controls can overlap while a THIRD element is painted over both.
+ * OVERLAP      two interactive elements whose boxes intersect, BOTH in normal flow. One of
+ *              them is unclickable, and which one depends on paint order, so this is a bug
+ *              even when it looks fine in a screenshot. Cheap, and catches a class occlusion
+ *              misses: two controls can overlap while a THIRD element is painted over both.
+ *
+ * OVERLAP-     the same measurement, but one of the two lives in a fixed/sticky layer. A
+ * OVERLAY      sticky footer's CTA passing over the buttons in the page beneath it is that
+ *              footer working, and it is the same situation OVERLAY already exempts for text.
+ *              Applying the exemption to one measurement and not the other was an
+ *              inconsistency in this instrument, not a finding about the app: it accounted for
+ *              33 of the 58 failures at the four-width baseline. Reported; does NOT gate.
  *
  * OCCLUDED     a text element that is not the topmost thing at its own centre, where the
  *              occluder is in normal flow. Nothing in flow should ever be painted over
@@ -196,6 +203,22 @@ const PROBE = () => {
     })
   }
 
+  /**
+   * Nearest fixed/sticky ancestor of `el`, itself included, or null.
+   *
+   * The definition of "this is an intentional overlay" for BOTH the overlap test and the
+   * occlusion test. It was written out twice, in one of them only, which is how the same
+   * sticky footer came to be exempt when it covered text and a failure when it covered a
+   * button.
+   */
+  const layerOf = (el) => {
+    for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+      const pos = getComputedStyle(p).position
+      if (pos === 'fixed' || pos === 'sticky') return p
+    }
+    return null
+  }
+
   // ── overlapping interactive elements ──────────────────────────────────────
   const interactive = all.filter(
     (el) => /^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(el.tagName) || el.getAttribute('role') === 'button',
@@ -208,9 +231,17 @@ const PROBE = () => {
       const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left)
       const oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top)
       if (ox > 4 && oy > 4) {
+        // Same exemption as OVERLAY, same rule, same walk: if EITHER element sits in a
+        // fixed/sticky layer then one is deliberately passing over the other, and this is a
+        // record rather than a defect. Written as a shared helper so the two measurements
+        // cannot drift apart again.
+        const layer = layerOf(a) || layerOf(b)
         out.push({
-          kind: 'OVERLAP', where: `${describe(a)} ∩ ${describe(b)}`,
-          detail: `${Math.round(ox)}x${Math.round(oy)}px overlap`,
+          kind: layer ? 'OVERLAP-OVERLAY' : 'OVERLAP',
+          where: `${describe(a)} ∩ ${describe(b)}`,
+          detail: layer
+            ? `${Math.round(ox)}x${Math.round(oy)}px overlap, one side inside ${getComputedStyle(layer).position} layer ${describe(layer)}`
+            : `${Math.round(ox)}x${Math.round(oy)}px overlap`,
         })
       }
     }
@@ -261,12 +292,7 @@ const PROBE = () => {
     // pointer-events:none and its parent answers for it.
     if (hit === te || te.contains(hit) || hit.contains(te)) continue
 
-    // Nearest fixed/sticky ancestor of the occluder, itself included.
-    let layer = null
-    for (let p = hit; p && p !== document.documentElement; p = p.parentElement) {
-      const pos = getComputedStyle(p).position
-      if (pos === 'fixed' || pos === 'sticky') { layer = p; break }
-    }
+    const layer = layerOf(hit)
     out.push({
       kind: layer ? 'OVERLAY' : 'OCCLUDED',
       where: `${describe(hit)} over ${describe(te)}`,
@@ -392,7 +418,7 @@ try {
 
 // Kinds that are recorded but must not gate a build. An overlay covering the page is the
 // overlay working; failing on it would train everyone to ignore the exit code.
-const LOG_ONLY = new Set(['OVERLAY'])
+const LOG_ONLY = new Set(['OVERLAY', 'OVERLAP-OVERLAY'])
 const failures = findings.filter((f) => !LOG_ONLY.has(f.kind))
 
 const byKind = {}

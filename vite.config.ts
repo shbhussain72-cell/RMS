@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
+import { existsSync } from 'node:fs'
 // @ts-expect-error — plain .mjs build script, no type declarations by design
 import { buildLsdDict, XLSX_PATH } from './scripts/build-lsd-dict.mjs'
 
@@ -79,17 +80,68 @@ function lsdWordlistWatcher(): Plugin {
   }
 }
 
+/**
+ * Fail the build loudly if the wordlist source is missing.
+ *
+ * `build:lsd` is chained into `npm run build`, so a production build regenerates
+ * `src/i18n/lsd.json` from the .xlsx. On a CI runner (Vercel builds on Linux) that file
+ * is only present if it is committed and the path case matches. Without this guard a
+ * missing or mis-cased path can surface as an empty dictionary and a silently
+ * all-English LSD build rather than a failed deploy.
+ */
+function requireWordlistSource(): Plugin {
+  return {
+    name: 'require-wordlist-source',
+    apply: 'build',
+    buildStart() {
+      const target = XLSX_PATH as string
+      if (!existsSync(target)) {
+        this.error(
+          `LSD wordlist source not found at:\n  ${target}\n\n` +
+            `The production build regenerates src/i18n/lsd.json from this file.\n` +
+            `Check that it is committed (git ls-files) and that the path case matches — ` +
+            `Windows is case-insensitive, Linux CI is not.`,
+        )
+      }
+    },
+  }
+}
+
 export default defineConfig({
   server: { port: Number(process.env.PORT) || 3000 },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  build: {
+    // The bundle is comfortably over Vite's 500 kB default warning threshold and that is
+    // an accepted trade for now. Raised rather than silenced so a genuine size regression
+    // still surfaces.
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Split the largest third-party deps out of the app chunk so a code change does not
+        // invalidate the vendor bundle in reviewers' caches on every deploy.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
+  },
   plugins: [
+    requireWordlistSource(),
     lsdWordlistWatcher(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      // Precaching the woff2/woff faces matters more than usual here: without Kanz al-Lulu
+      // the LSD UI falls back to a face with different metrics, so the font is functional
+      // rather than decorative.
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        cleanupOutdatedCaches: true,
+      },
       manifest: {
         name: 'Miqaat Registration',
         short_name: 'Miqaat',

@@ -632,7 +632,7 @@ function AllocateGroupCard({
                   {/* Verb and destination in one key. `{verb} {city}` glued in JSX puts the city
                       after the verb in every language, which is a decision the sentence has to
                       make, not the markup. */}
-                  {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCityName) })}
+                  <bdi {...tx(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCityName) })} />
                 </button>
               ) : activeCityName ? (
                 // "Reserve all" already covers everyone — redundant per-row button, muted dash instead.
@@ -1472,7 +1472,7 @@ function AllocateDesktopTable({
                               className="inline-flex h-[34px] items-center gap-[7px] rounded-full px-[22px] text-[13px] font-bold transition-colors"
                               style={{ fontFamily: FONT, whiteSpace: 'nowrap', border: '1.5px solid #1f5a44', background: '#1f5a44', color: 'white' }}>
                               {isRequest && <svg viewBox="0 0 24 24" fill="none" className="size-[14px] shrink-0"><path d="M4.5 12l15-7.5-7 15-2.2-5.3L4.5 12z" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                              {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })}
+                              <bdi {...tx(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })} />
                             </button>
                           ) : activeCity ? (
                             // "Reserve all" already covers everyone — redundant per-row button, muted dash.
@@ -1529,7 +1529,7 @@ function AllocateDesktopTable({
                                   className="inline-flex h-[34px] min-w-0 items-center gap-[7px] rounded-full border border-[#2e6a7d] bg-white px-[16px] text-[13px] font-bold text-[#2e6a7d] transition-colors hover:bg-[#eef5f7] active:scale-[0.97]"
                                   style={{ fontFamily: FONT }}>
                                   <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                  <span className="truncate">{t('Swap to {city}', { city: tdText(swapTarget.name) })}</span>
+                                  <span className="truncate" {...tx('Swap to {city}', { city: tdText(swapTarget.name) })} />
                                 </button>
                                 <button type="button" onClick={() => onRemoveGroup(gi)} aria-label={t('Cancel reservation')}
                                   className="flex size-[26px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
@@ -1588,7 +1588,7 @@ function AllocateDesktopTable({
                               className="inline-flex h-[34px] items-center gap-[7px] rounded-full px-[22px] text-[13px] font-bold transition-colors"
                               style={{ fontFamily: FONT, whiteSpace: 'nowrap', border: '1.5px solid #1f5a44', background: '#1f5a44', color: 'white' }}>
                               {isRequest && <svg viewBox="0 0 24 24" fill="none" className="size-[14px] shrink-0"><path d="M4.5 12l15-7.5-7 15-2.2-5.3L4.5 12z" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                              {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })}
+                              <bdi {...tx(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })} />
                             </button>
                           ) : activeCity ? (
                             // "Reserve all" already covers everyone — redundant per-row button, muted dash.
@@ -1987,7 +1987,7 @@ function MyPreferredCityCard({
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="truncate">{t('Swap all to {city}', { city: tdText(activeInThisCard?.name ?? '') })}</span>
+            <span className="truncate" {...tx('Swap all to {city}', { city: tdText(activeInThisCard?.name ?? '') })} />
           </button>
         )}
       </div>
@@ -2085,7 +2085,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
             style={{ fontFamily: FONT }}
           >
             <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="truncate">{t('Swap all to {city}', { city: tdText(activeCityInGrid?.name ?? '') })}</span>
+            <span className="truncate" {...tx('Swap all to {city}', { city: tdText(activeCityInGrid?.name ?? '') })} />
           </button>
         )}
       </div>
@@ -3643,7 +3643,7 @@ export default function CitySelection() {
               style={{ fontFamily: FONT }}
             >
               <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <span className="truncate">{t('Swap all to {city}', { city: tdText(activeCity?.name ?? '') })}</span>
+              <span className="truncate" {...tx('Swap all to {city}', { city: tdText(activeCity?.name ?? '') })} />
             </button>
           )}
         </div>

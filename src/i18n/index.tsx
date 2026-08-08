@@ -595,10 +595,16 @@ export function useT() {
       // text and the extra attribute would be noise on every routed element in the app.
       const keyAttr = text === english ? undefined : { 'data-lsd-key': english }
       if (hit) return { children: isolateRuns(text), dir: 'rtl', lang: LSD_BCP47, ...keyAttr }
+      // A MISS still runs through isolateRuns when interpolation happened. The key fell back to
+      // English, but its VARIABLES may not have: `Request {city}` has no row yet while `Colombo`
+      // does, so the node reads `Request ‏كولمبو` — one text node, two scripts, and the Latin run
+      // unisolated. isolateRuns returns the bare string when there is nothing to isolate, so an
+      // ordinary all-English miss is unchanged.
+      const body = keyAttr ? isolateRuns(text) : text
       return {
         children: MISSING_MARKER
-          ? [text, createElement('sup', { key: 'lsd-gap', 'aria-hidden': 'true', className: 'lsd-gap' }, MISSING_MARKER)]
-          : text,
+          ? [body, createElement('sup', { key: 'lsd-gap', 'aria-hidden': 'true', className: 'lsd-gap' }, MISSING_MARKER)]
+          : body,
         dir: 'ltr',
         lang: 'en',
         ...keyAttr,

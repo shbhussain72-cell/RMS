@@ -808,7 +808,9 @@ function SwapAllPill({ allMoved, destName, onClick, verb }: { allMoved: boolean;
       <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
       {/* "Request to {city}" is one key: the preposition belongs to the sentence, not to the
           concatenation, and LSD does not necessarily put the city after it. */}
-      <span className="truncate">{destName ? <>{t('{verb} to {city}', { verb, city: tdText(destName) })}</> : verb}</span>
+      {destName
+        ? <span className="truncate" {...tx('{verb} to {city}', { verb, city: tdText(destName) })} />
+        : <span className="truncate">{verb}</span>}
     </button>
   )
 }
@@ -906,7 +908,9 @@ function MoveSidebarCard({
                 style={{ fontFamily: FONT }}
               >
                 <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className="truncate">{swapAll.destName ? <>{t('{verb} to {city}', { verb: swapAll.verb, city: tdText(swapAll.destName) })}</> : swapAll.verb}</span>
+                {swapAll.destName
+                  ? <span className="truncate" {...tx('{verb} to {city}', { verb: swapAll.verb, city: tdText(swapAll.destName) })} />
+                  : <span className="truncate">{swapAll.verb}</span>}
               </button>
             )}
           </div>
@@ -2075,7 +2079,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                 className="inline-flex h-[32px] items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[14px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
                 style={{ fontFamily: FONT }}>
                 <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className="truncate">{t('{verb} to {city}', { verb: switchAllLabel, city: tdText(destCity ?? '') })}</span>
+                <span className="truncate" {...tx('{verb} to {city}', { verb: switchAllLabel, city: tdText(destCity ?? '') })} />
               </button>
             )
           )}

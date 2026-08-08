@@ -636,10 +636,11 @@ function PeopleMini({ color = '#5a6660' }: { color?: string }) {
 }
 
 function MembersChip({ count }: { count: number }) {
+  const { tx } = useT()
   return (
     <span className="inline-flex h-[34px] items-center gap-[8px] rounded-full bg-[#fbeed3] px-[16px]">
       <PeopleMini color="#9a6712" />
-      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }}>{count} members</span>
+      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }} {...tx(plural(count, '{n} member', '{n} members'), { n: count })} />
     </span>
   )
 }
@@ -693,7 +694,7 @@ function ZoneSidebarCard({
    *  RelaySidebarCard header treatment, not a separate row above the page). */
   bulkAction?: { kind: 'reserve' | 'remove' | 'swap'; destName?: string; onClick: () => void }
 }) {
-     const { tx, t } = useT()
+     const { tx, t, tdText } = useT()
   const filtered = search ? zones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase())) : zones
   return (
     <div className="rounded-[16px] border border-[#e7dfc9] bg-white p-[20px] shadow-[0_4px_18px_-10px_rgba(21,64,47,0.16)]">
@@ -706,7 +707,7 @@ function ZoneSidebarCard({
       <div className="my-[18px] h-px bg-[#ece6d6]" />
       <div className="flex items-center gap-[7px]">
         <PinIcon color="#c5912f" size={18} />
-        <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{cityName} zones ({zones.length})</p>
+        <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('{city} zones ({n})', { city: tdText(cityName), n: zones.length })} />
         {bulkAction && <ZoneBulkActionPill kind={bulkAction.kind} destName={bulkAction.destName} onClick={bulkAction.onClick} />}
       </div>
       <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
@@ -1537,9 +1538,7 @@ export default function ZoneSelection() {
 
       {/* Zones section heading */}
       <div className="mx-[16px] sm:mx-0 flex items-center justify-between mb-[10px]">
-        <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>
-          {cityTabs[activeCityTab]?.name} zones
-        </p>
+        <p className="text-[15px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('{city} zones', { city: tdText(cityTabs[activeCityTab]?.name ?? '') })} />
         <button type="button" onClick={() => setShowAllZones(true)} className="text-[13px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT }} {...tx('View all →')} />
       </div>
 

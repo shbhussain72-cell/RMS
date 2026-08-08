@@ -24,6 +24,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { coverageReport, getCoverageVersion, subscribeCoverage, useLang } from './index'
 import { SCANNER_IGNORE_ATTR, accumulate, cumulative, resetCumulative, scanDom, type ScanResult } from './domScan'
+import DevDock from '../dev/DevDock'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
@@ -83,7 +84,8 @@ function CoveragePanelInner() {
     // `pointer-events-none` on the wrapper with `pointer-events-auto` on the controls: the
     // panel floats over the app and must never swallow a click meant for the UI beneath it.
     // SCANNER_IGNORE_ATTR keeps the scanner from reporting its own English chrome.
-    <div
+    <DevDock
+      id="coverage"
       {...{ [SCANNER_IGNORE_ATTR]: '' }}
       dir="ltr"
       className="pointer-events-none fixed bottom-[16px] start-[16px] z-[120] flex flex-col items-start gap-[6px]"
@@ -213,7 +215,7 @@ function CoveragePanelInner() {
           <span className="text-[#23302a]">{r.resolvedInApp}/{r.dictionaryEntries}</span>
         )}
       </button>
-    </div>
+    </DevDock>
   )
 }
 

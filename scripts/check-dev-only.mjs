@@ -56,6 +56,8 @@ const FORBIDDEN = [
   'Orphan fixture',
   'capturedStrategy',
   '__lsdScan',
+  'devtools.pos.v1',
+  'data-devdock',
 ]
 /** Must be present. Proves the search is actually looking at the built app. */
 const CONTROL = 'Ashara'

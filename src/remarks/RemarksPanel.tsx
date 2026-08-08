@@ -19,6 +19,7 @@ import { CHROME_ATTR } from './selector'
 import { useRemarks } from './RemarksProvider'
 import { download, toJson, toMarkdown } from './export'
 import type { Remark } from './types'
+import DevDock from '../dev/DevDock'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const chromeProps = { [CHROME_ATTR]: '', [SCANNER_IGNORE_ATTR]: '' }
@@ -86,7 +87,8 @@ function RemarksPanelInner() {
   }
 
   return (
-    <div
+    <DevDock
+      id="remarks"
       {...chromeProps}
       className="pointer-events-none fixed top-[16px] end-[16px] z-[130] flex flex-col items-end gap-[6px]"
     >
@@ -183,7 +185,7 @@ function RemarksPanelInner() {
         <span className="text-[#23302a]">{counts.open}</span>
         {counts.orphaned > 0 && <span className="text-[#b23b3b]">⚠{counts.orphaned}</span>}
       </button>
-    </div>
+    </DevDock>
   )
 }
 

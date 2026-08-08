@@ -559,10 +559,13 @@ export default function EventJourney() {
             </div>
           </div>
           {/* right: calendar */}
-          {/* `min-w-[320px]` is what makes the wrap happen. With `min-w-0` a flex item shrinks
-              to whatever is left instead of moving to the next line, which is the state that
-              produced the clipping. */}
-          <div className="min-w-[320px] flex-1">
+          {/* The minimum is what makes the wrap happen: with `min-w-0` a flex item shrinks to
+              whatever is left instead of moving to the next line, which is the state that
+              produced the clipping. 560px is the calendar's own measured minimum, not a guess —
+              320 was, and it was too small: at 1024 the calendar fitted the 320 test, declined to
+              wrap, took the 496px on offer and overflowed its month grid by 58px. Measure the
+              subject, do not pick a round number that makes one width pass. */}
+          <div className="min-w-[560px] flex-1">
             <DesktopCalendar flat={flat} milestones={milestones} monthIndex={hijri.monthIndex} year={hijri.year} />
           </div>
         </div>

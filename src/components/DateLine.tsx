@@ -26,6 +26,7 @@
  */
 import { useT } from '../i18n/index'
 import { Ltr, formatGregorian, formatGregorianText, formatHijri, formatTime, parseDateLabel } from './Bidi'
+import { notLanguage } from './NotLanguage'
 
 /**
  * `Fri, 26 Jun 2026` → `يوم الجمعة، 26 Jun 2026 ﴿١٠ شهر محرم الحرام ١٤٤٨ھ﴾`
@@ -124,7 +125,11 @@ export function DeadlineLine({ value, compact = false }: { value: string; compac
     <>
       {weekday ? <>{t(weekday)}، </> : null}
       {compact
-        ? <Ltr>{formatGregorianText(parsed.date).replace(/\s\d{4}$/, '')}</Ltr>
+        // Same Gregorian policy as the full form, so the same `notLanguage` marker: this is
+        // `26 Jun` with the year dropped for a narrow card, not a string anyone can translate.
+        // Written out rather than reusing `formatGregorian` because the year has to come off
+        // the TEXT, and the marker has to travel with it.
+        ? <span dir="ltr" style={{ unicodeBidi: 'isolate' }} {...notLanguage}>{formatGregorianText(parsed.date).replace(/\s\d{4}$/, '')}</span>
         : formatGregorian(parsed.date, lang)}
       {timePart ? <> · {formatTime(timePart.replace(' IST', ''), lang)}</> : null}
     </>

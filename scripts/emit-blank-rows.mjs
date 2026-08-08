@@ -1,7 +1,7 @@
 /**
  * emit-blank-rows.mjs — the class-C queue, as an .xlsx patch with EMPTY LSD cells.
  *
- *   node scripts/emit-blank-rows.mjs            # write artifacts/audit/wordlist-patch.xlsx
+ *   node scripts/emit-blank-rows.mjs            # write docs/wordlist-patch.xlsx
  *   node scripts/emit-blank-rows.mjs --list     # just print what it would emit
  *
  * ── WHAT A BLANK ROW IS FOR ──────────────────────────────────────────────────────
@@ -44,7 +44,12 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OVERRIDES = resolve(ROOT, 'wordlist-overrides.json')
 const SCAN = resolve(ROOT, 'artifacts/audit/routes-final.json')
-const OUT = resolve(ROOT, 'artifacts/audit/wordlist-patch.xlsx')
+// docs/, NOT artifacts/. The patch is a DELIVERABLE — it is the wordlist owner's queue and the
+// one output here that no rerun can reconstruct once the translations are typed into it. It used
+// to live in artifacts/audit/, which is a directory scripts delete; `shoot.mjs` opened with
+// `rmSync(artifacts/audit)` and taking screenshots silently destroyed it. `deliverables.test.mjs`
+// now asserts that no script can delete a path containing this file.
+const OUT = resolve(ROOT, 'docs/wordlist-patch.xlsx')
 const LIST_ONLY = process.argv.includes('--list')
 
 if (existsSync(OVERRIDES)) {

@@ -1,0 +1,20 @@
+{
+  "note": [
+    "Paths no script may delete. Enforced by scripts/deliverables.test.mjs.",
+    "",
+    "A DELIVERABLE is an output that a rerun cannot reconstruct. artifacts/ is not one — every",
+    "screenshot and report in it is regenerated on demand, which is why it is gitignored and why",
+    "scripts clear it freely. The wordlist and the patch are the opposite: once translations are",
+    "typed into them the content exists nowhere else, and no amount of rerunning brings it back.",
+    "",
+    "This list exists because shoot.mjs opened with rmSync('artifacts/audit') while the wordlist",
+    "owner's 104-row patch was sitting in that directory. Taking screenshots deleted it, and the",
+    "run reported success. Per-directory scoping fixed that one script; this stops the next one.",
+    "",
+    "A trailing / means the whole tree."
+  ],
+  "paths": [
+    "RMS_Mumineen_LSD_wordlist_v4.xlsx",
+    "docs/"
+  ]
+}

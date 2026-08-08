@@ -111,7 +111,7 @@ while its authored LSD value sat unused in the spreadsheet.
 
 ## The blank-row Excel patch
 
-`artifacts/audit/wordlist-patch.xlsx` — **157 rows at this point, every LSD cell empty**; 104 after
+`docs/wordlist-patch.xlsx` — **157 rows at this point, every LSD cell empty**; 104 after
 the follow-up pass removed what is not language. Verified both times: zero rows carry a non-empty
 LSD value. (`artifacts/` is gitignored, so the file is on disk, not in the
 commit.)
@@ -199,9 +199,27 @@ Counted, not estimated at 25.
 
 ### 2. The patch
 
-Left in place at `artifacts/audit/wordlist-patch.xlsx` for the dictionary editor. Not pasted.
+Left in place for the dictionary editor. Not pasted.
 
-**It was destroyed mid-session and regenerated** — see item 7 below.
+**It moved out of `artifacts/` afterwards**, to `docs/wordlist-patch.xlsx`. It is a deliverable,
+not a build artifact: every other file in `artifacts/audit/` is regenerated on demand, and the
+patch is the one output that stops being reproducible the moment translations are typed into it.
+It was living in a directory scripts delete — and one of them did (item 7).
+
+`scripts/deliverables.json` now names the paths no script may delete, and
+`scripts/deliverables.test.mjs` enforces it statically over every script at once: it resolves the
+first argument of every `rmSync`/`unlinkSync`/`rm -rf` in the repo and fails when the path and a
+deliverable are prefixes of one another. Anything it cannot resolve becomes `*`, which matches
+everything — an unanalysable delete fails rather than passing quietly.
+
+Checked against the bug it was written for, not just against green: with the patch put back in
+`artifacts/audit/` and `shoot.mjs` reverted to `rmSync(OUT_ROOT)`, it reports
+
+    scripts/shoot.mjs:122  rmSync(OUT_ROOT)  →  artifacts/audit  contains the deliverable
+
+and it *still* fails for the current, per-language-scoped `shoot.mjs` — because `resolve(OUT_ROOT,
+lang)` has an unknown final segment, so nothing rules out `lang === 'wordlist-patch.xlsx'`. The
+scoping made that script safe in practice; only moving the file makes it safe by construction.
 
 ### 3. What is not language
 
@@ -293,7 +311,7 @@ contents it had before.
 
 ## Still open
 
-- **104 rows await translation** in `artifacts/audit/wordlist-patch.xlsx`, plus 2 B1 blanks
+- **104 rows await translation** in `docs/wordlist-patch.xlsx`, plus 2 B1 blanks
   already in the wordlist. That is the whole remaining queue.
 - **The static sweep reports ~200 unrouted literals** behind states a route walk cannot reach —
   modals, error states, capacity pills. P9's, not this session's.

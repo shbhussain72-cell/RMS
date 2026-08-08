@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { headcount, useStore } from '../store'
 import { useT } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
+import AppBar from '../components/figma/AppBar'
 
 const SUPERVISOR = '/figma/success-supervisor-account.svg'
 const INFO_FILLED = '/figma/success-info-filled.svg'
@@ -43,6 +44,20 @@ export default function Success() {
           the same deep-green loader gradient as City Selection's queue screens, solid — not a black
           scrim, and not a translucent tint of the form underneath. */}
       <div className="fixed inset-0 z-40" style={{ background: LOADER_BG }} />
+
+      {/* ============ AppBar ============ */}
+      {/* §4.11 — this was the one route in the app with no AppBar.
+          It sits at z-45: ABOVE the scrim, below the card. Rendering it in normal flow, as every
+          other screen does, would place it behind an opaque full-viewport backdrop, which is
+          adding chrome nobody can see. Placed here it reads as the page header of a dimmed page,
+          which is what it is.
+          Nothing about the modal card, the ornament or the centring below is touched — this file
+          carries a documented centring exemption and a 4398x4271px clipped ornament whose
+          stacking is sensitive, so the change is additive and leaves every existing z-index and
+          transform exactly as it was. */}
+      <div className="fixed inset-x-0 top-0 z-[45]">
+        <AppBar notificationCount={3} onBellClick={() => {}} />
+      </div>
 
       {/* ============ Modal card ============ */}
       <div className="fixed left-1/2 top-1/2 z-50 h-[440px] w-[calc(100%-32px)] max-w-[400px] -translate-x-1/2 -translate-y-1/2 overflow-clip rounded-[30px] bg-white">

@@ -34,10 +34,23 @@ export interface MojibakeFinding {
   detail: string
 }
 
-/** Lead bytes of a UTF-8 Arabic/Hebrew sequence, seen through a latin-1 decoder. */
-const UTF8_AS_LATIN1 = /[Â-ß][-¿]/
-/** The Ã-family: latin-1 text that has been through the same mangling. */
-const A_TILDE_RUN = /Ã[-¿ -ÿ]/
+/**
+ * The trailing half of a mis-decoded UTF-8 pair, as it SURFACES.
+ *
+ * A UTF-8 continuation byte is 0x80-0xBF, which is the C1 control block — and no editor shows
+ * control characters. Windows-1252, which is what "latin-1" almost always means in practice,
+ * maps that range onto printable punctuation instead: € ‚ ƒ „ … † ‡ ˆ ‰ Š ‹ Œ Ž ' ' " " • – —
+ * ˜ ™ š › œ ž Ÿ. So `ال` mis-decoded reads `Ø§Ù„`, and `É` reads `Ã‰` — the second character
+ * is U+2030, nowhere near U+0080. Matching only the raw C1 range therefore misses most real
+ * cases, which is exactly what the first version of this file did.
+ */
+const TRAIL = '[\u0080-\u00BF\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178]'
+
+/**
+ * Lead bytes 0xC2-0xDF seen through that decoder: Â Ã Ø Ù Ú Û and their neighbours. U+00C3 (Ã)
+ * sits inside the range, so the Latin and the Arabic manglings are one pattern, not two.
+ */
+const UTF8_AS_LATIN1 = new RegExp(`[\u00C2-\u00DF]${TRAIL}`)
 
 export function detectMojibake(value: string): MojibakeFinding[] {
   const out: MojibakeFinding[] = []
@@ -52,12 +65,12 @@ export function detectMojibake(value: string): MojibakeFinding[] {
     })
   }
 
-  const m8 = UTF8_AS_LATIN1.exec(s) ?? A_TILDE_RUN.exec(s)
+  const m8 = UTF8_AS_LATIN1.exec(s)
   if (m8) {
     out.push({
       kind: 'utf8-as-latin1',
       sample: s.slice(Math.max(0, m8.index - 4), m8.index + 8),
-      detail: 'Looks like UTF-8 bytes read as latin-1 (the Ø/Ù/Ã pattern). Re-export the source as UTF-8 rather than retyping it.',
+      detail: 'Looks like UTF-8 bytes read as latin-1 or windows-1252 (the Ø/Ù/Ã pattern). Re-export the source as UTF-8 rather than retyping it.',
     })
   }
 

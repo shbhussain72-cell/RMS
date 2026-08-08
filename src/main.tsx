@@ -5,6 +5,7 @@ import App from './App'
 import { TourProvider } from './tour/TourProvider'
 import { LangProvider, registerAuthoredNames } from './i18n'
 import CoveragePanel from './i18n/CoveragePanel'
+import DictionaryPanel from './dev/DictionaryPanel'
 import { RemarksProvider } from './remarks/RemarksProvider'
 import RemarksLayer from './remarks/RemarksLayer'
 import RemarksPanel from './remarks/RemarksPanel'
@@ -37,8 +38,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <RemarksPanel />
           <RemarksFixture />
         </RemarksProvider>
-        {/* Dev-only; compiles away entirely in a production build. */}
+        {/* Dev-only; both compile away entirely in a production build. The dictionary editor
+            sits inside LangProvider because it layers staged edits into that very dictionary. */}
         <CoveragePanel />
+        <DictionaryPanel />
       </LangProvider>
     </BrowserRouter>
   </React.StrictMode>,

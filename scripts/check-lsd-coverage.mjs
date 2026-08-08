@@ -100,10 +100,13 @@ const looksLikeCopy = (s) =>
   (s.match(/[A-Za-z]/g) || []).length / s.length > 0.5 &&
   !NOISE.some((re) => re.test(s)) && !FRAGMENT.test(s)
 
+/** Directory names under src/ that hold tooling rather than product copy. */
+const DEV_ONLY_DIRS = new Set(['i18n', 'remarks', 'dev'])
+
 const walk = (dir, out = []) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name)
-    // `i18n` and `remarks` are DEV-ONLY INTERNAL TOOLING, not app copy.
+    // `i18n`, `remarks` and `dev` are DEV-ONLY INTERNAL TOOLING, not app copy.
     //
     // Both are gated behind `import.meta.env.DEV` and never reach a user, so their English
     // chrome ("Export Markdown", "Enter remark mode") is not a translation gap — it is the
@@ -113,7 +116,7 @@ const walk = (dir, out = []) => {
     //
     // This is the static twin of `SCANNER_IGNORE_ATTR`, which keeps the same chrome out of
     // the runtime DOM scan for the same reason.
-    if (e.isDirectory()) { if (e.name !== 'i18n' && e.name !== 'remarks') walk(p, out) }
+    if (e.isDirectory()) { if (!DEV_ONLY_DIRS.has(e.name)) walk(p, out) }
     // .ts as well as .tsx: the tour/guide content lives in src/tour/steps.ts and the
     // notification copy in src/data/notifications.ts — both are user-visible strings that
     // a .tsx-only walk silently skipped, which is why the guide was never reported.

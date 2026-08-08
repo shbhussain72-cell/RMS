@@ -58,6 +58,10 @@ const FORBIDDEN = [
   '__lsdScan',
   'devtools.pos.v1',
   'data-devdock',
+  'wordlist-overrides',
+  '__lsdOverrides',
+  '__lsd/patch',
+  'detectMojibake',
 ]
 /** Must be present. Proves the search is actually looking at the built app. */
 const CONTROL = 'Ashara'

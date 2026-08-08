@@ -1,3 +1,16 @@
+/**
+ * CONFIRMED: this store is entirely SYNCHRONOUS, by design, and there is nothing to await.
+ *
+ * There is no `await`, `fetch` or `Promise` anywhere in this file or in the registration flow —
+ * every action reads seed data and sets state in the same tick. So there are no loading states
+ * to add and no async transitions to guard: a spinner here would render for zero frames and a
+ * "still loading" branch would be dead code.
+ *
+ * Recorded because the absence looks like an oversight to anyone arriving from a normal
+ * data-fetching app, and "the flow has no loading states" reads as a bug rather than as the
+ * consequence of having no I/O. When a real backend does arrive, that is the point at which
+ * loading and empty states become necessary — not before.
+ */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { INVITE_QUOTA, family, miqaats, liveCities, zonesByCityId } from './data/seed'

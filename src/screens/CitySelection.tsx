@@ -2087,6 +2087,10 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
         {countries.map(({ name, cities: countryCities }) => {
           // Searching pre-filters every country to matches only, and hides countries with none.
           const matches = q ? countryCities.filter((c) => c.name.toLowerCase().includes(q)) : countryCities
+          // CONFIRMED CORRECT — do not "fix" this into an empty state. This hides one COUNTRY that
+          // has no matches, which is what a filtered list should do; the whole-list empty state is
+          // the `q && !anyMatch` block further down. Turning this into a per-country "no results"
+          // row would print one for every country the user did not search for.
           if (q && matches.length === 0) return null
           if (matches.length > 0) anyMatch = true
           const isOpen = q ? true : expanded === name

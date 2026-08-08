@@ -540,7 +540,15 @@ export default function EventJourney() {
         </div>
 
         {/* ── DESKTOP: full-page two-column — left timeline, right calendar ── */}
-        <div className="mt-[26px] hidden gap-[28px] pb-[40px] sm:flex">
+        {/* `flex-wrap`, because the two columns do not both fit at every desktop size.
+            The left rail is a fixed 420px and the calendar needs roughly 320px for a seven-column
+            month grid; with a 28px gap that is 768px of demand against 707px of content width at
+            the 768 breakpoint, so the calendar was being squeezed 44px past the edge and clipped
+            by the shell's `overflow-x: clip`. Wrapping puts the calendar on its own line at the
+            narrow desktop sizes and leaves the side-by-side layout untouched from 1150 up, which
+            is where it was designed. The alternative — letting the rail shrink — squashes the
+            milestone cards instead, which moves the clipping rather than removing it. */}
+        <div className="mt-[26px] hidden flex-wrap gap-[28px] pb-[40px] sm:flex">
           {/* left: timeline (fixed heading + scrollable card list) */}
           <div className="w-[420px] shrink-0">
             <div className="flex max-h-[560px] flex-col rounded-[20px] border border-[#ece6d6] bg-[#fcfbf6] p-[22px] shadow-[0_8px_28px_-18px_rgba(21,64,47,0.25)]">
@@ -551,7 +559,10 @@ export default function EventJourney() {
             </div>
           </div>
           {/* right: calendar */}
-          <div className="min-w-0 flex-1">
+          {/* `min-w-[320px]` is what makes the wrap happen. With `min-w-0` a flex item shrinks
+              to whatever is left instead of moving to the next line, which is the state that
+              produced the clipping. */}
+          <div className="min-w-[320px] flex-1">
             <DesktopCalendar flat={flat} milestones={milestones} monthIndex={hijri.monthIndex} year={hijri.year} />
           </div>
         </div>

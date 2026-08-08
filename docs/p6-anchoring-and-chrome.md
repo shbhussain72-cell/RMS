@@ -185,6 +185,67 @@ Two things worth recording:
 guessed: each names the element, the numbers, and what has to give. The footer-wrapper group is
 the next thing to do — 13 of the 40 in one edit.
 
+## §1 — the footer wrapper: attempted, reverted, and what it actually is
+
+**Outcome: no app change. `check-layout` is unchanged at 147 raw / 40 failing.** What came out of
+it is one assertion and a corrected diagnosis, both of which contradict what I reported last time.
+
+### The premise was wrong
+
+Last session I wrote that `/araz` and `/people` "render their footer outside `PhoneScreen`'s
+sticky wrapper, which is why it overlaps rather than sitting after the content", and called it
+13 findings in one edit. The first half is true and the second half does not follow.
+
+Four screens — Araz, AddPeople, ArrangeCities, Review — mount their desktop footer inside their
+own two-pane panel rather than through the shell's `footer` prop. Three more places (JoinGroup,
+PreferredCity's form-only variant, `EventTimelineFooter`) build a bespoke footer from the
+`.sticky-cta` class without using the component at all. So the divergence is seven sites, not two.
+
+But **none of them is unpinned in behaviour**. Each panel is a full-height flex column whose last
+`shrink-0` child is the footer, so it sits at the bottom without needing `position: sticky`. The
+footers behave identically to the compliant ones. The only difference is that `check-layout`'s
+`layerOf` walk finds no fixed/sticky ancestor and therefore refuses them the exemption it grants
+`/roster` for the same arrangement.
+
+### The attempt, and how it failed silently
+
+Moving `sticky bottom-0 z-20` off the shell's wrapper and onto the `.sticky-cta` class looked
+like the structural answer: you get the pinning from the class you already use for the fade, and
+"a `.sticky-cta` that is not sticky" becomes unrepresentable.
+
+It unpinned every footer in the app. A sticky element is constrained by its parent's box, and
+its parent is a wrapper of exactly its own height — `w-full` from the shell, or `sm:hidden` from
+the screen — so it had zero travel and behaved as static. On `/roster` at 390 the footer's bottom
+edge measured **1860px against an 833px viewport**: a thousand pixels below the fold, mid-scroll.
+
+Both probes passed. `check:overlap` passed because its own footer checks run at the END of the
+scroll, where an unpinned footer is exactly where a pinned one would be. `check-layout` went from
+147 findings to 55 — an apparent 63% improvement, which is what a footer that has stopped
+covering anything looks like from the outside.
+
+Reverted. The lesson is the one from `min-w-[320px]` again: the PINNED test I wrote alongside the
+change asserted `getComputedStyle(...).position === 'sticky'` on some ancestor. That is a
+declaration. Being pinned is a behaviour, and the two had come apart. It now scrolls the page to
+the middle and looks at where the footer is:
+
+    PINNED — footers that scroll away instead of staying put (0 distinct)
+    ok    every visible sticky footer stays at the viewport bottom while the page scrolls
+
+Run against the broken build it reports `1027px below the fold mid-scroll` on `/roster`.
+
+### The overlaps are real, and they are not this
+
+Measured directly on `/araz` at 768: a "Host City" button at `top: 779` intersects the footer CTA
+at `top: 754` by 90x21px, and `elementFromPoint` at the intersection returns the footer. The page
+button is genuinely unreachable. That is exactly what OVERLAP exists to catch, and it survives
+any classification argument.
+
+So the group is not "13 in one edit". It is a content-inset problem inside `/araz`'s and
+`/people`'s desktop panels — the panel does not reserve room for its own footer — which is the
+same shape as §4.8's mechanism, scoped to two panels rather than applied globally where it was
+not needed. That is the next section's work, and it is a smaller and more specific edit than the
+one I proposed.
+
 ## Verification
 
 | check | result |

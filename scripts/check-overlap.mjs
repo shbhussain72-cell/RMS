@@ -98,7 +98,7 @@ const PAGE_FN = (notices) => {
     }
   }
 
-  const out = { sticky: null, covered: [], offscreen: [], dupes: [], appbar: null }
+  const out = { sticky: null, covered: [], offscreen: [], dupes: [], appbar: null, unpinned: [] }
 
   // EVERY visible footer, not the first one. Screens that ship separate mobile and desktop
   // markup render two `.sticky-cta` blocks and hide one with `sm:hidden`; the hidden one comes
@@ -110,6 +110,30 @@ const PAGE_FN = (notices) => {
   for (const cta of ctas) {
     const f = cta.getBoundingClientRect()
     out.sticky = { top: Math.round(f.top), bottom: Math.round(f.bottom), h: Math.round(f.height) }
+
+    // PINNED — the footer must actually stay at the bottom of the viewport while the page
+    // scrolls. MEASURED, not read off `getComputedStyle`.
+    //
+    // The first version of this test walked for a fixed/sticky ancestor and asserted one
+    // existed. It passed on a build where the footer was over a thousand pixels below the fold
+    // mid-scroll: I had moved `position: sticky` onto the footer element itself, whose parent
+    // wrapper is exactly its own height, so it had zero travel and behaved as static. The
+    // computed value said `sticky` the whole time and the test said ok.
+    //
+    // `position: sticky` is a declaration. Being pinned is a behaviour. Only the second one is
+    // what anybody wants, so scroll the page to the middle and look at where the footer is.
+    if (document.documentElement.scrollHeight > innerHeight + 40) {
+      const y = window.scrollY
+      window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2))
+      const mid = cta.getBoundingClientRect()
+      window.scrollTo(0, y)
+      if (mid.bottom > innerHeight + 2) {
+        out.unpinned.push({
+          cls: (cta.className || '').toString().slice(0, 46),
+          detail: `${Math.round(mid.bottom - innerHeight)}px below the fold mid-scroll`,
+        })
+      }
+    }
 
     // Text nodes outside the footer whose box lands inside it.
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
@@ -183,7 +207,7 @@ const PAGE_FN = (notices) => {
 }
 
 const browser = await chromium.launch()
-const summary = { covered: [], offscreen: [], dupes: [], appbar: [] }
+const summary = { covered: [], offscreen: [], dupes: [], appbar: [], unpinned: [] }
 try {
   for (const width of WIDTHS) {
     for (const lang of LANGS) {
@@ -202,6 +226,7 @@ try {
         for (const c of r.covered) summary.covered.push({ at, ...c })
         for (const o of r.offscreen) summary.offscreen.push({ at, ...o })
         for (const d of r.dupes) summary.dupes.push({ at, ...d })
+        for (const u of r.unpinned) summary.unpinned.push({ at, ...u })
         if (r.appbar && (r.appbar.overflowing || r.appbar.outOfBar || !r.appbar.title)) summary.appbar.push({ at, ...r.appbar })
       }
       await ctx.close()
@@ -238,6 +263,12 @@ say(offscreenG.length === 0, 'every sticky-footer control is inside the viewport
 console.log(`\nONCE — instruction rows rendered more than once (${dupesG.length} distinct)`)
 for (const d of dupesG) console.log(`    x${d.count}  ${JSON.stringify(d.probe)}  (${d.wheres.length} views)`)
 say(dupesG.length === 0, `the ${NOTICES.length} Important Notice rows appear at most once in the DOM`)
+
+const unpinnedG = group(summary.unpinned, (x) => `${x.at.split(' ')[0]}|${x.cls}`)
+console.log(`
+PINNED — footers that scroll away instead of staying put (${unpinnedG.length} distinct)`)
+for (const u of unpinnedG) console.log(`    ${u.at.split(' ')[0]}  ${u.detail}  ${u.cls}  (${u.wheres.length} views)`)
+say(unpinnedG.length === 0, 'every visible sticky footer stays at the viewport bottom while the page scrolls')
 
 const appbarG = group(summary.appbar, (x) => `${x.text}|${x.overflowing}|${x.outOfBar}|${!x.title}`)
 console.log(`\nAPPBAR — identity clipped, escaping the bar, or missing a title (${appbarG.length} distinct)`)

@@ -24,7 +24,13 @@ import { isolateRuns } from '../components/Bidi'
 
 export type Lang = 'en' | 'lsd'
 
-interface Entry { lsd: string; page: string; sentinel?: string }
+interface Entry {
+  lsd: string
+  page: string
+  sentinel?: string
+  /** DEV only — this value is a staged edit from the dictionary editor, not from the .xlsx. */
+  staged?: boolean
+}
 
 /** localStorage key. Matches the app's existing `rms-*` convention (see rms-tour-seen). */
 const STORAGE_KEY = 'rms-lang'
@@ -46,8 +52,17 @@ export const normKey = (s: string): string => String(s ?? '').replace(/\s+/g, ' 
  */
 const ENTRIES = new Map<string, Entry>()
 
+/**
+ * The payload ENTRIES was last filled from. Held so the dev-only override overlay can rebuild
+ * from the generated dictionary rather than from whatever the previous overlay left behind —
+ * otherwise clearing an edit would leave its value in place, which is the one behaviour that
+ * would make a staging file untrustworthy.
+ */
+let lastPayload: unknown = null
+
 /** (Re)fill ENTRIES from a raw lsd.json payload. The "//" key is the banner, not an entry. */
 function loadEntries(payload: unknown): void {
+  lastPayload = payload
   ENTRIES.clear()
   for (const [k, v] of Object.entries((payload ?? {}) as Record<string, unknown>)) {
     if (k === '//') continue
@@ -322,12 +337,42 @@ export function lookupLsd(english: string): string | undefined {
  * numbers it is measuring — `lookupLsd()` records a hit, `resolve()` records a miss.
  * This is the read-only view for tooling.
  */
-export function inspectKey(english: string): { exists: boolean; value: string; identity: boolean } {
+export function inspectKey(english: string): {
+  exists: boolean
+  value: string
+  identity: boolean
+  /** DEV: the value shown is a staged edit, not what the .xlsx currently holds. */
+  staged: boolean
+  sentinel: string | null
+  page: string
+} {
   const key = normKey(english)
   const entry = ENTRIES.get(key)
-  if (!entry) return { exists: false, value: '', identity: false }
+  if (!entry) return { exists: false, value: '', identity: false, staged: false, sentinel: null, page: '' }
   const value = String(entry.lsd ?? '').replace(BIDI_MARKS, '').trim()
-  return { exists: true, value, identity: value !== '' && value === key }
+  return {
+    exists: true,
+    value,
+    identity: value !== '' && value === key,
+    staged: entry.staged === true,
+    sentinel: entry.sentinel ?? null,
+    page: entry.page ?? '',
+  }
+}
+
+/**
+ * Every English key the dictionary holds — for the editor's Master list.
+ *
+ * Read-only and non-recording, for the same reason `inspectKey` is: enumerating the whole
+ * dictionary through `resolve()` would mark all 1078 entries as hits and destroy the very
+ * coverage numbers the editor exists to work through.
+ */
+export function allEntries(): { english: string; lsd: string; page: string; sentinel: string | null; staged: boolean }[] {
+  const out: { english: string; lsd: string; page: string; sentinel: string | null; staged: boolean }[] = []
+  for (const [english, e] of ENTRIES) {
+    out.push({ english, lsd: e.lsd ?? '', page: e.page ?? '', sentinel: e.sentinel ?? null, staged: e.staged === true })
+  }
+  return out.sort((a, b) => (a.english < b.english ? -1 : 1))
 }
 
 /** Design-PDF page reference for an English string, for the coverage report. Not used for lookup. */
@@ -540,6 +585,34 @@ export function useT() {
 // position and your app state. Accepting here also stops Vite from walking up the import
 // graph and force-reloading the whole page instead.
 if (import.meta.hot) {
+  /**
+   * DEV ONLY — layer the dictionary editor's staged edits over the generated wordlist.
+   *
+   * Attached to `window` inside the `import.meta.hot` guard rather than exported, which is
+   * deliberate and follows `__lsdScan`: `import.meta.hot` is statically false in a production
+   * build, so this whole block is dropped at compile time and there is no exported symbol for
+   * tree-shaking to keep alive by accident. That failure mode has happened in this repo before
+   * — see the header of `scripts/check-dev-only.mjs` — and `__lsdOverrides` is on its forbidden
+   * list so it cannot happen quietly again.
+   *
+   * ENTRIES is rebuilt from the generated payload on every call, then the staged values are
+   * written over the top. Applying edits incrementally would make removing one a no-op.
+   */
+  ;(window as unknown as { __lsdOverrides?: (m: Record<string, string>) => void }).__lsdOverrides = (map) => {
+    loadEntries(lastPayload)
+    for (const [english, lsd] of Object.entries(map ?? {})) {
+      const key = normKey(english)
+      if (!key || typeof lsd !== 'string') continue
+      const prev = ENTRIES.get(key)
+      ENTRIES.set(key, { page: prev?.page ?? '', ...prev, lsd, staged: true })
+    }
+    resolvedKeys.clear()
+    missedStrings.clear()
+    dictVersion++
+    dictListeners.forEach((fn) => fn())
+    notifyCoverage()
+  }
+
   import.meta.hot.accept('./lsd.json', (mod) => {
     if (!mod) return
     loadEntries((mod as { default?: unknown }).default ?? mod)

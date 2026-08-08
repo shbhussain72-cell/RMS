@@ -56,3 +56,7 @@ artifacts/
 *.BACKUP-*.xlsx
 RMS_untranslated_*.xlsx
 RMS_remaining_*.xlsx
+
+# Dictionary edits staged in the browser editor, awaiting a paste into the .xlsx.
+# Local by design: the build refuses to run while this file is non-empty.
+wordlist-overrides.json

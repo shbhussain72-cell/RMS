@@ -169,13 +169,17 @@ function DateTimeRow({ m, className = '' }: { m: Miqaat; className?: string }) {
   // declared per-run by the formatters, which is both narrower and correct.
   return (
     <div className={`flex flex-wrap items-center gap-x-[16px] gap-y-[4px] ${className}`}>
-      <span className="flex items-center gap-[7px] text-[#5a6660]">
+      <span className="flex min-w-0 items-center gap-[7px] text-[#5a6660]">
         <CalendarGlyph className="size-[15px] shrink-0" />
-        {/* `whitespace-nowrap` KEPT deliberately. The LSD line is now much longer than the
-            English one (weekday + Gregorian + bracketed Hijri) and will overflow this card at
-            narrow widths. Dropping the class would fix that, but it is a layout change and
-            layout/overflow belongs to the later session — so this is flagged, not fixed. */}
-        <span className="whitespace-nowrap text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...dirProps}>
+        {/* `whitespace-nowrap` REMOVED (it was flagged here for this layout session). The LSD
+            line is much longer than the English one — weekday + Gregorian + bracketed Hijri —
+            and held on one line it escaped the card's `overflow-clip`, so the Hijri date was
+            cut off at 390 and 768. That form is the one mumineen read, so it is not shortened
+            or abbreviated: it wraps, and the card grows. `min-w-0` on the flex parent is what
+            makes wrapping possible at all — a flex item's default `min-width: auto` floors it
+            at its content width, so without it the span would refuse to shrink and the text
+            would overflow anyway. English is one short run and is unaffected. */}
+        <span className="text-[13px] leading-[18px]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...dirProps}>
           <DateLine value={m.dateLabel} />
         </span>
       </span>

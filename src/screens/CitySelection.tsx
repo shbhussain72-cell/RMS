@@ -791,7 +791,7 @@ export function HostCityCard({
           action group on the right — mobile gets a compact pill+radio (radio replaces the desktop
           "Select"/"Selected" pill), desktop keeps its fuller action + Select pill group. Sitting on the
           same row as the icon uses that row's extra vertical room instead of a separate label row. */}
-      <div className="flex items-center gap-[10px] sm:gap-[12px]">
+      <div className="flex flex-wrap items-center gap-[10px] sm:gap-[12px]">
         <div className="flex min-w-0 flex-1 items-center gap-[10px] sm:gap-[12px]">
         <span
           className="flex size-[38px] shrink-0 items-center justify-center rounded-[12px] border transition-colors duration-200 sm:size-[46px]"
@@ -806,11 +806,16 @@ export function HostCityCard({
           </svg>
         </span>
         <div className="min-w-0">
-          <div className="flex items-center gap-[7px]">
+          <div className="flex min-w-0 items-center gap-[7px]">
             {/* The label follows the OCCUPYING city's real type, not the slot's position — an
                 Arrange My Cities layout can put a relay city in the host slot, and it should read
                 as a relay city, not "Host city" (matches the same rule in ArrangeCities.tsx). */}
-            <p className="text-[13px] leading-[17px] sm:text-[14px] sm:leading-[18px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>
+            {/* `truncate` — this card can sit in a 220px sidebar column while still on the `sm:`
+                (desktop) branch, because Tailwind's `sm:` is a VIEWPORT query and the column is
+                not the viewport. Unbounded, this kicker overflowed its own `min-w-0` box and was
+                painted over by the action group beside it. Truncating matches the city name
+                directly below, which has always truncated for the same reason. */}
+            <p className="truncate text-[13px] leading-[17px] sm:text-[14px] sm:leading-[18px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>
               {city.type === 'host' ? 'Host city' : 'Relay city'}
             </p>
             {preferred && (
@@ -874,8 +879,17 @@ export function HostCityCard({
           </button>}
         </div>
         {/* Desktop-only: Reserve/Remove all (or Swap all) + Select pill, right-aligned. Reserve all and
-            Swap all never apply at the same time. */}
-        <div className="hidden shrink-0 flex-wrap items-center justify-end gap-[8px] sm:ms-auto sm:flex">
+            Swap all never apply at the same time.
+
+            Three changes together, and each one is load-bearing: the ROW above wraps, this group
+            may shrink (`min-w-0`, not `shrink-0`), and the Select pill's label truncates. In LSD
+            the pill labels are wider than their English counterparts, and this card can sit in a
+            220px sidebar column while still on the `sm:` branch, so the group ran out of the
+            card — which is `overflow-hidden` — and the labels were sheared off. Shrinking the
+            group ALONE was tried and is worse: with every child `shrink-0` a narrower box does
+            not wrap them, it spills the `justify-end` content out of the box's start edge onto
+            the "Host city" label. It only works once that label truncates too. */}
+        <div className="hidden min-w-0 flex-wrap items-center justify-end gap-[8px] sm:ms-auto sm:flex">
           {isCurrentCity && (
             <span className="flex h-[34px] shrink-0 items-center gap-[7px] rounded-full border-[1.5px] border-[#d9d2c2] bg-white px-[14px]" style={{ fontFamily: FONT }}>
               <PinDot />
@@ -911,8 +925,12 @@ export function HostCityCard({
               once selected — matches the "PHASE 1 · LIVE" badge's green right above this card, so the
               two status indicators read as one consistent color instead of clashing (teal was tried
               first and swapped out per follow-up feedback). */}
+          {/* `min-w-0` + a truncating label: in a 220px sidebar card the LSD state word is wider
+              than the whole card, and the pill is inside a `shrink-0` group, so it sheared off
+              against the card's `overflow-hidden`. The check glyph beside it carries the state
+              on its own, so an ellipsis here loses nothing the user needs. */}
           <span
-            className={`${isCurrentCity ? 'hidden' : 'flex'} h-[34px] shrink-0 items-center gap-[7px] rounded-full px-[14px] transition-all duration-200`}
+            className={`${isCurrentCity ? 'hidden' : 'flex'} h-[34px] min-w-0 shrink-0 items-center gap-[7px] rounded-full px-[14px] transition-all duration-200`}
             style={{
               border: selected ? '1.5px solid #1f5a44' : '1.5px solid #c2a04e',
               background: selected ? '#1f5a44' : 'transparent',
@@ -925,7 +943,7 @@ export function HostCityCard({
             ) : (
               <span className="size-[13px] rounded-full border-[1.5px] border-[#c2a04e]" />
             )}
-            <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: selected ? 'white' : '#a8843e' }}>
+            <span className="truncate text-[13px] font-bold" style={{ fontFamily: FONT, color: selected ? 'white' : '#a8843e' }}>
               {selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? 'Request' : 'Select')}
             </span>
           </span>

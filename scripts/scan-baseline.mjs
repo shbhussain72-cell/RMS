@@ -17,6 +17,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -110,7 +111,7 @@ const browser = await chromium.launch()
  * correctly ignores non-rendered nodes) never sees them, and a desktop-only pass silently
  * misses roughly half the UI. Two widths is the minimum honest sample.
  */
-const WIDTHS = [390, 1440]
+const WIDTHS = NARROW_WIDTHS
 
 let visited = 0
 const allTotals = []

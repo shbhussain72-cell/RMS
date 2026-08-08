@@ -38,6 +38,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -56,7 +57,7 @@ const routes = [
   .sort()
 const targets = ONLY.length ? routes.filter((r) => ONLY.some((o) => r.startsWith(o))) : routes
 
-const WIDTHS = [390, 1440]
+const WIDTHS = NARROW_WIDTHS
 
 /**
  * Tour keys, read from src/tour/steps.ts.

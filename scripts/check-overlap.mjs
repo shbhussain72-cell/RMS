@@ -34,10 +34,11 @@ import { createServer } from 'node:net'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CANONICAL_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT_ID = 'ashara-1448'
-const WIDTHS = [390, 768, 1024, 1150, 1440]
+const WIDTHS = CANONICAL_WIDTHS
 const LANGS = ['en', 'lsd']
 
 let fails = 0

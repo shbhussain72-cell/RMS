@@ -26,6 +26,7 @@ import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT = 'ashara-1448'
@@ -68,7 +69,7 @@ await new Promise((ok, fail) => {
 const browser = await chromium.launch()
 
 for (const lang of ['en', 'lsd']) {
-  for (const width of [390, 1440]) {
+  for (const width of NARROW_WIDTHS) {
     const ctx = await browser.newContext({
       viewport: { width, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
     })

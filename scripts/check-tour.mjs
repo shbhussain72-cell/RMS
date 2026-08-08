@@ -49,9 +49,10 @@ import { createServer } from 'node:net'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const WIDTHS = [390, 1440]
+const WIDTHS = NARROW_WIDTHS
 
 /**
  * Miqaat fixtures to try, in order, until a screen's anchors appear.

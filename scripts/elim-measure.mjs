@@ -20,6 +20,7 @@ import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = resolve(ROOT, process.argv[2] || 'artifacts/elim.json')
@@ -34,7 +35,7 @@ const MIQAAT = 'ashara-1448'
  * PhoneScreen desktop branch kicks in and where the Request-all-over-Host-city overlap lives,
  * so a centring change verified only at the extremes is verified in the wrong places.
  */
-const WIDTHS = process.argv.slice(3).length ? process.argv.slice(3).map(Number) : [390, 1440]
+const WIDTHS = process.argv.slice(3).length ? process.argv.slice(3).map(Number) : NARROW_WIDTHS
 const LANGS = ['en', 'lsd']
 
 const routes = [...new Set(

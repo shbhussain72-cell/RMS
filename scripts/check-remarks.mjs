@@ -25,6 +25,7 @@ import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const ROUTE = '/miqaats/ashara-1448/city'
@@ -291,7 +292,7 @@ async function runLang(browser, lang, port) {
   await setMode('unrendered')
 
   // ── viewport containment at 390 and 1440 ───────────────────────────────────────
-  for (const width of [390, 1440]) {
+  for (const width of NARROW_WIDTHS) {
     await page.setViewportSize({ width, height: 844 })
     await settle(page)
     await openPanel(page)

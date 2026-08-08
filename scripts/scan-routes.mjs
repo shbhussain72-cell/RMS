@@ -35,6 +35,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const argv = process.argv.slice(2)
@@ -42,7 +43,7 @@ const arg = (name, dflt) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] 
 const OUT = resolve(ROOT, arg('--out', 'artifacts/audit/routes-scan.json'))
 const DIFF = argv.includes('--diff') ? resolve(ROOT, arg('--diff')) : null
 const MIQAAT_ID = 'ashara-1448'
-const WIDTHS = [390, 1440]
+const WIDTHS = NARROW_WIDTHS
 const CLASSES = ['A', 'B1', 'B2', 'C', 'sentinel']
 const W = { A: 4, B1: 4, B2: 4, C: 4, sentinel: 9 }
 

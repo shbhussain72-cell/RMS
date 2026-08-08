@@ -49,6 +49,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
+import { CANONICAL_WIDTHS } from './widths.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -58,7 +59,7 @@ const OUT = resolve(ROOT, 'artifacts/audit/layout.json')
 const argv = process.argv.slice(2)
 const flag = (name) => argv.filter((a, i) => argv[i - 1] === `--${name}`)
 const JSON_OUT = argv.includes('--json')
-const WIDTHS = flag('width').length ? flag('width').map(Number) : [390, 768, 1024, 1440]
+const WIDTHS = flag('width').length ? flag('width').map(Number) : CANONICAL_WIDTHS
 const LANGS = flag('lang').length ? flag('lang') : ['en', 'lsd']
 const ONLY = flag('route')
 

@@ -16,6 +16,7 @@
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -30,7 +31,7 @@ const browser = await chromium.launch()
 let fails = 0
 const say = (ok, msg) => { if (!ok) fails++; console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${msg}`) }
 
-for (const width of [390, 1440]) {
+for (const width of NARROW_WIDTHS) {
 for (const lang of ['en', 'lsd']) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' })
   await ctx.addInitScript(seed(lang))

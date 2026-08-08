@@ -31,6 +31,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
+import { NARROW_WIDTHS } from './widths.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -38,7 +39,7 @@ const PORT = 4324
 const MIQAAT_ID = 'ashara-1448'
 const argv = process.argv.slice(2)
 const JSON_OUT = argv.includes('--json')
-const WIDTHS = [390, 1440]
+const WIDTHS = NARROW_WIDTHS
 const OUT = resolve(ROOT, 'artifacts/audit/lsd-clip.json')
 
 const routes = [

@@ -22,6 +22,7 @@ import { readFileSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
+import { CANONICAL_WIDTHS } from './widths.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -36,7 +37,7 @@ const flag = (name) => {
 // The canonical set is 390/768/1024/1150/1440 (05-runbook-phase2.md §4). 1150 was missing here,
 // so every "full harness, five widths" run this repo has recorded was actually four — the count
 // printed at the end was self-consistent and said nothing about which widths it had covered.
-const WIDTHS = flag('width').length ? flag('width').map(Number) : [390, 768, 1024, 1150, 1440]
+const WIDTHS = flag('width').length ? flag('width').map(Number) : CANONICAL_WIDTHS
 const LANGS = flag('lang').length ? flag('lang') : ['en', 'lsd']
 const ONLY = flag('route')
 const PORT = Number(flag('port')[0] || 4319)

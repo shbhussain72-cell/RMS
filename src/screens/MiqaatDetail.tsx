@@ -17,6 +17,7 @@ import type { AskHelpInit } from '../chat/types'
 import Toast, { useToast } from '../components/figma/Toast'
 import { useT } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
+import { Ltr, toArabicDigits } from '../components/Bidi'
 
 const HERO_ARCH = '/figma/md-hero-arch.svg'
 const HERO_PHOTO = '/figma/md-hero-photo.png'
@@ -256,7 +257,15 @@ function Hero({
                   <div className="flex gap-[8px]">
                     {cells.map((c) => (
                       <div key={c.unit} className="flex flex-1 flex-col items-center justify-center rounded-[12px] border border-solid border-[rgba(201,161,74,0.4)] bg-[rgba(255,255,255,0.1)] py-[8px]">
-                        <p className="text-[22px] leading-[26px] text-white sm:text-[26px]" style={{ fontFamily: MUL, fontWeight: 700 }}>{c.value}</p>
+                        {/* A countdown is a COUNT, so its digits follow the language — Arabic-Indic
+                            in LSD, matching the time rendered directly above it. Left as ASCII, the
+                            hero showed an Arabic-Indic clock and a Latin `07 DAYS` side by side.
+                            `toArabicDigits` and not `formatNumber` because the value arrives
+                            pre-padded (`07`, `00`) and the pad is what stops the tiles resizing on
+                            each tick — the same reason MiqaatList's CountdownValue picks it.
+                            The <Ltr> wrapper is applied ONLY in LSD so the English DOM is
+                            untouched. */}
+                        <p className="text-[22px] leading-[26px] text-white sm:text-[26px]" style={{ fontFamily: MUL, fontWeight: 700 }}>{isLsd ? <Ltr>{toArabicDigits(c.value)}</Ltr> : c.value}</p>
                         <p className="mt-[2px] text-[9px] uppercase leading-none tracking-[0.6px] text-[#c8a84b] sm:text-[10px]" style={{ fontFamily: MUL, fontWeight: 700 }}>{c.unit}</p>
                       </div>
                     ))}

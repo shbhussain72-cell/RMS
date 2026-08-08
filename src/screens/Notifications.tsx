@@ -67,7 +67,7 @@ export default function Notifications() {
   }
 
   return (
-    <PhoneScreen statusTone="light" showHomeIndicator>
+    <PhoneScreen>
       {/* AppBar */}
       <div>
         <AppBar />

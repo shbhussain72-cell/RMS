@@ -293,7 +293,7 @@ export default function Review() {
   )
 
   return (
-    <PhoneScreen statusTone="dark" footer={<div className="sm:hidden">{footer}</div>}>
+    <PhoneScreen footer={<div className="sm:hidden">{footer}</div>}>
       <div>
         <AppBar notificationCount={3} onBellClick={() => {}} />
       </div>

@@ -83,7 +83,6 @@ export default function RazaView() {
 
   return (
     <PhoneScreen
-      statusTone="light"
       footer={(
         <StickyFooter
           caption={miqaat.title}

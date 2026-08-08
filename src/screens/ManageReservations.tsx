@@ -2042,7 +2042,7 @@ export default function ManageReservations() {
 
   return (
     <>
-      <PhoneScreen statusTone="light">
+      <PhoneScreen>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════════════ MOBILE — single column (unchanged) ═══════════════════════ */}

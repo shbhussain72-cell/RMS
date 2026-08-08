@@ -1958,7 +1958,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
 
   return (
     <>
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{footer}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{footer}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════════════ MOBILE — unchanged single-column flow ═══════════════════════ */}

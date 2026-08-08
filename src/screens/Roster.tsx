@@ -215,7 +215,6 @@ export default function Roster() {
 
   return (
     <PhoneScreen
-      statusTone="dark"
       footer={(
         <StickyFooter
           caption={miqaat.title}

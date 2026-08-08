@@ -507,7 +507,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
       </div>
     )
     return (
-      <PhoneScreen statusTone="dark" footer={formOnlyFooter}>
+      <PhoneScreen footer={formOnlyFooter}>
         <div>
           <AppBar notificationCount={3} onBellClick={() => {}} />
         </div>
@@ -545,7 +545,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
   }
 
   return (
-    <PhoneScreen statusTone="dark" footer={footer}>
+    <PhoneScreen footer={footer}>
       {/* AppBar (shared) */}
       <div>
         <AppBar notificationCount={3} onBellClick={() => {}} />

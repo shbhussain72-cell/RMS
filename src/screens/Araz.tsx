@@ -687,7 +687,7 @@ export default function Araz() {
     const goHome = () => nav('/miqaats')
 
     return (
-      <PhoneScreen statusTone="light" footer={
+      <PhoneScreen footer={
         <div className="sm:hidden">
           <StickyFooter caption="Araz · Preferred City" title={t('Preferences submitted')} button="Go home" onButton={goHome} />
         </div>
@@ -772,7 +772,7 @@ export default function Araz() {
   return (
     <>
       <Toast toast={toast} align="right" />
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{footer}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{footer}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════ MOBILE — single column ═══════════════ */}

@@ -5,9 +5,12 @@
  * Web (≥ 640px) : full-width content up to 1500px, warm #f6f4ef page bg,
  *                 clamp-based side padding — matches the reference web layout.
  *
- * The real OS provides the status bar / home indicator, so this shell renders no
- * fake phone chrome. `statusTone` / `showHomeIndicator` are accepted for backward
- * compatibility with existing callers but no longer render anything.
+ * The real OS provides the status bar and home indicator, so this shell renders no fake phone
+ * chrome. It used to draw a hard-coded "9:41" clock with signal/wifi/battery glyphs and an
+ * iPhone home bar; on a real device those sat directly under the OS's own and read as a rendering
+ * fault. `statusTone` and `showHomeIndicator` survived that removal as accepted-but-ignored
+ * no-ops so callers would keep compiling, and 21 screens went on passing them for months to
+ * nothing at all. Both are gone, along with `StatusBar.tsx` and `HomeIndicator.tsx`.
  */
 import type { ReactNode } from "react";
 
@@ -17,9 +20,7 @@ export default function PhoneScreen({
   frameClassName = "bg-white",
 }: {
   children: ReactNode;
-  statusTone?: "light" | "dark";
   footer?: ReactNode;
-  showHomeIndicator?: boolean;
   frameClassName?: string;
 }) {
   return (

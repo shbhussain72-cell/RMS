@@ -46,7 +46,13 @@ export default function BottomSheet({
      const { t } = useT()
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[110] flex justify-center sm:items-center sm:p-[24px]" data-name="BottomSheet">
+    // `items-end` is load-bearing, not cosmetic. Without a cross-axis alignment this container
+    // fell back to `align-items: stretch`, so the positioning wrapper below spanned the full
+    // viewport — invisible, but sitting on top of the backdrop across the whole screen. Tapping
+    // the dimmed area above the sheet hit the wrapper and did nothing, on every sheet in the app,
+    // at every mobile width. The `sm:` case never had the bug because `sm:items-center` already
+    // supplied an alignment. Held by `scripts/check-chrome.mjs`.
+    <div className="fixed inset-0 z-[110] flex items-end justify-center sm:items-center sm:p-[24px]" data-name="BottomSheet">
       {/* Backdrop */}
       <button
         type="button"
@@ -56,8 +62,10 @@ export default function BottomSheet({
         style={backdropStyle}
       />
 
-      {/* Positioning wrapper: bottom-docked on mobile, centered on web */}
-      <div className={`relative flex w-full max-w-[480px] flex-col justify-end sm:justify-center ${wide ? "sm:max-w-[600px]" : "sm:max-w-[440px]"}`}>
+      {/* Positioning wrapper. `justify-end sm:justify-center` used to live here and is gone: the
+          parent now aligns this box to the bottom, so it is only as tall as the sheet and has no
+          free main-axis space left to distribute. */}
+      <div className={`relative flex w-full max-w-[480px] flex-col ${wide ? "sm:max-w-[600px]" : "sm:max-w-[440px]"}`}>
         {/* Sheet surface — content-driven, capped; header & footer fixed, body scrolls */}
         <div className="relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-tl-[16px] rounded-tr-[16px] bg-white shadow-[0px_22px_50px_-18px_rgba(21,64,47,0.3),0px_8px_20px_-10px_rgba(21,64,47,0.16)] sm:max-h-[85vh] sm:rounded-[20px]">
           {/* ── Fixed header ── */}

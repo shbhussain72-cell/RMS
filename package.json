@@ -19,7 +19,8 @@
     "census:mirror": "node scripts/mirror-census.cjs",
     "check:remarks": "node scripts/check-remarks.mjs",
     "check:devonly": "node scripts/check-dev-only.mjs",
-    "check:anchor": "node scripts/check-anchor.mjs"
+    "check:anchor": "node scripts/check-anchor.mjs",
+    "check:chrome": "node scripts/check-chrome.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

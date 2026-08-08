@@ -675,7 +675,7 @@ export default function ArrangeCities() {
 
   return (
     <>
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{footer}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{footer}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════ MOBILE — single-column ═══════════════ */}

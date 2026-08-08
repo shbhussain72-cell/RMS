@@ -491,7 +491,7 @@ export default function EventJourney() {
   }, [])
 
   return (
-    <PhoneScreen statusTone="dark">
+    <PhoneScreen>
       <div className="w-full bg-white sm:bg-transparent">
         {/* AppBar */}
         <div>

@@ -1331,7 +1331,7 @@ export default function ZoneSelection() {
     )
 
     return (
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{successFooter}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{successFooter}</div>}>
         {/* AppBar */}
         <div>
           <AppBar notificationCount={3} />
@@ -1492,7 +1492,7 @@ export default function ZoneSelection() {
   )
 
   return (
-    <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{browseFooter}</div>}>
+    <PhoneScreen footer={<div className="sm:hidden">{browseFooter}</div>}>
       {/* validation toast (select-zone-first / nothing-allocated) */}
       <Toast toast={toast} />
       <ReserveTip tip={activeTip} />

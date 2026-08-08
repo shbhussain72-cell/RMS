@@ -17,7 +17,7 @@ export default function RazaLetter() {
   const nav = useNavigate()
 
   return (
-    <PhoneScreen statusTone="light">
+    <PhoneScreen>
       <AppBar notificationCount={3} />
 
       <div className="ms-[16px] sm:ms-0 mt-[12px]">

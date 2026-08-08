@@ -102,7 +102,7 @@ export default function Login() {
   return (
     // Cream shell so the area below the login panel (and the side gutters on wide
     // phones) matches the panel's #fffdf8 instead of showing a white gap.
-    <PhoneScreen statusTone="light" showHomeIndicator={false} frameClassName="bg-[#fffdf8]">
+    <PhoneScreen frameClassName="bg-[#fffdf8]">
 
       {/* ===== MOBILE layout — fills the viewport so the cream never bottoms out early ===== */}
       <div className="flex min-h-[100dvh] flex-col sm:hidden">

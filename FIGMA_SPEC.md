@@ -154,9 +154,9 @@ All badges: h-20, radius `50.824px` (≈9999px), text Mulish 700 10.165px tracki
 ## (g) 390px frame contract + PhoneScreen
 
 - Every Figma frame is **390px wide**. The device frame background is white (`bg-white`); children paint hero/page backgrounds on top.
-- `PhoneScreen` centers a 390px column on wide viewports (page bg `#e9e4da`) and fills width at ≤390px. It renders `StatusBar` (absolute, top, z-30, transparent bg), then the scrollable children, then an optional sticky `footer` (z-20) pinned to the bottom of the column, then `HomeIndicator` (z-30).
-- The status bar overlays the top 44px — screens that start with a hero/header must let it run to the top edge (the hero already reserves the 44px visually). Plain pages should pad their first content below 44px.
-- Chrome heights: **StatusBar 44px**, **AppBar 70px** (white pages, sits at top under status bar), **Header (green identity) 119px** (Miqaat List), **HomeIndicator 26px**.
+- `PhoneScreen` fills the viewport width on mobile and centres content up to 1500px on the web (page bg `#f6f4ef`). It renders the scrollable children, then an optional sticky `footer` (z-20) pinned to the bottom of the column.
+- **The fake phone chrome is gone.** The export drew a hard-coded 44px status bar (`9:41` + signal/wifi/battery) and a 26px iPhone home indicator. On a real device both sat under the OS's own and read as a rendering fault, so `StatusBar.tsx` and `HomeIndicator.tsx` were removed along with the `statusTone` / `showHomeIndicator` props. Nothing reserves 44px at the top any more: the AppBar sits at `top: 0`.
+- Chrome heights: **AppBar 70px**, **Header (green identity) 119px** (Miqaat List).
 - Breadcrumb row: left margin 16px, sits ~12px under the app bar/header.
 
 ---
@@ -167,9 +167,8 @@ Import root: `src/components/figma/`.
 
 | Component | Import | Props | Example |
 |---|---|---|---|
-| PhoneScreen | `import PhoneScreen from "@/components/figma/PhoneScreen"` | `{ children, statusTone?: "light"\|"dark", footer?: ReactNode, showHomeIndicator?: boolean, frameClassName?: string }` | `<PhoneScreen statusTone="dark" footer={<StickyCta/>}>…</PhoneScreen>` |
-| StatusBar | `import StatusBar from "@/components/figma/StatusBar"` | `{ tone?: "light"\|"dark" }` | `<StatusBar tone="light" />` (usually via PhoneScreen) |
-| HomeIndicator | `import HomeIndicator from "@/components/figma/HomeIndicator"` | `{ tone?: "light"\|"dark" }` | `<HomeIndicator tone="dark" />` (usually via PhoneScreen) |
+| PhoneScreen | `import PhoneScreen from "@/components/figma/PhoneScreen"` | `{ children, footer?: ReactNode, frameClassName?: string }` | `<PhoneScreen footer={<StickyCta/>}>…</PhoneScreen>` |
+| Popover | `import Popover from "@/components/Popover"` | `{ anchor: HTMLElement \| null, width: number, onClose: () => void, children }` | `<Popover anchor={el} width={280} onClose={close}>…</Popover>` |
 | AppBar | `import AppBar from "@/components/figma/AppBar"` | `{ notificationCount?: number, onBellClick?: () => void }` | `<AppBar notificationCount={3} onBellClick={openNotifs} />` |
 | Breadcrumb | `import Breadcrumb from "@/components/figma/Breadcrumb"` | `{ items: {label: string, to?: string}[], onNavigate?: (to: string) => void }` | `<Breadcrumb items={[{label:"Miqaat list",to:"/"},{label:"Add people"}]} onNavigate={nav}/>` |
 | BottomSheet | `import BottomSheet from "@/components/figma/BottomSheet"` | `{ open: boolean, onClose: () => void, title?: string, children: ReactNode }` | `<BottomSheet open={open} onClose={close} title="Assign guardian">…</BottomSheet>` |
@@ -177,4 +176,4 @@ Import root: `src/components/figma/`.
 > Imports use whatever path style the screens already use (relative or alias). If no `@` alias is configured, import via relative path, e.g. `../components/figma/PhoneScreen`.
 
 ### Asset manifest (`/figma/…`)
-`statusbar-battery-union.svg`, `statusbar-wifi.svg`, `statusbar-cellular.svg` (inlined in StatusBar), `home-indicator.svg` (inlined), `its-crest-login.png`, `its-crest-header.png`, `its-crest-appbar.png`, `hero-arch-login.svg`, `hero-arch-header.svg`, `chevron-right-vector.svg` (inlined in Breadcrumb), `shield-task.svg`, `checkbox-unchecked.svg`, `checkbox-checked.svg`, `checkbox-mask.svg`, `ornament-pattern.png`, `ornament-mask.svg`, `miqaat-card-bg.png`, `icon-date-range-gold.svg`, `icon-date-range-blue.svg`, `icon-schedule.svg`, `dot-live.svg`, `dot-upcoming.svg`.
+`its-crest-login.png`, `its-crest-header.png`, `its-crest-appbar.png`, `hero-arch-login.svg`, `hero-arch-header.svg`, `chevron-right-vector.svg` (inlined in Breadcrumb), `shield-task.svg`, `checkbox-unchecked.svg`, `checkbox-checked.svg`, `checkbox-mask.svg`, `ornament-pattern.png`, `ornament-mask.svg`, `miqaat-card-bg.png`, `icon-date-range-gold.svg`, `icon-date-range-blue.svg`, `icon-schedule.svg`, `dot-live.svg`, `dot-upcoming.svg`.

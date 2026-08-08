@@ -1277,7 +1277,7 @@ export default function MiqaatDetail() {
   const mobileFooter = <EventTimelineFooter onClick={() => nav(`/miqaats/${m.id}/timeline`)} />
 
   return (
-    <PhoneScreen statusTone="dark" footer={<div className="sm:hidden">{mobileFooter}</div>}>
+    <PhoneScreen footer={<div className="sm:hidden">{mobileFooter}</div>}>
       <div className="w-full bg-white">
         <div>
           <AppBar notificationCount={3} onBellClick={() => {}} />

@@ -3052,7 +3052,7 @@ export default function CitySelection() {
     )
 
     return (
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{successFooter}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{successFooter}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════════════ DESKTOP — two-panel confirmed ═══════════════════════ */}
@@ -3291,7 +3291,7 @@ export default function CitySelection() {
     )
 
     return (
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{successZoneFooter}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{successZoneFooter}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════════════ DESKTOP — two-panel confirmed ═══════════════════════ */}
@@ -3493,7 +3493,7 @@ export default function CitySelection() {
       />
       <Toast toast={toast} />
       <ReserveTip tip={activeTip} />
-      <PhoneScreen statusTone="light" footer={<div className="sm:hidden">{browseFooter}</div>}>
+      <PhoneScreen footer={<div className="sm:hidden">{browseFooter}</div>}>
         <AppBar notificationCount={3} />
 
         {/* ═══════════════════════ MOBILE — unchanged single-column flow ═══════════════════════ */}

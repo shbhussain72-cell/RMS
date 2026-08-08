@@ -1100,7 +1100,7 @@ export default function MiqaatList() {
     ['zone_done', 'raza_issued'].includes(m.effectiveStatus) ? journey(m.id).confirmedZone?.name : undefined
 
   return (
-    <PhoneScreen statusTone="light">
+    <PhoneScreen>
       <div className="w-full bg-white">
         {/* Mobile: sticky green identity header — hides on scroll-down, reveals on scroll-up */}
         <div

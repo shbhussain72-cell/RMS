@@ -16,10 +16,6 @@
  *      it removes the context and can change paint and hit-test order while leaving geometry
  *      identical. That is the hypothesis for the 8 OVERLAY findings.
  *
- *   B. STATUSBAR CLOCK — rendered width of the `9:41` clock in each language. `start-[33px]`
- *      was derived as 48 - 30/2, which assumes a 30px box. LSD forces a different font family
- *      across the whole document, so the metrics are unlikely to match.
- *
  *   C. NOWRAP EXEMPTIONS — for each `whitespace-nowrap` centring exemption, whether any
  *      ancestor clips on the inline axis. Symmetric overflow is still lost text if something
  *      above it has `overflow: hidden`.
@@ -87,24 +83,6 @@ for (const lang of ['en', 'lsd']) {
       } catch { /* keep walking */ }
     }
 
-    // ── B. StatusBar clock ────────────────────────────────────────────────────
-    const clock = await page.evaluate(() => {
-      const p = [...document.querySelectorAll('p')].find((el) => (el.textContent || '').trim() === '9:41')
-      if (!p) return null
-      const r = p.getBoundingClientRect()
-      const cs = getComputedStyle(p)
-      // Measure the INK, not the declared box: the box is w-[30px] by decree.
-      const range = document.createRange()
-      range.selectNodeContents(p)
-      const ink = range.getBoundingClientRect()
-      return {
-        boxW: +r.width.toFixed(2), inkW: +ink.width.toFixed(2),
-        centre: +(r.left + r.width / 2).toFixed(2),
-        inkCentre: +(ink.left + ink.width / 2).toFixed(2),
-        font: cs.fontFamily.split(',')[0], size: cs.fontSize,
-      }
-    })
-
     // ── A. Success stacking ───────────────────────────────────────────────────
     await page.goto(`http://localhost:${port}/miqaats/${MIQAAT}/success`, { waitUntil: 'domcontentloaded' }).catch(() => {})
     await page.evaluate(() => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res))))
@@ -140,7 +118,6 @@ for (const lang of ['en', 'lsd']) {
     })
 
     console.log(`\n═══ ${lang} @${width} ═══`)
-    console.log('  CLOCK :', clock ? JSON.stringify(clock) : 'not found')
     console.log('  SUCCESS reached:', stacking.onSuccess, ' heading:', JSON.stringify(stacking.heading))
     const noTransform = stacking.items.filter((i) => i.transform === 'none')
     console.log(`  centring-ish elements: ${stacking.items.length}, of which transform:none = ${noTransform.length}`)

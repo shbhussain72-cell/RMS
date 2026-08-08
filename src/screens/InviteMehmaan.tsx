@@ -375,7 +375,7 @@ export default function InviteMehmaan() {
   )
 
   return (
-    <PhoneScreen statusTone="dark" footer={footer}>
+    <PhoneScreen footer={footer}>
       {/* ── Dependent popup (shared) ── */}
       {showDependentPopup && result && result.dependents.length > 0 && (
         <LinkedDependentPopup

@@ -70,7 +70,6 @@ export default function ZoneAllocation() {
 
   return (
     <PhoneScreen
-      statusTone="light"
       footer={(
         <StickyFooter
           caption={miqaat.title}

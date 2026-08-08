@@ -40,7 +40,6 @@ export default function CityAllocation() {
 
   return (
     <PhoneScreen
-      statusTone="light"
       footer={(
         <StickyFooter
           caption={miqaat.title}

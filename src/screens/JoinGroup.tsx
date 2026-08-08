@@ -270,7 +270,7 @@ export default function JoinGroup() {
   )
 
   return (
-    <PhoneScreen statusTone="light" showHomeIndicator footer={<div className="sm:hidden">{footer}</div>}>
+    <PhoneScreen footer={<div className="sm:hidden">{footer}</div>}>
       {/* AppBar */}
       <div>
         <AppBar />

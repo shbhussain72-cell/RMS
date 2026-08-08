@@ -737,7 +737,7 @@ export default function AddPeople() {
   )
 
   return (
-    <PhoneScreen statusTone="dark" footer={footer}>
+    <PhoneScreen footer={footer}>
 
       {/* ── linked-dependent popup (shared); no invitation-limit popup — Add People is unlimited ── */}
       {showDepPopup && searchResult && searchResult.dependents.length > 0 && (

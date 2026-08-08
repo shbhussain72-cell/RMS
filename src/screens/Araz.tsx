@@ -5,6 +5,7 @@ import { isolateRuns } from '../components/Bidi'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
+import Popover from '../components/Popover'
 import BottomSheet from '../components/figma/BottomSheet'
 import Toast, { useToast } from '../components/figma/Toast'
 import StepIndicator from '../components/figma/StepIndicator'
@@ -196,11 +197,11 @@ function QuotaCard({ title, icon, quota, remaining, poolFull, helper }: {
 
 // ── Relay-city per-row dropdown (searchable) ───────────────────────────────────
 /** Pill trigger showing the picked relay city (or a placeholder), opens the searchable dropdown. */
-function RelayTrigger({ label, active, onClick }: { label: string | null; active: boolean; onClick: (rect: DOMRect) => void }) {
+function RelayTrigger({ label, active, onClick }: { label: string | null; active: boolean; onClick: (el: HTMLElement) => void }) {
   return (
     <button
       type="button"
-      onClick={(e) => { e.stopPropagation(); onClick(e.currentTarget.getBoundingClientRect()) }}
+      onClick={(e) => { e.stopPropagation(); onClick(e.currentTarget) }}
       className="inline-flex h-[34px] min-w-0 max-w-[190px] items-center justify-between gap-[8px] rounded-full border border-[#2e6a7d] bg-white px-[14px] transition-colors hover:bg-[#eef5f7]"
       style={{ fontFamily: FONT }}
     >
@@ -214,7 +215,7 @@ function RelayTrigger({ label, active, onClick }: { label: string | null; active
 
 /** Searchable relay-city popover — anchored + fixed so it escapes the table's overflow. */
 function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search, onSearch, onSelect, onClose }: {
-  anchor: DOMRect
+  anchor: HTMLElement
   cities: LiveCity[]
   selectedCityId: string | null
   availabilityOf: (c: LiveCity) => boolean
@@ -224,14 +225,9 @@ function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search,
   onClose: () => void
 }) {
      const { tx, t, td } = useT()
-  const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
-  const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
-  const top = Math.min(anchor.bottom + 6, window.innerHeight - 320)
   return (
-    <>
-      <div className="fixed inset-0 z-[90]" onClick={onClose} />
-      <div className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]" style={{ left, top, width: W }}>
+    <Popover anchor={anchor} width={280} onClose={onClose}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
             <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search city names...')} className="flex-1 bg-transparent text-[14px] outline-none text-[#23302a] placeholder-[#b0b8b3]" style={{ fontFamily: FONT }} />
@@ -258,8 +254,7 @@ function RelayDropdown({ anchor, cities, selectedCityId, availabilityOf, search,
           })}
           {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
-      </div>
-    </>
+    </Popover>
   )
 }
 
@@ -389,8 +384,8 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
   /** Read-only "view" state: relay shows a plain label (no dropdown) and the remove ✕ is hidden. */
   readOnly?: boolean
   onSelectHost: (id: string) => void
-  onSelectRelay: (id: string, rect: DOMRect) => void
-  onOpenRelay: (id: string, rect: DOMRect) => void
+  onSelectRelay: (id: string, el: HTMLElement) => void
+  onOpenRelay: (id: string, el: HTMLElement) => void
   onRemove: (id: string) => void
 }) {
      const { t, tx, td } = useT()
@@ -436,15 +431,15 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
                 {/* Relay City — radio; reveals the searchable dropdown once selected (edit only). */}
                 <td className="px-[16px] py-[10px] align-middle">
                   <div className="flex items-center gap-[9px]">
-                    <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget.getBoundingClientRect())} className="flex items-center">
+                    <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget)} className="flex items-center">
                       <RadioDot checked={rc} />
                     </button>
                     {rc ? (
                       readOnly
                         ? <span className="text-[14px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{relayCityNameOf(m.id)}</span>
-                        : <RelayTrigger label={relayCityNameOf(m.id)} active={openRelayMid === m.id} onClick={(rect) => onOpenRelay(m.id, rect)} />
+                        : <RelayTrigger label={relayCityNameOf(m.id)} active={openRelayMid === m.id} onClick={(el) => onOpenRelay(m.id, el)} />
                     ) : (
-                      <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget.getBoundingClientRect())} className="text-[14px] font-bold text-[#a9b1ab]" style={{ fontFamily: FONT }} {...tx('Relay City')} />
+                      <button type="button" onClick={(e) => onSelectRelay(m.id, e.currentTarget)} className="text-[14px] font-bold text-[#a9b1ab]" style={{ fontFamily: FONT }} {...tx('Relay City')} />
                     )}
                   </div>
                 </td>
@@ -474,8 +469,8 @@ function ArazMemberCard({ member, hostChecked, relayChecked, hostCityName, relay
   /** Read-only "view" state: relay shows a plain label (no dropdown) and the remove ✕ is hidden. */
   readOnly?: boolean
   onSelectHost: () => void
-  onSelectRelay: (rect: DOMRect) => void
-  onOpenRelay: (rect: DOMRect) => void
+  onSelectRelay: (el: HTMLElement) => void
+  onOpenRelay: (el: HTMLElement) => void
   onRemove: () => void
 }) {
      const { tx, td } = useT()
@@ -500,7 +495,7 @@ function ArazMemberCard({ member, hostChecked, relayChecked, hostCityName, relay
         </button>
         {/* Relay City radio + dropdown */}
         <div className="flex items-center gap-[10px]">
-          <button type="button" onClick={(e) => onSelectRelay(e.currentTarget.getBoundingClientRect())} className="flex items-center gap-[10px]">
+          <button type="button" onClick={(e) => onSelectRelay(e.currentTarget)} className="flex items-center gap-[10px]">
             <RadioDot checked={relayChecked} />
             <span className="text-[12px] font-bold uppercase tracking-[0.4px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('Relay City')} />
           </button>
@@ -570,7 +565,7 @@ export default function Araz() {
   const [pick, setPick] = useState<Map<string, LiveCity>>(buildSavedPicks)
   // Relay radio selected but no city chosen yet (keeps the radio "checked" before the dropdown pick).
   const [relayPending, setRelayPending] = useState<Set<string>>(new Set())
-  const [relayDropdown, setRelayDropdown] = useState<{ mid: string; rect: DOMRect } | null>(null)
+  const [relayDropdown, setRelayDropdown] = useState<{ mid: string; el: HTMLElement } | null>(null)
   const [relaySearch, setRelaySearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [view, setView] = useState<'browse' | 'success'>('browse')
@@ -617,13 +612,13 @@ export default function Araz() {
     setRelayPending((prev) => { const n = new Set(prev); n.delete(mid); return n })
     if (relayDropdown?.mid === mid) setRelayDropdown(null)
   }
-  function selectRelay(mid: string, rect: DOMRect) {
+  function selectRelay(mid: string, el: HTMLElement) {
     // Turning on relay while the pool is full (and this member isn't already relay) → block.
     if (pick.get(mid)?.type !== 'relay' && relayRemaining <= 0) { showToast('Relay City preference quota reached.'); return }
     setPick((prev) => { const n = new Map(prev); if (n.get(mid)?.type === 'host') n.delete(mid); return n })
     setRelayPending((prev) => { const n = new Set(prev); n.add(mid); return n })
     setRelaySearch('')
-    setRelayDropdown({ mid, rect })
+    setRelayDropdown({ mid, el })
   }
   function pickRelay(mid: string, city: LiveCity) {
     if (pick.get(mid)?.id !== city.id && relayRemaining <= 0) { showToast('Relay City preference quota reached.'); return }
@@ -809,8 +804,8 @@ export default function Araz() {
                 hostCityName={hostCityName} relayLabel={relayCityNameOf(m.id)} relayOpen={relayDropdown?.mid === m.id}
                 canRemove={canRemove(m.id)} readOnly={locked}
                 onSelectHost={() => selectHost(m.id)}
-                onSelectRelay={(rect) => selectRelay(m.id, rect)}
-                onOpenRelay={(rect) => { setRelaySearch(''); setRelayDropdown({ mid: m.id, rect }) }}
+                onSelectRelay={(el) => selectRelay(m.id, el)}
+                onOpenRelay={(el) => { setRelaySearch(''); setRelayDropdown({ mid: m.id, el }) }}
                 onRemove={() => removeMember(m.id)} />
             ))}
             {tableMembers.length === 0 && (
@@ -860,7 +855,7 @@ export default function Araz() {
                       readOnly={locked}
                       onSelectHost={selectHost}
                       onSelectRelay={selectRelay}
-                      onOpenRelay={(mid, rect) => { setRelaySearch(''); setRelayDropdown({ mid, rect }) }}
+                      onOpenRelay={(mid, el) => { setRelaySearch(''); setRelayDropdown({ mid, el }) }}
                       onRemove={removeMember}
                     />
                   ) : (
@@ -878,7 +873,7 @@ export default function Araz() {
 
       {relayDropdown && (
         <RelayDropdown
-          anchor={relayDropdown.rect}
+          anchor={relayDropdown.el}
           cities={relayCities}
           selectedCityId={pick.get(relayDropdown.mid)?.type === 'relay' ? pick.get(relayDropdown.mid)!.id : null}
           availabilityOf={() => relayRemaining > 0 || pick.get(relayDropdown.mid)?.type === 'relay'}

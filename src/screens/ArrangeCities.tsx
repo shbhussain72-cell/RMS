@@ -76,7 +76,7 @@ function LinkGlyph({ color = '#2e6a7d' }: { color?: string }) {
 
 /** Host City slot card — mirrors City Selection's Host card look, but the only action is "Change"
  *  (which city should occupy this card). No selection/reservation happens here. */
-function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOMRect) => void }) {
+function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (el: HTMLElement) => void }) {
   const { tx, td } = useT()
   return (
     <div
@@ -109,7 +109,7 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOM
         </div>
         <button
           type="button"
-          onClick={(e) => onChange((e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
+          onClick={(e) => onChange(e.currentTarget)}
           className="ms-auto flex h-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white px-[18px] text-[13px] font-bold text-[#a8843e] transition-colors hover:bg-[#fffdf5]"
           style={{ fontFamily: FONT, border: '1.5px solid #e0cc93' }} {...tx('Change')} />
       </div>
@@ -122,7 +122,7 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (rect: DOM
 function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
   slots: (string | null)[]
   liveById: Map<string, LiveCity>
-  onAdd: (idx: number, rect: DOMRect) => void
+  onAdd: (idx: number, el: HTMLElement) => void
   onClear: (idx: number) => void
 }) {
      const { tx, t, td } = useT()
@@ -143,7 +143,7 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
               <button
                 key={idx}
                 type="button"
-                onClick={(e) => onAdd(idx, (e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
+                onClick={(e) => onAdd(idx, e.currentTarget)}
                 className="flex h-[50px] items-center justify-center gap-[5px] rounded-[10px] bg-white transition-colors hover:bg-[#fffdf5]"
                 style={{ border: '1.5px solid #e0cc93' }}
               >
@@ -158,7 +158,7 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
             <div key={idx} className="relative flex h-[50px] flex-col justify-center rounded-[10px] bg-[#fffdf5] ps-[10px] pe-[26px] py-[6px]" style={{ border: '1.5px solid #c5a84d' }}>
               <button
                 type="button"
-                onClick={(e) => onAdd(idx, (e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
+                onClick={(e) => onAdd(idx, e.currentTarget)}
                 className="min-w-0 text-start"
                 title={t('Change city')}
               >
@@ -284,7 +284,7 @@ function RelayOrderCard({ cities, search, onSearch }: {
  *  places it in the clicked slot; the slot's previous occupant swaps into the picked city's old
  *  position — pure card arrangement, nothing is reserved. */
 function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelect, onClose }: {
-  anchor: DOMRect
+  anchor: HTMLElement
   cities: LiveCity[]
   currentId: string | null
   search: string
@@ -293,17 +293,9 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
   onClose: () => void
 }) {
      const { tx, t, td } = useT()
-  const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
-  const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
-  const top = Math.min(anchor.bottom + 6, window.innerHeight - 320)
   return (
-    <>
-      <div className="fixed inset-0 z-[90]" onClick={onClose} />
-      <div
-        className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]"
-        style={{ left, top, width: W }}
-      >
+    <Popover anchor={anchor} width={280} onClose={onClose}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
             <input
@@ -358,8 +350,7 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
           })}
           {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
-      </div>
-    </>
+    </Popover>
   )
 }
 
@@ -546,7 +537,7 @@ export default function ArrangeCities() {
     return liveCities.filter((c) => c.type === 'relay').map((c) => c.id)
   })
 
-  const [dropdown, setDropdown] = useState<{ slot: SlotRef; rect: DOMRect } | null>(null)
+  const [dropdown, setDropdown] = useState<{ slot: SlotRef; el: HTMLElement } | null>(null)
   const [pickSearch, setPickSearch] = useState('')
   const [relaySearch, setRelaySearch] = useState('')
 
@@ -656,11 +647,11 @@ export default function ArrangeCities() {
 
   const leftCards = (
     <div className="flex flex-col gap-[16px]">
-      <HostSlotCard city={hostCity} onChange={(rect) => { setPickSearch(''); setDropdown({ slot: { kind: 'host' }, rect }) }} />
+      <HostSlotCard city={hostCity} onChange={(el) => { setPickSearch(''); setDropdown({ slot: { kind: 'host' }, el }) }} />
       <PreferredSlotsCard
         slots={preferred}
         liveById={liveById}
-        onAdd={(idx, rect) => { setPickSearch(''); setDropdown({ slot: { kind: 'preferred', idx }, rect }) }}
+        onAdd={(idx, el) => { setPickSearch(''); setDropdown({ slot: { kind: 'preferred', idx }, el }) }}
         onClear={clearPreferred}
       />
       <RelayOrderCard
@@ -742,7 +733,7 @@ export default function ArrangeCities() {
 
       {dropdown && (
         <CityPickDropdown
-          anchor={dropdown.rect}
+          anchor={dropdown.el}
           cities={dropdownCities}
           currentId={occupantOf(dropdown.slot)}
           search={pickSearch}

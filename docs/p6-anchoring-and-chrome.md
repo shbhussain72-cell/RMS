@@ -8,10 +8,30 @@ Captured on a clean tree at `701013a`, after `npm run build`, so `dist/` matches
 measurement taken against a stale `dist/` is the inherited methodological error in this repo:
 it reports the layout of whatever was last built, not of what is being judged.)
 
-    node scripts/check-layout.mjs        # 200 route visits — 25 routes x 2 languages x 4 widths
+    node scripts/check-layout.mjs        # 250 route visits — 25 routes x 2 languages x 5 widths
 
-**136 raw findings / 63 distinct route+element. 58 failing, 78 log-only.** OVERLAY is the
-log-only class; OVERLAP, CLIPPED, TALL-ROW, OCCLUDED, PAGE-OVERFLOW and RTL-SCROLL gate.
+### The number moved three times, all for reasons that are not "fixes"
+
+| | raw | failing | why |
+|---|---:|---:|---|
+| four widths, old rule | 136 | 58 | the session's opening baseline — and 1150 had never been measured |
+| **five widths, old rule** | **151** | **64** | +15 raw / +6 failing, purely from adding 1150 |
+| **five widths, new rule** | **151** | **44** | 20 raw moved from gating to log-only by the exemption fix; nothing dropped |
+| after the EventJourney fix | 147 | **40** | the only real repair in this table |
+
+**The five-width baseline for delta judging is 151 raw / 44 failing.**
+
+#### What 1150 had been hiding: almost nothing
+
+15 raw findings, 6 of them gating. But only **one distinct finding is seen at 1150 and nowhere
+else**, and it is log-only: `span.ai-cta__pill over p.mt-[1px].font-bold.uppercase` on `/miqaats`
+— the Ask Help pill over a card label. Every other 1150 finding is a recurrence at a new width of
+something already reported at 768, 1024 or 1440.
+
+So the four sessions of blindness cost one log-only finding. That is worth stating plainly
+because the reasonable expectation was worse: the width was on the canonical list because
+something was once reported clipped there, and the honest answer is that whatever it was is
+either gone or is being caught at the neighbouring widths anyway.
 
 The suite exits 1 on a clean tree because that backlog predates the session. Judge by delta
 against **136 / 58**, not by exit status — a run that ends 1 having removed findings and one
@@ -51,9 +71,19 @@ the bottom:
 | /zone-allocation | 119px | 123px |
 | /preferred-city | 54px | 63px |
 
-All positive. Adding `padding-bottom` to the content column would not close a gap — there is no
-gap — it would insert dead space above the footer on every screen in the app, which is a design
-change the fix does not require.
+All positive.
+
+> **Do not add the ResizeObserver mechanism. This is a decision, not an omission.**
+>
+> Confirmed by the brief's author after the measurements above. `PhoneScreen` renders the footer
+> as a sibling AFTER the content inside the flex column, so `position: sticky` keeps it in normal
+> flow and it never overlays anything. Padding the scroll container would not close a gap —
+> there is no gap — it would insert dead space above the footer on every screen in the app.
+>
+> A later session reading the original brief will find a prescribed fix that looks unimplemented.
+> It was not skipped: it addresses a layout this app does not have. If the shell ever changes so
+> the footer is `fixed`, or is lifted out of the flex column, the mechanism becomes correct again
+> — and `check:overlap` is what will say so, by failing.
 
 What the class gets instead is an assertion, which also covers the `/preferred-city` clipped-
 buttons variant that padding would not have caught: `npm run check:overlap` walks **every route
@@ -105,84 +135,72 @@ documented centring exemption and a 4398x4271px clipped ornament whose stacking 
 `check-layout` on `/success`: **0 findings before, 0 after**; repo-wide the findings diff key by
 key with **0 new and 0 gone**.
 
-## The layout residue — all 58 accounted for, 0 fixed
+## The layout residue
 
-58 raw across 18 distinct route+element pairs.
+### The exemption is now identical across overlap and occlusion
 
-| bucket | raw | distinct | verdict |
-|---|---:|---:|---|
-| occluder is fixed/sticky | **33** | 11 | intentional overlay — and mis-bucketed, see below |
-| clipped horizontally | 21 | 4 | genuine |
-| tall row | 4 | 1 | genuine |
-| occluder is in-flow | 3 | 2 | genuine |
+Taken as an explicit decision by the brief's author, so it is not a probe change made by the
+person being measured by it. A sticky footer's CTA passing over the buttons beneath it is that
+footer working — the same situation `OVERLAY` already exempted when the covered thing was text.
+The ancestor walk existed twice, in one of the two places; it is now one helper, `layerOf`, used
+by both. Overlaps with a fixed/sticky side become `OVERLAP-OVERLAY` and join `OVERLAY` in
+`LOG_ONLY`. **Raw is unchanged at 151** — nothing was dropped, 20 entries moved.
 
-### The fixed/sticky 33 are a probe inconsistency, not defects
+**My "33" from the previous report was wrong.** I read the `where` strings and assumed every
+`∩ button.flex.h-[52px].min-w-[120px]` was the sticky footer's CTA. Walking the ancestors says
+20. The other 14 have no fixed or sticky ancestor on either side, because `/araz` and `/people`
+render their footer outside `PhoneScreen`'s `sticky bottom-0` wrapper — so it overlaps instead
+of sitting after the content. Those are genuine and are in the list below.
 
-Nine of the ten distinct OVERLAP findings are `<something> ∩ button.flex.h-[52px].min-w-[120px]`
-— that button is the **StickyFooter primary CTA**, inside `div.sticky.bottom-0.z-20`. The tenth
-is `div.ix-card-lg ∩ button.ai-cta.fixed.bottom-[24px]`, the Ask Help FAB, `position: fixed`.
-The one OCCLUDED entry on `/people` names `div.sticky-cta` as its occluder while its `detail`
-field says "in-flow".
+### Fixed: EventJourney's desktop columns
 
-`check-layout` already exempts a fixed/sticky occluder under OVERLAY and logs it rather than
-failing. Applying a different rule to the same occluder under OVERLAP and OCCLUDED is an
-inconsistency in the instrument. **I have not changed the classification**: reclassifying is
-indistinguishable from moving the goalposts when the graded number is the failing count, and it
-is the kind of change that should be made deliberately rather than at the end of a long session.
-Flagging it as the single highest-value next edit to `check-layout`, worth 33 of the 58.
+The left rail is a fixed 420px, the calendar needs 560px for its month grid, and with the 28px
+gap that is 1008px of demand against 707px of content at the 768 breakpoint. `min-w-0 flex-1`
+let the calendar shrink to whatever was left instead of wrapping, so it was pushed past the edge
+and clipped by the shell's `overflow-x: clip`. Now `flex-wrap` + `min-w-[560px]`: the calendar
+takes its own line at narrow desktop sizes and the side-by-side layout is untouched from 1150 up.
 
-The strong form of that contract is asserted independently and does not depend on the
-classification: `check:overlap` fails if *anything* is under a sticky footer at the end of a
-scroll, on 5 widths in both languages.
+Two things worth recording:
 
-### The genuine 25
+- It removed **three** findings, not two. The third was the in-flow `OCCLUDED` on the same route
+  — a milestone card painting over a `bdi` in LSD at 768. Filed as a separate defect, same cause.
+- The first attempt used `min-w-[320px]`, which was a guess. At 1024 the calendar fitted that
+  test, declined to wrap, took the 496px on offer and overflowed by 58px. One width passing is
+  not the constraint being right; 560 is measured. `/timeline` now has zero findings at any
+  width in either language.
 
-| kind | raw | route | what | widths |
+### Remaining: 40 raw / 12 distinct — with a diagnosis each
+
+| kind | raw | route | widths | diagnosed cause |
 |---|---:|---|---|---|
-| CLIPPED | 16 | `/miqaats` | `div.ix-card-lg` scrollWidth 488 > clientWidth 341, `overflow-x: clip`, on "06:30 AM IST" | en/lsd @768,1024 |
-| CLIPPED | 3 | `/miqaats/:id/timeline` | `div[AppScreen]` scrollWidth 812 > clientWidth 768 — a page-level overflow, the worst of the four | en/lsd @768,1024 |
-| CLIPPED | 1 | `/miqaats/:id/manage/relay` | 189 > 180 on "Available" | en @768 |
-| CLIPPED | 1 | `/miqaats/:id/review` | 69 > 65 on "Headcount" | en @768 |
-| TALL-ROW | 4 | `/miqaats/:id/people` | member `tr` 149px tall | en @768,1024 |
-| OCCLUDED | 2 | `/miqaats/:id` | `div.absolute.start-1/2.end-0` over "Important Notice" | en @1024,1440 |
-| OCCLUDED | 1 | `/miqaats/:id/timeline` | `div.group.relative.min-h-[92px]` over a `bdi`, "Registration" | lsd @768 |
+| CLIPPED | 16 | `/miqaats` | en/lsd @768,1024 | `div.ix-card-lg` 488 > 341. The countdown block ("00 SEC" unit boxes) is 240px inside a `min-w-0` chain whose content box is 73px — it overflows by 167px and is clipped. Needs the countdown to shrink or wrap, not the card to widen. |
+| OVERLAP | 12 | `/miqaats/:id/araz`, `/people` | en/lsd @768–1440 | the StickyFooter CTA over page buttons, with **no** sticky ancestor — these two screens render the footer outside `PhoneScreen`'s `sticky bottom-0` wrapper. Fixing the wrapper fixes the whole group and is the single highest-value item here. |
+| TALL-ROW | 4 | `/miqaats/:id/people` | en @768,1024 | member `tr` 149px tall — the classic missing `min-width` on the name column, every word wrapping onto its own line. |
+| OCCLUDED | 3 | `/miqaats/:id` | en @1024,1150,1440 | `div.absolute.start-1/2.end-0` painted over the "Important Notice" heading. |
+| CLIPPED | 1 | `/miqaats/:id/manage/relay` | en @768 | 189 > 180 on "Available"; the neighbouring "Request all to Mumbai" pill is 188px in a 180px `shrink-0` box. |
+| CLIPPED | 1 | `/miqaats/:id/review` | en @768 | 69 > 65 on "Headcount". `StatTile`'s label is pinned to `w-[64px]` with `whitespace-nowrap`; the word is 73px. 4px, EN only. |
+| OCCLUDED | 1 | `/miqaats/:id/people` | en @1024 | `div.sticky-cta` over the "Other Details" heading — the same footer-wrapper cause as the OVERLAP group. |
 
-**None of these were fixed.** The session ran well past its budget on the reproduce-first pass
-and the three §4 fixes, and the instruction is to stop at a section boundary fully committed
-rather than start work that cannot be finished and verified. They are a clean next section: four
-CLIPPED (all "fixed-width container meets longer text", exactly the predicted shape), one row
-height, and two genuine in-flow occlusions.
+**Stopped here at a section boundary, fully committed.** The diagnoses above are measured, not
+guessed: each names the element, the numbers, and what has to give. The footer-wrapper group is
+the next thing to do — 13 of the 40 in one edit.
 
 ## Verification
 
 | check | result |
 |---|---|
 | `tsc -b` | clean |
-| `vitest run` | 80 passed, 8 files |
+| `vitest run` | **83 passed**, 9 files (+3 width guards) |
 | `npm run build` | passes — build:lsd, check:lsd, tsc, vite build |
 | dev-only dist grep | 13/13, route table in step (26 routes) |
 | `check:lsd` | 199 outstanding, 199 baselined, no new |
-| `check-centred` | off-centre >1.5px: 0 · actually clipped: 0 |
+| `check-centred` | off-centre >1.5px: 0 · actually clipped: 0 — **now including 1150** |
 | `check-numerals` | nodes mixing both systems: 0 |
 | `check-lsd-clip` | vertically clipped LSD: 0 |
-| `check:mirror` | 0 failing |
-| `check:anchor` | 0 failing |
-| `check:chrome` | 0 failing |
-| `check:devdock` | 0 failing |
-| `check:dictionary` | 0 failing |
-| `check:tour` | 0 failing, overlay class A 0 |
+| `check:mirror` / `check:anchor` / `check:chrome` / `check:devdock` / `check:dictionary` / `check:tour` | 0 failing each |
 | `check:remarks` | 56/56 |
-| `deliverables` | 3 passed |
-| **`check:overlap`** (new) | **0 failing** — sticky, reachable, once, appbar |
-| `check-layout` | **136 raw / 58 failing — unchanged**, 0 new, 0 gone |
+| `check:overlap` | 0 failing — sticky, reachable, once, appbar |
+| `deliverables` / `widths` guards | pass |
+| `check-layout` | **147 raw / 40 failing** against the 151 / 44 five-width baseline |
 
-Screenshots: **250** — 25 routes x 5 widths x 2 languages.
-
-The first run of the harness produced 200, because `shoot.mjs` defaulted to `[390, 768, 1024,
-1440]`. **1150 was missing**, so every "full harness, five widths" this repo has recorded was
-four; the run's own tally (`200/200, no missing routes`) was self-consistent and said nothing
-about which widths it had covered. Fixed and re-run, which is why the harness ran twice.
-
-`check-layout` has the same four-width default. It is **left alone deliberately** — adding 1150
-mid-session would change what the 58 baseline counts and make the delta meaningless. It belongs
-at the start of the next session, with a fresh baseline taken at five widths.
+Screenshots: **250** — 25 routes x 5 widths x 2 languages, one run, at the end.

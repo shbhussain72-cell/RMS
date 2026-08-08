@@ -11,7 +11,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../components/figma/InvitedMembers'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { headcount, useStore, type Invite } from '../store'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const FMU = { fontFamily: 'Mulish, system-ui, sans-serif' } as const
 const FM = { fontFamily: 'Marcellus, serif' } as const
@@ -262,7 +262,7 @@ export default function Review() {
       if (id) requestReopen(id, 'register', 'Registration', { memberCount: total, memberNames, memberParty })
       // Mirror City/Zone Selection: surface a one-shot "Request Sent" popup on Home so the
       // registration request gets the same visible confirmation the city/zone requests do.
-      nav('/miqaats', { state: { requestSent: `Your registration request (${total} member${total === 1 ? '' : 's'}) has been submitted for approval. You'll find it in the Requested section below.` } })
+      nav('/miqaats', { state: { requestSent: t(plural(total, 'Your registration request ({n} member) has been submitted for approval. You will find it in the Requested section below.', 'Your registration request ({n} members) has been submitted for approval. You will find it in the Requested section below.'), { n: total }) } })
       return
     }
     submit()
@@ -287,7 +287,7 @@ export default function Review() {
     <StickyFooter
       caption={isRequest ? 'Submit a registration request' : 'Ready for Registration'}
       title={footerHint}
-      button={isRequest ? 'Request' : `Register(${total})`}
+      button={isRequest ? t('Request') : t('Register ({n})', { n: total })}
       onButton={doSubmit}
     />
   )

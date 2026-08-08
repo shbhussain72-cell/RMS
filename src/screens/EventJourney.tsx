@@ -65,6 +65,14 @@ const withColors = (ms: TimelineMilestone[]): Milestone[] => ms.map((m) => ({ ..
 // date each cell sits on; `gDate` (the real Gregorian date) is what milestone matching keys off,
 // since Hijri day-of-month numbers repeat every ~29-30 days and can't be compared directly.
 type Cell = { gDate: Date; hijriDay: number; muted: boolean }
+/**
+ * Weekday column headers, Sunday first.
+ *
+ * The ORDER of this array is the calendar's own — Sunday through Saturday — and is not a
+ * reading order. The grid that renders it inherits the document's direction, so in LSD the
+ * same array lays out right-to-left with Sunday on the right, which is how an Arabic-script
+ * calendar reads. Reversing the array as well would put Saturday under Sunday's column.
+ */
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 const pad2 = (n: number) => String(n).padStart(2, '0')
 /** Same calendar day, comparing the Gregorian parts — milestone matching keys off the real
@@ -349,9 +357,7 @@ function DesktopCalendar({ flat, milestones, monthIndex, year }: { flat: Cell[];
       <MonthTitle monthIndex={monthIndex} year={year} />
       <div className="mt-[16px] grid grid-cols-7">
         {WEEKDAYS.map((d) => (
-          <span key={d} className="pb-[10px] text-center text-[13px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }}>
-            {d}
-          </span>
+          <span key={d} className="pb-[10px] text-center text-[13px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }} {...tx(d)} />
         ))}
       </div>
       {/* single 7-col grid → clean corner rounding; overflow-visible lets tooltips escape */}
@@ -409,9 +415,7 @@ function MobileCalendar({ flat, milestones, monthIndex, year }: { flat: Cell[]; 
       <MonthTitle monthIndex={monthIndex} year={year} size="sm" />
       <div className="mt-[12px] grid grid-cols-7">
         {WEEKDAYS.map((d) => (
-          <span key={d} className="pb-[6px] text-center text-[12px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }}>
-            {d}
-          </span>
+          <span key={d} className="pb-[6px] text-center text-[12px] font-semibold text-[#8a938e]" style={{ fontFamily: MUL }} {...tx(d)} />
         ))}
       </div>
       <div className="grid grid-cols-7 gap-y-[4px]">

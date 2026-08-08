@@ -13,7 +13,7 @@ import ConfirmedView, { type ConfirmedSection } from '../components/figma/Confir
 import { liveCities, family, arazExtraFamily, genderByIts, miqaats, type FamilyMember, type LiveCity } from '../data/seed'
 import { type Group, type BadgeKind } from '../lib/group'
 import { useStore, journeyFor, type GroupCityAlloc } from '../store'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import { memberTableMinWidth } from '../components/memberTable'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -77,10 +77,11 @@ function RadioDot({ checked }: { checked: boolean }) {
 }
 
 function MembersChip({ count }: { count: number }) {
+  const { tx } = useT()
   return (
     <span className="inline-flex h-[34px] items-center gap-[8px] rounded-full bg-[#fbeed3] px-[16px]">
       <PeopleMini color="#9a6712" />
-      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }}>{count} members</span>
+      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }} {...tx(plural(count, '{n} member', '{n} members'), { n: count })} />
     </span>
   )
 }

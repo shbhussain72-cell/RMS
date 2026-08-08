@@ -186,7 +186,7 @@ function ZoneHCard({ zone, selected, onSelect }: { zone: Zone; selected: boolean
       }}>
       <span className="text-[15px] leading-[20px] text-[#23302a] text-start font-bold" style={{ fontFamily: FONT }} {...td(zone.name)} />
       <span className="text-[14px] leading-[18px] mt-[4px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>
-        {isFull ? t('Full') : `${age2(zone.left)} left`}
+        {isFull ? t('Full') : t('{n} spots left', { n: zone.left })}
       </span>
     </button>
   )
@@ -510,7 +510,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
               style={{ borderColor: selected ? '#d9c98a' : '#e7dfc9', background: selected ? '#fffdf5' : 'white', opacity: isFull ? 0.5 : 1 }}>
               <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(z.name)} />
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(z.left) }}>
-                {isFull ? t('Full') : `${age2(z.left)} left`}
+                {isFull ? t('Full') : t('{n} spots left', { n: z.left })}
               </span>
             </button>
           )
@@ -757,7 +757,7 @@ function MoveZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: b
       className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
       style={{ border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: selected ? '#fffdf5' : isFull ? '#f6f6f4' : 'white', cursor: isFull ? 'not-allowed' : 'pointer', minHeight: 64 }}>
       <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(zone.name)} />
-      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>{isFull ? t('Full') : `${age2(zone.left)} left`}</span>
+      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: seatColor(zone.left) }}>{isFull ? t('Full') : t('{n} spots left', { n: zone.left })}</span>
     </button>
   )
 }
@@ -1941,7 +1941,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
     <StickyFooter
       caption="Allocation"
       title={`Close in ${fmtHHMMSS(secs)}`}
-      button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? `Confirm(${movedCount})` : t('Confirm')) : (movedCount > 0 ? `Submit request(${movedCount})` : 'Submit request')}
+      button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? t('Confirm ({n})', { n: movedCount }) : t('Confirm')) : (movedCount > 0 ? t('Submit request ({n})', { n: movedCount }) : t('Submit request'))}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
     />

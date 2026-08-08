@@ -8,7 +8,7 @@ import { family, miqaats } from '../data/seed'
 import { buildAllGroups } from '../lib/group'
 import { useStore } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 
 const SERIF = 'Marcellus, Georgia, serif'
 
@@ -43,7 +43,7 @@ export default function CityAllocation() {
       footer={(
         <StickyFooter
           caption={miqaat.title}
-          title={`${memberTotal} Members`}
+          title={t(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

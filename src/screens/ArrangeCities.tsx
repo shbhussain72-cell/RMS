@@ -10,7 +10,7 @@ import { liveCities, family, genderByIts, miqaats, type FamilyMember, type LiveC
 import { buildAllGroups, type Group } from '../lib/group'
 import Popover from '../components/Popover'
 import { useStore, journeyFor } from '../store'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import { memberTableMinWidth } from '../components/memberTable'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -718,7 +718,7 @@ export default function ArrangeCities() {
                     <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM2 8a2 2 0 114 0 2 2 0 01-4 0zM15.5 17c0-2.21-2.46-4-5.5-4s-5.5 1.79-5.5 4M17 17c0-1.54-1.12-2.87-2.75-3.5M3 17c0-1.54 1.12-2.87 2.75-3.5" stroke="#5a6660" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
-                    {totalMembers} members
+                    {t(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })}
                   </span>
                 </div>
                 <p className="mt-[8px] text-[14px] leading-[20px] text-[#7a827c]" style={{ fontFamily: FONT }} {...tx('These members will go through City Selection with the layout you set on the left. Reservations happen there — not on this screen.')} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '@/components/figma/PhoneScreen'
-import { useT } from '../i18n'
+import { plural, useT } from '../i18n'
 import { isolateRuns } from '../components/Bidi'
 import AppBar from '@/components/figma/AppBar'
 import Breadcrumb from '@/components/figma/Breadcrumb'
@@ -560,7 +560,7 @@ export default function AddPeople() {
   //  • editing (edit-registration, Edit tapped): "Continue" + a "Cancel" secondary that returns to view.
   //  • fresh registration: unchanged — "Continue".
   const goManage = () => nav(`/miqaats/${id}/manage`)
-  const footerButton = viewMode ? 'Go back' : (effectiveSelectedCount > 0 ? `Continue(${effectiveSelectedCount})` : 'Continue')
+  const footerButton = viewMode ? t('Go back') : (effectiveSelectedCount > 0 ? t('Continue ({n})', { n: effectiveSelectedCount }) : t('Continue'))
   const onFooterButton = viewMode ? goManage : handleConfirm
   // Header CTA (edit-registration flow only), sitting top-right of the family header. In the read-only
   // view it reads "Edit" (unlocks the checkboxes / assignment changes / questionnaire); once editing it
@@ -672,7 +672,7 @@ export default function AddPeople() {
           </div>
           <div className="mt-[16px] flex items-center justify-between gap-[12px] border-t border-[#f0ebe0] pt-[16px]">
             <span className="text-[13px] font-semibold text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              {1 + searchResult.dependents.length} members
+              {t(plural(1 + searchResult.dependents.length, '{n} member', '{n} members'), { n: 1 + searchResult.dependents.length })}
             </span>
             {addButton}
           </div>

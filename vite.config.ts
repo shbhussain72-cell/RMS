@@ -89,11 +89,11 @@ function lsdWordlistWatcher(): Plugin {
 const OVERRIDES_PATH = resolvePath(fileURLToPath(new URL('.', import.meta.url)), 'wordlist-overrides.json')
 
 /** Shape on disk: `{ "<english>": { "lsd": "<string>", "at": "<iso>" } }`. */
-function readOverrides(): Record<string, { lsd: string; at: string }> {
+function readOverrides(): Record<string, { lsd: string; at: string; newRow?: boolean }> {
   try {
     const parsed: unknown = JSON.parse(readFileSync(OVERRIDES_PATH, 'utf8'))
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-    return parsed as Record<string, { lsd: string; at: string }>
+    return parsed as Record<string, { lsd: string; at: string; newRow?: boolean }>
   } catch {
     return {}
   }
@@ -136,9 +136,49 @@ function lsdOverridesApi(): Plugin {
           }
         } catch { /* a patch is still useful without page numbers */ }
 
+        /**
+         * Two kinds of row, and the difference matters more than it looks.
+         *
+         * A TRANSLATION is a value someone typed for a key the wordlist already has. It goes
+         * out with that value.
+         *
+         * A NEW ROW is a string that renders in the app and has no wordlist row at all —
+         * class C. It goes out with a BLANK LSD cell, on purpose: an empty row is a visible
+         * queue item in the spreadsheet, whereas a missing row is invisible and stays that way.
+         * Nothing is authored for it. No Lisan al-Dawat is generated anywhere in this file.
+         *
+         * Two rails, because this is the one endpoint that produces something destined for the
+         * source of truth:
+         *
+         *   1. A BLANK ROW IS NEVER EMITTED FOR A KEY THE WORDLIST ALREADY HAS. Pasting one
+         *      would overwrite a real translation with nothing, and it would look like an
+         *      ordinary paste. Such keys are skipped and named in the response header.
+         *   2. THE PATCH CANNOT BE LARGER THAN WHAT WAS STAGED. If the row count ever exceeds
+         *      the number of staged entries, something has invented rows and the request fails
+         *      rather than handing over a plausible-looking spreadsheet.
+         */
         const aoa: string[][] = [['Page', 'English name', 'LSD name']]
+        const skipped: string[] = []
         for (const [english, v] of Object.entries(pending)) {
-          aoa.push([pageOf.get(english) ?? '', english, v.lsd])
+          if (v.newRow) {
+            if (pageOf.has(english)) { skipped.push(english); continue }
+            aoa.push(['', english, ''])
+          } else {
+            aoa.push([pageOf.get(english) ?? '', english, v.lsd])
+          }
+        }
+        const emitted = aoa.length - 1
+        if (emitted > Object.keys(pending).length) {
+          res.statusCode = 500
+          res.setHeader('content-type', 'text/plain')
+          res.end(`patch aborted: ${emitted} rows from ${Object.keys(pending).length} staged entries`)
+          return
+        }
+        if (skipped.length) {
+          res.setHeader('x-lsd-skipped', String(skipped.length))
+          server.config.logger.warn(
+            `[lsd] ${skipped.length} blank row(s) skipped — the wordlist already has these keys: ${skipped.slice(0, 5).join(' | ')}`,
+          )
         }
         const out = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(out, XLSX.utils.aoa_to_sheet(aoa), 'Word List')

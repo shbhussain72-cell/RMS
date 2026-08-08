@@ -24,13 +24,31 @@ export type Crumb = { label: string; to?: string };
  */
 const crumbText = (label: string) => isolateRuns(label);
 
+/**
+ * Separator between crumbs. It points along the reading direction, so it has to flip in RTL —
+ * a chevron pointing right in a right-to-left trail reads as going back up the hierarchy.
+ *
+ * TWO PATHS, NOT `-scale-x-100`. A transform would do the job in one class and also give this
+ * 16px box its own stacking context (CSS Transforms §3), which is precisely the mechanism
+ * documented in `docs/centring-exceptions.md` — it changed paint and hit-test order on
+ * /success while leaving every box pixel-identical, and cost a full measurement pass to find.
+ * Swapping which path renders keeps the geometry AND the paint order untouched.
+ */
 function Chevron() {
   return (
     <div className="relative size-[16px] shrink-0 overflow-clip" data-name="chevron-right">
       <div className="absolute inset-y-[25%] start-[37.5%] end-[37.5%]">
         <svg viewBox="0 0 5 9" fill="none" preserveAspectRatio="none" className="block h-full w-full">
           <path
+            className="block rtl:hidden"
             d="M0.5 0.5L4.5 4.5L0.5 8.5"
+            stroke="#8a938e"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            className="hidden rtl:block"
+            d="M4.5 0.5L0.5 4.5L4.5 8.5"
             stroke="#8a938e"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -79,8 +97,13 @@ export default function Breadcrumb({
           className={`group flex shrink-0 items-center gap-[5px] pe-[8px] ${textSize} leading-[1.5] text-[#5a6660] transition-colors duration-150 hover:text-[#15402f] focus-visible:text-[#15402f] focus-visible:outline-none`}
           style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 600 }}
         >
-          <svg viewBox="0 0 24 24" className="size-[16px] shrink-0 transition-transform duration-200 group-hover:-translate-x-[2px]" fill="none" aria-hidden="true">
-            <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Same flip as the separator, and for the same reason: "back" is the direction you
+              came from, which is the reading START side. The hover nudge moves that way too —
+              `-translate-x` in LTR, `+translate-x` in RTL — or the arrow would drift forward
+              on hover while pointing backwards. */}
+          <svg viewBox="0 0 24 24" className="size-[16px] shrink-0 transition-transform duration-200 group-hover:-translate-x-[2px] rtl:group-hover:translate-x-[2px]" fill="none" aria-hidden="true">
+            <path className="block rtl:hidden" d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path className="hidden rtl:block" d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="whitespace-nowrap" {...tx('Go back')} />
         </button>

@@ -17,7 +17,7 @@ import StepIndicator from '../components/figma/StepIndicator'
 import ConfirmedView, { UnallocatedNotice, OpensLaterNotice, notAllocatedLabel, type ConfirmStage, type OpensLaterInfo } from '../components/figma/ConfirmedView'
 import Toast, { useToast } from '../components/figma/Toast'
 import { useStore, journeyFor, DEMO_PHASE_ORDER, type RankedCity } from '../store'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { memberTableMinWidth } from '../components/memberTable'
 
@@ -1822,10 +1822,11 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
 
 /** "👥 N members" cream pill shown under the desktop heading. */
 function MembersChip({ count }: { count: number }) {
+  const { tx } = useT()
   return (
     <span className="inline-flex h-[34px] items-center gap-[8px] rounded-full bg-[#fbeed3] px-[16px]">
       <PeopleMini color="#9a6712" />
-      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }}>{count} members</span>
+      <span className="text-[15px] font-bold text-[#9a6712]" style={{ fontFamily: FONT }} {...tx(plural(count, '{n} member', '{n} members'), { n: count })} />
     </span>
   )
 }
@@ -3045,7 +3046,7 @@ export default function CitySelection() {
     const successFooter = (
       <StickyFooter
         caption={t('City confirmed')}
-        title={`${totalAllocated} members allocated`}
+        title={t('{n} members allocated', { n: totalAllocated })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3130,7 +3131,7 @@ export default function CitySelection() {
                   <span className="inline-flex h-[20px] items-center rounded-full px-[9px] text-[10px] font-bold tracking-[0.3px]" style={{ fontFamily: FONT, background: city.type === 'host' ? '#f7efd6' : '#e1eef1', color: city.type === 'host' ? '#a8843e' : '#2e6a7d' }}>
                     {city.type === 'host' ? t('Host City') : t('Relay City')}
                   </span>
-                  <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {cityMemberCount} members</span>
+                  <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· <Iso>{t(plural(cityMemberCount, '{n} member', '{n} members'), { n: cityMemberCount })}</Iso></span>
                 </div>
                 {/* Mobile cards */}
                 <div className="flex flex-col gap-[10px] sm:hidden">
@@ -3208,7 +3209,7 @@ export default function CitySelection() {
                   <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#d2632b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className="text-[15px] font-bold text-[#8a4b22]" style={{ fontFamily: FONT }} {...tx('Not allocated')} />
-                <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· {unallocatedCount} members</span>
+                <span className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>· <Iso>{t(plural(unallocatedCount, '{n} member', '{n} members'), { n: unallocatedCount })}</Iso></span>
               </div>
               <div className="flex flex-col gap-[10px]">
                 {unallocatedGroups.map((g, i) => (
@@ -3284,7 +3285,7 @@ export default function CitySelection() {
     const successZoneFooter = (
       <StickyFooter
         caption="Zone confirmed"
-        title={`${totalAllocated || totalMembers} members allocated`}
+        title={t('{n} members allocated', { n: totalAllocated || totalMembers })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3604,7 +3605,7 @@ export default function CitySelection() {
             <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM2 8a2 2 0 114 0 2 2 0 01-4 0zM15.5 17c0-2.21-2.46-4-5.5-4s-5.5 1.79-5.5 4M17 17c0-1.54-1.12-2.87-2.75-3.5M3 17c0-1.54 1.12-2.87 2.75-3.5" stroke="#b8821e" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <span className="text-[14px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>{totalMembers} members</span>
+            <span className="text-[14px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }} {...tx(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })} />
           </div>
           {/* Mobile only — web has its own Reserve all button in the panel header. Only shown once a
               city is picked; hidden entirely (not just disabled) if any member is globally ineligible.

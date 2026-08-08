@@ -3,7 +3,7 @@ import { DateLine, TimeLine } from '../components/DateLine'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import { isolateRuns } from '../components/Bidi'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
@@ -1564,7 +1564,7 @@ function RequestCard({ slice, eventTitle, onCancel }: { slice: RequestSlice; eve
           {/* The card is one slice of a bigger request — say so, so "Cancel request" doesn't read
               as taking down the members shown on the OTHER cards too. */}
           {slice.partOfLarger && (
-            <span className="block truncate">Cancels {count === 1 ? 'this member' : `these ${count} members`} only</span>
+            <span className="block truncate">{t(plural(count, 'Cancels this member only', 'Cancels these {n} members only'), { n: count })}</span>
           )}
         </span>
         <button
@@ -1925,7 +1925,7 @@ export default function ManageReservations() {
   // ONE "Switch to a different zone" card covering every zone-allocated member, routed to the full
   // Zone Selection screen (which handles all cities/zones itself).
   if (zoneChangeGroupIndices.length > 0) {
-    const suffix = ` · ${zoneChangeMembers} member${zoneChangeMembers > 1 ? 's' : ''}`
+    const suffix = ` · ${t(plural(zoneChangeMembers, '{n} member', '{n} members'), { n: zoneChangeMembers })}`
     addOption({
       key: 'switch-different-zone',
       title: `Switch to a different zone${suffix}`,
@@ -1941,7 +1941,7 @@ export default function ManageReservations() {
   // the party includes any relay members (keeps the Host City offered as a destination there).
   const switchGroupIndices = [...relaySwitchGroupIndices, ...hostSwitchGroupIndices]
   if (switchGroupIndices.length > 0) {
-    const suffix = ` · ${switchMembers} member${switchMembers > 1 ? 's' : ''}`
+    const suffix = ` · ${t(plural(switchMembers, '{n} member', '{n} members'), { n: switchMembers })}`
     addOption({
       key: 'switch-different-city-zone',
       title: `Switch to a different city and zone${suffix}`,
@@ -1958,7 +1958,7 @@ export default function ManageReservations() {
   // once it's closed), mirroring how this card behaved before it was folded into the combined flow.
   const citySwitchGroupIndices = [...relayCitySwitchGroupIndices, ...hostCitySwitchGroupIndices]
   if (citySwitchGroupIndices.length > 0) {
-    const suffix = ` · ${citySwitchMembers} member${citySwitchMembers > 1 ? 's' : ''}`
+    const suffix = ` · ${t(plural(citySwitchMembers, '{n} member', '{n} members'), { n: citySwitchMembers })}`
     addOption({
       key: 'switch-different-city',
       title: `Switch to a different city${suffix}`,

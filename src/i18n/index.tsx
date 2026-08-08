@@ -20,7 +20,7 @@
  */
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import raw from './lsd.json'
-import { isolateRuns } from '../components/Bidi'
+import { formatNumber, isolateRuns } from '../components/Bidi'
 
 export type Lang = 'en' | 'lsd'
 
@@ -477,6 +477,57 @@ export function useLangSafe(): Lang {
   return useContext(LangContext)?.lang ?? 'en'
 }
 
+/** Values substituted into a parameterised key. */
+export type Vars = Record<string, string | number>
+
+/**
+ * Fill `{name}` placeholders AFTER the lookup.
+ *
+ * ── WHY NOT BUILD THE STRING AT THE CALL SITE ────────────────────────────────────────
+ *
+ * Because word order is part of the translation. `${n} left` puts the number first and the
+ * word second, and there is no way for a translator to change that — the order is compiled
+ * into the JSX. In Lisan al-Dawat several of these read the other way round, which is exactly
+ * how `left 42` and `min ago 5` reached the screen: not a bidi failure, a concatenation that
+ * had already decided the order before the dictionary was consulted. A parameterised key hands
+ * the whole sentence over, placeholders and all, and the translation decides where the number
+ * goes.
+ *
+ * The KEY keeps its braces. `{n} spots left` is what goes in the wordlist and what `normKey`
+ * sees, so lookup behaviour is unchanged and a translator can move `{n}` anywhere in the value.
+ *
+ * Numbers are rendered through `formatNumber`, so a count in LSD prose comes out Arabic-Indic
+ * while an ITS id passed as a string stays Latin. That is the numeral rule from the typography
+ * session, applied at the one place every count now flows through.
+ */
+function interpolate(text: string, vars: Vars | undefined, lang: Lang): string {
+  if (!vars) return text
+  return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
+    if (!(name in vars)) return whole
+    const v = vars[name]
+    return typeof v === 'number' ? formatNumber(v, lang) : String(v)
+  })
+}
+
+/**
+ * Choose between two parameterised keys by count.
+ *
+ * Two keys, not one key with an embedded rule: each form is its own wordlist row, so the
+ * singular and the plural can be translated independently. They are not the same sentence in
+ * Lisan al-Dawat, and a `|`-separated variant inside one cell would make the wordlist owner
+ * edit a mini-format instead of a sentence.
+ *
+ *   {...tx(plural(n, '{n} member', '{n} members'), { n })}
+ *
+ * The reason this exists at all is that the codebase had grown three different hand-rolled
+ * idioms — `member${n > 1 ? 's' : ''}`, `member${total === 1 ? '' : 's'}` and
+ * `count === 1 ? 'this member' : `these ${count} members`` — none of which a translator can
+ * reach, and one of which rendered "1 members" whenever a match had no dependents.
+ */
+export function plural(n: number, one: string, other: string): string {
+  return n === 1 ? one : other
+}
+
 export interface TxProps {
   /** ReactNode, not string: a MISSED lookup renders the English text plus a separate
    *  <sup> gap marker, so the children can be an array rather than a bare string. */
@@ -493,7 +544,7 @@ export function useT() {
   const version = ctx?.dictVersion ?? 0
   return useMemo(() => {
     /** Translated string only — for attributes (placeholder, aria-label, title). */
-    const t = (english: string): string => translate(english, lang)
+    const t = (english: string, vars?: Vars): string => interpolate(translate(english, lang), vars, lang)
 
     /**
      * Spread onto the element that ALREADY wraps the text:
@@ -507,8 +558,10 @@ export function useT() {
      * than having stray left-aligned rows wherever a translation is still missing. The bidi
      * algorithm keeps the Latin run itself readable; only its alignment moves.
      */
-    const tx = (english: string): TxProps => {
-      const { text, hit } = resolve(english, lang)
+    const tx = (english: string, vars?: Vars): TxProps => {
+      const raw = resolve(english, lang)
+      const text = interpolate(raw.text, vars, lang)
+      const hit = raw.hit
       if (lang !== 'lsd') return { children: text }
       // HIT  → real LSD text, rendered RTL in the LSD language.
       // MISS → still English. Rendering it RTL reorders its own punctuation, so the node

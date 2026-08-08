@@ -17,7 +17,7 @@ import StepIndicator from '../components/figma/StepIndicator'
 import ConfirmedView, { UnallocatedNotice, notAllocatedLabel } from '../components/figma/ConfirmedView'
 import Toast, { useToast } from '../components/figma/Toast'
 import { useStore } from '../store'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { memberTableMinWidth } from '../components/memberTable'
 
@@ -198,7 +198,7 @@ function ZoneHCard({
         className="text-[13px] leading-[18px] mt-[3px] font-bold"
         style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}
       >
-        {isFull ? t('Full') : `${left} left`}
+        {isFull ? t('Full') : t('{n} spots left', { n: left })}
       </span>
     </button>
   )
@@ -247,7 +247,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
               style={{ borderColor: selected ? '#d9c98a' : '#e7dfc9', background: selected ? '#fffdf5' : 'white', opacity: isFull ? 0.5 : 1, cursor: isFull ? 'not-allowed' : 'pointer' }}>
               <span className="text-[15px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(z.name)} />
               <span className="text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f7a4d' }}>
-                {isFull ? t('Full') : `${left} left`}
+                {isFull ? t('Full') : t('{n} spots left', { n: left })}
               </span>
             </button>
           )
@@ -672,7 +672,7 @@ function ZoneGridCard({ zone, selected, onClick }: { zone: Zone; selected: boole
       className="flex w-full flex-col items-start rounded-[12px] px-[12px] py-[11px] text-start transition-all duration-200 enabled:hover:-translate-y-[1px] enabled:hover:shadow-[0_8px_18px_-10px_rgba(21,64,47,0.3)] enabled:active:translate-y-0"
       style={{ border: selected ? '1.5px solid #c5a84d' : '1.5px solid #e7dfc9', background: selected ? '#fffdf5' : isFull ? '#f6f6f4' : 'white', cursor: isFull ? 'not-allowed' : 'pointer', minHeight: 64 }}>
       <span className="text-[14px] font-bold leading-[18px]" style={{ fontFamily: FONT, color: isFull ? '#8a938e' : '#23302a' }} {...td(zone.name)} />
-      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}>{isFull ? t('Full') : `${left} left`}</span>
+      <span className="mt-[5px] text-[13px] font-bold" style={{ fontFamily: FONT, color: isFull ? '#b23b3b' : '#1f5a44' }}>{isFull ? t('Full') : t('{n} spots left', { n: left })}</span>
     </button>
   )
 }
@@ -1324,7 +1324,7 @@ export default function ZoneSelection() {
     const successFooter = (
       <StickyFooter
         caption="Zone confirmed"
-        title={`${cityName} · ${totalMembers} members`}
+        title={`${cityName} · ${t(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })}`}
         button={t('Done')}
         onButton={() => nav('/miqaats')}
       />
@@ -1462,7 +1462,7 @@ export default function ZoneSelection() {
       dataTour="reserve-confirm"
       caption="Allocate"
       title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
-      button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : t('Confirm')}
+      button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
       onButton={handleReserve}
     >
       {/* Allocated count + "Who's in which zone" — mobile only (web shows the full table already) */}
@@ -1844,7 +1844,7 @@ export default function ZoneSelection() {
                 dataTour="reserve-confirm"
                 caption="Allocation"
                 title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
-                button={isRequest ? 'Request' : totalAllocated > 0 ? `Confirm(${totalAllocated})` : t('Confirm')}
+                button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
                 onButton={handleReserve}
               />
             </div>

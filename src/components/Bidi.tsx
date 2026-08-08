@@ -237,6 +237,37 @@ export function formatTime(input: Date | string, lang: Lang) {
   return <Ltr>{formatTimeText(input, lang)}</Ltr>
 }
 
+/**
+ * A remaining-time span as text: `4d 6h`, `2h 15m`, `45m`.
+ *
+ * The one addition the typography session permitted, and it exists because durations were the
+ * last thing still printing raw English through a template string — `${d}d ${h}h left` cannot
+ * localise its unit letters and cannot put the number anywhere but first.
+ *
+ * UNITS ARE NOT TRANSLATED HERE. `d`/`h`/`m` are returned as written and left for the caller to
+ * route through the dictionary if the wordlist ever gains rows for them; this function's job is
+ * the NUMERALS and the shape. Authoring Lisan al-Dawat for a unit abbreviation is not this
+ * layer's call to make.
+ *
+ * Zero-suppressing the leading unit is deliberate: `0d 6h` is noise, and `6h` is what a person
+ * reading a countdown wants. The largest non-zero unit and the one below it, never three.
+ */
+export function formatDurationText(totalMinutes: number, lang: Lang): string {
+  const mins = Math.max(0, Math.floor(totalMinutes))
+  const d = Math.floor(mins / 1440)
+  const h = Math.floor((mins % 1440) / 60)
+  const m = mins % 60
+  const n = (v: number) => formatNumber(v, lang)
+  if (d > 0) return h > 0 ? `${n(d)}d ${n(h)}h` : `${n(d)}d`
+  if (h > 0) return m > 0 ? `${n(h)}h ${n(m)}m` : `${n(h)}h`
+  return `${n(m)}m`
+}
+
+/** The same value as an isolated element, so it cannot reorder inside RTL prose. */
+export function formatDuration(totalMinutes: number, lang: Lang) {
+  return <Ltr>{formatDurationText(totalMinutes, lang)}</Ltr>
+}
+
 // ─── automatic run isolation ──────────────────────────────────────────────────
 
 /**

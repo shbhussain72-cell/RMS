@@ -65,6 +65,24 @@ export function detectMojibake(value: string): MojibakeFinding[] {
     })
   }
 
+  /**
+   * DO NOT "SIMPLIFY" THIS TO A RAW C1 CHECK.
+   *
+   * `[Â-ß][-¿]` is the textbook UTF-8-as-latin-1 pattern and it looks
+   * more correct than it is. It describes the BYTES; it does not describe what anyone ever
+   * sees. Nothing renders C1 control characters, so every real-world pipeline that produces
+   * this damage — Excel, CSV round-trips, a copy-paste through a Windows editor — decodes
+   * 0x80-0x9F as windows-1252 instead, which maps that half of the range onto printable
+   * punctuation. `É` comes out as `Ã‰`, whose second character is U+2030, not U+0080.
+   *
+   * So the raw-C1 form catches `Ø§Ù„` (Arabic, whose continuation bytes land in 0xA0-0xBF and
+   * survive unmapped) and silently misses the entire Latin family. That is exactly the bug
+   * this file shipped with for one commit; `scripts/check-dictionary.mjs` caught it at 2 of 3
+   * and the third case is `Ã‰tage`. `TRAIL` above is the union of both halves for that reason.
+   *
+   * Five people type into this editor. A false negative here does not look like a bug — it
+   * looks like a translation that was accepted, and it reaches the wordlist.
+   */
   const m8 = UTF8_AS_LATIN1.exec(s)
   if (m8) {
     out.push({

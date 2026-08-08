@@ -25,6 +25,12 @@ export interface Override {
   lsd: string
   /** ISO timestamp, so a stale queue is obvious when you come back to it. */
   at: string
+  /**
+   * This entry is a class-C string queued for a BLANK row in the wordlist, not a translation.
+   * `lsd` is always empty for these and is never filled in here — an empty row is a visible
+   * queue item in the spreadsheet, where a missing row is invisible.
+   */
+  newRow?: boolean
 }
 
 const ENDPOINT = '/__lsd/overrides'
@@ -37,7 +43,14 @@ function notify() {
   // Push into the i18n layer first so the app re-renders with the staged values, then tell
   // the panel. The other order shows the editor's new state against the old app text.
   const apply = (window as unknown as { __lsdOverrides?: (m: Record<string, string>) => void }).__lsdOverrides
-  if (apply) apply(Object.fromEntries(Object.entries(staged).map(([k, v]) => [k, v.lsd])))
+  // Queued blank rows are deliberately NOT pushed into the dictionary. Layering an empty value
+  // would create an entry, which flips the string from class C to class B1 in the app's own
+  // coverage scan — and it would be reporting progress the wordlist has not actually made.
+  if (apply) {
+    apply(Object.fromEntries(
+      Object.entries(staged).filter(([, v]) => !v.newRow && v.lsd).map(([k, v]) => [k, v.lsd]),
+    ))
+  }
   listeners.forEach((fn) => fn())
 }
 
@@ -88,6 +101,22 @@ export function setOverride(english: string, lsd: string): Promise<void> {
   if (!lsd.trim()) delete staged[key]
   else staged[key] = { lsd, at: new Date().toISOString() }
   return persist()
+}
+
+/**
+ * Queue a class-C string for a blank wordlist row. Stores no value and never will: the point
+ * is to make the gap visible in the spreadsheet, not to guess at what fills it.
+ */
+export function stageNewRow(english: string): Promise<void> {
+  const key = String(english ?? '').replace(/\s+/g, ' ').trim()
+  if (!key || staged[key]) return Promise.resolve()
+  staged[key] = { lsd: '', at: new Date().toISOString(), newRow: true }
+  return persist()
+}
+
+/** How many staged entries are blank-row requests rather than translations. */
+export function newRowCount(): number {
+  return Object.values(staged).filter((v) => v.newRow).length
 }
 
 export function clearOverride(english: string): Promise<void> {

@@ -139,13 +139,16 @@ function Hero({
       {/* When the primary IS "Modify Reservation" (no separate manage secondary), use the SAME dark
           frosted treatment as the secondary Modify-Reservation button for a consistent look — not the
           gold gradient reserved for forward actions (Select city / Register Now …). */}
-      {primaryLabel === t('Modify Reservation') ? (
+      {/* Against the ENGLISH key, not `t(...)`. `primaryLabel` is a key — the lines below
+          spread it through `tx()`. Comparing it to a translated value is false in LSD for
+          every string in the app, so this branch never ran there. */}
+      {primaryLabel === 'Modify Reservation' ? (
         <button type="button" onClick={onPrimary} className={`inline-flex h-[50px] min-w-0 items-center justify-center gap-[5px] rounded-full border border-solid border-[rgba(255,255,255,0.7)] bg-[rgba(0,0,0,0.38)] backdrop-blur-[3px] transition-colors hover:bg-[rgba(0,0,0,0.5)] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
           <span className="text-[13px] leading-none text-white">✎</span>
           <span className="truncate text-[14px] font-bold text-white" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       ) : (
-        <button type="button" onClick={onPrimary} data-tour={primaryLabel === t('Register Now') ? 'register-button' : undefined} className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
+        <button type="button" onClick={onPrimary} data-tour={primaryLabel === 'Register Now' ? 'register-button' : undefined} className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${onManage ? 'w-full px-[12px]' : 'w-full px-[24px] lg:w-auto lg:px-[48px]'}`}>
           <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: MUL }} {...tx(primaryLabel ?? '')} />
         </button>
       )}
@@ -1024,7 +1027,7 @@ function DesktopRightCard({
                 <button
                   type="button"
                   onClick={onAction}
-                  data-tour={actionLabel === t('Register Now') ? 'register-button' : undefined}
+                  data-tour={actionLabel === 'Register Now' ? 'register-button' : undefined}
                   className="mt-[14px] h-[44px] w-full rounded-[12px] bg-[#1f5a44] text-[15px] text-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18)] transition-colors hover:bg-[#15402f]"
                   style={{ fontFamily: MUL, fontWeight: 700 }}
                 >

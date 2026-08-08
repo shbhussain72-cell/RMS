@@ -12,6 +12,7 @@ import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../
 import RoleBadge from '../components/figma/RoleBadge'
 import { useStore } from '../store'
 import { plural, useT } from '../i18n'
+import { notLanguage } from '../components/NotLanguage'
 
 const INFO_FILLED = '/figma/invite-info-filled.svg'
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
@@ -48,7 +49,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
     >
       <span className="font-bold text-white"
         style={{ ...FMU, fontSize: Math.round(size * 0.39) }}
-      >
+       {...notLanguage}>
         {initials(name)}
       </span>
     </div>

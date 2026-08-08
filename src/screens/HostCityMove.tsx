@@ -18,6 +18,7 @@ import { HostCityCard } from './CitySelection'
 import { useStore, journeyFor, type ChangeRequest, type GroupCityAlloc, type GroupZoneAlloc } from '../store'
 import { plural, useT, tNow } from '../i18n'
 import { memberTableMinWidth } from '../components/memberTable'
+import { notLanguage } from '../components/NotLanguage'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -88,7 +89,7 @@ function seatColor(left: number) {
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div className="shrink-0 rounded-full bg-[#1f5a44] flex items-center justify-center" style={{ width: size, height: size }}>
-      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }}>{initials(name)}</span>
+      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }} {...notLanguage}>{initials(name)}</span>
     </div>
   )
 }

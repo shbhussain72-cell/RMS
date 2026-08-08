@@ -1,6 +1,7 @@
 import RoleBadge from './RoleBadge'
 import { isolateRuns } from '../Bidi'
 import { useT, tNow } from '../../i18n'
+import { notLanguage } from '../NotLanguage'
 
 const FMU = { fontFamily: 'Mulish, system-ui, sans-serif' } as const
 
@@ -31,7 +32,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div className="relative flex shrink-0 items-center justify-center overflow-clip rounded-full bg-[#1f5a44]" style={{ width: size, height: size }}>
       <span className="font-bold text-white"
-        style={{ ...FMU, fontSize: Math.round(size * 0.39) }}>
+        style={{ ...FMU, fontSize: Math.round(size * 0.39) }} {...notLanguage}>
         {initials(name)}
       </span>
     </div>

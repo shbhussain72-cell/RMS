@@ -25,7 +25,7 @@
  * before. The primitives must be a no-op there, and this is where that is guaranteed.
  */
 import { useT } from '../i18n/index'
-import { Ltr, formatGregorian, formatHijri, formatTime, parseDateLabel } from './Bidi'
+import { Ltr, formatGregorian, formatGregorianText, formatHijri, formatTime, parseDateLabel } from './Bidi'
 
 /**
  * `Fri, 26 Jun 2026` → `يوم الجمعة، 26 Jun 2026 ﴿١٠ شهر محرم الحرام ١٤٤٨ھ﴾`
@@ -97,4 +97,36 @@ export function LtrData({ children }: { children: React.ReactNode }) {
   const { isLsd } = useT()
   if (!isLsd) return <>{children}</>
   return <Ltr>{children}</Ltr>
+}
+
+/**
+ * A deadline label — `Fri, 19 Jun 2026 · 09:00 AM IST` — composed from its three parts.
+ *
+ * The miqaat list builds these by slicing `deadlineLabel` with a regex and handing the result
+ * straight to the DOM, which is the last place in the app where a date reached the screen
+ * without passing a formatter. In LSD it read as one Latin blob in an RTL paragraph: the
+ * weekday untranslated, the clock in ASCII digits, and the whole run unisolated.
+ *
+ * `compact` drops the year, which is what the narrow card did with a second regex.
+ *
+ * An unrecognised shape falls back to the raw string rather than rendering a broken date. That
+ * is deliberate: these come from authored fixture text, and a parser that guesses is worse than
+ * one that declines.
+ */
+export function DeadlineLine({ value, compact = false }: { value: string; compact?: boolean }) {
+  const { isLsd, t, lang } = useT()
+  const m = /^(?:(\w{3}),\s*)?(\d{1,2}\s+\w{3}\s+\d{4})(?:\s*·\s*(.+))?$/.exec(value.trim())
+  if (!isLsd || !m) return <>{compact ? value.replace(/\s\d{4}/, '').replace(' IST', '') : value.replace(' IST', '')}</>
+  const [, weekday, datePart, timePart] = m
+  const parsed = parseDateLabel(datePart)
+  if (!parsed) return <>{value}</>
+  return (
+    <>
+      {weekday ? <>{t(weekday)}، </> : null}
+      {compact
+        ? <Ltr>{formatGregorianText(parsed.date).replace(/\s\d{4}$/, '')}</Ltr>
+        : formatGregorian(parsed.date, lang)}
+      {timePart ? <> · {formatTime(timePart.replace(' IST', ''), lang)}</> : null}
+    </>
+  )
 }

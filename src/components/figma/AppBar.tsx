@@ -9,6 +9,7 @@ import LogoutConfirmSheet from './LogoutConfirmSheet'
 import TourHelpButton from '../../tour/TourHelpButton'
 import LanguageToggle from '../../i18n/LanguageToggle'
 import { useT } from '../../i18n'
+import { notLanguage } from '../NotLanguage'
 
 const CREST = '/miqaat-logo.png'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
@@ -178,7 +179,7 @@ export default function AppBar({
         {/* Avatar + identity text + chevron */}
         <div className="ix-hdr ix-chip relative z-10 flex min-w-0 items-center gap-[10px] rounded-[12px] px-[8px] py-[4px]">
           <div className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-white">
-            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }}>
+            <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }} {...notLanguage}>
               {initials(account.name)}
             </span>
           </div>

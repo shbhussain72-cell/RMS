@@ -12,6 +12,7 @@
  * stay readable in the language you are switching away from.
  */
 import { useLang } from './index'
+import { notLanguage } from '../components/NotLanguage'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
@@ -55,7 +56,10 @@ export default function LanguageToggle({
           aria-pressed={lang === l}
           className={`flex h-[24px] items-center justify-center rounded-full px-[9px] text-[11px] font-bold leading-none tracking-[0.4px] transition-colors ${seg(lang === l)}`}
           style={{ fontFamily: FONT_SANS }}
+          {...notLanguage}
         >
+          {/* The only two strings on the page that must NOT follow the current language —
+              they are how you change it. `EN` shown in LSD script is a door with no handle. */}
           {l === 'en' ? 'EN' : 'LSD'}
         </button>
       ))}

@@ -4,6 +4,7 @@ import RoleBadge from './RoleBadge'
 import { useStore } from '../../store'
 import { genderByIts } from '../../data/seed'
 import { plural, useT, tNow } from '../../i18n'
+import { notLanguage } from '../NotLanguage'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -19,7 +20,7 @@ function familyMeta(relation: string, age: number, its: string) {
 function Avatar({ name, size = 48 }: { name: string; size?: number }) {
   return (
     <div className="shrink-0 rounded-full bg-[#1f5a44] flex items-center justify-center" style={{ width: size, height: size }}>
-      <span className="text-white font-bold" style={{ fontFamily: FONT, lineHeight: 1, fontSize: Math.round(size * 0.33) }}>
+      <span className="text-white font-bold" style={{ fontFamily: FONT, lineHeight: 1, fontSize: Math.round(size * 0.33) }} {...notLanguage}>
         {initials(name)}
       </span>
     </div>

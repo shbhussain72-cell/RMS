@@ -20,6 +20,7 @@ import { useStore } from '../store'
 import { plural, useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { memberTableMinWidth } from '../components/memberTable'
+import { notLanguage } from '../components/NotLanguage'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 const SERIF = 'Marcellus, Georgia, serif'
@@ -55,7 +56,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
       <span
         className="text-white font-bold"
         style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }}
-      >
+       {...notLanguage}>
         {initials(name)}
       </span>
     </div>

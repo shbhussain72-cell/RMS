@@ -9,6 +9,7 @@ import RoleBadge from '../components/figma/RoleBadge'
 import type { BadgeKind } from '../lib/group'
 import { useT } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
+import { notLanguage } from '../components/NotLanguage'
 
 function Overlay({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
@@ -150,7 +151,7 @@ function MemberList() {
           className="flex items-center gap-[10px] border-t border-[#e7dfc9] px-[16px] py-[9px]"
         >
           <div className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
-            <span className="text-[13px] font-bold leading-none text-white" style={FMU}>{inits(m.name)}</span>
+            <span className="text-[13px] font-bold leading-none text-white" style={FMU} {...notLanguage}>{inits(m.name)}</span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.name)} />
@@ -307,7 +308,7 @@ export default function JoinGroup() {
                 className="flex items-center gap-[12px] rounded-[12px] border border-[#ede8df] bg-white px-[14px] py-[12px]"
               >
                 <div className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
-                  <span className="text-[13px] font-bold leading-none text-white" style={FMU}>{inits(m.name)}</span>
+                  <span className="text-[13px] font-bold leading-none text-white" style={FMU} {...notLanguage}>{inits(m.name)}</span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={FMU} {...td(m.name)} />

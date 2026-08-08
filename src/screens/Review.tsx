@@ -13,6 +13,7 @@ import { InvitedMembersTable, InvitedMembersCards, type InvitedGroup } from '../
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { headcount, useStore, type Invite } from '../store'
 import { plural, useT } from '../i18n'
+import { notLanguage } from '../components/NotLanguage'
 
 const FMU = { fontFamily: 'Mulish, system-ui, sans-serif' } as const
 const FM = { fontFamily: 'Marcellus, serif' } as const
@@ -42,7 +43,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
     <div className="relative shrink-0 overflow-clip rounded-full bg-[#1f5a44]" style={{ width: size, height: size }}>
       <span className="absolute left-1/2 top-[calc(50%-0.5px)] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-white"
         style={{ ...FMU, fontWeight: 700, fontSize: Math.round(size * 0.39), lineHeight: `${Math.round(size * 0.5)}px` }}
-      >
+       {...notLanguage}>
         {initials(name)}
       </span>
     </div>

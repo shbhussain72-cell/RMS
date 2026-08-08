@@ -1,6 +1,7 @@
 import RoleBadge from '@/components/figma/RoleBadge'
 import type { ChatOption } from './types'
 import { useT } from '../i18n'
+import { notLanguage } from '../components/NotLanguage'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const CHECKBOX_BLANK = '/figma/checkbox-blank.svg'
@@ -38,7 +39,7 @@ export default function ChatMemberSelect({
             className="flex items-center gap-[11px] rounded-[14px] border border-solid border-[#e7dfc9] bg-white px-[13px] py-[10px]"
             style={{ fontFamily: FONT_SANS }}
           >
-            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white">
+            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white" {...notLanguage}>
               {initials(o.label)}
             </span>
             <span className="min-w-0 flex-1">
@@ -72,7 +73,7 @@ export default function ChatMemberSelect({
             style={{ fontFamily: FONT_SANS }}
           >
             <img src={checked ? CHECKBOX_CHECKED : CHECKBOX_BLANK} alt="" className="size-[20px] shrink-0" />
-            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white">
+            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white" {...notLanguage}>
               {initials(o.label)}
             </span>
             <span className="min-w-0 flex-1">
@@ -91,7 +92,7 @@ export default function ChatMemberSelect({
       {addedNames?.map((name) => (
         <div key={name} className="flex items-center gap-[11px] rounded-[14px] border border-solid border-[#1f5a44] bg-[#f4faf6] px-[13px] py-[10px]">
           <img src={CHECKBOX_CHECKED} alt="" className="size-[20px] shrink-0" />
-          <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white">
+          <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44] text-[13px] font-bold text-white" {...notLanguage}>
             {initials(name)}
           </span>
           <span className="min-w-0 flex-1">

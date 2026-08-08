@@ -13,7 +13,7 @@ import { useStore, journeyFor, type ReopenRequest } from '../store'
 import TourHelpButton from '../tour/TourHelpButton'
 import LanguageToggle from '../i18n/LanguageToggle'
 import { useT } from '../i18n'
-import { DateLine, TimeLine } from '../components/DateLine'
+import { DateLine, DeadlineLine, TimeLine } from '../components/DateLine'
 import { Ltr, formatDurationText, toArabicDigits } from '../components/Bidi'
 import Toast from '../components/figma/Toast'
 import { DemoProgressionControl } from '../components/figma/DemoProgressionControl'
@@ -393,7 +393,7 @@ const outlineBtn = 'border border-solid border-[#1f5a44] bg-transparent text-[#1
 /** Registered / in-progress miqaat — horizontal image-left card (image-top on mobile). */
 function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false, onAskHelp }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string; wide?: boolean; onAskHelp?: (init: AskHelpInit) => void }) {
   const { nav, ended, razaIssued, bypassApproved, hasCity, hasZone, dateText, goDetail, primary, cells } = useCard(m, confirmedCityName, confirmedZoneName, onAskHelp)
-  const { t, tx, isLsd } = useT()
+  const { t, tx, isLsd, tdText } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Resuming this reservation must make its journey active BEFORE navigating, so City/Zone/Manage
   // open on the right event (another event may currently be the active one being edited).
@@ -448,7 +448,7 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
 
           <div className={`mt-[14px] flex items-center justify-between gap-[10px] ${wide ? 'sm:justify-start sm:gap-[16px]' : ''}`}>
             <p className="text-[11px] font-bold uppercase leading-[14px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx(selLabel)} />
-            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }} data-numeric>{deadlineCompact}</p>
+            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }} data-numeric><DeadlineLine value={dateText} compact /></p>
           </div>
 
           <div className="mt-[8px]">
@@ -478,9 +478,12 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
               </svg>
               <p className="text-[12.5px] leading-[17px] text-[#8a6a1e]" style={{ fontFamily: FONT_SANS }}>
                 <span className="font-bold" {...tx(hasCity ? 'Zone selection has closed.' : 'City selection has closed.')} />{' '}
-                {hasCity
-                  ? `This window closed on ${deadlineCompact} before a zone was allocated. Your city (${confirmedCityName}) stays confirmed — no further action is available here.`
-                  : `This window closed on ${deadlineCompact} before a city was allocated to your group, so this reservation is left unallocated.`}
+                {/* Two whole sentences, each its own key. Built as template strings they were
+                    four fragments in an order the literal had already chosen, and the date and
+                    the city name could only ever land where English puts them. */}
+                <span {...(hasCity
+                  ? tx('This window closed on {date} before a zone was allocated. Your city ({city}) stays confirmed — no further action is available here.', { date: deadlineCompact, city: tdText(confirmedCityName ?? '') })
+                  : tx('This window closed on {date} before a city was allocated to your group, so this reservation is left unallocated.', { date: deadlineCompact }))} />
               </p>
             </div>
           ) : (
@@ -561,7 +564,7 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
               <span className="size-[7px] rounded-full" style={{ background: accent }} />
               <span className="whitespace-nowrap" style={{ fontWeight: 800, color: accent }} data-numeric>{dLeft}</span>
             </div>
-            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} data-numeric>{deadlineDateTime}</p>
+            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} data-numeric><DeadlineLine value={dateText} /></p>
           </div>
         </div>
         <div className="flex flex-col gap-[10px] sm:w-auto sm:shrink-0 sm:gap-[8px]">

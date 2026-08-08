@@ -20,6 +20,7 @@ import { useStore, journeyFor, DEMO_PHASE_ORDER, type RankedCity } from '../stor
 import { plural, useT, tNow } from '../i18n'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { memberTableMinWidth } from '../components/memberTable'
+import { notLanguage } from '../components/NotLanguage'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -91,7 +92,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
       className="shrink-0 rounded-full bg-[#1f5a44] flex items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }}>
+      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }} {...notLanguage}>
         {initials(name)}
       </span>
     </div>

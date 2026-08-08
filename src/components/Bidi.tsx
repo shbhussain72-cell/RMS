@@ -43,6 +43,7 @@ import {
   hijriMonthNameLsd,
   hijriParts,
 } from '../i18n/hijri'
+import { notLanguage } from './NotLanguage'
 
 export type Lang = 'en' | 'lsd'
 
@@ -166,9 +167,17 @@ export function formatGregorianText(input: Date | string): string {
   return `${String(date.getDate()).padStart(2, '0')} ${MONTHS_EN[date.getMonth()]} ${date.getFullYear()}`
 }
 
-/** `formatGregorianText` wrapped in an LTR isolate — the form to render. */
+/**
+ * `formatGregorianText` wrapped in an LTR isolate — the form to render.
+ *
+ * Marked `notLanguage`, because that is precisely what the policy above says it is: a civil
+ * reference that stays `26 Jun 2026` in BOTH languages so it matches the passport. The coverage
+ * scanner reports Latin text on screen, so without this every Gregorian date in the app arrives
+ * in the wordlist owner's queue as a row to translate — 23 of them in the first patch — and the
+ * only correct answer is the English one already on screen.
+ */
 export function formatGregorian(input: Date | string, _lang: Lang) {
-  return <Ltr>{formatGregorianText(input)}</Ltr>
+  return <span dir="ltr" style={{ unicodeBidi: 'isolate' }} {...notLanguage}>{formatGregorianText(input)}</span>
 }
 
 /**

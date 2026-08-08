@@ -14,6 +14,7 @@ import MissedMemberSheet from '@/components/figma/MissedMemberSheet'
 import RoleTag from '@/components/figma/RoleBadge'
 import { useStore, type QuestionnaireAnswers } from '@/store'
 import { QuestionnaireSections, QuestionnaireSummary, validateQuestionnaire } from '@/components/questionnaire/QuestionnaireFields'
+import { notLanguage } from '../components/NotLanguage'
 
 const SHIELD = '/figma/shield-task.svg'
 const WARNING = '/figma/warning-amber.svg'
@@ -179,7 +180,7 @@ function PersonCard({ member, badge, checked, dimmed, selectable = true, onToggl
       <div className="flex items-start gap-[10px]">
         {selectable && <div className="mt-[6px]"><CheckboxButton checked={checked} dimmed={dimmed} onToggle={onToggle} /></div>}
         <div className="mt-[2px] flex size-[36px] shrink-0 items-center justify-center overflow-clip rounded-full bg-[#1f5a44]">
-          <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(member.name)}</span>
+          <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(member.name)}</span>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
           <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(member.name)} />
@@ -211,7 +212,7 @@ function DesktopRow({ name, meta, status, isLast, selectable = false, plain = fa
       <td className={`py-[9px] ${selectable ? 'ps-0' : 'ps-[16px]'} pe-[16px] align-middle`}>
         <div className="flex items-center gap-[10px]">
           <div className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
-            <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(name)}</span>
+            <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(name)}</span>
           </div>
           <div className="min-w-0">
             <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(name)} />
@@ -620,7 +621,7 @@ export default function AddPeople() {
   const ResultRow = ({ name, meta, dependent }: { name: string; meta: string; dependent?: boolean }) => (
     <div className="flex items-center gap-[12px]">
       <div className="flex size-[38px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
-        <span className="text-[13px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(name)}</span>
+        <span className="text-[13px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(name)}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(name)} />
@@ -684,7 +685,7 @@ export default function AddPeople() {
           {matchFoundBadge}
           <div className="mt-[16px] flex flex-col items-center text-center">
             <div className="flex size-[72px] items-center justify-center rounded-full bg-[#1f5a44]">
-              <span className="text-[26px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(searchResult.name)}</span>
+              <span className="text-[26px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(searchResult.name)}</span>
             </div>
             <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }} {...td(searchResult.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
@@ -858,7 +859,7 @@ export default function AddPeople() {
                   <div key={inv.its} className="w-full rounded-[14px] border border-solid border-[#e7dfc9] bg-[#fffdf8] p-[13px]">
                     <div className="flex items-start gap-[10px]">
                       <div className="mt-[2px] flex size-[36px] shrink-0 items-center justify-center overflow-clip rounded-full bg-[#1f5a44]">
-                        <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(inv.name)}</span>
+                        <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(inv.name)}</span>
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
                         <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(inv.name)} />
@@ -894,7 +895,7 @@ export default function AddPeople() {
                   <div key={inv.its} className="w-full rounded-[14px] border border-solid border-[#e7dfc9] bg-[#fffdf8] p-[13px]">
                     <div className="flex items-start gap-[10px]">
                       <div className="mt-[2px] flex size-[36px] shrink-0 items-center justify-center overflow-clip rounded-full bg-[#1f5a44]">
-                        <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{initials(inv.name)}</span>
+                        <span className="text-[14px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...notLanguage}>{initials(inv.name)}</span>
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
                         <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(inv.name)} />

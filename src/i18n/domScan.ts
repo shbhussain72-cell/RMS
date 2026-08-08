@@ -54,6 +54,13 @@ const ISOLATED_RUN_ATTR = 'data-lsd-run'
 /** Set by `tx()` when interpolation made the rendered text differ from the dictionary key. */
 const KEY_ATTR = 'data-lsd-key'
 
+/**
+ * Marks text that is not language in ANY language — avatar initials, the EN/LSD switcher.
+ * See `src/components/NotLanguage.tsx` for why this is a marker on the SITE and not a list of
+ * literals: `MH` has no Lisan al-Dawat form, but somewhere else `MH` might be real copy.
+ */
+const NOT_LANGUAGE_ATTR = 'data-lsd-not-language'
+
 export type HitClass = 'A' | 'B' | 'C'
 
 /**
@@ -158,6 +165,7 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
         // loanword and not the Arabic around it, and reports a translated string as English.
         // Without this the class-A count carries a floor no amount of wiring can remove.
         if (el.hasAttribute?.(ISOLATED_RUN_ATTR)) return NodeFilter.FILTER_REJECT
+        if (el.hasAttribute?.(NOT_LANGUAGE_ATTR)) return NodeFilter.FILTER_REJECT
         // An element explicitly marked LTR is data (ITS id, date, file size) rather than
         // untranslated copy — but it is still reported, just attributed accurately by the
         // classifier below. Nothing is suppressed here.

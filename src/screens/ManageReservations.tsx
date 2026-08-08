@@ -14,6 +14,7 @@ import { buildAllGroups, type BadgeKind, type Group } from '../lib/group'
 import RoleBadge from '../components/figma/RoleBadge'
 import { RazaStatusCard } from '../components/figma/RazaStatusCard'
 import { useStore, journeyFor, type GroupCityAlloc, type ChangeRequest } from '../store'
+import { notLanguage } from '../components/NotLanguage'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -54,7 +55,7 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
       className="shrink-0 rounded-full bg-[#1f5a44] flex items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }}>
+      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }} {...notLanguage}>
         {initials(name)}
       </span>
     </div>
@@ -720,7 +721,7 @@ function LinkedReservationCard({
             {/* TRANSFERING */}
             <div className="flex flex-1 flex-col items-center px-[4px] text-center">
               <span className="flex size-[60px] shrink-0 items-center justify-center rounded-full border-2 border-[#d9b978] bg-[#f6e6bf]">
-                <span className="text-[18px] font-bold text-[#9a7420]" style={{ fontFamily: FONT }}>{initials(dep.name)}</span>
+                <span className="text-[18px] font-bold text-[#9a7420]" style={{ fontFamily: FONT }} {...notLanguage}>{initials(dep.name)}</span>
               </span>
               <p className="mt-[10px] text-[11px] font-extrabold uppercase tracking-[1px] text-[#c08a1e]" style={{ fontFamily: FONT }} {...tx('Transfering')} />
               <p className="mt-[6px] text-[15px] font-bold leading-[19px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(dep.name)} />
@@ -782,7 +783,7 @@ function LinkedReservationCard({
               <p className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.4px] sm:tracking-[0.8px] text-[#5f7183]" style={{ fontFamily: FONT }}>Was linked to</p>
               <div className="mt-[8px] sm:mt-[10px] flex items-center gap-[7px] sm:gap-[9px]">
                 <span className="flex size-[32px] sm:size-[46px] shrink-0 items-center justify-center rounded-full bg-[#ece4d3]">
-                  <span className="text-[11px] sm:text-[15px] font-bold text-[#7c6f57]" style={{ fontFamily: FONT }}>{initials(registrant.name)}</span>
+                  <span className="text-[11px] sm:text-[15px] font-bold text-[#7c6f57]" style={{ fontFamily: FONT }} {...notLanguage}>{initials(registrant.name)}</span>
                 </span>
                 <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
               </div>
@@ -801,7 +802,7 @@ function LinkedReservationCard({
               <p className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.4px] sm:tracking-[0.8px] text-[#5f7183]" style={{ fontFamily: FONT }}>Now linked to</p>
               <div className="mt-[8px] sm:mt-[10px] flex items-center gap-[7px] sm:gap-[9px]">
                 <span className="flex size-[32px] sm:size-[46px] shrink-0 items-center justify-center rounded-full bg-[#1f5a44]">
-                  <span className="text-[11px] sm:text-[15px] font-bold text-white" style={{ fontFamily: FONT }}>{initials(newGuardian.name)}</span>
+                  <span className="text-[11px] sm:text-[15px] font-bold text-white" style={{ fontFamily: FONT }} {...notLanguage}>{initials(newGuardian.name)}</span>
                 </span>
                 <p className="min-w-0 break-words text-[11px] sm:text-[15px] font-bold leading-[14px] sm:leading-[18px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(newGuardian.name)} />
               </div>
@@ -815,7 +816,7 @@ function LinkedReservationCard({
           <div className="mt-[10px] sm:mt-[12px] flex items-center justify-between gap-[8px] sm:gap-[10px] rounded-[12px] sm:rounded-[14px] border border-[#e3decf] px-[11px] py-[10px] sm:px-[14px] sm:py-[12px]" style={{ background: '#fdfaf3' }}>
             <div className="flex min-w-0 items-center gap-[9px] sm:gap-[11px]">
               <span className="flex size-[38px] sm:size-[46px] shrink-0 items-center justify-center rounded-full bg-[#f5e2b3]">
-                <span className="text-[13px] sm:text-[15px] font-bold text-[#c08a1e]" style={{ fontFamily: FONT }}>{initials(dep.name)}</span>
+                <span className="text-[13px] sm:text-[15px] font-bold text-[#c08a1e]" style={{ fontFamily: FONT }} {...notLanguage}>{initials(dep.name)}</span>
               </span>
               <div className="min-w-0">
                 <p className="text-[13px] sm:text-[16px] font-bold leading-[17px] sm:leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(dep.name)} />
@@ -1430,7 +1431,7 @@ function RequestMemberRow({ name }: { name: string }) {
   return (
     <li className="flex items-center gap-[10px]">
       <span className="flex size-[26px] shrink-0 items-center justify-center rounded-full bg-[#f3ecd9]">
-        <span className="text-[11px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }}>{initials(name)}</span>
+        <span className="text-[11px] font-bold text-[#9a6a1e]" style={{ fontFamily: FONT }} {...notLanguage}>{initials(name)}</span>
       </span>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-[19px] text-[#3d4a44]" style={{ fontFamily: FONT }}>{name}</span>
     </li>

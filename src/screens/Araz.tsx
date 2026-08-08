@@ -15,6 +15,7 @@ import { type Group, type BadgeKind } from '../lib/group'
 import { useStore, journeyFor, type GroupCityAlloc } from '../store'
 import { plural, useT, tNow } from '../i18n'
 import { memberTableMinWidth } from '../components/memberTable'
+import { notLanguage } from '../components/NotLanguage'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -34,7 +35,7 @@ function familyMeta(m: FamilyMember) {
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div className="shrink-0 rounded-full bg-[#1f5a44] flex items-center justify-center" style={{ width: size, height: size }}>
-      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }}>{initials(name)}</span>
+      <span className="text-white font-bold" style={{ fontSize: size * 0.36, fontFamily: FONT, lineHeight: 1 }} {...notLanguage}>{initials(name)}</span>
     </div>
   )
 }

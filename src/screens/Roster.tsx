@@ -11,6 +11,7 @@ import StickyFooter from '../components/figma/StickyFooter'
 import { useStore, journeyFor } from '../store'
 import { QuestionnaireSummary } from '../components/questionnaire/QuestionnaireFields'
 import { plural, useT, tNow } from '../i18n'
+import { notLanguage } from '../components/NotLanguage'
 
 const demo = {
   selectedMemberIds: family.map((m) => m.id),
@@ -30,7 +31,7 @@ function Avatar({ name }: { name: string }) {
       <span
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[14px] leading-[18px] text-white"
         style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }}
-      >
+       {...notLanguage}>
         {initials(name)}
       </span>
     </div>

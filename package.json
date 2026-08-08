@@ -23,7 +23,8 @@
     "check:chrome": "node scripts/check-chrome.mjs",
     "check:devdock": "node scripts/check-devdock.mjs",
     "check:dictionary": "node scripts/check-dictionary.mjs",
-    "check:mirror": "node scripts/check-mirror.mjs"
+    "check:mirror": "node scripts/check-mirror.mjs",
+    "check:tour": "node scripts/check-tour.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

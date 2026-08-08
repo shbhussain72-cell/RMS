@@ -196,9 +196,14 @@ export default function TourOverlay() {
         {/* Progress row — only when the screen opts into it (City & Zone) */}
         {showProgress && (
           <div className="mb-[12px] flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-[#a8843e]" style={{ fontFamily: FONT_SANS }}>
-              Step {stepIndex + 1} of {stepCount}
-            </span>
+            {/* One parameterised key, not `Step {n} of {N}` assembled here: the template literal
+                fixes the word order, so a translator could change what "Step" says but never move
+                the numbers to where the sentence needs them. */}
+            <span
+              className="text-[11px] font-bold uppercase tracking-[0.8px] text-[#a8843e]"
+              style={{ fontFamily: FONT_SANS }}
+              {...tx('Step {n} of {total}', { n: stepIndex + 1, total: stepCount })}
+            />
             <div className="flex items-center gap-[5px]">
               {Array.from({ length: stepCount }).map((_, i) => (
                 <span
@@ -248,9 +253,8 @@ export default function TourOverlay() {
               onClick={isLast ? finish : next}
               className="flex h-[38px] items-center justify-center rounded-full bg-[#1f5a44] px-[20px] text-[13px] font-bold text-white shadow-[0px_6px_18px_-6px_rgba(21,64,47,0.4)] transition-colors hover:bg-[#0a3325]"
               style={{ fontFamily: FONT_SANS }}
-            >
-              {isLast ? 'Got it' : 'Next'}
-            </button>
+              {...tx(isLast ? 'Got it' : 'Next')}
+            />
           </div>
         </div>
       </div>

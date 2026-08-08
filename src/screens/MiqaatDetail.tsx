@@ -936,7 +936,7 @@ function DesktopRightCard({
             <rect x="2" y="3.5" width="14" height="12" rx="2" stroke="#8a938e" strokeWidth="1.4" />
             <path d="M2 7.5h14M6 1.5v4M12 1.5v4" stroke="#8a938e" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
-          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }} {...td(m.dateLabel)} />
+          <span className="text-[13px] text-[#23302a]" style={{ fontFamily: MUL, fontWeight: 600 }}><DateLine value={m.dateLabel} /></span>
         </div>
         <div className="mx-[2px] h-[18px] w-px bg-[#d8d0c0]" />
         <div className="flex items-center gap-[6px]">

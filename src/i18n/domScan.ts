@@ -51,6 +51,9 @@ export const SCANNER_IGNORE_ATTR = 'data-lsd-scanner-ignore'
 /** Set by `isolateRuns()` on every Latin run it cuts out of a translated dictionary value. */
 const ISOLATED_RUN_ATTR = 'data-lsd-run'
 
+/** Set by `tx()` when interpolation made the rendered text differ from the dictionary key. */
+const KEY_ATTR = 'data-lsd-key'
+
 export type HitClass = 'A' | 'B' | 'C'
 
 /**
@@ -161,8 +164,13 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
   })
 
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    const raw = (n.nodeValue ?? '').replace(/\s+/g, ' ').trim()
-    if (!raw) continue
+    const rendered = (n.nodeValue ?? '').replace(/\s+/g, ' ').trim()
+    if (!rendered) continue
+    // A parameterised key renders as a filled-in string — `Close in 00:42:11` for the row
+    // `Close in {time}`. Looking up what the DOM says would report a class-C gap for a string
+    // that changes every second and can never HAVE a row. `tx` records the key it came from,
+    // and that is the thing the wordlist owner can actually act on.
+    const raw = (n as Text).parentElement?.closest?.(`[${KEY_ATTR}]`)?.getAttribute(KEY_ATTR) || rendered
     const prev = byText.get(raw)
     if (prev) prev.count++
     else byText.set(raw, { count: 1, where: describe(n as Text) })

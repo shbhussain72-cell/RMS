@@ -69,9 +69,18 @@ if (existsSync(SCAN)) {
 
 // ── 2. what the build gate blocks on ──
 const gate = spawnSync('node', [resolve(ROOT, 'scripts/check-lsd-coverage.mjs')], { cwd: ROOT, encoding: 'utf8' })
+// The gate prints its FAILURES on stderr and only its summary on stdout, so both are read. An
+// earlier version read stdout alone and silently found nothing, which looks exactly like "the
+// gate is clean" — the failure mode this whole script exists to avoid.
+const gateText = [gate.stdout ?? '', gate.stderr ?? ''].join('\n')
 const fromGate = new Set(
-  [...`${gate.stdout ?? ''}`.matchAll(/\[NO_ROW\][^"]*"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]),
+  [...gateText.matchAll(/\[NO_ROW\][^"]*"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]),
 )
+if (gate.status !== 0 && fromGate.size === 0 && /NO_ROW/.test(gateText)) {
+  console.error('the gate reported NO_ROW entries but none could be parsed — refusing to emit a')
+  console.error('patch that would silently be missing them')
+  process.exit(1)
+}
 
 const keys = [...new Set([...fromScan.keys(), ...fromGate])].sort()
 console.log(`class C on screen (route walk) : ${fromScan.size}`)

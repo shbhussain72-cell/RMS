@@ -541,6 +541,14 @@ export interface TxProps {
   children: ReactNode
   dir?: 'rtl' | 'ltr'
   lang?: string
+  /**
+   * The dictionary KEY, when the rendered text is not it — i.e. when `{n}`/`{date}` have been
+   * filled in. Without this the coverage scanner reads `Close in 00:42:11` off the DOM, looks
+   * that up, finds nothing, and reports a class-C gap for a string that changes every second
+   * and can never have a wordlist row. The key it came from — `Close in {time}` — is the row
+   * that matters, and this is how the scanner gets to it.
+   */
+  'data-lsd-key'?: string
 }
 
 export function useT() {
@@ -579,13 +587,17 @@ export function useT() {
       // `‏Registration 5 June 2026 نا روز … 11:59 وگے بند تھاسے.` is a single text node, so
       // nothing wrapping the element can isolate the Latin *inside* it. Doing it once, at
       // the point the string becomes children, covers all 1080 wordlist values at a stroke.
-      if (hit) return { children: isolateRuns(text), dir: 'rtl', lang: LSD_BCP47 }
+      // Only when interpolation actually changed the string — an unparameterised key is its own
+      // text and the extra attribute would be noise on every routed element in the app.
+      const keyAttr = text === english ? undefined : { 'data-lsd-key': english }
+      if (hit) return { children: isolateRuns(text), dir: 'rtl', lang: LSD_BCP47, ...keyAttr }
       return {
         children: MISSING_MARKER
           ? [text, createElement('sup', { key: 'lsd-gap', 'aria-hidden': 'true', className: 'lsd-gap' }, MISSING_MARKER)]
           : text,
         dir: 'ltr',
         lang: 'en',
+        ...keyAttr,
       }
     }
 

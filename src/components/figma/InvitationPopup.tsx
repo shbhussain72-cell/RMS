@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { miqaats } from '../../data/seed'
 import { useT } from '../../i18n'
+import { DateLine } from '../DateLine'
 
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
 const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
@@ -57,7 +58,7 @@ export function InvitationPopup({
           <div className="absolute inset-x-0 bottom-0 p-[16px]">
             <h2 className="text-[19px] leading-[24px] text-white" style={FM} {...tdAuthored(m.title)} />
             <div className="mt-[6px] flex flex-wrap items-center gap-x-[14px] gap-y-[3px]">
-              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU} {...td(m.dateLabel)} />
+              <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}><DateLine value={m.dateLabel} /></span>
               <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU} {...td(m.timeLabel)} />
             </div>
           </div>

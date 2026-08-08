@@ -857,7 +857,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
         <div className="mb-[12px] flex flex-wrap items-center gap-x-[20px] gap-y-[5px] sm:gap-x-[22px]">
           <div className="flex items-center gap-[8px]">
             <img src={DATE_RANGE} alt="" className="size-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric {...td(m.dateLabel)} />
+            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric><DateLine value={m.dateLabel} /></span>
           </div>
           <div className="flex items-center gap-[8px]">
             <img src={SCHEDULE} alt="" className="size-[15px] shrink-0" />

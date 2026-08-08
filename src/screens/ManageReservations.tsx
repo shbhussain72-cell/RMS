@@ -2082,7 +2082,7 @@ export default function ManageReservations() {
                   <rect x="2" y="3" width="12" height="11" rx="2" stroke="#8a938e" strokeWidth="1.2" />
                   <path d="M2 6h12M5.5 1.5v3M10.5 1.5v3" stroke="#8a938e" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
-                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.dateLabel)} />
+                <span className="text-[13px] text-[#5a6660]" style={{ fontFamily: FONT }}><DateLine value={miqaat.dateLabel} /></span>
               </div>
               <div className="mt-[4px] flex items-center gap-[6px]">
                 <svg viewBox="0 0 16 16" fill="none" className="size-[14px] shrink-0">
@@ -2224,7 +2224,7 @@ export default function ManageReservations() {
                     <h2 className="text-[21px] leading-[26px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tdAuthored(miqaat.title)} />
                     <div className="mt-[8px] flex items-center gap-[7px]">
                       <CalGlyph />
-                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }} {...td(miqaat.dateLabel)} />
+                      <span className="text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}><DateLine value={miqaat.dateLabel} /></span>
                     </div>
                     <div className="mt-[5px] flex items-center gap-[7px]">
                       <ClockGlyph />

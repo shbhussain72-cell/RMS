@@ -3,7 +3,7 @@ import DevDock from './DevDock'
 import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake'
 import { clearAllOverrides, getOverrides, loadOverrides, overrideCount, setOverride, subscribeOverrides } from './overrides'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
-import { SCANNER_IGNORE_ATTR, scanDom, type ScanHit } from '../i18n/domScan'
+import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type ScanHit } from '../i18n/domScan'
 
 /**
  * Dictionary editor — dev-only.
@@ -40,7 +40,7 @@ import { SCANNER_IGNORE_ATTR, scanDom, type ScanHit } from '../i18n/domScan'
 const FONT = 'Mulish, system-ui, sans-serif'
 
 type Tab = 'page' | 'master'
-type Cls = 'A' | 'B1' | 'B2' | 'C' | 'sentinel'
+type Cls = HitClassDetail
 
 const CLS_STYLE: Record<Cls, string> = {
   A: 'bg-[#f7ecec] text-[#b23b3b]',
@@ -50,15 +50,12 @@ const CLS_STYLE: Record<Cls, string> = {
   sentinel: 'bg-[#f0ece1] text-[#8a6a1e]',
 }
 
-/** Split the scanner's B into the two halves that need different action from different people. */
-function classify(text: string): Cls {
-  const e = inspectKey(text)
-  if (!e.exists) return 'C'
-  if (e.sentinel) return 'sentinel'
-  if (e.identity) return 'B2'
-  if (!e.value) return 'B1'
-  return 'A'
-}
+/**
+ * Imported, not re-derived. This split used to live here and in the scanner both; two copies
+ * of a classification is two answers to "what is this string", and the per-route report reads
+ * one of them while these badges read the other.
+ */
+const classify = classifyDetail
 
 /**
  * Renders nothing in a production build: `import.meta.env.DEV` is statically false, so the

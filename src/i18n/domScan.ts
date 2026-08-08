@@ -50,9 +50,25 @@ export const SCANNER_IGNORE_ATTR = 'data-lsd-scanner-ignore'
 
 export type HitClass = 'A' | 'B' | 'C'
 
+/**
+ * The class as a PERSON has to act on it. `HitClass` answers "is there a usable row"; this
+ * answers "whose desk does it land on", which is what the per-route report and the dictionary
+ * editor are both actually asking. B splits because its two halves are opposites:
+ *
+ *   B1  the row is blank — the wordlist owner's queue.
+ *   B2  the row holds the English word by policy (`src/i18n/loanword-policy.json`) — correct
+ *       as it stands, and counting it as a gap would make the queue look permanently unfinished.
+ *
+ * Sentinel rows (the wordlist's `remove` marker) are their own state for the same reason: they
+ * fall back to English deliberately, so they are neither a defect nor work outstanding.
+ */
+export type HitClassDetail = 'A' | 'B1' | 'B2' | 'C' | 'sentinel'
+
 export interface ScanHit {
   text: string
   cls: HitClass
+  /** The same verdict, split by who has to act. See `HitClassDetail`. */
+  detail: HitClassDetail
   /** How many separate text nodes on this page carried the string. */
   count: number
   /** Nearest enclosing element's tag + any data-name, to locate it in the source. */
@@ -67,7 +83,31 @@ export interface ScanResult {
   A: number
   B: number
   C: number
+  /** Per-actor counts. `B1 + B2 + sentinel` does not equal `B`: sentinels are not class B. */
+  detail: Record<HitClassDetail, number>
   hits: ScanHit[]
+}
+
+/**
+ * Sentinel is tested BEFORE `value`, because a sentinel row's value is blank and would
+ * otherwise be indistinguishable from B1 — a queue item someone is waiting to translate.
+ * It is not: it falls back to English on purpose.
+ */
+function detailOf(entry: ReturnType<typeof inspectKey>): HitClassDetail {
+  if (!entry.exists) return 'C'
+  if (entry.sentinel) return 'sentinel'
+  if (entry.identity) return 'B2'
+  if (!entry.value) return 'B1'
+  return 'A'
+}
+
+/**
+ * The same verdict for a string that is not on screen — the dictionary editor's Master list
+ * needs it for rows nothing rendered. One implementation, so the editor's badges and the
+ * per-route report can never disagree about what a string is.
+ */
+export function classifyDetail(text: string): HitClassDetail {
+  return detailOf(inspectKey(text))
 }
 
 const describe = (node: Text): string => {
@@ -126,7 +166,7 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
     if (!entry.exists) cls = 'C'
     else if (!entry.value || entry.identity) cls = 'B'
     else cls = 'A'
-    hits.push({ text, cls, count, where, ...(entry.exists ? { dictValue: entry.value } : {}) })
+    hits.push({ text, cls, detail: detailOf(entry), count, where, ...(entry.exists ? { dictValue: entry.value } : {}) })
   }
 
   // Stable order: worst class first, then most-seen, then alphabetical — so two runs on the
@@ -134,12 +174,16 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
   const rank = { A: 0, B: 1, C: 2 } as const
   hits.sort((a, b) => rank[a.cls] - rank[b.cls] || b.count - a.count || (a.text < b.text ? -1 : 1))
 
+  const detail: Record<HitClassDetail, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
+  for (const h of hits) detail[h.detail]++
+
   return {
     route: typeof location !== 'undefined' ? location.pathname : '',
     total: hits.length,
     A: hits.filter((h) => h.cls === 'A').length,
     B: hits.filter((h) => h.cls === 'B').length,
     C: hits.filter((h) => h.cls === 'C').length,
+    detail,
     hits,
   }
 }
@@ -162,6 +206,7 @@ export function accumulate(result: ScanResult): void {
       prev.routes.add(result.route)
       // A later scan may classify better (the dictionary can hot-reload).
       prev.cls = h.cls
+      prev.detail = h.detail
       prev.dictValue = h.dictValue
     } else {
       seen.set(key, { ...h, routes: new Set([result.route]) })
@@ -179,8 +224,12 @@ export function cumulative() {
     A: hits.filter((h) => h.cls === 'A').length,
     B: hits.filter((h) => h.cls === 'B').length,
     C: hits.filter((h) => h.cls === 'C').length,
+    detail: (['A', 'B1', 'B2', 'C', 'sentinel'] as const).reduce(
+      (acc, c) => { acc[c] = hits.filter((h) => h.detail === c).length; return acc },
+      { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 } as Record<HitClassDetail, number>,
+    ),
     hits: hits.map((h) => ({
-      text: h.text, cls: h.cls, count: h.count,
+      text: h.text, cls: h.cls, detail: h.detail, count: h.count,
       routes: [...h.routes].sort(), where: h.where, dictValue: h.dictValue,
     })),
   }

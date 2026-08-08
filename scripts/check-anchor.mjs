@@ -1,9 +1,17 @@
 /**
- * repro-anchor.mjs — TEMPORARY. Reproduces the anchored-popover defects before they are fixed.
+ * check-anchor.mjs — the anchored-popover placement contract, driven through the real UI.
  *
- * Every dropdown in this app captures `e.currentTarget.getBoundingClientRect()` at click time,
- * stores that DOMRect in state, and renders a `position: fixed` panel at those coordinates.
- * This proves what that costs, rather than asserting it from reading the source.
+ * Written first as a reproduction, while every dropdown still captured
+ * `e.currentTarget.getBoundingClientRect()` at click time and rendered a `position: fixed` panel
+ * at those coordinates. It failed on three counts; `src/components/Popover.tsx` records what each
+ * one was. It is kept because the failures it caught are all invisible in a screenshot: a panel
+ * anchored the wrong way still looks like a panel, and a stale rect only shows up once something
+ * scrolls.
+ *
+ * Both viewports matter and test different things. At 390 the document scrolls and the panel is
+ * clamped to the viewport edge; at 1440 the desktop layout pins the page height and scrolls an
+ * inner `overflow-y: auto` panel instead, which is the case a listener bound to `window` alone
+ * never sees.
  */
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
@@ -22,15 +30,16 @@ const browser = await chromium.launch()
 let fails = 0
 const say = (ok, msg) => { if (!ok) fails++; console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${msg}`) }
 
+for (const width of [390, 1440]) {
 for (const lang of ['en', 'lsd']) {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' })
+  const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' })
   await ctx.addInitScript(seed(lang))
   const page = await ctx.newPage()
   await page.goto(`http://localhost:${port}/miqaats/ashara-1448/araz`, { waitUntil: 'domcontentloaded' })
   await page.evaluate(() => document.fonts?.ready)
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
 
-  console.log(`\n${lang} — /araz relay dropdown @390`)
+  console.log(`\n${lang} — /araz relay dropdown @${width}`)
 
   // Open the first relay-city dropdown by driving the real UI: tick "Relay City", then the trigger.
   const opened = await page.evaluate(() => {
@@ -65,12 +74,25 @@ for (const lang of ['en', 'lsd']) {
     const t = document.querySelector('[data-repro-trigger]')
     if (!panel || !t) return null
     const p = panel.getBoundingClientRect(), tr = t.getBoundingClientRect()
-    return { panel: { top: p.top, left: p.left, right: p.right }, trig: { top: tr.top, left: tr.left, right: tr.right }, dir: getComputedStyle(document.documentElement).direction }
+    return { panel: { top: p.top, left: p.left, right: p.right }, trig: { top: tr.top, left: tr.left, right: tr.right }, dir: getComputedStyle(document.documentElement).direction, viewport: window.innerWidth }
   })
   if (!before) { say(false, 'dropdown panel did not open'); continue }
 
   // DEFECT 1 — the captured rect never updates. Scroll the page and re-measure.
-  await page.evaluate(() => { const sc = document.scrollingElement; sc.scrollTop += 150 })
+  // Scroll whatever actually scrolls. At 390 that is the document; at 1440 the desktop layout
+  // pins the page height and scrolls an inner `overflow-y: auto` panel instead, so scrolling the
+  // document there would move nothing and the assertion would pass without testing anything.
+  const scrolled = await page.evaluate(() => {
+    const t = document.querySelector('[data-repro-trigger]')
+    for (let e = t?.parentElement; e; e = e.parentElement) {
+      const s = getComputedStyle(e)
+      if (/auto|scroll/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 20) { e.scrollTop += 150; return 'container' }
+    }
+    const sc = document.scrollingElement
+    if (sc.scrollHeight > sc.clientHeight + 20) { sc.scrollTop += 150; return 'document' }
+    return 'nothing scrollable'
+  })
+  say(scrolled !== 'nothing scrollable', `found something to scroll (${scrolled})`)
   await page.waitForTimeout(150)
   const after = await page.evaluate(() => {
     const panel = [...document.querySelectorAll('div')].find((d) => {
@@ -91,15 +113,25 @@ for (const lang of ['en', 'lsd']) {
     say(false, 'panel or trigger vanished after scroll')
   }
 
-  // DEFECT 2 — physical `left` anchoring. In RTL the panel should align to the trigger's
-  // INLINE-START edge, which is its right edge, not its left one.
-  if (before.dir === 'rtl') {
-    const startGap = Math.round(before.trig.right - before.panel.right)
-    say(Math.abs(startGap) <= 2,
-      `RTL: panel's inline-start (right) edge is ${startGap}px from the trigger's — it is anchored by physical left instead`)
+  // The placement contract, stated as what a user can observe rather than as the formula:
+  //   (a) the panel never leaves the viewport, and
+  //   (b) its INLINE-START edge meets the trigger's inline-start edge — right edges in RTL, left
+  //       in LTR — unless honouring that would push it outside, in which case it sits at the edge.
+  // Both halves matter. Asserting only (b) fails on a narrow screen where clamping is correct;
+  // asserting only (a) passes the original bug, which stayed on screen while pointing the wrong way.
+  const MARGIN = 12
+  const W = Math.round(before.panel.right - before.panel.left)
+  const rtl = before.dir === 'rtl'
+  const startAligned = rtl ? before.trig.right - W : before.trig.left
+  const expected = Math.max(MARGIN, Math.min(startAligned, before.viewport - W - MARGIN))
+  const clamped = Math.round(expected) !== Math.round(startAligned)
+  say(Math.abs(before.panel.left - expected) <= 1,
+    `${rtl ? 'RTL' : 'LTR'}: panel left is ${Math.round(before.panel.left)}, inline-start alignment wants ${Math.round(expected)}${clamped ? ' (clamped to the viewport edge)' : ''}`)
+  say(before.panel.left >= MARGIN - 1 && before.panel.right <= before.viewport - MARGIN + 1,
+    `panel stays inside the viewport (${Math.round(before.panel.left)}..${Math.round(before.panel.right)} within 0..${before.viewport})`)
   }
 }
 
 await browser.close(); proc.kill()
-console.log(`\n${fails} defect(s) reproduced`)
-process.exit(0)
+console.log(`\n${fails} failing assertion(s)`)
+process.exit(fails === 0 ? 0 : 1)

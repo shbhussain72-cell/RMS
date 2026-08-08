@@ -224,7 +224,11 @@ function CityHCard({ city, selected, added, onSelect }: { city: City; selected: 
 }
 
 // ── LocBox (CURRENT / NEW destination) ─────────────────────────────────────────
-function LocBox({ label, line, sublabel, accent, highlight, onRemove, onClick, active }: { label: string; line: string; sublabel?: string; accent?: boolean; highlight?: boolean; onRemove?: () => void; onClick?: (rect: DOMRect) => void; active?: boolean }) {
+// `onClick`/`active` are GONE. They rendered a chevron and made the box a button that opened a
+// zone picker, and the comment below claimed that was the zone-move behaviour — but no caller has
+// ever passed them, and the zone-move branch says in its own comment that the NEW box is a plain
+// display because the zone is chosen from the chips above. Dead branch, misleading comment.
+function LocBox({ label, line, sublabel, accent, highlight, onRemove }: { label: string; line: string; sublabel?: string; accent?: boolean; highlight?: boolean; onRemove?: () => void }) {
   const { t } = useT()
   // `highlight` = a destination is chosen but this member hasn't been placed there yet — draw the
   // eye to the empty NEW box (dashed gold + soft ring) so it's clear the user still has to pick here.
@@ -240,10 +244,6 @@ function LocBox({ label, line, sublabel, accent, highlight, onRemove, onClick, a
             className="flex size-[20px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#fbeceb] active:scale-90">
             <svg viewBox="0 0 20 20" fill="none" className="size-[13px]"><path d="M6 6l8 8M14 6l-8 8" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" /></svg>
           </button>
-        ) : onClick ? (
-          <svg viewBox="0 0 16 16" fill="none" className={`size-[14px] shrink-0 transition-transform ${active ? 'rotate-180' : ''}`}>
-            <path d="M4 6l4 4 4-4" stroke="#1f5a44" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
         ) : null}
       </div>
       {sublabel ? (
@@ -262,15 +262,7 @@ function LocBox({ label, line, sublabel, accent, highlight, onRemove, onClick, a
       )}
     </>
   )
-  // Tappable (the NEW box in a zone move opens the zone picker); otherwise a plain display box.
-  return onClick ? (
-    <button type="button" onClick={(e) => { e.stopPropagation(); onClick(e.currentTarget.getBoundingClientRect()) }}
-      className={`${cls} transition-colors hover:bg-[#f4f2ea]`} style={style}>
-      {body}
-    </button>
-  ) : (
-    <div className={cls} style={style}>{body}</div>
-  )
+  return <div className={cls} style={style}>{body}</div>
 }
 
 // ── MoveGroupCard ──────────────────────────────────────────────────────────────

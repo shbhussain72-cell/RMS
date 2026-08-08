@@ -7,6 +7,7 @@ import Breadcrumb from '../components/figma/Breadcrumb'
 import BottomSheet from '../components/figma/BottomSheet'
 import LeaveCityConfirmSheet from '../components/figma/LeaveCityConfirmSheet'
 import StickyFooter from '../components/figma/StickyFooter'
+import Popover from '../components/Popover'
 import { liveCities, cityDirectory, family, genderByIts, allocationCloses, miqaats, zonesByCityId, type FamilyMember, type Zone } from '../data/seed'
 import type { LiveCity } from '../data/seed'
 import { buildAllGroups, type BadgeKind, type Group } from '../lib/group'
@@ -326,12 +327,12 @@ function ViewAllSheet({
 // adapted to seed.ts's real `Zone` shape ({capacity, filled} instead of {left}).
 
 /** Pill trigger showing the picked zone (or a placeholder) — opens `ZoneMoveDropdown` anchored below. */
-function ZoneTrigger({ label, placeholder, active, disabled, onClick }: { label: string | null; placeholder: string; active: boolean; disabled?: boolean; onClick: (rect: DOMRect) => void }) {
+function ZoneTrigger({ label, placeholder, active, disabled, onClick }: { label: string | null; placeholder: string; active: boolean; disabled?: boolean; onClick: (el: HTMLElement) => void }) {
   return (
     <button
       type="button"
       disabled={disabled}
-      onClick={(e) => { e.stopPropagation(); onClick(e.currentTarget.getBoundingClientRect()) }}
+      onClick={(e) => { e.stopPropagation(); onClick(e.currentTarget) }}
       className="inline-flex h-[40px] w-full max-w-[210px] items-center justify-between gap-[8px] rounded-full border px-[16px] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       style={{ fontFamily: FONT, borderColor: disabled ? '#e7dfc9' : '#1f5a44', background: disabled ? '#faf9f5' : 'white' }}
     >
@@ -347,7 +348,7 @@ function ZoneTrigger({ label, placeholder, active, disabled, onClick }: { label:
 
 /** Searchable zone dropdown popover (anchored, fixed) — the per-row zone picker. */
 function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onSelect, onClose }: {
-  anchor: DOMRect
+  anchor: HTMLElement
   zones: Zone[]
   selectedZoneId: string | null
   search: string
@@ -356,14 +357,9 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
   onClose: () => void
 }) {
      const { tx, t, td } = useT()
-  const W = 300
   const filtered = search ? zones.filter((z) => z.name.toLowerCase().includes(search.toLowerCase())) : zones
-  const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
-  const top = Math.min(anchor.bottom + 6, window.innerHeight - 320)
   return (
-    <>
-      <div className="fixed inset-0 z-[90]" onClick={onClose} />
-      <div className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]" style={{ left, top, width: W }}>
+    <Popover anchor={anchor} width={300} onClose={onClose}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
             <input autoFocus value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search zone names...')}
@@ -390,8 +386,7 @@ function ZoneMoveDropdown({ anchor, zones, selectedZoneId, search, onSearch, onS
           })}
           {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No zones found.')} />}
         </div>
-      </div>
-    </>
+    </Popover>
   )
 }
 
@@ -452,7 +447,7 @@ function AllocateGroupCard({
   showZone?: boolean
   zone?: Zone | null
   zoneDropdownOpen?: boolean
-  onOpenZoneDropdown?: (rect: DOMRect) => void
+  onOpenZoneDropdown?: (el: HTMLElement) => void
   /** The city this already-reserved group can swap TO (the active city), or null when no swap is on
    *  offer. When set, the footer shows the "Current → Swap to" state instead of the Reserved pill. */
   swapTarget?: LiveCity | null
@@ -1129,11 +1124,11 @@ function InfoIcon({ color = '#b23b3b' }: { color?: string }) {
 }
 
 /** The pill button in the "Relay city" column that opens the relay-city dropdown. */
-function RelayCityTrigger({ label, active, onClick }: { label: string; active: boolean; onClick: (rect: DOMRect) => void }) {
+function RelayCityTrigger({ label, active, onClick }: { label: string; active: boolean; onClick: (el: HTMLElement) => void }) {
   return (
     <button
       type="button"
-      onClick={(e) => onClick(e.currentTarget.getBoundingClientRect())}
+      onClick={(e) => onClick(e.currentTarget)}
       className="inline-flex h-[40px] min-w-[150px] max-w-[210px] items-center justify-between gap-[8px] rounded-full border border-[#1f5a44] bg-white px-[16px] transition-colors"
       style={{ fontFamily: FONT }}
     >
@@ -1147,7 +1142,7 @@ function RelayCityTrigger({ label, active, onClick }: { label: string; active: b
 
 /** Searchable relay-city dropdown popover — fixed-positioned, anchored to its trigger so it escapes table overflow. */
 function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, search, onSearch, onSelect, onClose }: {
-  anchor: DOMRect
+  anchor: HTMLElement
   cities: LiveCity[]
   selectedCityId: string | null
   availabilityOf: (c: LiveCity) => boolean
@@ -1157,17 +1152,9 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
   onClose: () => void
 }) {
      const { tx, t, td } = useT()
-  const W = 280
   const filtered = search ? cities.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())) : cities
-  const left = Math.max(12, Math.min(anchor.left, window.innerWidth - W - 12))
-  const top = Math.min(anchor.bottom + 6, window.innerHeight - 320)
   return (
-    <>
-      <div className="fixed inset-0 z-[90]" onClick={onClose} />
-      <div
-        className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]"
-        style={{ left, top, width: W }}
-      >
+    <Popover anchor={anchor} width={280} onClose={onClose}>
         <div className="p-[10px]">
           <div className="flex h-[40px] items-center gap-[8px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[12px]">
             <input
@@ -1210,8 +1197,7 @@ function RelayCityDropdown({ anchor, cities, selectedCityId, availabilityOf, sea
           })}
           {filtered.length === 0 && <p className="px-[12px] py-[10px] text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }} {...tx('No cities found.')} />}
         </div>
-      </div>
-    </>
+    </Popover>
   )
 }
 
@@ -1256,12 +1242,12 @@ function AllocateDesktopTable({
    *  other event. */
   showZoneColumn?: boolean
   /** Opens the zone dropdown in "apply to every selected group" mode, anchored to the Zone header. */
-  onOpenZoneAllDropdown?: (rect: DOMRect) => void
+  onOpenZoneAllDropdown?: (el: HTMLElement) => void
   /** False while no group has a city yet — a zone can't be chosen before the city it belongs to. */
   canSetAllZones?: boolean
   zoneFor?: (gi: number) => Zone | null
   openZoneGi?: number | null
-  onOpenZoneDropdown?: (gi: number, rect: DOMRect) => void
+  onOpenZoneDropdown?: (gi: number, el: HTMLElement) => void
   /** The city an already-reserved group can swap TO (the active city), or null when no swap is offered.
    *  Drives the "Current → Swap to" state; the reservation only moves on an explicit swap click. */
   swapTargetFor?: (gi: number) => LiveCity | null
@@ -1319,7 +1305,7 @@ function AllocateDesktopTable({
                     <button
                       type="button"
                       disabled={!canSetAllZones}
-                      onClick={(e) => onOpenZoneAllDropdown(e.currentTarget.getBoundingClientRect())}
+                      onClick={(e) => onOpenZoneAllDropdown(e.currentTarget)}
                       className={`rounded-full border px-[10px] py-[3px] text-[11px] font-bold normal-case tracking-normal transition-colors ${canSetAllZones ? 'border-[#c2a04e] bg-white text-[#9a6a1e] hover:bg-[#fdf5e6]' : 'cursor-not-allowed border-[#e7dfc9] bg-white text-[#c4c9c6]'}`}
                       style={{ fontFamily: FONT }}
                       title={canSetAllZones ? 'Pick one zone and apply it to every selected member' : 'Select a city for your members first'} {...tx('Same zone for all')} />
@@ -2234,7 +2220,7 @@ export default function CitySelection() {
   const [showWhosInWhichCity, setShowWhosInWhichCity] = useState(false)
   const [citySearch, setCitySearch] = useState('')
   // Relay city: per-group "Relay city" dropdown (anchored popover) + its search
-  const [relayDropdown, setRelayDropdown] = useState<{ gi: number; rect: DOMRect } | null>(null)
+  const [relayDropdown, setRelayDropdown] = useState<{ gi: number; el: HTMLElement } | null>(null)
   const [relayCitySearch, setRelayCitySearch] = useState('')
   const [allocationTimer, setAllocationTimer] = useState(2 * 3600 + 42 * 60 + 11)
   const [queueCountdown, setQueueCountdown] = useState(QUEUE_WAIT_SECONDS)
@@ -2345,7 +2331,7 @@ export default function CitySelection() {
   // Sentinel row index for the zone dropdown opened from the Zone column HEADER ("Set all") rather
   // than from a single row's trigger — no real group can have index -1.
   const ZONE_ALL_GI = -1
-  const [zoneDropdown, setZoneDropdown] = useState<{ gi: number; rect: DOMRect } | null>(null)
+  const [zoneDropdown, setZoneDropdown] = useState<{ gi: number; el: HTMLElement } | null>(null)
   const [zoneSearch, setZoneSearch] = useState('')
   // ⚠️ A staged zone belongs to the city it was picked in. Removing a group's city — or switching it
   // to a DIFFERENT city — used to leave the zone behind in `groupZoneMap`, so an unreserved row still
@@ -3685,7 +3671,7 @@ export default function CitySelection() {
             <button
               type="button"
               disabled={!canSetAllZones}
-              onClick={(e) => { setZoneSearch(''); setZoneDropdown({ gi: ZONE_ALL_GI, rect: e.currentTarget.getBoundingClientRect() }) }}
+              onClick={(e) => { setZoneSearch(''); setZoneDropdown({ gi: ZONE_ALL_GI, el: e.currentTarget }) }}
               className={`shrink-0 rounded-full border px-[12px] py-[5px] text-[12px] font-bold transition-colors ${canSetAllZones ? 'border-[#c2a04e] bg-white text-[#9a6a1e]' : 'cursor-not-allowed border-[#e7dfc9] bg-white text-[#c4c9c6]'}`}
               style={{ fontFamily: FONT }} {...tx('Same zone for all')} />
           </div>
@@ -3715,7 +3701,7 @@ export default function CitySelection() {
               showZone={showCombined}
               zone={groupZoneMap.get(gi) ?? null}
               zoneDropdownOpen={zoneDropdown?.gi === gi}
-              onOpenZoneDropdown={(rect) => setZoneDropdown({ gi, rect })}
+              onOpenZoneDropdown={(el) => setZoneDropdown({ gi, el })}
               currentAlloc={modifyCityZone ? currentAllocFor(gi) : undefined}
               swapTarget={showCombined ? null : swapTargetFor(gi)}
               onSwap={() => swapGroupToActiveCity(gi)}
@@ -3860,11 +3846,11 @@ export default function CitySelection() {
                     isLockedGroup={isLockedGroup}
                     isRequest={isRequest}
                     showZoneColumn={showCombined}
-                    onOpenZoneAllDropdown={(rect) => { setZoneSearch(''); setZoneDropdown({ gi: ZONE_ALL_GI, rect }) }}
+                    onOpenZoneAllDropdown={(el) => { setZoneSearch(''); setZoneDropdown({ gi: ZONE_ALL_GI, el }) }}
                     canSetAllZones={canSetAllZones}
                     zoneFor={(gi) => groupZoneMap.get(gi) ?? null}
                     openZoneGi={zoneDropdown?.gi ?? null}
-                    onOpenZoneDropdown={(gi, rect) => setZoneDropdown({ gi, rect })}
+                    onOpenZoneDropdown={(gi, el) => setZoneDropdown({ gi, el })}
                     swapTargetFor={swapTargetFor}
                     onSwapGroup={swapGroupToActiveCity}
                     currentAllocFor={modifyCityZone ? currentAllocFor : undefined}
@@ -3899,7 +3885,7 @@ export default function CitySelection() {
 
       {relayDropdown && (
         <RelayCityDropdown
-          anchor={relayDropdown.rect}
+          anchor={relayDropdown.el}
           cities={relayCities}
           selectedCityId={groupCityMap.get(relayDropdown.gi)?.id ?? null}
           availabilityOf={(c) => relayCityFitsGroup(c, relayDropdown.gi)}
@@ -3915,7 +3901,7 @@ export default function CitySelection() {
           selected city if the row isn't reserved yet). */}
       {zoneDropdown && (
         <ZoneMoveDropdown
-          anchor={zoneDropdown.rect}
+          anchor={zoneDropdown.el}
           zones={zonesByCityId[(zoneDropdown.gi === ZONE_ALL_GI ? zoneAllCity : (groupCityMap.get(zoneDropdown.gi) ?? activeCity))?.id ?? ''] ?? []}
           selectedZoneId={zoneDropdown.gi === ZONE_ALL_GI ? null : (groupZoneMap.get(zoneDropdown.gi)?.id ?? null)}
           search={zoneSearch}

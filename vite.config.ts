@@ -140,6 +140,12 @@ export default defineConfig({
       // rather than decorative.
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        // `**/*.png` sweeps in `figma/miqaat-card-bg.png`, which is 3.84 MB — past workbox's 2 MiB
+        // per-asset precache limit, and a build error rather than a warning. It is a decorative
+        // card background used on four screens and is fine to fetch on demand; raising the limit
+        // instead would put 3.84 MB into every install for artwork nobody waits on. The fonts,
+        // which are the reason this glob exists, are unaffected.
+        globIgnores: ['**/figma/miqaat-card-bg.png'],
         cleanupOutdatedCaches: true,
       },
       manifest: {

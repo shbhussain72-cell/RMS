@@ -176,4 +176,13 @@ height, and two genuine in-flow occlusions.
 | **`check:overlap`** (new) | **0 failing** — sticky, reachable, once, appbar |
 | `check-layout` | **136 raw / 58 failing — unchanged**, 0 new, 0 gone |
 
-Screenshots: full harness run once at the end, both languages, five widths.
+Screenshots: **250** — 25 routes x 5 widths x 2 languages.
+
+The first run of the harness produced 200, because `shoot.mjs` defaulted to `[390, 768, 1024,
+1440]`. **1150 was missing**, so every "full harness, five widths" this repo has recorded was
+four; the run's own tally (`200/200, no missing routes`) was self-consistent and said nothing
+about which widths it had covered. Fixed and re-run, which is why the harness ran twice.
+
+`check-layout` has the same four-width default. It is **left alone deliberately** — adding 1150
+mid-session would change what the 58 baseline counts and make the delta meaningless. It belongs
+at the start of the next session, with a fresh baseline taken at five widths.

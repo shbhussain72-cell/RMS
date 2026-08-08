@@ -299,7 +299,8 @@ contents it had before.
 | check | result |
 |---|---|
 | `npm run build` | **passes** — build:lsd, check:lsd, tsc, vite build, dev-only dist grep |
-| `vitest run` | 77 passed |
+| `vitest run` | 80 passed (77 + the 3 deliverable guards) |
+| `check-tour` | 0 failing, run twice |
 | `check-mirror` | 0 failing (13 assertions) |
 | `check-layout` | 136 findings, 58 failing (pre-session 133/61) |
 | `check-centred` | off-centre >1.5px: 0; nowrap exemptions clipped: 0 |
@@ -309,10 +310,71 @@ contents it had before.
 | `check-remarks` | 56/56 |
 | screenshots | 250 written, both languages, five widths |
 
+## Third pass — four follow-ups
+
+### 1. The patch is a deliverable, not an artifact
+
+Moved to `docs/wordlist-patch.xlsx` and tracked. See "The patch" above for the guard that now
+enforces it (`scripts/deliverables.json` + `scripts/deliverables.test.mjs`), and for the check
+that the guard actually catches the bug it was written for rather than merely reporting green.
+
+### 2. The fragile comparison, fixed too
+
+`CitySelection`'s `h === t('Zone')` was correct only because the array it tested was built with
+`t()` on the same line. Both sides now hold English keys. Three fixed and one left as "fragile"
+is how a bug class comes back.
+
+Two things fell out of it: the Zone header now carries its own dir/lang isolation like every
+other translated label, and `Allocation` / `Action` — bare literals in the non-zone branch — go
+through `t()` with the English fallback, so they appear in the dictionary editor's page view as
+class C instead of being invisible. Neither has a wordlist row.
+
+A wider grep than the first (`==`, `!=`, `includes`, `startsWith`, `indexOf`, `match`, `test`,
+`case`, subscripting — against `t`/`tx`/`td`/`tdText`/`tNow`/`tdAuthored`) finds no other
+comparison anywhere in `src/`.
+
+### 3. The tour, driven to the end in both languages
+
+`npm run check:tour`. Every walkthrough, at 390 and 1440, in EN and LSD: open it, click Next to
+the end, and compare. Anchor parity, open/step-count parity, spotlight-on-anchor, tooltip inside
+the viewport, and the overlay's own copy scanned with the route walk's classifier.
+
+**Anchor parity is clean.** Every anchor, both widths, both languages. No other anchor is lost
+the way `register-button` was.
+
+Two findings in the overlay, invisible to every other harness here because they all fill
+`rms-tour-seen` to keep the tour out of the way of what they are measuring:
+
+| | was | now |
+|---|---|---|
+| `Next` / `Got it` | bare literals; both have wordlist translations, so **class A** | `tx()`, class A = 0 |
+| `Step {stepIndex + 1} of {stepCount}` | assembled in a template literal — the word order is fixed in code, so a translator can change what "Step" says but never move the numbers | one parameterised key |
+
+Three probe defects were found and fixed before any of its results were believed. The one worth
+remembering: it measured the spotlight mid-transition (the rect animates over 0.4s, and the list
+page's opening step is a 3600px journey), so the highlight appeared to sit 3607px from its
+anchor. Polling until two reads agreed then failed in the opposite direction — at the start of a
+step React has not committed the new box, so the spotlight is perfectly still at the *previous*
+position and the probe exits believing it waited. Three agreeing reads and a 900ms floor.
+
+### 4. The baseline
+
+**198, confirmed stable** on a clean tree, twice, before anything in this pass was touched. It is
+a per-string set of 198 entries, not a count, so drift is caught string-by-string rather than in
+aggregate.
+
+It then moved to **199** — deliberately, by this pass: `Step {n} of {total}` is a new key that
+exists *because* a sentence stopped being assembled in code. Same category as the 12 parameterised
+keys from the second pass, and expected to fall when the row lands.
+
 ## Still open
 
 - **104 rows await translation** in `docs/wordlist-patch.xlsx`, plus 2 B1 blanks
   already in the wordlist. That is the whole remaining queue.
+- **Six more class-C strings live only in the tour overlay** — four step descriptions plus
+  `Step {n} of {total}` and `Type a city name…`. They are not in the .xlsx patch, because the
+  patch was built from a route walk that cannot open the tour. They surface in the dictionary
+  editor's page view once a walkthrough is on screen; `npm run check:tour` lists them.
 - **The static sweep reports ~200 unrouted literals** behind states a route walk cannot reach —
   modals, error states, capacity pills. P9's, not this session's.
 - **`routes-before.json` is gone**, destroyed by the shoot run. The before-column above survives

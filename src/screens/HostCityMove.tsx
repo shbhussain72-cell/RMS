@@ -16,7 +16,7 @@ import StepIndicator from '../components/figma/StepIndicator'
 import Toast, { useToast } from '../components/figma/Toast'
 import { HostCityCard } from './CitySelection'
 import { useStore, journeyFor, type ChangeRequest, type GroupCityAlloc, type GroupZoneAlloc } from '../store'
-import { useT, tNow } from '../i18n'
+import { plural, useT, tNow } from '../i18n'
 import { memberTableMinWidth } from '../components/memberTable'
 
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -476,7 +476,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
   onSelect: (z: Zone) => void
   onClose: () => void
 }) {
-     const { t, td } = useT()
+     const { t, td, tx, tdText } = useT()
   const [q, setQ] = useState('')
   const list = q ? zones.filter((z) => z.name.toLowerCase().includes(q.toLowerCase())) : zones
   return (
@@ -486,7 +486,7 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
       header={(
         <>
           <div className="pe-[36px]">
-            <span className="text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }}>All {cityName} zones</span>
+            <span className="text-[24px] leading-[30px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('All {city} zones', { city: tdText(cityName) })} />
           </div>
           <div className="mt-[14px] flex items-center gap-[10px] rounded-full border border-[#e7dfc9] bg-[#faf8f2] px-[14px] h-[44px]">
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search zones...')}
@@ -941,7 +941,7 @@ function MoveSidebarCard({
         <>
           <div className="flex items-center gap-[7px]">
             <PinIcon color="#c5912f" size={18} />
-            <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{cityName} zones ({zones.length})</p>
+            <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...tx('{city} zones ({n})', { city: tdText(cityName), n: zones.length })} />
             {swapAll && <SwapAllPill allMoved={swapAll.allMoved} destName={swapAll.destName} onClick={swapAll.onClick} verb={swapAll.verb} />}
           </div>
           <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
@@ -1113,7 +1113,7 @@ function MoveDesktopTable({
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t } = useT()
+                const { t, tdText } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 const isTheDependent = !!dep && mm.member.id === dep.id
@@ -1192,7 +1192,7 @@ function MoveDesktopTable({
                               : isAllocated
                                 ? <ReservedPill onRemove={() => onChooseDest(gi)} pending={!windowOpen} />
                                 : rowAlreadyAtDest
-                                  ? <span className="text-[13px] text-[#c2ccc6]" style={{ fontFamily: FONT }}>Already in {destCityName}</span>
+                                  ? <span className="text-[13px] text-[#c2ccc6]" style={{ fontFamily: FONT }} {...tx('Already in {city}', { city: tdText(destCityName ?? '') })} />
                                   : <ReserveCityButton active={cityOnly ? (!isRelay || !!destCityName) : !!hasActiveDest} cityName={destCityName} onClick={() => onChooseDest(gi)} verb={windowOpen ? 'Switch to' : 'Request to'} />
                           )}
                         </div>
@@ -1429,7 +1429,7 @@ function ReserveTip({ tip }: { tip: { text: string; phase: 'in' | 'out' } | null
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay' }) {
-  const { t, tx, td } = useT()
+  const { t, tx, td, tdText } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const location = useLocation()
@@ -1690,8 +1690,10 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const reserveTipText = (gi: number, cityName: string): string => {
     const names = groups[gi]?.members.map((m) => m.member.name) ?? []
     if (names.length === 0) return ''
-    const who = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
-    return `${who} selected in ${cityName}.`
+    const who = names.length === 1
+      ? tdText(names[0])
+      : t('{list} & {last}', { list: names.slice(0, -1).map((n) => tdText(n)).join(', '), last: tdText(names[names.length - 1]) })
+    return t('{who} selected in {city}.', { who, city: tdText(cityName) })
   }
   /** Enqueue one reservation tooltip per group (played sequentially). */
   const enqueueReserveTips = (gis: number[], cityName: string | undefined = destCity) => {
@@ -2061,7 +2063,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
         <div className="pt-[16px] px-[16px] flex items-center justify-between">
           <span className="flex items-center gap-[6px] text-[14px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>
             <PeopleMini color="#b8821e" />
-            {totalMembers} members
+            <bdi {...tx(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })} />
           </span>
           {(cityOnlyStage ? !!activeCity : !!activeZone) && selectableMemberIds.length > 1 && (
             allMembersMoved ? (
@@ -2073,7 +2075,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                 className="inline-flex h-[32px] items-center gap-[6px] rounded-full bg-[#2e6a7d] px-[14px] text-[13px] font-bold text-white shadow-[0px_4px_14px_-6px_rgba(21,64,47,0.3)] transition-colors hover:bg-[#265a6b] active:scale-[0.97]"
                 style={{ fontFamily: FONT }}>
                 <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className="truncate">{switchAllLabel} to {destCity}</span>
+                <span className="truncate">{t('{verb} to {city}', { verb: switchAllLabel, city: tdText(destCity ?? '') })}</span>
               </button>
             )
           )}

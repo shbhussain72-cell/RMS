@@ -360,7 +360,11 @@ export function inspectKey(english: string): {
   return {
     exists: true,
     value,
-    identity: value !== '' && value === key,
+    // Case-INSENSITIVELY, because the lookup is case-insensitive too. The wordlist stores the
+    // agreed loanwords lower-cased (`Registration` → `registration`, `ITS ID` → `ITS id`), and a
+    // case-sensitive test called those wiring defects — an A that no amount of wiring can clear,
+    // on nine routes, because the row is doing exactly what loanword-policy.json says it should.
+    identity: value !== '' && value.toLowerCase() === key.toLowerCase(),
     staged: entry.staged === true,
     sentinel: entry.sentinel ?? null,
     page: entry.page ?? '',

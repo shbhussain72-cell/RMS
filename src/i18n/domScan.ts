@@ -116,12 +116,21 @@ export function classifyDetail(text: string): HitClassDetail {
   return detailOf(inspectKey(text))
 }
 
+/**
+ * Where the hit is, as `span.truncate < div.flex < td.px-[12px]`.
+ *
+ * Two ancestors, not just the parent. The immediate parent alone is frequently `span.truncate`
+ * or `p.text-[14px]` — true of a dozen elements per screen and enough to find none of them.
+ * Grepping for a class chain lands on the right JSX first time.
+ */
 const describe = (node: Text): string => {
-  const el = node.parentElement
-  if (!el) return '?'
-  const name = el.getAttribute('data-name') || el.getAttribute('data-tour') || ''
-  const cls = (el.className && typeof el.className === 'string' ? el.className : '').split(/\s+/)[0] || ''
-  return [el.tagName.toLowerCase(), name && `[${name}]`, cls && `.${cls}`].filter(Boolean).join('')
+  const parts: string[] = []
+  for (let el = node.parentElement; el && parts.length < 3; el = el.parentElement) {
+    const name = el.getAttribute('data-name') || el.getAttribute('data-tour') || ''
+    const cls = (el.className && typeof el.className === 'string' ? el.className : '').split(/\s+/)[0] || ''
+    parts.push([el.tagName.toLowerCase(), name && `[${name}]`, cls && `.${cls}`].filter(Boolean).join(''))
+  }
+  return parts.join(' < ') || '?'
 }
 
 /**

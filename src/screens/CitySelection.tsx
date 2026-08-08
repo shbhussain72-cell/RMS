@@ -1472,7 +1472,7 @@ function AllocateDesktopTable({
                               className="inline-flex h-[34px] items-center gap-[7px] rounded-full px-[22px] text-[13px] font-bold transition-colors"
                               style={{ fontFamily: FONT, whiteSpace: 'nowrap', border: '1.5px solid #1f5a44', background: '#1f5a44', color: 'white' }}>
                               {isRequest && <svg viewBox="0 0 24 24" fill="none" className="size-[14px] shrink-0"><path d="M4.5 12l15-7.5-7 15-2.2-5.3L4.5 12z" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                              {isRequest ? 'Request' : 'Select'} {activeCity.name}
+                              {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })}
                             </button>
                           ) : activeCity ? (
                             // "Reserve all" already covers everyone — redundant per-row button, muted dash.
@@ -1588,7 +1588,7 @@ function AllocateDesktopTable({
                               className="inline-flex h-[34px] items-center gap-[7px] rounded-full px-[22px] text-[13px] font-bold transition-colors"
                               style={{ fontFamily: FONT, whiteSpace: 'nowrap', border: '1.5px solid #1f5a44', background: '#1f5a44', color: 'white' }}>
                               {isRequest && <svg viewBox="0 0 24 24" fill="none" className="size-[14px] shrink-0"><path d="M4.5 12l15-7.5-7 15-2.2-5.3L4.5 12z" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                              {isRequest ? 'Request' : 'Select'} {activeCity.name}
+                              {t(isRequest ? 'Request {city}' : 'Select {city}', { city: tdText(activeCity.name) })}
                             </button>
                           ) : activeCity ? (
                             // "Reserve all" already covers everyone — redundant per-row button, muted dash.
@@ -2262,8 +2262,10 @@ export default function CitySelection() {
   const reserveTipText = (gi: number, cityName: string): string => {
     const names = groupsRef.current[gi]?.members.map((m) => m.member.name) ?? []
     if (names.length === 0) return ''
-    const who = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
-    return `${who} selected in ${cityName}.`
+    const who = names.length === 1
+      ? tdText(names[0])
+      : t('{list} & {last}', { list: names.slice(0, -1).map((n) => tdText(n)).join(', '), last: tdText(names[names.length - 1]) })
+    return t('{who} selected in {city}.', { who, city: tdText(cityName) })
   }
   /** Enqueue one reservation tooltip per group (played sequentially). */
   const enqueueReserveTips = (gis: number[], cityName: string | undefined = activeCity?.name) => {
@@ -3370,10 +3372,10 @@ export default function CitySelection() {
             return (
               <div key={zone.id}>
                 <div className="mb-[8px] flex flex-wrap items-center gap-x-[6px] gap-y-[4px]">
-                  <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{city?.name ?? ''}</span>
+                  <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(city?.name ?? '')} />
                   {city?.type && <CityKindTag type={city.type} />}
-                  <span className="text-[13px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>· {zone.name}</span>
-                  <span className="text-[13px] font-normal text-[#8a938e]" style={{ fontFamily: FONT }}>· {groupIndices.reduce((sum, i) => sum + groupAllocCount(i), 0)} members</span>
+                  <span className="text-[13px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>· <bdi {...td(zone.name)} /></span>
+                  <span className="text-[13px] font-normal text-[#8a938e]" style={{ fontFamily: FONT }} {...tx(plural(groupIndices.reduce((sum, i) => sum + groupAllocCount(i), 0), '· {n} member', '· {n} members'), { n: groupIndices.reduce((sum, i) => sum + groupAllocCount(i), 0) })} />
                 </div>
                 <div className="flex flex-col gap-[8px]">
                   {groupIndices.map((gIdx) => groups[gIdx] && stripDroppedZ(groups[gIdx]).members.length > 0 && (

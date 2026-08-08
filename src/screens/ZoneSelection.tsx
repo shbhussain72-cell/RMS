@@ -147,6 +147,7 @@ function CityTab({
 }: {
   name: string; memberCount: number; active: boolean; onClick: () => void; type?: 'host' | 'relay'
 }) {
+  const { td, tx } = useT()
   return (
     <button
       type="button"
@@ -160,12 +161,10 @@ function CityTab({
       <span
         className="text-[14px] leading-[18px] text-[#23302a]"
         style={{ fontFamily: FONT, fontWeight: active ? 700 : 600 }}
-      >
-        {name}
-      </span>
-      <span className="text-[12px] leading-[16px] text-[#8a938e] mt-[2px]" style={{ fontFamily: FONT }}>
-        {memberCount} members
-      </span>
+        {...td(name)}
+      />
+      <span className="text-[12px] leading-[16px] text-[#8a938e] mt-[2px]" style={{ fontFamily: FONT }}
+        {...tx(plural(memberCount, '{n} member', '{n} members'), { n: memberCount })} />
       <CityKindTag type={type} />
     </button>
   )
@@ -1414,9 +1413,9 @@ export default function ZoneSelection() {
               return (
               <div key={zone.id}>
                 <div className="mb-[8px] flex flex-wrap items-center gap-x-[6px] gap-y-[4px]">
-                  <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{city?.name ?? cityName}</span>
+                  <span className="text-[14px] font-bold text-[#23302a]" style={{ fontFamily: FONT }} {...td(city?.name ?? cityName)} />
                   {city?.type && <CityKindTag type={city.type} />}
-                  <span className="text-[13px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>· {zone.name}</span>
+                  <span className="text-[13px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>· <bdi {...td(zone.name)} /></span>
                   <span className="text-[13px] font-normal text-[#8a938e]" style={{ fontFamily: FONT }}>· {groupIndices.reduce((sum, i) => sum + groupAllocCount(i), 0)} members</span>
                 </div>
                 <div className="flex flex-col gap-[8px]">
@@ -1574,7 +1573,7 @@ export default function ZoneSelection() {
             <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM2 8a2 2 0 114 0 2 2 0 01-4 0zM15.5 17c0-2.21-2.46-4-5.5-4s-5.5 1.79-5.5 4M17 17c0-1.54-1.12-2.87-2.75-3.5M3 17c0-1.54 1.12-2.87 2.75-3.5" stroke="#b8821e" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <span className="text-[14px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }}>{totalMembers} members</span>
+            <span className="text-[14px] font-bold text-[#b8821e]" style={{ fontFamily: FONT }} {...tx(plural(totalMembers, '{n} member', '{n} members'), { n: totalMembers })} />
           </div>
           {showReserveAllZone ? (
             <button type="button" onClick={handleSelectAllZone}

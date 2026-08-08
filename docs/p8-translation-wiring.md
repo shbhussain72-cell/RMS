@@ -1,6 +1,10 @@
 # P8 — translation wiring and bidi residue
 
-Branch `fix/popovers-chrome`. Commits `e4a3ef9` … `7cd4de3`.
+Branch `fix/popovers-chrome`. Commits `e4a3ef9` … `8ada5da`.
+
+Written in two passes. Everything down to "Verification" is the state at the end of the first;
+**"Follow-up pass" below carries the final numbers** and supersedes the C column and the patch
+contents here. The A column is unchanged: it was 0 then and it is 0 now.
 
 ## The headline
 
@@ -38,7 +42,9 @@ renders anyway. It is a developer defect by definition — nothing in the spread
 | `/notifications` | 19 → 0 | 0 | 3 → 4 | 19 → 15 | 0 |
 | **distinct across the app** | **66 → 0** | 2 | 6 → 7 | 189 → 141 | 5 |
 
-268 distinct English strings on screen in LSD, down to 155. Both columns are measured by
+(C reached 104 after the follow-up pass; the 141 here predates the `notLanguage` marker.)
+
+268 distinct English strings on screen in LSD, down to 155 — and to 118 after the follow-up. Both columns are measured by
 `scripts/scan-routes.mjs` at 390 and 1440 and unioned per route — two widths because ~87 blocks
 in this app are gated behind `sm:hidden` / `hidden sm:flex`, so a one-width walk cannot see half
 the UI.
@@ -105,24 +111,26 @@ while its authored LSD value sat unused in the spreadsheet.
 
 ## The blank-row Excel patch
 
-`artifacts/audit/wordlist-patch.xlsx` — **157 rows, every LSD cell empty.** Verified: zero rows
-carry a non-empty LSD value. (`artifacts/` is gitignored, so the file is on disk, not in the
+`artifacts/audit/wordlist-patch.xlsx` — **157 rows at this point, every LSD cell empty**; 104 after
+the follow-up pass removed what is not language. Verified both times: zero rows carry a non-empty
+LSD value. (`artifacts/` is gitignored, so the file is on disk, not in the
 commit.)
 
 Regenerate with `node scripts/emit-blank-rows.mjs`. The list is the union of two sources because
 neither is sufficient: the route walk sees what actually painted but not what sits behind a modal
 or an error state; the build gate reads source and sees those, but cannot know what renders.
 
-**Three groups in it are not translation work** and should be deleted before pasting. They are
-listed rather than silently filtered, because a filter that guesses wrong hides a real gap:
+**Three groups in it are not translation work.** Listed rather than silently filtered, because a
+filter that guesses wrong hides a real gap — and in the follow-up pass they were reclassified at
+the source instead of deleted, so they no longer reach the patch at all:
 
 | count | what | why it is not a row |
 |---:|---|---|
-| 23 | date-shaped strings (`03 Jul 2026`, `Mon, 13 Jul · 11:59 PM`) | a formatter case; see the open items |
+| 23 | date-shaped strings (`03 Jul 2026`, `Mon, 13 Jul · 11:59 PM`) | a formatter case — item 4 below |
 | 12 | avatar initials (`AB`, `MH`) and the `EN`/`LSD` switcher | not language |
 | 1 | `4.0 MB` | digits plus an SI unit |
 
-**121 rows are genuine copy.**
+**121 rows are genuine copy** (104 once the other three groups stopped being reported).
 
 ### Why the patch is generated in the vite plugin, not the React component
 

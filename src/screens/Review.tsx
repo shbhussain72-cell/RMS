@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import { Iso, isolateRuns } from '../components/Bidi'
+import { memberMeta } from '../components/MemberMeta'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -81,7 +82,7 @@ function RowText({ member }: { member: FamilyMember }) {
       {/* One isolated string rather than separate JSX expressions — each expression would be its
           own text node, leaving `ITS` and the id as bare runs inside the RTL paragraph. */}
       <p className="w-full text-[12px] leading-[16px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }}>
-        {isolateRuns(`${tdText(member.relation)} · ${tdText(member.gender)} · ${t('Age')} ${agePad(member.age)} · ${t('ITS')} ${member.its}`)}
+        {memberMeta({ relation: tdText(member.relation), gender: tdText(member.gender), age: agePad(member.age), its: member.its }, t)}
       </p>
     </div>
   )
@@ -184,7 +185,7 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
                         <div className="min-w-0">
                           <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(m.member.name)} />
                           <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                            {isolateRuns(`${tdText(m.member.relation)} · ${tdText(m.member.gender)} · ${t('Age')} ${agePad(m.member.age)} · ${t('ITS')} ${m.member.its}`)}
+                            {memberMeta({ relation: tdText(m.member.relation), gender: tdText(m.member.gender), age: agePad(m.member.age), its: m.member.its }, t)}
                           </p>
                         </div>
                       </div>

@@ -1,6 +1,18 @@
 const FONT = 'Mulish, system-ui, sans-serif'
 
-export type Step = { label: string; done: boolean }
+export type Step = {
+  label: string
+  done: boolean
+  /**
+   * A live "3/8" tally shown after the label.
+   *
+   * Held apart from `label` rather than baked into it. The label used to arrive as the finished
+   * string `Members 3/8`, which this component then took apart again with a regex — so the
+   * animation only worked while the count happened to be the last thing in the string, which is
+   * an assumption about English word order that no translation is obliged to keep.
+   */
+  count?: string
+}
 
 /** Completed step — filled green circle + white check. Mounts only when the step
  *  flips to done, so the scale-pop + check fade-in play once (not on every render). */
@@ -20,21 +32,24 @@ function StepEmpty() {
 }
 
 /**
- * Step label. Colour transitions smoothly on done. When the label carries a live
- * "X/Y" count (Members), only the count is keyed → it fades on change while the
- * rest of the pill stays put (no full-indicator re-animation per count tick).
+ * Step label. Colour transitions smoothly on done. A live "X/Y" tally is keyed on its own
+ * value → it fades on change while the rest of the pill stays put, instead of the whole
+ * indicator re-animating on every tick.
+ *
+ * The tally stays LTR in both languages: `3/8` is a ratio, and a solidus between two numerals
+ * is a neutral character that would otherwise take its side from the paragraph.
  */
-function StepLabel({ label, done }: { label: string; done: boolean }) {
-  const m = label.match(/^(.*?)(\d+\/\d+)$/)
+function StepLabel({ label, done, count }: Step) {
   const color = done ? '#1f6a48' : '#9a8d72'
-  const base = 'text-[15px] font-semibold'
-  if (!m) {
-    return <span className={base} style={{ fontFamily: FONT, color }}>{label}</span>
-  }
   return (
-    <span className={base} style={{ fontFamily: FONT, color }}>
-      {m[1]}
-      <span key={m[2]} className="step-count-in inline-block">{m[2]}</span>
+    <span className="text-[15px] font-semibold" style={{ fontFamily: FONT, color }}>
+      {label}
+      {count ? (
+        <>
+          {' '}
+          <bdi key={count} className="step-count-in inline-block" style={{ unicodeBidi: 'isolate' }}>{count}</bdi>
+        </>
+      ) : null}
     </span>
   )
 }
@@ -57,7 +72,7 @@ export default function StepIndicator({ steps }: { steps: Step[] }) {
           style={{ background: s.done ? '#dceee2' : '#ece4d2' }}
         >
           {s.done ? <StepCheck /> : <StepEmpty />}
-          <StepLabel label={s.label} done={s.done} />
+          <StepLabel label={s.label} done={s.done} count={s.count} />
         </span>
       ))}
     </div>

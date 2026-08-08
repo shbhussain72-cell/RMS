@@ -7,7 +7,7 @@ import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
 import RoleBadge from '../components/figma/RoleBadge'
 import { liveCities, family, genderByIts, miqaats, type FamilyMember, type LiveCity } from '../data/seed'
-import { buildAllGroups, type Group } from '../lib/group'
+import { bandLabel, buildAllGroups, type Group } from '../lib/group'
 import Popover from '../components/Popover'
 import { useStore, journeyFor } from '../store'
 import { plural, useT, tNow } from '../i18n'
@@ -411,7 +411,7 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={3} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
+                      <LinkGlyph />{g.label ? t(bandLabel(g.label)) : null}
                     </span>
                   </td>
                 </tr>
@@ -473,7 +473,7 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
               <div className="flex items-center gap-[8px] bg-[#e1eef1] px-[14px] py-[8px]">
                 <LinkGlyph />
                 <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                  {g.label?.replace('registered together', t('reserve together'))}
+                  {g.label ? t(bandLabel(g.label)) : null}
                 </span>
               </div>
             )}

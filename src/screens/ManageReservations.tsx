@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { DateLine, TimeLine } from '../components/DateLine'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
+import { memberMeta } from '../components/MemberMeta'
 import { isolateRuns } from '../components/Bidi'
 import { plural, useT, tNow } from '../i18n'
 import AppBar from '../components/figma/AppBar'
@@ -2210,7 +2211,7 @@ export default function ManageReservations() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[18px] font-bold leading-[23px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(registrant.name)} />
                   <p className="mt-[3px] text-[14px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-                    {isolateRuns(`${tdText(registrant.gender)} · ${t('Age')} ${registrant.age} · ${t('ITS')} ${registrant.its}`)}
+                    {memberMeta({ gender: tdText(registrant.gender), age: String(registrant.age), its: registrant.its }, t)}
                   </p>
                 </div>
               </div>

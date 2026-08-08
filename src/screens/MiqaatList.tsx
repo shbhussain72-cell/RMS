@@ -729,7 +729,7 @@ function IdentityHeader() {
 
 function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string }) {
   const nav = useNavigate()
-  const { tx, td } = useT()
+  const { tx, td, isLsd } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Same rule as the cards: Arrange My Cities comes before Select City (see useCard).
   const cityArranged = useStore((s) => !!journeyFor(s.flow, s.registrations, m.id).cityArrangement)
@@ -755,24 +755,29 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
   const locValue = hasZone ? `${confirmedCityName} · ${confirmedZoneName}` : hasCity ? confirmedCityName! : 'Not allocated'
 
   const dateText = (m.deadlineLabel.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),.*/)?.[0] ?? m.deadlineLabel).replace(' - ', ' · ')
-  let endsText = 'Registration closes in'
+  // A verb phrase and a date, kept APART. Interpolating the date into the sentence with a
+  // template string compiles the word order into the literal, so the dictionary is consulted
+  // after the decision it needed to make and the date can only ever land where English puts
+  // it. A parameterised key leaves that choice to the translation; `tx` fills {date} after the
+  // lookup and isolates the interpolated Latin run on its own.
+  let ends: { key: string; date?: string } = { key: 'Registration closes in' }
   // Demo Progression Controls: before registration opens (or after it's been demo-closed and
   // city selection hasn't opened yet), nothing is actually "closing" — say what's next instead.
   // A confirmed city while the zone stage hasn't opened yet ('city_done_waiting_zone') is its own
   // case, checked before the generic `hasCity` fallback (which would otherwise say "Zone ends in").
-  if (demoPhase === 'reg_not_open') endsText = 'Registration opens in'
-  else if (demoPhase === 'reg_open') endsText = `Registration ends in ${dateText}`
-  else if (demoPhase === 'reg_closed') endsText = `City opens in ${dateText}`
-  else if (s === 'registered') endsText = `City opens in ${dateText}`
+  if (demoPhase === 'reg_not_open') ends = { key: 'Registration opens in' }
+  else if (demoPhase === 'reg_open') ends = { key: 'Registration ends in {date}', date: dateText }
+  else if (demoPhase === 'reg_closed') ends = { key: 'City opens in {date}', date: dateText }
+  else if (s === 'registered') ends = { key: 'City opens in {date}', date: dateText }
   // Registered but no confirmed city yet. While City Selection is open → "City ends in"; once it has
   // demo-closed (e.g. after the registrant cancelled their own city) the city stage is over, so the
   // next thing is the zone stage → "Zone opens in".
-  else if (s === 'city_open' || s === 'registered_select') endsText = demoPhase === 'city_closed' ? `Zone opens in ${dateText}` : `City ends in ${dateText}`
-  else if (s === 'city_done_waiting_zone') endsText = demoPhase === 'city_closed' ? `Zone opens in ${dateText}` : `City closes in ${dateText}`
+  else if (s === 'city_open' || s === 'registered_select') ends = demoPhase === 'city_closed' ? { key: 'Zone opens in {date}', date: dateText } : { key: 'City ends in {date}', date: dateText }
+  else if (s === 'city_done_waiting_zone') ends = demoPhase === 'city_closed' ? { key: 'Zone opens in {date}', date: dateText } : { key: 'City closes in {date}', date: dateText }
   // A confirmed zone while Raza hasn't been issued yet (Demo Progression Controls) is the zone-stage
   // twin of city_done_waiting_zone — checked before the generic `hasCity` fallback below.
-  else if (s === 'zone_done') endsText = demoPhase === 'zone_closed' ? `Raza issues on ${dateText}` : `Zone closes in ${dateText}`
-  else if (hasCity) endsText = `Zone ends in ${dateText}`
+  else if (s === 'zone_done') ends = demoPhase === 'zone_closed' ? { key: 'Raza issues on {date}', date: dateText } : { key: 'Zone closes in {date}', date: dateText }
+  else if (hasCity) ends = { key: 'Zone ends in {date}', date: dateText }
   // Once Raza is issued there's nothing left to count down to.
   const hideCountdown = razaIssued
 
@@ -854,7 +859,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
                   <PinBadge />
                   <span className="text-[14px] text-[#3d3d3a]" style={{ fontFamily: FONT_SANS, fontWeight: 600 }} {...tx(hasZone ? 'City & zone' : 'City')} />
                 </span>
-                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }} {...(hasCity || hasZone ? { children: locValue } : tx(locValue))} />
+                <span className="whitespace-nowrap text-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: hasCity || hasZone ? 800 : 600, color: hasCity || hasZone ? '#1f5a44' : '#8a938e' }} {...(hasCity || hasZone ? td(locValue) : tx(locValue))} />
               </div>
             )}
           </div>
@@ -865,13 +870,18 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
           <>
             <div className="mb-[8px] flex items-center gap-[7px]">
               <span className="size-[7px] shrink-0 rounded-full bg-[#d9a441]" />
-              <span className="text-[12px] leading-[16px] text-[rgba(255,255,255,0.85)]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}>{endsText}</span>
+              <span className="text-[12px] leading-[16px] text-[rgba(255,255,255,0.85)]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} {...tx(ends.key, ends.date ? { date: ends.date } : undefined)} />
             </div>
             <div className="mb-[14px] flex gap-[8px] sm:max-w-[440px]">
               {cells.map((c) => (
                 <div key={c.unit} className="flex flex-1 flex-col items-center justify-center rounded-[12px] border border-[rgba(201,161,74,0.4)] bg-[rgba(255,255,255,0.1)] py-[8px] backdrop-blur-[2px]">
-                  <p className="text-[22px] leading-[26px] text-white sm:text-[26px]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{c.value}</p>
-                  <p className="mt-[2px] text-[9px] leading-none tracking-[0.6px] text-[#c8a84b] sm:text-[10px]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>{c.unit}</p>
+                  {/* The digits stay left-to-right in both languages — a clock reads the same way
+                      round whatever script it is written in. Same treatment as CountdownUnit's
+                      sibling on the list cards, which this block had grown a raw copy of. */}
+                  <p className="text-[22px] leading-[26px] text-white sm:text-[26px]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }}>
+                    <Ltr>{isLsd ? toArabicDigits(c.value) : c.value}</Ltr>
+                  </p>
+                  <p className="mt-[2px] text-[9px] leading-none tracking-[0.6px] text-[#c8a84b] sm:text-[10px]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...tx(c.unit)} />
                 </div>
               ))}
             </div>
@@ -895,7 +905,7 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
               onClick={stop(primary.onClick)}
               className="ix-btn ix-btn-gold inline-flex h-[50px] w-full min-w-0 items-center justify-center rounded-full bg-gradient-to-b from-[#E3CD96] to-[#C9A45C] shadow-[0px_8px_20px_-6px_rgba(0,0,0,0.35)]"
             >
-              <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }}>{primary.label}</span>
+              <span className="truncate text-[14px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }} {...tx(primary.label)} />
             </button>
           </div>
         ) : primary.outline ? (
@@ -904,11 +914,11 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
             onClick={stop(primary.onClick)}
             className="ix-btn ix-btn-hero inline-flex h-[54px] w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.6)] px-[40px] sm:w-auto sm:self-start sm:px-[56px]"
           >
-            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }}>{primary.label}</span>
+            <span className="text-[15px] font-bold text-white" style={{ fontFamily: FONT_SANS }} {...tx(primary.label)} />
           </button>
         ) : (
           <button type="button" onClick={stop(primary.onClick)} className={goldCls + ' w-full px-[24px] sm:w-auto sm:self-start sm:px-[56px]'}>
-            <span className={goldTextCls} style={{ fontFamily: FONT_SANS }}>{primary.label}</span>
+            <span className={goldTextCls} style={{ fontFamily: FONT_SANS }} {...tx(primary.label)} />
           </button>
         ))}
         <DemoProgressionControl miqaatId={m.id} className="mt-[14px]" />

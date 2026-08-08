@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
-import { isolateRuns } from '../components/Bidi'
+import { memberMeta } from '../components/MemberMeta'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import StickyFooter from '../components/figma/StickyFooter'
@@ -64,7 +64,7 @@ function PersonRow({ name, age, its, gender, large = false }: { name: string; ag
           {name}
         </p>
         <p className={`font-normal text-[#5a6660] ${large ? 'text-[13.5px] leading-[19px]' : 'text-[12px] leading-[18px]'}`} style={FMU}>
-          {isolateRuns(`${gender ? `${gender} · ` : ''}${t('Age')} ${age} · ${t('ITS')} ${its}`)}
+          {memberMeta({ gender: gender || undefined, age: String(age), its }, t)}
         </p>
       </div>
     </div>
@@ -110,7 +110,7 @@ function MemberRow({ name, age, its, gender, badge, linkTop, linkBottom }: { nam
       <div className="relative shrink-0"><Avatar name={name} size={36} /></div>
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU}>{name}</p>
-        <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={FMU}>{isolateRuns(`${gender ? `${gender} · ` : ''}${t('Age')} ${age} · ${t('ITS')} ${its}`)}</p>
+        <p className="mt-[2px] text-[12px] leading-[16px] text-[#5a6660]" style={FMU}>{memberMeta({ gender: gender || undefined, age: String(age), its }, t)}</p>
       </div>
       {badge && <RoleBadge kind="dependent" />}
     </div>
@@ -278,7 +278,7 @@ export default function InviteMehmaan() {
             <Avatar name={result.name} size={72} />
             <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={FMU} {...td(result.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={FMU}>
-              {isolateRuns(`${result.gender ? `${tdText(result.gender)} · ` : ''}${t('Age')} ${result.age} · ${t('ITS')} ${result.its}`)}
+              {memberMeta({ gender: result.gender ? tdText(result.gender) : undefined, age: String(result.age), its: result.its }, t)}
             </p>
             <div className="mt-[18px]">{inviteButton}</div>
           </div>

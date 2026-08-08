@@ -1,7 +1,7 @@
 import StickyFooter from './StickyFooter'
-import { isolateRuns } from '../Bidi'
+import { memberMeta } from '../MemberMeta'
 import RoleBadge from './RoleBadge'
-import type { Group } from '../../lib/group'
+import { bandLabel, type Group } from '../../lib/group'
 import { genderByIts } from '../../data/seed'
 import { useT, tNow } from '../../i18n'
 
@@ -16,8 +16,12 @@ const initials = (name: string) =>
 // are left alone and stay LTR via the numeric CSS rule.
 const familyMeta = (relation: string, age: number, its: string) => {
   const g = genderByIts(its)
-  const rel = relation ? `${tNow(relation)} · ` : ''
-  return isolateRuns(`${rel}${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`)
+  return memberMeta({
+    relation: relation ? tNow(relation) : undefined,
+    gender: g ? tNow(g) : undefined,
+    age: String(age).padStart(2, '0'),
+    its,
+  }, tNow)
 }
 
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
@@ -78,7 +82,7 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
                 <tr style={{ borderTop: '1px solid #e7dfc9', background: '#e1eef1' }}>
                   <td colSpan={3} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label!.replace('registered together', t('reserve together'))}
+                      <LinkGlyph />{t(bandLabel(g.label!))}
                     </span>
                   </td>
                 </tr>

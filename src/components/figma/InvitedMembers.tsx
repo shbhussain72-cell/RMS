@@ -17,7 +17,7 @@ export interface InvitedGroup {
   dependents: InvitedPerson[]
 }
 
-const BAND_LABEL = 'Guardian + dependent · registered together'
+const BAND_LABEL = 'Guardian + dependent · reserve together'
 
 /** Meta line, identical to the family rows — "{Gender} · Age NN · ITS xxx". */
 function meta(p: InvitedPerson): string {
@@ -83,8 +83,9 @@ export function InvitedMembersTable({
   showStatus?: boolean
   onRemove?: (its: string) => void
 }) {
+  const { t, tx } = useT()
   const cols = 1 + (showStatus ? 1 : 0) + (onRemove ? 1 : 0)
-  const headers = ['Member', ...(showStatus ? ['Status'] : []), ...(onRemove ? ['Action'] : [])]
+  const headers = [t('Member'), ...(showStatus ? [t('Status')] : []), ...(onRemove ? [t('Action')] : [])]
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
@@ -109,7 +110,7 @@ export function InvitedMembersTable({
               {linked && (
                 <tr className="bg-[#e1eef1]">
                   <td colSpan={cols} className="px-[20px] py-[8px]">
-                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={FMU}><LinkGlyph />{BAND_LABEL}</span>
+                    <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={FMU}><LinkGlyph /><bdi {...tx(BAND_LABEL)} /></span>
                   </td>
                 </tr>
               )}
@@ -187,7 +188,7 @@ export function InvitedMembersCards({
             {linked && (
               <div className="flex h-[34px] items-center gap-[8px] bg-[#e1eef1] px-[14px]">
                 <LinkGlyph />
-                <span className="text-[12px] font-bold text-[#2e6a7d]" style={FMU}>{BAND_LABEL}</span>
+                <span className="text-[12px] font-bold text-[#2e6a7d]" style={FMU} {...tx(BAND_LABEL)} />
               </div>
             )}
             <div className="relative px-[14px] py-[6px]">

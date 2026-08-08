@@ -749,11 +749,11 @@ export default function Araz() {
   }
 
   // ── Browse (main) ─────────────────────────────────────────────────────────
-  const stepMembersLabel = `Members ${totalAssigned}/${totalMembers}`
+  const stepMembersCount = `${totalAssigned}/${totalMembers}`
   const breadcrumbItems = [
-    { label: 'Home', to: '/miqaats' },
-    { label: 'Miqaat detail page', to: `/miqaats/${id}` },
-    { label: 'Araz' },
+    { label: t('Home'), to: '/miqaats' },
+    { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
+    { label: t('Araz') },
   ]
   const hostCityName = hostCity?.name ?? 'Host City'
 
@@ -841,7 +841,7 @@ export default function Araz() {
                   </div>
                 </div>
                 <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
-                  <StepIndicator steps={[{ label: t('City preference'), done: totalAssigned > 0 }, { label: stepMembersLabel, done: totalAssigned > 0 }]} />
+                  <StepIndicator steps={[{ label: t('City preference'), done: totalAssigned > 0 }, { label: t('Members'), count: stepMembersCount, done: totalAssigned > 0 }]} />
                 </div>
                 <div className={`mt-[20px] ${locked ? 'pointer-events-none' : ''}`}>
                   {tableMembers.length > 0 ? (

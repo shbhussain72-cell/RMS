@@ -253,3 +253,17 @@ export function effectiveSelectedIds(
     return (!!g && sel.has(g)) || (!!c && sel.has(c))
   })
 }
+
+/**
+ * The group band's dictionary key.
+ *
+ * `lib/group.ts` authors these labels with the word "registered"; the wordlist holds the
+ * "reserve" wording that the UI actually shows. Every screen used to bridge that with
+ * `label.replace('registered together', t('reserve together'))`, which translates ONE CLAUSE
+ * and leaves the rest of the sentence in English — a hybrid no wordlist row describes, even
+ * though the complete row (`Guardian + dependent · reserve together`) is sitting right there.
+ * Rewriting the whole key first means the lookup finds it.
+ */
+export function bandLabel(label: string): string {
+  return label.replace('registered together', 'reserve together')
+}

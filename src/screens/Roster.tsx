@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '../components/figma/PhoneScreen'
-import { isolateRuns } from '../components/Bidi'
+import { memberMeta } from '../components/MemberMeta'
 import AppBar from '../components/figma/AppBar'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import { family, inviteDirectory, genderByIts, miqaats } from '../data/seed'
@@ -90,8 +90,12 @@ function PersonRow({ name, meta, badge, linkTop, linkBottom }: { name: string; m
 // are left alone and stay LTR via the numeric CSS rule.
 const familyMeta = (relation: string, age: number, its: string) => {
   const g = genderByIts(its)
-  const rel = relation ? `${tNow(relation)} · ` : ''
-  return isolateRuns(`${rel}${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`)
+  return memberMeta({
+    relation: relation ? tNow(relation) : undefined,
+    gender: g ? tNow(g) : undefined,
+    age: String(age).padStart(2, '0'),
+    its,
+  }, tNow)
 }
 
 type InviteRow = { its: string; name: string; age: number }
@@ -134,7 +138,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
                       <p className="text-[14px] font-bold leading-[18px] text-[#23302a]"
                         style={{ fontFamily: 'Mulish, system-ui, sans-serif' }} {...td(inv.name)} />
                       <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]"
-                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{isolateRuns(`${t('Age')} ${inv.age} · ${t('ITS')} ${inv.its}`)}</p>
+                        style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>{memberMeta({ age: String(inv.age), its: inv.its }, t)}</p>
                     </div>
                   </div>
                 </td>
@@ -173,7 +177,7 @@ function InviteCardsSection({ label, invites }: { label: string; invites: Invite
                 <p className="truncate text-[14px] leading-[18px] text-[#23302a]"
                   style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 700 }} {...td(inv.name)} />
                 <p className="text-[12px] leading-[18px] text-[#5a6660]"
-                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{isolateRuns(`${t('Age')} ${inv.age} · ${t('ITS')} ${inv.its}`)}</p>
+                  style={{ fontFamily: 'Mulish, system-ui, sans-serif', fontWeight: 400 }}>{memberMeta({ age: String(inv.age), its: inv.its }, t)}</p>
               </div>
             </div>
             <div className="mx-[14px] h-px bg-[#eaeaea]" />

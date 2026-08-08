@@ -103,9 +103,11 @@ function Hero({
     cityAllocated: boolean
     showCityStatus: boolean
   }
-  /** "Registration/City/Zone ends in …" label — mirrors the home banner, shown in every state
-   *  (not just once registered). */
-  endsText: string
+  /** "Registration/City/Zone ends in …" — mirrors the home banner, shown in every state (not
+   *  just once registered). A KEY plus its date rather than a finished sentence: gluing the
+   *  date on with a template string compiles the word order into the literal, and the
+   *  dictionary is then consulted after the only decision it needed to make. */
+  endsText: { key: string; date?: string }
   cells: { value: string; unit: string }[]
   /** Once Raza is issued there's nothing left to count down to — hides the ends-in text + cells
    *  entirely instead of showing a stale line. */
@@ -252,7 +254,7 @@ function Hero({
                 <>
                   <div className="mt-[2px] flex items-center gap-[7px]">
                     <span className="size-[7px] shrink-0 rounded-full bg-[#d9a441]" />
-                    <span className="text-[12px] leading-[16px] text-[rgba(255,255,255,0.85)]" style={{ fontFamily: MUL, fontWeight: 500 }}>{endsText}</span>
+                    <span className="text-[12px] leading-[16px] text-[rgba(255,255,255,0.85)]" style={{ fontFamily: MUL, fontWeight: 500 }} {...tx(endsText.key, endsText.date ? { date: endsText.date } : undefined)} />
                   </div>
                   <div className="flex gap-[8px]">
                     {cells.map((c) => (
@@ -266,7 +268,7 @@ function Hero({
                             The <Ltr> wrapper is applied ONLY in LSD so the English DOM is
                             untouched. */}
                         <p className="text-[22px] leading-[26px] text-white sm:text-[26px]" style={{ fontFamily: MUL, fontWeight: 700 }}>{isLsd ? <Ltr>{toArabicDigits(c.value)}</Ltr> : c.value}</p>
-                        <p className="mt-[2px] text-[9px] uppercase leading-none tracking-[0.6px] text-[#c8a84b] sm:text-[10px]" style={{ fontFamily: MUL, fontWeight: 700 }}>{c.unit}</p>
+                        <p className="mt-[2px] text-[9px] uppercase leading-none tracking-[0.6px] text-[#c8a84b] sm:text-[10px]" style={{ fontFamily: MUL, fontWeight: 700 }} {...tx(c.unit)} />
                       </div>
                     ))}
                   </div>
@@ -293,7 +295,7 @@ function Hero({
 /** Official Fasal Announcement — a separate rounded card below the Hero (own gap/margin, not
  *  nested inside it), matching the same dark-green gradient card treatment. */
 function FasalAnnouncementCard({ arabic, hostCity, relayCenters }: { arabic: string; hostCity: string; relayCenters: string[] }) {
-                                                                                                                                   const { tx } = useT()
+  const { tx, td } = useT()
   return (
     <div className="relative w-full overflow-clip rounded-[20px] bg-gradient-to-b from-[#0e2d21] via-[#15402f] to-[#1f5a44] px-[18px] pb-[16px] pt-[20px] sm:rounded-[24px]">
       <div className="flex w-full flex-col items-center rounded-[14px] border border-solid border-[rgba(227,205,150,0.25)] bg-[rgba(255,255,255,0.07)] px-[18px] py-[20px] sm:px-[48px] sm:py-[28px]">
@@ -311,8 +313,13 @@ function FasalAnnouncementCard({ arabic, hostCity, relayCenters }: { arabic: str
           className="mt-[8px] max-w-[640px] text-center text-[13px] italic leading-[20px] text-[rgba(248,244,234,0.8)] sm:mt-[10px]"
           style={{ fontFamily: MUL, fontWeight: 400 }} {...tx('Fasal declared. Mumineen are invited to seek Raza for Ashara Mubaraka 1448H. May Allah grant all the taufeeq of haziri.')} />
         <div className="mt-[14px] flex h-[35px] items-center gap-[8px] rounded-[999px] border border-solid border-[rgba(227,205,150,0.4)] bg-[rgba(255,255,255,0.1)] px-[20px] sm:mt-[18px]">
-          <span className="whitespace-nowrap text-[13px] text-[#e3cd96]" style={{ fontFamily: MUL, fontWeight: 700 }}>📍 Host City</span>
-          <span className="whitespace-nowrap text-[13px] text-white" style={{ fontFamily: MUL, fontWeight: 700 }}>{hostCity}</span>
+          {/* The pin stays OUTSIDE the translated node: it is an icon, not a word. Glued onto
+              the front of the key it becomes part of a string the dictionary has to carry, and
+              then sits on whichever end the bidi algorithm picks rather than the one it means. */}
+          <span className="whitespace-nowrap text-[13px] text-[#e3cd96]" style={{ fontFamily: MUL, fontWeight: 700 }}>
+            {'📍 '}<bdi {...tx('Host City')} />
+          </span>
+          <span className="whitespace-nowrap text-[13px] text-white" style={{ fontFamily: MUL, fontWeight: 700 }} {...td(hostCity)} />
         </div>
         <p
           className="mt-[14px] text-center text-[10px] uppercase leading-[15px] tracking-[1px] text-[#e3cd96] sm:mt-[18px]"
@@ -332,9 +339,8 @@ function FasalAnnouncementCard({ arabic, hostCity, relayCenters }: { arabic: str
               <span
                 className="whitespace-nowrap text-[12px] leading-[18px] text-white"
                 style={{ fontFamily: MUL, fontWeight: 700 }}
-              >
-                {city}
-              </span>
+                {...td(city)}
+              />
             </div>
           ))}
         </div>
@@ -1250,16 +1256,22 @@ export default function MiqaatDetail() {
   // A confirmed zone while Raza hasn't been issued yet is the zone-stage twin of the same case:
   // still zone_open → the zone stage itself is what's closing; already zone_closed → nothing left
   // to open, just waiting on the dedicated Issue Raza control.
-  const heroEndsText =
-    demoPhase === 'reg_not_open' ? `Registration opens in ${endsDate}`
-      : demoPhase === 'reg_open' ? `Registration ends in ${endsDate}`
-      : demoPhase === 'reg_closed' ? `City opens in ${endsDate}`
-      : eff === 'city_done_waiting_zone' ? (demoPhase === 'city_closed' ? `Zone opens in ${endsDate}` : `City closes in ${endsDate}`)
-      : eff === 'zone_done' ? (demoPhase === 'zone_closed' ? `Raza issues on ${endsDate}` : `Zone closes in ${endsDate}`)
+  // Each arm names a WHOLE key. The default arm used to interpolate the stage name as well
+  // (`${endsStage} ends in ${endsDate}`), which is a second, worse concatenation: it splits a
+  // sentence across two dictionary lookups whose agreement no translator can check. Three
+  // explicit keys cost three rows and can each be read as a sentence.
+  const heroEndsText: { key: string; date?: string } =
+    demoPhase === 'reg_not_open' ? { key: 'Registration opens in {date}', date: endsDate }
+      : demoPhase === 'reg_open' ? { key: 'Registration ends in {date}', date: endsDate }
+      : demoPhase === 'reg_closed' ? { key: 'City opens in {date}', date: endsDate }
+      : eff === 'city_done_waiting_zone' ? (demoPhase === 'city_closed' ? { key: 'Zone opens in {date}', date: endsDate } : { key: 'City closes in {date}', date: endsDate })
+      : eff === 'zone_done' ? (demoPhase === 'zone_closed' ? { key: 'Raza issues on {date}', date: endsDate } : { key: 'Zone closes in {date}', date: endsDate })
       // Registered but no confirmed city and City Selection has demo-closed (e.g. the registrant
       // cancelled their own city) → the city stage is over, so the next thing is the zone opening.
-      : (eff === 'registered_select' || eff === 'city_open') && demoPhase === 'city_closed' ? `Zone opens in ${endsDate}`
-      : `${endsStage} ends in ${endsDate}`
+      : (eff === 'registered_select' || eff === 'city_open') && demoPhase === 'city_closed' ? { key: 'Zone opens in {date}', date: endsDate }
+      : endsStage === 'City' ? { key: 'City ends in {date}', date: endsDate }
+      : endsStage === 'Zone' ? { key: 'Zone ends in {date}', date: endsDate }
+      : { key: 'Registration ends in {date}', date: endsDate }
   // Once Raza is issued there's nothing left to count down to — hide the countdown row entirely
   // instead of showing a stale "Registration/Zone ends in" line.
   const hideCountdown = eff === 'raza_issued'

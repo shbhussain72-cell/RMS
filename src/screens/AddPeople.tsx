@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PhoneScreen from '@/components/figma/PhoneScreen'
 import { plural, useT } from '../i18n'
+import { memberMeta } from '../components/MemberMeta'
 import { isolateRuns } from '../components/Bidi'
 import AppBar from '@/components/figma/AppBar'
 import Breadcrumb from '@/components/figma/Breadcrumb'
@@ -183,7 +184,7 @@ function PersonCard({ member, badge, checked, dimmed, selectable = true, onToggl
         <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
           <p className="text-[14px] leading-[18px] text-[#23302a]" style={{ fontFamily: FONT_SANS, fontWeight: 700 }} {...td(member.name)} />
           <p className="text-[12px] leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-            {isolateRuns(`${tdText(member.relation)} · ${tdText(member.gender)} · ${t('Age')} ${age2(member.age)} · ${t('ITS')} ${member.its}`)}
+            {memberMeta({ relation: tdText(member.relation), gender: tdText(member.gender), age: age2(member.age), its: member.its }, t)}
           </p>
         </div>
         <RoleBadge badge={badge} />
@@ -687,7 +688,7 @@ export default function AddPeople() {
             </div>
             <p className="mt-[14px] text-[17px] font-bold text-[#15402f]" style={{ fontFamily: FONT_SANS }} {...td(searchResult.name)} />
             <p className="mt-[4px] text-[13.5px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }}>
-              {isolateRuns(`${searchResult.gender ? `${tdText(searchResult.gender)} · ` : ''}${t('Age')} ${age2(searchResult.age)} · ${t('ITS')} ${searchResult.its}`)}
+              {memberMeta({ gender: searchResult.gender ? tdText(searchResult.gender) : undefined, age: age2(searchResult.age), its: searchResult.its }, t)}
             </p>
             <div className="mt-[18px]">{addButton}</div>
           </div>
@@ -1160,7 +1161,7 @@ export default function AddPeople() {
                             )}
                           </div>
                           <p className="text-[12px] leading-[18px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 400 }}>
-                            {isolateRuns(`${tdText(a.relation)} · ${tdText(a.gender)} · ${t('Age')} ${age2(a.age)} · ${t('ITS')} ${a.its}`)}
+                            {memberMeta({ relation: tdText(a.relation), gender: tdText(a.gender), age: age2(a.age), its: a.its }, t)}
                           </p>
                         </div>
                         {a.role === 'registrant' && <RoleBadge badge="registrant" />}

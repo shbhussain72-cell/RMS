@@ -1918,21 +1918,21 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const active = activeCity && (cityOnlyStage || activeZone) ? { cityId: activeCity.id, zoneId: activeZone?.id ?? '' } : null
 
   // Desktop step indicator (City/Zone selection → members to move). Mobile is unchanged.
-  const membersStep = { label: `Members ${movedCount}/${totalMembers}`, done: movedCount > 0 }
+  const membersStep = { label: t('Members'), count: `${movedCount}/${totalMembers}`, done: movedCount > 0 }
   const moveSteps = isRelay
     ? cityOnlyStage
-      ? [{ label: 'City', done: activeCity !== null }, membersStep]
-      : [{ label: 'City', done: activeCity !== null }, { label: 'Zone', done: activeZone !== null }, membersStep]
+      ? [{ label: t('City'), done: activeCity !== null }, membersStep]
+      : [{ label: t('City'), done: activeCity !== null }, { label: t('Zone'), done: activeZone !== null }, membersStep]
     : cityOnlyStage
-      ? [{ label: 'City', done: true }, membersStep]
-      : [{ label: 'City', done: true }, { label: 'Zone', done: activeZone !== null }, membersStep]
+      ? [{ label: t('City'), done: true }, membersStep]
+      : [{ label: t('City'), done: true }, { label: t('Zone'), done: activeZone !== null }, membersStep]
   const moveSubtext = isRelay
     ? cityOnlyStage
-      ? 'Select the destination city, then choose the members to move.'
-      : 'Select the destination city and zone, then choose the members to move.'
+      ? t('Select the destination city, then choose the members to move.')
+      : t('Select the destination city and zone, then choose the members to move.')
     : cityOnlyStage
-      ? 'Choose the members to move to the Host City.'
-      : 'Select a destination zone, then choose the members to move.'
+      ? t('Choose the members to move to the Host City.')
+      : t('Select a destination zone, then choose the members to move.')
 
   // Footer CTA: an OPEN window applies the move immediately (desktop "Done" / mobile "Confirm"); a
   // CLOSED one files an approval request instead, so it reads "Submit request" on both — matching the
@@ -1940,7 +1940,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const footer = (
     <StickyFooter
       caption="Allocation"
-      title={`Close in ${fmtHHMMSS(secs)}`}
+      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? t('Confirm ({n})', { n: movedCount }) : t('Confirm')) : (movedCount > 0 ? t('Submit request ({n})', { n: movedCount }) : t('Submit request'))}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
@@ -1949,7 +1949,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const desktopFooter = (
     <StickyFooter
       caption="Allocation"
-      title={`Close in ${fmtHHMMSS(secs)}`}
+      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}

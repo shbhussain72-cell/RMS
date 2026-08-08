@@ -1,4 +1,5 @@
 import type { BadgeKind } from '../../lib/group'
+import { useT } from '../../i18n'
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -18,14 +19,16 @@ export const BADGE_STYLES: Record<Exclude<BadgeKind, null>, { bg: string; fg: st
  * identical everywhere it appears.
  */
 export default function RoleBadge({ kind }: { kind: BadgeKind }) {
+  // The hook runs before the early return: a component may not call hooks conditionally, and
+  // `kind` is nullable on most of the call sites.
+  const { tx } = useT()
   if (!kind) return null
   const b = BADGE_STYLES[kind]
   return (
     <span
       className="inline-flex h-[24px] shrink-0 items-center justify-center whitespace-nowrap rounded-full px-[12px] text-[11px] font-bold tracking-[0.3px]"
       style={{ backgroundColor: b.bg, color: b.fg, fontFamily: FONT }}
-    >
-      {b.label}
-    </span>
+      {...tx(b.label)}
+    />
   )
 }

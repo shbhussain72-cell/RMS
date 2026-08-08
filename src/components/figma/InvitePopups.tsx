@@ -1,5 +1,5 @@
 import BottomSheet from './BottomSheet'
-import { isolateRuns } from '../Bidi'
+import { memberMeta } from '../MemberMeta'
 import RoleBadge from './RoleBadge'
 import type { LinkedMember } from '../../data/seed'
 import { useT } from '../../i18n'
@@ -30,7 +30,7 @@ function DependentRow({ member }: { member: LinkedMember }) {
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-bold leading-[18px] text-[#23302a]" style={FMU} {...td(member.name)} />
         <p className="mt-[2px] text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-          {isolateRuns(`${tdText(member.gender)} · ${t('Age')} ${String(member.age).padStart(2, '0')} · ${t('ITS')} ${member.its}`)}
+          {memberMeta({ gender: tdText(member.gender), age: String(member.age).padStart(2, '0'), its: member.its }, t)}
         </p>
       </div>
       <RoleBadge kind="dependent" />

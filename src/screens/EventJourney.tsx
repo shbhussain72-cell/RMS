@@ -208,11 +208,15 @@ function MilestoneIcon({ k, color, size = 18 }: { k: string; color: string; size
 // than the old Gregorian "DD Mon YYYY" strings, so cramming label+value on one inline row left the
 // value too little width and forced an ugly mid-string wrap.
 function DateRow({ label, value }: { label: string; value: ReactNode }) {
+  const { tx } = useT()
   return (
     <div className="text-[13px] leading-[18px]" style={{ fontFamily: MUL }}>
       <div className="flex items-center gap-[8px] text-[#6a746e]">
         <CalGlyph />
-        <span>{label} :</span>
+        {/* The colon sits OUTSIDE the translated node. As part of the key it would be one more
+            character every row has to carry, and as a neutral it takes its side from the
+            paragraph — which in RTL is the wrong end of the label. */}
+        <span><bdi {...tx(label)} /> :</span>
       </div>
       <p className="mt-[2px] ps-[23px] font-semibold text-[#2b3a32]">{value}</p>
     </div>
@@ -315,9 +319,10 @@ function CalendarTooltip({ m }: { m: MilestoneWithDates }) {
 }
 
 function TipRow({ heading, date, time }: { heading: string; date: ReactNode; time?: string }) {
+  const { tx } = useT()
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.4px] text-[#9aa39d]">{heading}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.4px] text-[#9aa39d]" {...tx(heading)} />
       <p className="text-[13px] leading-[17px] text-[#2b3a32]">
         {date}
         {time ? <> • <TimeLine value={time} /></> : null}

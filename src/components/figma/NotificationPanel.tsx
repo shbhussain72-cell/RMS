@@ -9,16 +9,33 @@ import {
   type Notification,
   type NotifFilter,
   type NotifGroup,
+  type RelTime,
 } from '../../data/notifications'
 import { useStore } from '../../store'
 import { InvitationPopup } from './InvitationPopup'
 import { formNotificationPending } from '../../lib/registrationForm'
-import { useT } from '../../i18n'
+import { plural, useT } from '../../i18n'
 
 const FM: React.CSSProperties = { fontFamily: 'Marcellus, serif' }
 const FMU: React.CSSProperties = { fontFamily: 'Mulish, system-ui, sans-serif' }
 
 const GROUPS: NotifGroup[] = ['Today', 'Yesterday', 'Earlier']
+
+/**
+ * The key for a relative time, chosen from the unit and the count.
+ *
+ * Two keys per unit rather than one with an embedded rule: the singular and the plural are not
+ * the same sentence in Lisan al-Dawat, and a pipe-separated variant would make the wordlist
+ * owner edit a mini-format instead of a sentence. `{n}` is filled AFTER the lookup, so the
+ * numeral lands wherever the translation puts it.
+ */
+function agoKey(ago: RelTime): [string, { n: number }?] {
+  if (ago === 'now') return ['Just now']
+  const { n, unit } = ago
+  if (unit === 'min') return [plural(n, '{n} min ago', '{n} mins ago'), { n }]
+  if (unit === 'hr') return [plural(n, '{n} hr ago', '{n} hrs ago'), { n }]
+  return [plural(n, '{n} day ago', '{n} days ago'), { n }]
+}
 
 // ─── icons ────────────────────────────────────────────────────────────────────
 
@@ -80,7 +97,7 @@ function renderIcon(icon: Notification['icon']) {
 // ─── shared notification card ─────────────────────────────────────────────────
 
 export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isRead: boolean; onClick?: () => void }) {
-                                                                                                                        const { td } = useT()
+  const { td } = useT()
   const cfg = CATEGORY_STYLE[notif.category]
   return (
     <div onClick={onClick} className="flex cursor-pointer items-start gap-[12px] px-[16px] py-[13px] transition-colors hover:bg-[#faf8f4]">
@@ -104,9 +121,8 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
           <p
             className={`flex-1 truncate text-[14px] leading-[20px] transition-colors duration-300 ${isRead ? 'font-semibold text-[#6b746f]' : 'font-bold text-[#1a2a23]'}`}
             style={FMU}
-          >
-            {notif.title}
-          </p>
+            {...td(notif.title)}
+          />
           {notif.hasChevron && (
             <svg viewBox="0 0 20 20" fill="none" className="ms-[6px] size-[14px] shrink-0 text-[#c0bdb6]">
               <path d="M7.5 5l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
@@ -118,9 +134,8 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
         <p
           className={`line-clamp-2 text-[13px] leading-[18px] transition-colors duration-300 ${isRead ? 'text-[#9aa39d]' : 'text-[#5a6660]'}`}
           style={FMU}
-        >
-          {notif.body}
-        </p>
+          {...td(notif.body)}
+        />
 
         {/* Attachment */}
         {notif.attachment && (
@@ -130,9 +145,7 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[12px] font-semibold leading-[16px] text-[#1a2a23]" style={FMU} {...td(notif.attachment.name)} />
-              <p className="text-[11px] leading-[15px] text-[#8a938e]" style={FMU}>
-                {notif.attachment.meta}
-              </p>
+              <p className="text-[11px] leading-[15px] text-[#8a938e]" style={FMU} {...td(notif.attachment.meta)} />
             </div>
           </div>
         )}
@@ -142,14 +155,14 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
           <span
             className="text-[12px] font-semibold leading-[16px] transition-colors duration-300"
             style={{ ...FMU, color: isRead ? '#a3aaa5' : cfg.labelColor }}
-          >
-            {notif.category}
-          </span>
+            {...td(notif.category)}
+          />
           <span
             className="text-[12px] leading-[16px] transition-colors duration-300"
             style={{ ...FMU, color: isRead ? '#b8beba' : '#9ca3af' }}
           >
-            · {notif.timeLabel}
+            {'· '}
+            <bdi {...td(...agoKey(notif.ago))} />
           </span>
         </div>
       </div>
@@ -160,14 +173,14 @@ export function NotifCard({ notif, isRead, onClick }: { notif: Notification; isR
 // ─── group header ─────────────────────────────────────────────────────────────
 
 export function GroupHeader({ label }: { label: NotifGroup }) {
+  const { td } = useT()
   return (
     <div className="px-[16px] pb-[4px] pt-[14px]">
       <p
         className="text-[11px] font-bold uppercase tracking-[1px] text-[#b0b8b4]"
         style={FMU}
-      >
-        {label}
-      </p>
+        {...td(label)}
+      />
     </div>
   )
 }
@@ -181,6 +194,7 @@ export function FilterChips({
   active: NotifFilter
   onChange: (f: NotifFilter) => void
 }) {
+  const { td } = useT()
   return (
     <div className="flex gap-[6px] overflow-x-auto no-scrollbar">
       {NOTIF_FILTERS.map((f) => (
@@ -194,9 +208,8 @@ export function FilterChips({
               : 'border border-[#e7dfc9] bg-[#fafaf7] text-[#5a6660] hover:bg-[#f5f0e8]'
           }`}
           style={FMU}
-        >
-          {f}
-        </button>
+          {...td(f)}
+        />
       ))}
     </div>
   )

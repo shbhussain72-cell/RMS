@@ -10,7 +10,7 @@ import StickyFooter from '../components/figma/StickyFooter'
 import Popover from '../components/Popover'
 import { liveCities, cityDirectory, family, genderByIts, allocationCloses, miqaats, zonesByCityId, type FamilyMember, type Zone } from '../data/seed'
 import type { LiveCity } from '../data/seed'
-import { buildAllGroups, type BadgeKind, type Group } from '../lib/group'
+import { bandLabel, buildAllGroups, type BadgeKind, type Group } from '../lib/group'
 import RoleBadge from '../components/figma/RoleBadge'
 import Checkbox from '../components/figma/Checkbox'
 import StepIndicator from '../components/figma/StepIndicator'
@@ -486,7 +486,7 @@ function AllocateGroupCard({
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label ? t(bandLabel(group.label)) : null}</span>
         </div>
       )}
       <div className="relative">
@@ -1043,7 +1043,7 @@ function HostGroupCard({
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label ? t(bandLabel(group.label)) : null}</span>
         </div>
       )}
       <div className="relative">
@@ -1347,7 +1347,7 @@ function AllocateDesktopTable({
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[16px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
+                      <LinkGlyph />{g.label ? t(bandLabel(g.label)) : null}
                     </span>
                   </td>
                 </tr>
@@ -1659,7 +1659,7 @@ function HostDesktopTable({
                 <tr style={{ borderTop: '1px solid #f0ebe0', background: '#e1eef1' }}>
                   <td colSpan={5} className="px-[14px] py-[8px]">
                     <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>
-                      <LinkGlyph />{g.label?.replace('registered together', t('reserve together'))}
+                      <LinkGlyph />{g.label ? t(bandLabel(g.label)) : null}
                     </span>
                   </td>
                 </tr>
@@ -1782,7 +1782,7 @@ function SuccessGroupCard({ group, statusText }: { group: Group; statusText?: st
       {linked && (
         <div className="flex h-[32px] items-center gap-[8px] bg-[#e1eef1] px-[13px]">
           <LinkGlyph />
-          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label?.replace('registered together', t('reserve together'))}</span>
+          <span className="text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}>{group.label ? t(bandLabel(group.label)) : null}</span>
         </div>
       )}
       <div className="relative">
@@ -2303,8 +2303,8 @@ export default function CitySelection() {
   // roots at Modify Reservation and its heading names the action, instead of "City selection" /
   // "Allocate Your Group".
   const cityBreadcrumb = modifyCityZone
-    ? [{ label: 'Home', to: '/miqaats' }, { label: 'Modify Reservation', to: `/miqaats/${id}/manage` }, { label: 'City & zone' }]
-    : [{ label: 'Home', to: '/miqaats' }, { label: 'City selection' }]
+    ? [{ label: t('Home'), to: '/miqaats' }, { label: t('Modify Reservation'), to: `/miqaats/${id}/manage` }, { label: t('City & zone') }]
+    : [{ label: t('Home'), to: '/miqaats' }, { label: t('City selection') }]
   const screenHeading = modifyCityZone ? 'Change city & zone' : 'Allocate Your Group'
   // City deadline already passed and not yet approved → the user got here via the Ask Help redirect for
   // a missed event, so reserving submits a *request* (with the chosen city) instead of confirming.
@@ -3161,7 +3161,7 @@ export default function CitySelection() {
                           {linked && (
                             <tr style={{ borderTop: '1px solid #e7dfc9', background: '#e1eef1' }}>
                               <td colSpan={3} className="px-[16px] py-[8px]">
-                                <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph color="#2e6a7d" />{g.label!.replace('registered together', t('reserve together'))}</span>
+                                <span className="flex items-center gap-[8px] text-[12px] font-bold text-[#2e6a7d]" style={{ fontFamily: FONT }}><LinkGlyph color="#2e6a7d" />{t(bandLabel(g.label!))}</span>
                               </td>
                             </tr>
                           )}
@@ -3443,7 +3443,7 @@ export default function CitySelection() {
     <StickyFooter
       dataTour="city-confirm"
       caption={isRequest ? 'Request' : 'Allocation'}
-      title={isRequest ? 'Submit for approval' : `Close in ${fmtHHMMSS(allocationTimer)}`}
+      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
@@ -3477,7 +3477,7 @@ export default function CitySelection() {
     <StickyFooter
       dataTour="city-confirm"
       caption={isRequest ? 'Request' : 'Allocation'}
-      title={isRequest ? 'Submit for approval' : `Close in ${fmtHHMMSS(allocationTimer)}`}
+      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
@@ -3508,9 +3508,7 @@ export default function CitySelection() {
           />
         </div>
 
-        <h1 className="mt-[16px] px-[16px] sm:px-0 text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }}>
-          {screenHeading}
-        </h1>
+        <h1 className="mt-[16px] px-[16px] sm:px-0 text-[24px] leading-[30px] text-[#23302a]" style={{ fontFamily: SERIF }} {...tx(screenHeading)} />
 
         {/* Choose a city — prominent host card + relay chips (mirrors the web sidebar) */}
         <div data-tour="city-cards" className="mt-[18px] px-[16px] sm:px-0">
@@ -3776,9 +3774,7 @@ export default function CitySelection() {
             <section className="flex h-[calc(100dvh-60px)] min-w-0 flex-1 flex-col bg-white">
               <div className="min-h-0 flex-1 overflow-y-auto pt-[24px] pb-[36px] ps-[28px] pe-[var(--content-px)]">
                 <div className="flex items-start justify-between gap-[16px]">
-                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }}>
-                    {screenHeading}
-                  </h1>
+                  <h1 className="text-[30px] leading-[36px] tracking-[0.2px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx(screenHeading)} />
                   <MembersChip count={totalMembers} />
                 </div>
                 <div className="mt-[16px] flex flex-wrap items-center gap-[10px]">
@@ -3787,7 +3783,7 @@ export default function CitySelection() {
                       { label: t('City'), done: activeCity !== null || groupCityMap.size > 0 },
                       // Same-day-flow (or modify-city-zone): Zone opens alongside City on this combined screen.
                       ...(showCombined ? [{ label: t('Zone'), done: activeCity !== null || groupCityMap.size > 0 }] : []),
-                      { label: `Members ${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
+                      { label: t('Members'), count: `${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
                     ]}
                   />
                   {/* Once a city is picked, prompt the user to allocate members to it. */}

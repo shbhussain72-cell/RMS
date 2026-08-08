@@ -287,8 +287,15 @@ export function resolve(english: string, lang: Lang): { text: string; hit: boole
  */
 let currentLang: Lang = 'en'
 
-/** Translate outside a component. See the caveat on {@link currentLang}. */
-export const tNow = (english: string): string => translate(english, currentLang)
+/**
+ * Translate outside a component. See the caveat on {@link currentLang}.
+ *
+ * Takes `vars` for the same reason `t` does: the helpers that need this are precisely the ones
+ * composing a sentence out of parts, and without interpolation they can only go back to gluing
+ * fragments together with a template string.
+ */
+export const tNow = (english: string, vars?: Vars): string =>
+  interpolate(translate(english, currentLang), vars, currentLang)
 
 /** Text-only form of {@link resolve}, for attributes that cannot carry direction. */
 export function translate(english: string, lang: Lang): string {

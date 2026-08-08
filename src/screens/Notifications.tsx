@@ -76,7 +76,7 @@ export default function Notifications() {
       {/* Breadcrumb */}
       <div className="ms-[16px] mt-[10px] sm:ms-0">
         <Breadcrumb
-          items={[{ label: 'Home', to: '/miqaats' }, { label: t('Notification') }]}
+          items={[{ label: t('Home'), to: '/miqaats' }, { label: t('Notification') }]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}
         />
@@ -148,9 +148,10 @@ export default function Notifications() {
           <svg viewBox="0 0 20 20" fill="none" className="size-[16px]">
             <path d="M4 10.5l3.5 3.5L16 5.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="whitespace-nowrap text-[14px] font-bold text-white" style={FMU}>
-            {toastMsg}
-          </span>
+          {/* The message is chosen in English and translated here, at the one place it is
+              rendered — a toast raised from three different handlers should not have three
+              different opinions about how it reaches the dictionary. */}
+          <span className="whitespace-nowrap text-[14px] font-bold text-white" style={FMU} {...tx(toastMsg)} />
         </div>
       )}
 

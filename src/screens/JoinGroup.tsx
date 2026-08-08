@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AppBar from '../components/figma/AppBar'
-import { isolateRuns } from '../components/Bidi'
+import { memberMeta } from '../components/MemberMeta'
 import Breadcrumb from '../components/figma/Breadcrumb'
 import PhoneScreen from '../components/figma/PhoneScreen'
 import RoleBadge from '../components/figma/RoleBadge'
@@ -158,7 +158,7 @@ function MemberList() {
                 is its own text node, so `ITS` and the id landed in the RTL paragraph as bare runs
                 with nothing declaring their boundaries. */}
             <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-              {isolateRuns(`${tdText(m.relation)} · ${tdText(m.gender)} · ${t('Age')} ${String(m.age).padStart(2, '0')} · ${t('ITS')} ${m.its}`)}
+              {memberMeta({ relation: tdText(m.relation), gender: tdText(m.gender), age: String(m.age).padStart(2, '0'), its: m.its }, t)}
             </p>
           </div>
           {m.roleTag && <RoleBadge kind={KIND[m.roleTag]} />}
@@ -238,8 +238,8 @@ export default function JoinGroup() {
   }
 
   const breadcrumbItems = [
-    { label: 'Home',  to: '/miqaats'       },
-    { label: 'Join group' },
+    { label: t('Home'), to: '/miqaats' },
+    { label: t('Join group') },
   ]
 
   const footer = (
@@ -312,18 +312,20 @@ export default function JoinGroup() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-bold leading-[18px] text-[#1a2a23]" style={FMU} {...td(m.name)} />
                   <p className="text-[12px] leading-[16px] text-[#8a938e]" style={FMU}>
-                    {isolateRuns(`${tdText(m.relation)} · ${tdText(m.gender)} · ${t('Age')} ${String(m.age).padStart(2, '0')} · ${t('ITS')} ${m.its}`)}
+                    {memberMeta({ relation: tdText(m.relation), gender: tdText(m.gender), age: String(m.age).padStart(2, '0'), its: m.its }, t)}
                   </p>
                 </div>
                 {m.roleTag && (
                   <span
+                    // The comparison is against the ENGLISH tag, which is what the data holds.
+                    // It used to compare against `t('Registrant')`, so in LSD it never matched and
+                    // every registrant wore the dependent's amber styling.
                     className={`shrink-0 rounded-full px-[10px] py-[3px] text-[11px] font-semibold ${
-                      m.roleTag === t('Registrant') ? 'bg-[#e8f3ed] text-[#1f5a44]' : 'bg-[#fef3dd] text-[#b07a1f]'
+                      m.roleTag === 'Registrant' ? 'bg-[#e8f3ed] text-[#1f5a44]' : 'bg-[#fef3dd] text-[#b07a1f]'
                     }`}
                     style={FMU}
-                  >
-                    {m.roleTag}
-                  </span>
+                    {...tx(m.roleTag)}
+                  />
                 )}
               </div>
             ))}

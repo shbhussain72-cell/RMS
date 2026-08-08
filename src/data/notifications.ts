@@ -1,12 +1,22 @@
 export type NotifCategory = 'Invitation' | 'Raza' | 'Zone selection' | 'City selection' | 'Registration' | 'System'
 export type NotifGroup = 'Today' | 'Yesterday' | 'Earlier'
 
+/**
+ * How long ago, as a NUMBER AND A UNIT rather than a finished English phrase.
+ *
+ * `'2 min ago'` cannot be translated: the word order is already compiled into the string, so
+ * the dictionary is consulted after the decision it needed to make. Splitting the value from
+ * its unit lets the renderer pick a parameterised key (`'{n} min ago'`) and lets LSD put the
+ * numeral where LSD puts numerals — which is not always where English does.
+ */
+export type RelTime = { n: number; unit: 'min' | 'hr' | 'day' } | 'now'
+
 export interface Notification {
   id: string
   title: string
   body: string
   category: NotifCategory
-  timeLabel: string
+  ago: RelTime
   group: NotifGroup
   read: boolean
   icon: 'envelope' | 'document' | 'pin' | 'person' | 'calendar'
@@ -27,7 +37,7 @@ export const notifications: Notification[] = [
     title: 'Invitation received',
     body: 'Mufaddal bhai has invited you to join their group for Eid-e-Ghadeer 1447H.',
     category: 'Invitation',
-    timeLabel: '2 min ago',
+    ago: { n: 2, unit: 'min' },
     group: 'Today',
     read: false,
     icon: 'envelope',
@@ -39,7 +49,7 @@ export const notifications: Notification[] = [
     title: 'Registration Form Updated',
     body: 'New questions have been added to your registration form. Please complete them before City Selection opens.',
     category: 'Registration',
-    timeLabel: 'Just now',
+    ago: 'now',
     group: 'Today',
     read: false,
     icon: 'document',
@@ -51,7 +61,7 @@ export const notifications: Notification[] = [
     title: 'Guardian assigned',
     body: 'Murtaza bhai Moiz bhai Gheewala has been assigned as your guardian. Please accept the request to continue.',
     category: 'Invitation',
-    timeLabel: '5 min ago',
+    ago: { n: 5, unit: 'min' },
     group: 'Today',
     read: false,
     icon: 'person',
@@ -63,7 +73,7 @@ export const notifications: Notification[] = [
     title: 'Raza issued',
     body: 'Your Raza for Eid-e-Ghadeer 1447H has been issued. View and download your letter below.',
     category: 'Raza',
-    timeLabel: '1 hr ago',
+    ago: { n: 1, unit: 'hr' },
     group: 'Today',
     read: true,
     icon: 'document',
@@ -74,7 +84,7 @@ export const notifications: Notification[] = [
     title: 'Zone selection active',
     body: 'Zone selection is now open for Colombo. Pick your zone before it closes on 21 Jun.',
     category: 'Zone selection',
-    timeLabel: '2 min ago',
+    ago: { n: 2, unit: 'min' },
     group: 'Today',
     read: false,
     icon: 'pin',
@@ -84,7 +94,7 @@ export const notifications: Notification[] = [
     title: 'City confirmed',
     body: 'Your city selection is confirmed: Colombo. This applies to you and your dependents.',
     category: 'City selection',
-    timeLabel: '1 day ago',
+    ago: { n: 1, unit: 'day' },
     group: 'Yesterday',
     read: true,
     icon: 'pin',
@@ -94,7 +104,7 @@ export const notifications: Notification[] = [
     title: 'City selection window open',
     body: 'Your Phase 1 slot is active from 19 Jun 09:00 AM to 20 Jun 09:00 AM IST.',
     category: 'City selection',
-    timeLabel: '1 day ago',
+    ago: { n: 1, unit: 'day' },
     group: 'Yesterday',
     read: true,
     icon: 'pin',
@@ -104,7 +114,7 @@ export const notifications: Notification[] = [
     title: 'Registration confirmed',
     body: 'Your registration for Eid-e-Ghadeer 1447H was submitted successfully.',
     category: 'Registration',
-    timeLabel: '1 day ago',
+    ago: { n: 1, unit: 'day' },
     group: 'Earlier',
     read: true,
     icon: 'person',
@@ -114,7 +124,7 @@ export const notifications: Notification[] = [
     title: 'Admin registered on your behalf',
     body: 'An Idaratul Miqaat admin registered you for Eid-e-Ghadeer 1447H.',
     category: 'Registration',
-    timeLabel: '1 day ago',
+    ago: { n: 1, unit: 'day' },
     group: 'Earlier',
     read: true,
     icon: 'person',
@@ -124,7 +134,7 @@ export const notifications: Notification[] = [
     title: 'Slot reminder',
     body: 'Your Phase 1 city selection slot opens in 1 hour. Be ready to pick your city.',
     category: 'System',
-    timeLabel: '1 day ago',
+    ago: { n: 1, unit: 'day' },
     group: 'Earlier',
     read: true,
     icon: 'calendar',

@@ -1747,7 +1747,7 @@ export default function ZoneSelection() {
                   steps={[
                     { label: t('City'), done: true },
                     { label: t('Zone'), done: activeZone !== null || groupZoneMap.size > 0 },
-                    { label: `Members ${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
+                    { label: t('Members'), count: `${totalAllocated}/${totalMembers}`, done: totalAllocated > 0 },
                   ]}
                 />
                 {/* Once a zone is picked, prompt the user to allocate members to it — mirrors

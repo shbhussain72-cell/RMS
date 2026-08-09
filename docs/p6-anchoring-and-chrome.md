@@ -259,6 +259,49 @@ same shape as §4.8's mechanism, scoped to two panels rather than applied global
 not needed. That is the next section's work, and it is a smaller and more specific edit than the
 one I proposed.
 
+## §4.8-scoped — measured, and it is not a content-inset problem either
+
+**Not applied. No app change.** The diagnosis I gave last session — "the two desktop panels do
+not reserve room for their own footer, apply the content-inset there" — is also wrong, and the
+measurement says so before any code was written.
+
+The overlapping pair on `/araz` at 768, with both ancestor chains:
+
+    Host City button   top 779  bottom 800
+      flex items-center gap-[9px]        [overflow-y visible, static]  top 779  h 21
+      td.px-[16px].py-[10px]             [overflow-y visible, static]  top 753  h 73
+      tbody                              [overflow-y visible, static]  top 443  h 839
+      table.w-full.border-collapse       [overflow-y visible, static]  top 404  h 878
+      div.overflow-x-auto.rounded-[14px] [overflow-y AUTO-X only,   ]  top 403  h 880
+
+    footer             top 754 (CTA) / 719 (block)  h 114
+      div.sticky-cta                     [static]  top 719  h 114
+      div.shrink-0                       [static]  top 719  h 114
+      div.flex.h-[calc(100dvh-60px)]     [static]  top  60  h 773
+
+The panel is 773px tall, from y=60 to y=833. **The members table is 878px tall and starts at
+y=404**, so it runs to y=1282 — 449px past the bottom of the panel that contains it. Nothing in
+its chain has `overflow-y: auto`; the only scroller is `overflow-x` on the table wrapper. So the
+table is not inside the panel's scroll region, it is not clipped by anything, and the footer —
+a static sibling at y=719 — simply paints over whatever of it lands in that band.
+
+Adding `padding-bottom` to the scroll region would move nothing: the offending content is not in
+the scroll region. That is why this needs to be measured rather than reasoned about from the
+shape of the finding — "footer overlaps content" has now had three different causes proposed for
+it and the first two were wrong.
+
+**What it actually needs:** the members table on `/araz`'s desktop panel belongs inside the
+panel's `min-h-0 flex-1 overflow-y-auto` region (line 834), and at 768 it is being rendered
+outside it. That is a structural fix to one screen's desktop branch, and it is the next thing to
+do — with the reachability check as its acceptance test:
+
+    elementFromPoint at the intersection of the Host City button and the footer CTA
+    must return the button, not the footer.
+
+That check is written and currently returns `FOOTER`. It is the outcome form of this fix and it
+should be added to `check:overlap` when the fix lands, rather than before — an assertion that
+fails for a known reason trains people to ignore the suite.
+
 ## Verification
 
 | check | result |

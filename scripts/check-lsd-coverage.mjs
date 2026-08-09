@@ -166,7 +166,11 @@ for (const file of walk(path.join(ROOT, 'src'))) {
       push(m[1].replace(/\\(['"\\])/g, '$1'), true)
     }
     // unrouted, same-line: <p>Some copy</p>
-    for (const m of raw.matchAll(/>([^<>{}\n]{3,})</g)) push(m[1], false)
+    // The `>` must not be an ARROW. `fingerprint: () => Promise<string>` matches this pattern
+    // exactly — a `>`, a word, a `<` — and was reported as untranslated JSX copy in a file
+    // containing no JSX at all. A real text node is always preceded by a tag's `>`, never by
+    // `=`, so excluding that one character is precise rather than a loosening of the gate.
+    for (const m of raw.matchAll(/(?<!=)>([^<>{}\n]{3,})</g)) push(m[1], false)
     // unrouted, OWN-LINE: prettier splits a long element so the text node sits alone —
     //     <span …>
     //       New Miqaat

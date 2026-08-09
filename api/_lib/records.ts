@@ -175,7 +175,10 @@ export async function currentOverrides(store: Store): Promise<Revision[]> {
   }
   const latest = await Promise.all([...byKey.values()].map(async (list) => {
     // Lexicographic max IS the newest, by the pathname scheme above.
-    const newest = list.sort().at(-1)!
+    // Index access, not .at(-1): Vercel type-checks api/ against the ROOT tsconfig, whose lib
+    // is ES2020, so .at() is a build error there however tsconfig.api.json is set. check:api-target.
+    const sorted = list.sort()
+    const newest = sorted[sorted.length - 1]!
     return store.get<Revision>(newest)
   }))
   return latest
@@ -199,7 +202,9 @@ export async function appendRevision(
   const createdAt = rev.createdAt ?? new Date().toISOString()
   const full: Revision = { ...rev, createdAt }
   const prior = await history(store, full.key)
-  const head = prior.at(-1)
+  // Index access, not .at(-1) — see currentOverrides. The annotation keeps the `undefined` that
+  // .at() carried: an empty history has no head, and `stale` below is written against that.
+  const head: Revision | undefined = prior[prior.length - 1]
 
   await store.put(revisionPath(full.key, createdAt, full.revisionId), full, { create: true })
 

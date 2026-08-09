@@ -1,0 +1,21 @@
+{
+  // The tsconfig Vercel ACTUALLY applies to api/ — not tsconfig.api.json.
+  //
+  // Vercel's Node builder resolves the tsconfig at the PROJECT ROOT and applies its
+  // compilerOptions to the function graph. It never reads tsconfig.api.json: that file is
+  // ours, it is stricter (target/lib ES2022), and nothing but a hand-typed `tsc -p` runs it.
+  // So `.at(-1)` type-checked locally and was a TS2550 on every deploy.
+  //
+  // This config exists to reproduce Vercel's view: root compilerOptions, api/ as the program.
+  // It MUST keep extending ./tsconfig.json. Pinning a target here would restore the exact
+  // hole it closes — a local pass that says nothing about the build.
+  //
+  // Tests are excluded because Vercel does not build them: they are not routes, they run
+  // under vitest on Node, and .at() is fine there. tsconfig.api.json is where they type-check.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["api"],
+  "exclude": ["api/**/*.test.ts"]
+}

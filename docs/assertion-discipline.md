@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened eight times in this repo, in eight different places, to eight different
+This has now happened nine times in this repo, in nine different places, to nine different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-The last two are variants worth naming separately, because neither is fixed by watching what you
+The last three are variants worth naming separately, because none is fixed by watching what you
 assert:
 
 - **7 — the wrong subject.** The assertion was about the outcome, it was correct, and it was
@@ -19,8 +19,11 @@ assert:
   that the thing it looked at was healthy.*
 - **8 — no subject at all.** The assertion did not run, said so in a line nobody reads, and the
   suite exited 0. *A probe must prove it ran, not merely that nothing it ran failed.*
+- **9 — the wrong world.** The assertion was about the outcome, it ran, it was pointed at the
+  right file, and it was evaluated under settings production does not use. *A probe must run in
+  the configuration that ships, not in the one the repo would prefer.*
 
-## The eight worked examples
+## The nine worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -285,6 +288,36 @@ of quietly dropping to half coverage.
 
 **The rule:** *a suite must report how many assertions ran, and fail if that number is not the
 number it expected.* A count of failures is only meaningful beside a count of attempts.
+
+### 9. `tsc -p tsconfig.api.json` type-checked a build Vercel never runs
+
+**Mechanism asserted:** "api/ compiles under the config we wrote for it."
+**Outcome wanted:** "api/ compiles under the config the deployment applies."
+
+`api/_lib/records.ts` used `Array.prototype.at(-1)` twice. `.at()` is ES2022, `tsconfig.api.json`
+sets lib ES2022, and a hand-typed `tsc -p tsconfig.api.json` passed cleanly. Vercel's Node builder
+does not read that file. It resolves the tsconfig at the PROJECT ROOT — lib ES2020 — and compiled
+the function graph against it, so both lines were `TS2550` on every deploy.
+
+Nothing disagreed. The local pass and the build log were both correct, about different compilers.
+
+Two things made it survive. `tsconfig.api.json` was referenced by no npm script and no config, so
+the "local pass" was a thing someone typed once, not a check. And the deployment reported SUCCESS
+with the functions unbuilt, so the only visible symptom was `/api` answering
+FUNCTION_INVOCATION_FAILED — which reads as the shared store being down, the exact symptom
+`check:api` exists for, arrived at by a completely different road.
+
+**Fix:** `check:api-target` compiles api/ under `tsconfig.api.vercel.json`, which *extends the
+root tsconfig* rather than naming a target. Move the root and the check moves with it. It runs
+inside `npm run build`, so Vercel runs it too and the deploy fails instead of shipping dead
+functions. It carries three controls, because a clean compile proves nothing on its own: every
+shipped api file is in the program (an empty program compiles clean), the effective target equals
+the root's as tsc resolves it (pinning ES2022 here is the one edit that restores the hole), and an
+API one lib-level above the root's must be rejected (a check that cannot fail is not a check).
+
+Grepping api/ for `.at(` was the tempting fix and is example 3 again: it passes on `Object.hasOwn`,
+`findLast`, `toSorted`, error `cause`, and whatever ES2025 adds next. The compiler already knows
+the whole list. Ask it.
 
 ### Related: source that is load-bearing and invisible
 

@@ -13,6 +13,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],
+    // `api/_lib/**` holds the server-surface tests. They live under an underscore-prefixed
+    // directory because Vercel does not deploy those, so a test file cannot become an endpoint.
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs', 'api/_lib/**/*.test.ts'],
   },
 })

@@ -61,6 +61,18 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
  * shipped copy this line should be narrowed CONSCIOUSLY rather than silently weakened.
  */
 const FORBIDDEN = [
+  // Server-only secrets and flags. `BLOB_READ_WRITE_TOKEN` is the storage credential and must
+  // never be within reach of a browser; `REVIEW_API` is the server-side gate. Neither carries
+  // the `VITE_` prefix, so Vite cannot inline them — this asserts the outcome of that rather
+  // than trusting the naming convention, because the convention is one careless rename away.
+  'BLOB_READ_WRITE_TOKEN',
+  'REVIEW_API',
+  'blob.vercel-storage.com',
+  // `xlsx` moved to dependencies so the export FUNCTION can import it. It is imported only
+  // under /api and must not follow the dependency move into the client bundle — it is ~400kB
+  // and has no business shipping to a phone. `sheet_to_json` is one of its exported names.
+  'sheet_to_json',
+  'SheetJS',
   // Dictionary editor and mojibake tooling. Still gated on `import.meta.env.DEV`, so these
   // must be absent in EVERY built artefact, review flag or not. P7 moves the editor onto the
   // review flag; when it does, these move to REVIEW_ONLY below and not before.

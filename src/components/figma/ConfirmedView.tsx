@@ -70,7 +70,6 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
           </tr>
         </thead>
         {groups.map((g, gi) => {
-          const { t } = useT()
           const linked = !!g.label
           const hasConnector = g.members.length > 1
           // A group with a member flagged not-valid can never be allocated → show that reason
@@ -89,7 +88,6 @@ function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusT
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (

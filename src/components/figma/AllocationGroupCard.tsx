@@ -167,7 +167,6 @@ export function AllocationDesktopTable({ groups }: { groups: Group[] }) {
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (

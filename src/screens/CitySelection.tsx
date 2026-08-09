@@ -283,7 +283,6 @@ function ViewAllSheet({
       {/* City list */}
       <div className="flex flex-col gap-[8px]">
         {filtered.map((c) => {
-          const { t } = useT()
           const added = addedOf(c.id)
           const isFull = c.seatsLeft - added <= 0
           const isSelected = selectedCity?.id === c.id
@@ -1327,7 +1326,6 @@ function AllocateDesktopTable({
           </tr>
         </thead>
         {displayOrder.map((gi) => {
-          const { t } = useT()
           const g = groups[gi]
           const linked = !!g.label
           const assignedCity = groupCityMap.get(gi) ?? null
@@ -1364,7 +1362,6 @@ function AllocateDesktopTable({
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 return (
@@ -1659,7 +1656,6 @@ function HostDesktopTable({
           </tr>
         </thead>
         {groups.map((g, gi) => {
-          const { t } = useT()
           const linked = !!g.label
           const holdSec = holds.get(gi)
           const held = holdSec !== undefined
@@ -3131,7 +3127,6 @@ export default function CitySelection() {
         {/* City-grouped member sections */}
         <div className="mx-[16px] sm:mx-0 mt-[20px] mb-[100px]">
           {cityGroups.map(({ city, groupIndices }) => {
-            const { t } = useT()
             const cityMemberCount = groupIndices.reduce((n, gi) => n + groupAllocCount(gi), 0)
             return (
               <div key={city.id} className="mb-[20px]">
@@ -3164,7 +3159,6 @@ export default function CitySelection() {
                       </tr>
                     </thead>
                     {groupIndices.map((gi) => {
-                      const { t } = useT()
                       const g = groups[gi]
                       if (!g) return null
                       const linked = !!g.label
@@ -3179,7 +3173,6 @@ export default function CitySelection() {
                             </tr>
                           )}
                           {g.members.map((mm, mi) => {
-                            const { t, tdText } = useT()
                             const isFirst = mi === 0
                             const isLast = mi === g.members.length - 1
                             return (

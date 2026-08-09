@@ -612,7 +612,6 @@ export default function AddPeople() {
 
   /* ── per-row strip helper ── */
   const stripFor = (m: FamilyMember) => {
-    const { t } = useT()
     const guardian = flow.guardians[m.id]
     const caregiver = flow.caregivers[m.id]
     if (m.needsGuardian) {
@@ -863,7 +862,6 @@ export default function AddPeople() {
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
               {otherInvites.map((inv) => {
-                const { t } = useT()
                 const gender = inv.gender ?? lookupMember(inv.its)?.gender
                 const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? t('Dependent') : null].filter(Boolean).join(' · ')
                 return (
@@ -899,7 +897,6 @@ export default function AddPeople() {
             </div>
             <div className="mx-[16px] mt-[16px] flex flex-col gap-[8px]">
               {mehmaanInvites.map((inv) => {
-                const { t } = useT()
                 const gender = inv.gender ?? lookupMember(inv.its)?.gender
                 const meta = [gender, `Age ${age2(inv.age)}`, `ITS ${inv.its}`, inv.dependentOf ? t('Dependent') : null].filter(Boolean).join(' · ')
                 return (
@@ -1153,7 +1150,6 @@ export default function AddPeople() {
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[16px] pb-[16px] pt-[16px]">
                 <div className="flex flex-col gap-[8px]">
                   {eligibleAdults.map((a) => {
-                    const { t } = useT()
                     const active = pick === a.id
                     const isCurrent = a.id === currentAssignedId
                     return (

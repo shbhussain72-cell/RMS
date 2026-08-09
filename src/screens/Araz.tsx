@@ -409,7 +409,6 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
         </thead>
         <tbody>
           {members.map((m) => {
-            const { t } = useT()
             const hc = hostCheckedOf(m.id)
             const rc = relayCheckedOf(m.id)
             return (

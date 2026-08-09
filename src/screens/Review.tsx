@@ -162,7 +162,6 @@ function FamilyTable({ groups }: { groups: ReturnType<typeof buildGroups> }) {
           </tr>
         </thead>
         {groups.map((g, gi) => {
-          const { t } = useT()
           const isLinked = !!g.label
           const hasConnector = g.members.length > 1
           return (

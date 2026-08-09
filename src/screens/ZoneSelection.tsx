@@ -237,7 +237,6 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((z) => {
-          const { t } = useT()
           const left = z.capacity - z.filled
           const isFull = left <= 0
           const selected = z.id === activeZoneId
@@ -776,7 +775,6 @@ function ZoneBrowseDesktopTable({
           </tr>
         </thead>
         {visibleIdx.map((gi) => {
-          const { t } = useT()
           const g = groups[gi]
           if (!g) return null
           const linked = !!g.label
@@ -794,7 +792,6 @@ function ZoneBrowseDesktopTable({
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 const auto = isAutoGroup?.(gi) ?? false

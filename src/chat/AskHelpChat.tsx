@@ -321,7 +321,6 @@ export default function AskHelpChat({ init, onToast, onClose }: { init: AskHelpI
                       // (e.g. the registrant after cancelling their own city). Each allocated member
                       // shows their city; the rest sit under "Not allocated yet".
                       (() => {
-                        const { t } = useT()
                         const notAllocated = chat.memberOptions.filter((o) => !o.allocated)
                         const allocated = chat.memberOptions.filter((o) => o.allocated)
                         const allocatedLabel = chat.category === 'zone' ? 'Zone allocated' : t('City allocated')

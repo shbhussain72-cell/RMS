@@ -116,7 +116,6 @@ export function InvitedMembersTable({
                 </tr>
               )}
               {members.map((p, mi) => {
-                const { t } = useT()
                 const isDep = linked && mi > 0
                 const isFirst = mi === 0
                 const isLast = mi === members.length - 1

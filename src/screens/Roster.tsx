@@ -308,7 +308,6 @@ export default function Roster() {
                     </tr>
                   )}
                   {g.members.map((m, mi) => {
-                    const { t } = useT()
                     const isFirst = mi === 0
                     const isLast = mi === g.members.length - 1
                     return (

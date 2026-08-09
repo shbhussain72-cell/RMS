@@ -502,7 +502,6 @@ function AllZonesSheet({ cityName, zones, activeZoneId, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((z) => {
-          const { t } = useT()
           const isFull = z.left <= 0
           const selected = z.id === activeZoneId
           return (
@@ -554,7 +553,6 @@ function AllCitiesSheet({ cities, activeCityId, addedOf, onSelect, onClose }: {
     >
       <div className="flex flex-col gap-[8px]">
         {list.map((c) => {
-          const { t } = useT()
           const isFull = c.left <= 0
           const selected = c.id === activeCityId
           return (
@@ -1075,7 +1073,7 @@ function MoveDesktopTable({
    *  row shows what was actually requested instead of going blank. */
   pendingRequestForGroup: (g: Group) => ChangeRequest | null
 }) {
-     const { t, tx, td } = useT()
+     const { t, tx, td, tdText } = useT()
   return (
     <div className="overflow-x-auto rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: memberTableMinWidth(96, 132, 150, 230) }}>
@@ -1118,7 +1116,6 @@ function MoveDesktopTable({
                 </tr>
               )}
               {g.members.map((mm, mi) => {
-                const { t, tdText } = useT()
                 const isFirst = mi === 0
                 const isLast = mi === g.members.length - 1
                 const isTheDependent = !!dep && mm.member.id === dep.id
@@ -2135,7 +2132,6 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
         {/* Mobile: stacked cards */}
         <div className="mx-[16px] mt-[12px] mb-[24px] flex flex-col gap-[14px] sm:hidden">
           {movableEntries.map(({ g, gi }) => {
-            const { t } = useT()
             const dep = dependentOf(g)
             const gName = dep && guardianFor[dep.id] ? family.find((f) => f.id === guardianFor[dep.id])?.name ?? null : null
             // Per-row, not the single representative group's — "Switch to a different city" can

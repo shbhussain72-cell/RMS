@@ -138,7 +138,6 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
       </div>
       <div className="mt-[12px] grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px]">
         {slots.map((cid, idx) => {
-          const { t } = useT()
           const city = cid ? liveById.get(cid) : undefined
           if (!city) {
             return (
@@ -316,7 +315,6 @@ function CityPickDropdown({ anchor, cities, currentId, search, onSearch, onSelec
         </div>
         <div className="max-h-[230px] overflow-y-auto px-[8px] pb-[10px]">
           {filtered.map((c) => {
-            const { t } = useT()
             const selected = c.id === currentId
             return (
               <button
@@ -401,7 +399,6 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
           </tr>
         </thead>
         {displayOrder.map((gi) => {
-          const { t } = useT()
           const g = groups[gi]
           const linked = !!g.label
           const hasConnector = g.members.length > 1
@@ -456,7 +453,7 @@ function MembersViewTable({ groups }: { groups: Group[] }) {
 
 /** Mobile members list — read-only group cards mirroring the table above. */
 function MembersViewCards({ groups }: { groups: Group[] }) {
-  const { td } = useT()
+  const { td, t } = useT()
   const displayOrder = groups.map((_, i) => i).sort((a, b) => {
     const valid = (gi: number) => (groups[gi].members.some((mm) => mm.member.notValidForCity) ? 1 : 0)
     return valid(a) - valid(b)
@@ -464,7 +461,6 @@ function MembersViewCards({ groups }: { groups: Group[] }) {
   return (
     <div className="flex flex-col gap-[12px]">
       {displayOrder.map((gi) => {
-        const { t } = useT()
         const g = groups[gi]
         const linked = !!g.label
         const groupValid = !g.members.some((mm) => mm.member.notValidForCity)

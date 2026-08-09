@@ -85,6 +85,19 @@ const FORBIDDEN = [
   '/__lsd/overrides',
   '__lsdOverrides',
   '__lsd/patch',
+  // The wordlist sync's server-side configuration. None of these carries a `VITE_` prefix, so
+  // Vite cannot inline them — this asserts the outcome of that convention rather than trusting
+  // it, because a convention is one careless rename away. `WORDLIST_SYNC_TOKEN` is a
+  // fine-grained GitHub PAT with `contents:write` on one repository: it can rewrite the source
+  // of truth for every translation in the app, and it must never be within reach of a browser.
+  'WORDLIST_SYNC_TOKEN',
+  'WORDLIST_REPO',
+  'WORDLIST_BRANCH',
+  'WORDLIST_PATH',
+  'CRON_SECRET',
+  // The GitHub host, as a literal in `api/_lib/github.ts`. If that module ever followed an
+  // import into the client bundle, the token-shaped code would come with it.
+  'api.github.com',
 ]
 
 /**
@@ -108,6 +121,20 @@ const FORBIDDEN = [
  * `lone-surrogate` and `utf8-as-latin1` replace it. They are `MojibakeFinding.kind` values —
  * string literals, so the minifier has to keep them, and they cannot appear from anywhere else.
  * Verified by building both ways and grepping: absent with the flag off, present with it on.
+ *
+ * Why each of the strings this rule was written for survives minification:
+ *
+ *   /__lsd/overrides         a fetch() URL. Argument to a call; nothing may rewrite it.
+ *   __lsdOverrides           a PROPERTY name on `window`. Minifiers cannot rename properties
+ *                            without whole-program knowledge of every access, so they do not.
+ *   __lsd/patch              an `href` attribute value — JSX text, emitted verbatim.
+ *   not yet in the wordlist  rendered copy. It has to reach the DOM, so it reaches the bundle.
+ *   lone-surrogate           a discriminant value in an object literal, compared with `===`.
+ *   utf8-as-latin1           the same.
+ *
+ * The rule that generates that list: an entry is a value the program CARRIES, never a name the
+ * program uses. If you can rename it in the editor without changing behaviour, the minifier can
+ * rename it too, and the grep is asserting nothing.
  */
 const REVIEW_ONLY = [
   'remark',

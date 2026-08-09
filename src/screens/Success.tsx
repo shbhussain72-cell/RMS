@@ -103,7 +103,22 @@ export default function Success() {
             className="absolute left-1/2 top-[94px] flex w-[calc(100%-28px)] -translate-x-1/2 -translate-y-1/2 flex-col justify-center text-center text-[24px] tracking-[0.2px] text-white"
             style={{ fontFamily: 'Marcellus, serif' }}
           >
-            <span className="leading-[32px]" {...tx('Registration successful')} />
+            {/* `text-center` is on THIS span and not only on the <p> above, because this span
+                is the block that actually lays the text out. `flex flex-col` on the parent
+                blockifies its children, so the span is a full-width block box, and `tx()` puts
+                `dir="rtl"` on it — which the LSD alignment reset in src/index.css then matches,
+                setting `text-align: start` and overriding the centre INHERITED from the <p>.
+                That reset is right to override an inherited alignment; the fix is to let this
+                element ask for its own. English was unaffected either way: with no `dir`
+                attribute the reset never matched, so EN centred correctly and LSD did not.
+
+                Nothing above is touched. The <p>'s `left-1/2` + `-translate-x-1/2` is a
+                DOCUMENTED centring exemption (docs/centring-exceptions.md) whose translate also
+                carries this subtree's stacking context — removing it once produced 8 new OVERLAY
+                findings against the clipped header ornament while every box stayed pixel-
+                identical. A text-align class on a child creates no stacking context and moves
+                no box. */}
+            <span className="text-center leading-[32px]" {...tx('Registration successful')} />
           </p>
         </div>
 

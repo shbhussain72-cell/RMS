@@ -72,3 +72,6 @@ RMS_untranslated_TRANSLATED_v2.xlsx
 # Dictionary edits staged in the browser editor, awaiting a paste into the .xlsx.
 # Local by design: the build refuses to run while this file is non-empty.
 wordlist-overrides.json
+
+# Ad-hoc probes left behind by a debugging session.
+scripts/.tmp-*

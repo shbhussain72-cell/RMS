@@ -21,12 +21,18 @@
  *                 untranslated. Caused by a find/replace that wrote the LSD value into
  *                 the key column.
  *
- * MOJIBAKE        The LSD value carries doubled consonants (ثث سس طط ضض صص ظظ). This is
- *                 the signature of a legacy non-Unicode Dawat font transcoded byte-by-byte:
- *                 a glyph that occupied one codepoint in the old encoding lands as two
- *                 identical Arabic letters in Unicode. The text is unreadable and CANNOT
- *                 be repaired programmatically — the original keystrokes are gone. Rows
- *                 are emitted with their source page so the owner can re-key them.
+ * CLASS A         Byte damage: UTF-8 read as latin-1, U+FFFD, lone surrogates. The bytes
+ *                 are GONE and it CANNOT be repaired programmatically — the owner has to
+ *                 re-key the row, so rows are emitted with their source page.
+ *
+ * CLASS B         Kanz al-Lulu keyboard output: the seven doubled pairs ظظ ثث سس كك حح
+ *                 ضض طط. NOT damage. It is a faithful record in an encoding the app does
+ *                 not read, and it converts exactly. NO ACTION NEEDED — kanzNorm.mjs
+ *                 normalises it at every entry point, so it never reaches lsd.json.
+ *
+ * These two used to be one class called MOJIBAKE. Sharing a name forced one verdict onto
+ * both, and this audit reported 190 rows as unfixable when almost none of them were. The
+ * counts below are split for that reason. See docs/kanz-digraphs.md.
  *
  * EMPTY           Row exists, LSD cell blank. Renders English.
  *
@@ -37,6 +43,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { KANZ_PAIRS, hasKanzDoubles } from '../src/i18n/kanzNorm.mjs'
+import { detectByteDamage } from '../src/dev/mojibake.ts'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -57,13 +65,20 @@ const BIDI_MARKS = /[‎‏؜⁦-⁩‪-‮]/g
 const BIDI_MARKS_G = /[‎‏؜⁦-⁩‪-‮]/g
 
 /**
- * Doubled-consonant signature of the legacy-font transcode.
+ * Class B is now decided by the shared module, not by a regex kept here.
  *
- * Deliberately limited to the six pairs observed in this wordlist rather than "any
- * repeated Arabic letter": gemination is normal in Arabic orthography, so a broader rule
- * would flag correct text. These six do not occur naturally in the corpus.
+ * The old local pattern listed SIX pairs — it had صص, which does not occur in this corpus
+ * at all, and was missing كك and حح, which do. So it both invented a class and under-counted
+ * the real one. `KANZ_PAIRS` is the confirmed set, proved against the corpus in
+ * docs/kanz-digraphs.md, and there is now exactly one copy of it.
+ *
+ * The restraint in the original note still applies and is why the set is not "any repeated
+ * Arabic letter": gemination is normal in Arabic orthography, and a broader rule would flag
+ * correct text.
  */
-const MOJIBAKE = /(ثث|سس|طط|ضض|صص|ظظ)/g
+const classBHits = (value) => KANZ_PAIRS
+  .filter((p) => value.includes(p.doubled))
+  .map((p) => p.doubled)
 
 const stripMarks = (s) => String(s ?? '').replace(BIDI_MARKS, '')
 
@@ -86,7 +101,8 @@ const total = rows.length
 
 // ─── classify ─────────────────────────────────────────────────────────────────
 const corruptedKeys = []
-const mojibake = []
+const classA = []
+const classB = []
 const empty = []
 const POLICY = JSON.parse(readFileSync(resolve(ROOT, 'src/i18n/loanword-policy.json'), 'utf8'))
 
@@ -119,19 +135,29 @@ for (const r of rows) {
 
   if (!value) {
     empty.push({ key: r.key, page: r.page })
-    continue // an empty value cannot also be mojibake or identity
+    continue // an empty value cannot also be damaged or identity
   }
 
-  const hits = value.match(MOJIBAKE)
-  if (hits) {
-    mojibake.push({
+  // ── CLASS A — bytes are gone. The owner must re-key the row. ──
+  const damage = detectByteDamage(value)
+  if (damage.length) {
+    classA.push({
       key: r.key,
       value: r.lsd,
       page: r.page,
-      // Which pairs, and how many — lets the owner spot systematic vs one-off damage.
-      pairs: [...new Set(hits)].sort().join(' '),
-      count: hits.length,
+      kinds: [...new Set(damage.map((d) => d.kind))].sort().join(' '),
+      sample: damage[0].sample,
     })
+  }
+
+  // ── CLASS B — Kanz keyboard output. Converts exactly; no action needed. ──
+  //
+  // Expected to be ZERO here, and that is the point: this audit reads lsd.json, and the
+  // generator normalises on the way in. A non-zero count means a path stopped normalising,
+  // which is the outcome worth watching rather than the historical row count.
+  const kanz = classBHits(value)
+  if (kanz.length) {
+    classB.push({ key: r.key, value: r.lsd, page: r.page, pairs: kanz.sort().join(' ') })
   }
 
   // Compared with direction marks stripped: the build step prefixes U+200F to mixed-script
@@ -149,10 +175,11 @@ for (const r of rows) {
 
 const pct = (n) => (total ? ((n / total) * 100).toFixed(1) : '0.0')
 
-/** A row is "usable" only if it has a value that is not empty, mojibake or a pass-through. */
+/** A row is "usable" only if it has a value that is not empty, damaged or a pass-through. */
 const defective = new Set([
   ...corruptedKeys.map((r) => r.key),
-  ...mojibake.map((r) => r.key),
+  ...classA.map((r) => r.key),
+  ...classB.map((r) => r.key),
   ...empty.map((r) => r.key),
   ...identity.map((r) => r.key),
 ])
@@ -161,7 +188,8 @@ const usable = total - defective.size
 const summary = {
   totalEntries: total,
   corruptedKeys: corruptedKeys.length,
-  mojibakeValues: mojibake.length,
+  classAByteDamage: classA.length,
+  classBKanzInput: classB.length,
   emptyValues: empty.length,
   identityPassThroughs: identity.length,
   identityByPolicy: identityPolicy.length,
@@ -173,14 +201,15 @@ const summary = {
 
 // ─── report ───────────────────────────────────────────────────────────────────
 if (AS_JSON) {
-  process.stdout.write(`${JSON.stringify({ summary, corruptedKeys, mojibake, empty, identity }, null, 2)}\n`)
+  process.stdout.write(`${JSON.stringify({ summary, corruptedKeys, classA, classB, empty, identity }, null, 2)}\n`)
 } else {
   const line = (label, n) => `  ${String(n).padStart(5)}  ${pct(n).padStart(5)}%  ${label}`
   console.log('LSD dictionary audit')
   console.log(`  source: src/i18n/lsd.json (generated from RMS_Mumineen_LSD_wordlist_v4.xlsx)`)
   console.log(`  ${total} entries\n`)
   console.log(line('corrupted English keys (contain Arabic script)', corruptedKeys.length))
-  console.log(line('mojibake values (legacy-font transcode)', mojibake.length))
+  console.log(line('class A — byte damage (must be re-keyed)', classA.length))
+  console.log(line('class B — Kanz input (normalises, no action)', classB.length))
   console.log(line('empty values', empty.length))
   console.log(line('identity — B1, awaiting translation', identity.length))
   console.log(line('identity — B2, correct by loanword policy', identityPolicy.length))
@@ -191,8 +220,8 @@ if (AS_JSON) {
     console.log('\ncorrupted keys:')
     for (const r of corruptedKeys) console.log(`  p${(r.page || '—').padEnd(12)} ${r.kind.padEnd(15)} ${JSON.stringify(r.key)}${r.marks ? '  ' + r.marks : ''}`)
   }
-  console.log(`\nmojibake pairs seen: ${
-    [...new Set(mojibake.flatMap((m) => m.pairs.split(' ')))].sort().join(' ') || '—'
+  console.log(`\nclass B pairs still reaching the dictionary: ${
+    [...new Set(classB.flatMap((m) => m.pairs.split(' ')))].sort().join(' ') || '— none, they normalise on the way in'
   }`)
   if (!WRITE) console.log('\n(run with --write to regenerate docs/lsd-gaps.md)')
 }
@@ -218,14 +247,50 @@ if (WRITE) {
   P('| Class | Rows | % of dictionary |', '|---|---:|---:|')
   P(`| Total entries | ${total} | 100.0% |`)
   P(`| Corrupted English keys | ${corruptedKeys.length} | ${pct(corruptedKeys.length)}% |`)
-  P(`| Mojibake values | ${mojibake.length} | ${pct(mojibake.length)}% |`)
+  P(`| Class A — byte damage | ${classA.length} | ${pct(classA.length)}% |`)
+  P(`| Class B — Kanz input | ${classB.length} | ${pct(classB.length)}% |`)
   P(`| Empty values | ${empty.length} | ${pct(empty.length)}% |`)
   P(`| Identity pass-throughs | ${identity.length} | ${pct(identity.length)}% |`)
   P(`| **Distinct defective rows** | **${defective.size}** | **${pct(defective.size)}%** |`)
   P(`| **Usable rows** | **${usable}** | **${pct(usable)}%** |`)
   P('')
-  P('Classes overlap — a corrupted key can also hold a mojibake value — so the four counts')
+  P('Classes overlap — a corrupted key can also hold a damaged value — so the counts')
   P('sum to more than the distinct-defective total.')
+  P('')
+  P('### What happened to the old "mojibake" figure', '')
+  P('This audit used to report one class called *mojibake*, counted by a local six-pair')
+  P('regex, and it stood at **190 rows** — reported as unfixable, because that one name')
+  P('carried one verdict. It was two different problems:')
+  P('')
+  P('- **Class A** is real byte damage. Bytes are gone; the row must be re-keyed by hand.')
+  P('- **Class B** is Kanz al-Lulu keyboard output. Nothing was lost — it converts exactly,')
+  P('  and `src/i18n/kanzNorm.mjs` now converts it at the generator, the editor and the')
+  P('  sync, so it never reaches this file. **No action needed.**')
+  P('')
+  P('**Every row it flagged was class B.** Reclassified against the pre-repair workbook:')
+  P('')
+  P('| | rows |', '|---|---:|')
+  P('| Flagged by the old six-pair regex | 234 |')
+  P('| → class A only (must be re-keyed by hand) | **0** |')
+  P('| → class B only (converts exactly) | **234** |')
+  P('| → both | 0 |')
+  P('| → neither | 0 |')
+  P('')
+  P('So the headline number is not "190 rows to re-key" but **0**. Not one value in this')
+  P('wordlist has ever had byte damage — class A across the whole corpus is 0. Every row the')
+  P('old figure counted was recoverable, and is now recovered on the way into the dictionary.')
+  P('')
+  P('The old regex was also wrong in both directions: it listed `صص`, which occurs **0**')
+  P('times in this corpus, and omitted `كك` and `حح`, which cost it **20** class B rows it')
+  P('never reported. The set is now the seven pairs proved against the corpus in')
+  P('`docs/kanz-digraphs.md`, held in one place.')
+  P('')
+  P('Class B reading **0** here is the assertion, not a formality: this file is generated')
+  P('from `lsd.json`, so a non-zero count means an entry path stopped normalising.')
+  P('')
+  P('The wordlist itself is a separate question — 189 rows still hold Kanz input at source,')
+  P('awaiting the rulings in `docs/kanz-unattested.md`. That is by design: the spreadsheet')
+  P('is the owner\'s, and the repair only rewrote what the corpus could vouch for.')
   P('')
 
   P(`## 1. Corrupted English keys (${corruptedKeys.length})`, '')
@@ -248,18 +313,40 @@ if (WRITE) {
   }
   P('')
 
-  P(`## 2. Mojibake values (${mojibake.length})`, '')
-  P('Doubled consonants — ثث سس طط ضض صص ظظ — are the signature of a legacy non-Unicode')
-  P('Dawat font transcoded byte-by-byte: one glyph in the old encoding becomes two identical')
-  P('Arabic letters in Unicode. Examples in this corpus: `اْثثنسس`, `تهاسسس`, `نهيطط`, `هضضاوو`.')
+  P(`## 2a. Class A — byte damage (${classA.length})`, '')
+  P('UTF-8 read as latin-1, a U+FFFD replacement character, or a lone surrogate. Detected by')
+  P('`detectByteDamage` in `src/dev/mojibake.ts`.')
   P('')
-  P('**These cannot be fixed programmatically.** The mapping is lossy — the original')
-  P('keystrokes are not recoverable from the output — so each row must be re-keyed by hand')
-  P('in the wordlist. Page numbers are included for exactly that purpose.')
+  P('**These cannot be fixed programmatically.** The bytes are gone — a guess that looks')
+  P('plausible is worse than a rejection, because it lands in the wordlist as if it were')
+  P('authored. Each row must be re-keyed by hand. Page numbers are included for that.')
   P('')
-  P('| Page | English key | Current LSD value | Pairs |', '|---|---|---|---|')
-  for (const r of mojibake) {
-    P(`| ${esc(r.page) || '—'} | ${esc(clip(r.key, 70))} | ${esc(clip(r.value, 70))} | ${r.pairs} |`)
+  if (classA.length) {
+    P('| Page | English key | Current LSD value | Kinds | Near |', '|---|---|---|---|---|')
+    for (const r of classA) {
+      P(`| ${esc(r.page) || '—'} | ${esc(clip(r.key, 60))} | ${esc(clip(r.value, 50))} | ${r.kinds} | \`${esc(clip(r.sample, 20))}\` |`)
+    }
+  } else {
+    P('None. No value in the dictionary carries byte damage.')
+  }
+  P('')
+
+  P(`## 2b. Class B — Kanz keyboard input (${classB.length})`, '')
+  P('The seven doubled pairs ظظ ثث سس كك حح ضض طط — Kanz al-Lulu keyboard output, where each')
+  P('Urdu-specific letter arrives as a doubled Arabic one.')
+  P('')
+  P('**No action needed, and a non-zero count here is a regression.** Nothing was lost in')
+  P('this encoding and it converts exactly; `src/i18n/kanzNorm.mjs` does so at the generator,')
+  P('the editor and the sync. This file is generated from `lsd.json`, downstream of that')
+  P('conversion, so anything listed below means an entry path stopped normalising.')
+  P('')
+  if (classB.length) {
+    P('| Page | English key | Current LSD value | Pairs |', '|---|---|---|---|')
+    for (const r of classB) {
+      P(`| ${esc(r.page) || '—'} | ${esc(clip(r.key, 70))} | ${esc(clip(r.value, 70))} | ${r.pairs} |`)
+    }
+  } else {
+    P('None — as expected. The conversion is working.')
   }
   P('')
 

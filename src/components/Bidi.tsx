@@ -76,9 +76,9 @@ export function Iso({ children, className }: { children: ReactNode; className?: 
  * the OUTER paragraph's bidi resolution, so a trailing bracket or full stop after the span
  * cannot be dragged inside it. `embed` would leave that hole open.
  */
-export function Ltr({ children, className }: { children: ReactNode; className?: string }) {
+export function Ltr({ children, className, lang }: { children: ReactNode; className?: string; lang?: string }) {
   return (
-    <span dir="ltr" className={className} style={{ unicodeBidi: 'isolate' }}>
+    <span dir="ltr" className={className} lang={lang} style={{ unicodeBidi: 'isolate' }}>
       {children}
     </span>
   )

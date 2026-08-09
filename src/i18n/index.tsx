@@ -20,7 +20,7 @@
  */
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import raw from './lsd.json'
-import { formatNumber, isolateRuns } from '../components/Bidi'
+import { Ltr, formatNumber, isolateRuns } from '../components/Bidi'
 import { REVIEW_TOOLS } from '../reviewTools'
 
 export type Lang = 'en' | 'lsd'
@@ -639,9 +639,17 @@ export function useT() {
       const hit = raw.hit
       if (lang !== 'lsd') return { children: text }
       // HIT  → real LSD text, rendered RTL in the LSD language.
-      // MISS → still English. Rendering it RTL reorders its own punctuation, so the node
-      //        stays LTR/en and the gap marker is appended as a SEPARATE element rather
-      //        than glued onto the string (which is what moved the `*` to the wrong side).
+      // MISS → still English, but the ELEMENT stays RTL and only its TEXT is pinned LTR.
+      //        Those are two different questions and setting dir="ltr" on the element
+      //        answered both at once. `text-align: start` follows the element's own
+      //        direction, so an LTR element flushed its text LEFT in an otherwise RTL
+      //        page: on /login the translated `ITS ID` label sat right and the
+      //        untranslated `Password` label sat left, in the same 358px column — the
+      //        "stray left-aligned rows" this comment already said must not happen.
+      //        Isolation is what separates the two: <Ltr> pins the run's internal order
+      //        so the punctuation and the `*` marker keep their places, while the element
+      //        aligns with the page. Same one rule as everywhere else — ISOLATE, never
+      //        reorder. See src/components/Bidi.tsx.
       // `isolateRuns` wraps each Latin/numeric run inside the value in its own <bdi>. That
       // has to happen HERE and not at the call site: a value like
       // `‏Registration 5 June 2026 نا روز … 11:59 وگے بند تھاسے.` is a single text node, so
@@ -657,12 +665,16 @@ export function useT() {
       // unisolated. isolateRuns returns the bare string when there is nothing to isolate, so an
       // ordinary all-English miss is unchanged.
       const body = keyAttr ? isolateRuns(text) : text
+      // The English run in its own LTR isolate, so the element can be RTL without the run
+      // reordering inside it. `lang="en"` moves onto the isolate with the text it describes;
+      // leaving it on the element would label the whole node English while it is now an RTL
+      // box in an LSD page.
+      const run = createElement(Ltr, { key: 'lsd-miss', lang: 'en', children: body })
       return {
         children: MISSING_MARKER
-          ? [body, createElement('sup', { key: 'lsd-gap', 'aria-hidden': 'true', className: 'lsd-gap' }, MISSING_MARKER)]
-          : body,
-        dir: 'ltr',
-        lang: 'en',
+          ? [run, createElement('sup', { key: 'lsd-gap', 'aria-hidden': 'true', className: 'lsd-gap' }, MISSING_MARKER)]
+          : run,
+        dir: 'rtl',
         ...keyAttr,
       }
     }

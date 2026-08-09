@@ -11,6 +11,23 @@ const LEFT_BG = '/figma/left-bg.svg'
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const FONT_SERIF = 'Marcellus, Georgia, serif'
 
+/* LSD_HEADING — the page title is set larger in LSD than in English.
+ *
+ * `Login to Continue` is four words; its LSD value `المدخل` is one, and a short Arabic
+ * word at the same nominal px covers a fraction of the line the English title does. The
+ * @font-face `size-adjust: 130%` (see the PATH A block in src/index.css) equalises BODY
+ * ink for prose, which is the right correction for running copy and not enough for a
+ * one-word display heading that has to carry a page on its own.
+ *
+ * Same 1.3 ratio and same reasoning as `LSD_TITLE_SCALE` in MiqaatList's CardTitleBlock,
+ * which sets the gold event names larger in LSD for exactly this. Written out per
+ * breakpoint rather than as a multiplier so the leading moves with the size — Arabic
+ * needs the extra room, and 33px leading under a 29px face clips the tashkeel.
+ *
+ * This is the one per-language VALUE in this session's changes; everything else is
+ * direction-neutral. It is a typographic decision, not a directional one.
+ */
+
 export default function Login() {
   const login = useStore((s) => s.login)
   const nav = useNavigate()
@@ -138,7 +155,8 @@ export default function Login() {
 
         {/* Login panel */}
         <div className="relative mx-auto -mt-[22px] w-full max-w-[390px] overflow-clip rounded-tl-[16px] rounded-tr-[16px] border border-solid border-[rgba(255,255,255,0.6)] bg-[#fffdf8] pb-[24px]">
-          <p className="mt-[24px] text-center text-[22px] leading-[33px] text-[#1f5a44]" style={{ fontFamily: FONT_SERIF }} {...tx('Login to Continue')} />
+          {/* See LSD_HEADING above for why the LSD size differs. */}
+          <p className={`mt-[24px] text-center text-[#1f5a44] ${isLsd ? 'text-[29px] leading-[42px]' : 'text-[22px] leading-[33px]'}`} style={{ fontFamily: FONT_SERIF }} {...tx('Login to Continue')} />
           <p className="mt-[6px] text-center text-[13.5px] font-normal leading-[20.25px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Use your ITS credentials to access the portal')} />
           <div className="px-[15px]">{formFields}</div>
         </div>
@@ -173,7 +191,7 @@ export default function Login() {
         <div className="relative flex flex-1 flex-col items-center justify-center bg-[#fffdf8] px-[48px] py-[48px]">
           <LanguageToggle variant="light" className="absolute end-[24px] top-[20px]" />
           <div className="w-full max-w-[420px]">
-            <p className="text-center text-[26px] leading-[36px] text-[#1f5a44]" style={{ fontFamily: FONT_SERIF }} {...tx('Login to Continue')} />
+            <p className={`text-center text-[#1f5a44] ${isLsd ? 'text-[34px] leading-[47px]' : 'text-[26px] leading-[36px]'}`} style={{ fontFamily: FONT_SERIF }} {...tx('Login to Continue')} />
             <p className="mt-[8px] text-center text-[13.5px] font-normal leading-[20px] text-[#5a6660]" style={{ fontFamily: FONT_SANS }} {...tx('Use your ITS credentials to access the portal')} />
             {formFields}
           </div>

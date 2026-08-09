@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DevDock from './DevDock'
-import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake'
+import { detectByteDamage, isNfc, type ByteDamageFinding } from './mojibake'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
 import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type ScanHit } from '../i18n/domScan'
 import { REVIEW_TOOLS } from '../reviewTools'
@@ -116,7 +116,7 @@ function DictionaryPanelInner() {
   const [, force] = useState(0)
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
-  const [refused, setRefused] = useState<MojibakeFinding[]>([])
+  const [refused, setRefused] = useState<ByteDamageFinding[]>([])
   const [problem, setProblem] = useState('')
   const [queued, setQueued] = useState<string[]>([])
   const [named, setNamed] = useState(() => hasAuthor())
@@ -210,7 +210,7 @@ function DictionaryPanelInner() {
   }
 
   const commit = async (english: string) => {
-    const found = detectMojibake(draft)
+    const found = detectByteDamage(draft)
     if (found.length) { setRefused(found); return }
     // NFC is a normalisation difference, not damage — normalise rather than refuse, and say so.
     const value = isNfc(draft) ? draft : draft.normalize('NFC')

@@ -82,8 +82,8 @@ try {
     const cases = ['Ø§Ù„Ø´Ù‡Ø±', 'zone � name', 'Ã‰tage']
     const clean = ['‏اختيار الشهر', 'zone', '‏form بند تهيو چھے.']
     return {
-      refused: cases.map((c) => m.detectMojibake(c).length > 0),
-      accepted: clean.map((c) => m.detectMojibake(c).length === 0),
+      refused: cases.map((c) => m.detectByteDamage(c).length > 0),
+      accepted: clean.map((c) => m.detectByteDamage(c).length === 0),
     }
   })
   say(moji.refused.every(Boolean), `mojibake refused: UTF-8-as-latin1, U+FFFD, Ã-family (${moji.refused.filter(Boolean).length}/3)`)

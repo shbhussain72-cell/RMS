@@ -84,6 +84,19 @@ All positive.
 > It was not skipped: it addresses a layout this app does not have. If the shell ever changes so
 > the footer is `fixed`, or is lifted out of the flex column, the mechanism becomes correct again
 > — and `check:overlap` is what will say so, by failing.
+>
+> **And do not propose moving the sticky positioning onto `StickyFooter` or onto the `.sticky-cta`
+> class to "make it structural".** That was tried, and it unpinned every footer in the app. A
+> sticky element is constrained by its parent's box; the footer's parent is a wrapper of exactly
+> its own height — `w-full` from the shell, `sm:hidden` from the screens that dual-render — so it
+> gets zero travel and behaves as static. On `/roster` at 390 the footer's bottom edge measured
+> 1860px against an 833px viewport while `getComputedStyle` reported `sticky` throughout.
+> Stickiness has to live on an element whose parent is the tall container, which makes it the
+> shell's job and not the footer's. The instruction to make it structural was withdrawn by its
+> author after the test. See `docs/assertion-discipline.md`.
+>
+> Scoped content-inset inside the two desktop panels that genuinely need it is a different thing
+> and is applied — see §4.8-scoped below.
 
 What the class gets instead is an assertion, which also covers the `/preferred-city` clipped-
 buttons variant that padding would not have caught: `npm run check:overlap` walks **every route

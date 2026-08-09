@@ -76,6 +76,37 @@ loadEntries(raw)
 
 export const dictSize = (): number => ENTRIES.size
 
+/**
+ * Layer shared dictionary overrides on top of the generated wordlist, live.
+ *
+ * This is the same operation the HMR block at the bottom of this file performs for the local
+ * editor, exported so the SHARED editor can do it on a deployed build where `import.meta.hot`
+ * does not exist. Gated on REVIEW_TOOLS, so with the flag off it folds away with everything
+ * else that references it.
+ *
+ * ENTRIES is rebuilt from the generated payload every time and the overrides written over the
+ * top — never applied incrementally. Applying incrementally would make REMOVING an override a
+ * no-op, and a revert that silently does nothing is worse than no revert at all.
+ *
+ * `lsd.json` is not touched. It is generated from the .xlsx, the .xlsx is the source of truth,
+ * and an override is a proposal held in front of it until a human moves it into the sheet.
+ */
+export function applySharedOverrides(map: Record<string, string>): void {
+  if (!REVIEW_TOOLS) return
+  loadEntries(lastPayload)
+  for (const [english, lsd] of Object.entries(map ?? {})) {
+    const key = normKey(english)
+    // An empty value is a queued BLANK ROW, not a translation. Layering it would create an
+    // entry and flip the string from class C to class B1 in the coverage scan — reporting
+    // progress the wordlist has not made.
+    if (!key || typeof lsd !== 'string' || !lsd.trim()) continue
+    const prev = ENTRIES.get(key)
+    ENTRIES.set(key, { page: prev?.page ?? '', ...prev, lsd, staged: true })
+  }
+  dictVersion++
+  dictListeners.forEach((fn) => fn())
+}
+
 // Bumped when the dictionary is hot-swapped, so React re-renders with the new strings.
 let dictVersion = 0
 const dictListeners = new Set<() => void>()

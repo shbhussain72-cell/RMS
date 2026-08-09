@@ -6,7 +6,7 @@
     { "path": "/api/cron/sync-wordlist", "schedule": "0 2 * * *" }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

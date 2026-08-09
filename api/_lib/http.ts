@@ -136,3 +136,44 @@ export function newId(): string {
   } catch { /* fall through */ }
   return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 }
+
+/**
+ * The `fetch` Web Standard export, built from the method handlers a route already declares.
+ *
+ * ── WHY BOTH SHAPES ──────────────────────────────────────────────────────────────────
+ *
+ * Vercel's Node.js runtime documents two ways to write a function in `/api` for a project
+ * with no framework: `export default { fetch(request) {…} }`, and named method exports
+ * (`export function GET(request) {…}`). These routes carried only the second, written as
+ * `export const GET = handler(…)` — a const binding rather than the function declaration the
+ * documentation shows.
+ *
+ * Every deployed route answered `500 FUNCTION_INVOCATION_FAILED`, which Vercel defines as an
+ * uncaught exception, served as `text/plain`. It is not this code: the same module, bundled
+ * the same way and invoked locally, answers JSON on every path — 404 while `REVIEW_API` is
+ * unset, 500 with a JSON body when the store is missing, because `handler()` catches
+ * everything. A throw before the handler runs is a throw in the platform's invocation of it.
+ *
+ * So a route now exports BOTH: the named methods, and a default `{ fetch }` that dispatches
+ * to them. That is not belt-and-braces for its own sake — the shapes cannot disagree, because
+ * the default is built FROM the named exports rather than written a second time beside them.
+ * `api/_lib/routes.test.ts` calls both and asserts they answer identically.
+ *
+ * 405 is answered here rather than falling through, so an unsupported method gets JSON with a
+ * reason instead of whatever the platform would have produced.
+ */
+export function route(methods: Record<string, (request: Request) => Promise<Response>>): {
+  fetch: (request: Request) => Promise<Response>
+} {
+  return {
+    async fetch(request: Request): Promise<Response> {
+      const fn = methods[request.method.toUpperCase()]
+      if (!fn) {
+        return fail(405, `${request.method} is not allowed on this endpoint`, {
+          allowed: Object.keys(methods).sort(),
+        })
+      }
+      return fn(request)
+    },
+  }
+}

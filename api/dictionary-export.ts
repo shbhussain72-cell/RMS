@@ -15,7 +15,7 @@
  * importing a spreadsheet library is exactly the shape of leak that put the Remarks tool into
  * a production bundle once already.
  */
-import { handler, fail } from './_lib/http'
+import { fail, handler, route } from './_lib/http'
 import { currentOverrides } from './_lib/records'
 import { storeFromEnv } from './_lib/store'
 import generated from '../src/i18n/lsd.json'
@@ -68,3 +68,6 @@ export const GET = handler(async () => {
     },
   })
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ GET })

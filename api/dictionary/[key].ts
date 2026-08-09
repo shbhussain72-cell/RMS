@@ -21,7 +21,7 @@
  * corpus, because it is the only one a bad request cannot skip. Same detector as the editor
  * imports — one definition, not a copy that drifts.
  */
-import { handler, json, fail, readJson, str, optStr, oneOf, safeId, segmentAfter, newId, BadRequest } from '../_lib/http'
+import { BadRequest, fail, handler, json, newId, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http'
 import { appendRevision, decodeKey, history, type Revision } from '../_lib/records'
 import { storeFromEnv } from '../_lib/store'
 import { detectMojibake } from '../../src/dev/mojibake'
@@ -76,3 +76,6 @@ export const POST = handler(async (request) => {
   }
   return json({ revision }, 201)
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ GET, POST })

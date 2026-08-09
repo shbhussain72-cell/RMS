@@ -1,0 +1,12 @@
+# Files that must not be uploaded to the deployment.
+#
+# Vercel's documented way to keep a file in `api/` from becoming a Function is a DOT prefix —
+# not an underscore. `api/_lib/*.test.ts` therefore cannot be assumed safe by its directory
+# name: those files import vitest, which is a devDependency and is not installed in the
+# deployment, and a test file that becomes a public URL is a public URL that crashes.
+api/**/*.test.ts
+
+# NOTHING ELSE. `scripts/` and `docs/` look like obvious candidates and are not: the build
+# command runs `scripts/build-lsd-dict.mjs` and `scripts/check-dev-only.mjs`, so excluding
+# them breaks the deployment's build rather than trimming it. The `_lib` helpers are likewise
+# absent from this file — they are not routes, but every route imports them.

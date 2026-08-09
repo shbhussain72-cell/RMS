@@ -14,7 +14,7 @@
  *
  * The schedule is in `vercel.json`. The work is in `api/_lib/runSync.ts`; read its header first.
  */
-import { fail, handler, json } from '../_lib/http'
+import { fail, handler, json, route } from '../_lib/http'
 import { runSync } from '../_lib/runSync'
 
 export const GET = handler(async (request) => {
@@ -27,3 +27,6 @@ export const GET = handler(async (request) => {
   const { status, httpStatus } = await runSync({ trigger: 'cron', force: false })
   return json({ status }, httpStatus)
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ GET })

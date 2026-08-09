@@ -15,7 +15,7 @@
  * The perimeter is Vercel Deployment Protection, the same as every other endpoint here. This
  * is not an auth system and is not presented as one.
  */
-import { handler, json, readJson } from './_lib/http'
+import { handler, json, readJson, route } from './_lib/http'
 import { lastStatus, runSync } from './_lib/runSync'
 
 export const GET = handler(async () => json({ status: await lastStatus() }))
@@ -25,3 +25,6 @@ export const POST = handler(async (request) => {
   const { status, httpStatus } = await runSync({ trigger: 'manual', force: body.force === true })
   return json({ status, changed: status.updated.length + status.appended.length }, httpStatus)
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ GET, POST })

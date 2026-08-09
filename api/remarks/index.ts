@@ -6,7 +6,7 @@
  * the CLIENT's filter — if the server dropped them, the filter that brings them back would
  * have nothing to bring back, and the soft delete would be a hard one with extra steps.
  */
-import { handler, json, readJson, str, optStr, oneOf, safeId, newId } from '../_lib/http'
+import { handler, json, newId, oneOf, optStr, readJson, route, safeId, str } from '../_lib/http'
 import { createRemark, listRemarks, type SharedRemark } from '../_lib/records'
 import { storeFromEnv } from '../_lib/store'
 
@@ -36,3 +36,6 @@ export const POST = handler(async (request) => {
   }
   return json({ remark: await createRemark(storeFromEnv(), rec) }, 201)
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ GET, POST })

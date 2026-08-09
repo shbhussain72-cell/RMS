@@ -27,6 +27,17 @@ const ROOT = resolve(__dirname, '../..')
 const BOOK = new Uint8Array(readFileSync(resolve(ROOT, 'RMS_Mumineen_LSD_wordlist_v4.xlsx')))
 
 const same = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((v, i) => v === b[i])
+
+/**
+ * The wordlist grows — 1085 data rows when this suite was written, 106 more the week after.
+ * Absolute counts were a control and became a tripwire that fires on every legitimate
+ * translation batch. What actually matters is the RELATIONSHIP (a round trip loses nothing;
+ * an append adds exactly one), with a lower bound so the suite cannot pass on an empty sheet.
+ */
+const DATA_ROWS = (() => {
+  const wb = XLSX.read(BOOK, { type: 'array' })
+  return (XLSX.utils.sheet_to_json(wb.Sheets['Word List'], { defval: '', raw: false }) as unknown[]).length
+})()
 const sheetRows = (bytes: Uint8Array) => {
   const wb = XLSX.read(bytes, { type: 'array' })
   return XLSX.utils.sheet_to_json(wb.Sheets['Word List'], { defval: '', raw: false }) as Record<string, string>[]
@@ -44,8 +55,8 @@ describe('zip round trip', () => {
   })
 
   it('and the result still opens as a workbook', () => {
-    const rows = sheetRows(writeZip(readZip(BOOK)))
-    expect(rows.length).toBe(1085)
+    expect(DATA_ROWS).toBeGreaterThan(1000)          // control: the sheet is really populated
+    expect(sheetRows(writeZip(readZip(BOOK))).length).toBe(DATA_ROWS)
   })
 })
 
@@ -54,7 +65,7 @@ describe('reading the wordlist', () => {
 
   it('indexes every row by its normalised English key', () => {
     expect(wl.byKey.size).toBeGreaterThan(1000)
-    expect(wl.lastRow).toBe(1086)
+    expect(wl.lastRow).toBe(DATA_ROWS + 1)           // +1 for the header row
   })
 
   it('finds the ornamented keys under their stripped form', () => {
@@ -174,7 +185,7 @@ describe('appending a new key', () => {
     expect(patched.appended).toEqual([KEY])
     expect(patched.rowsAfter).toBe(patched.rowsBefore + 1)
     const rows = sheetRows(patched.bytes)
-    expect(rows.length).toBe(1086)
+    expect(rows.length).toBe(DATA_ROWS + 1)
     expect(rows.at(-1)?.['English name']).toBe(KEY)
   })
 
@@ -186,7 +197,7 @@ describe('appending a new key', () => {
 
   it('extends the dimension so the new row is inside the used range', () => {
     const xml = partText(findPart(readZip(patched.bytes), SHEET_PART)!)
-    expect(xml).toContain('<dimension ref="A1:F1087"')
+    expect(xml).toContain(`<dimension ref="A1:F${DATA_ROWS + 2}"`)   // header + data + the new row
   })
 
   it('does not renumber anything — the Read me cites rows 230, 231, 312, 457 and 500', () => {

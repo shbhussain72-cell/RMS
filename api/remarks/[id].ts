@@ -9,7 +9,7 @@
  * record so the loser of the race sees what they would have overwritten, rather than
  * overwriting it.
  */
-import { handler, json, fail, readJson, str, optStr, oneOf, safeId, segmentAfter } from '../_lib/http'
+import { fail, handler, json, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http'
 import { Conflict, NotFound, patchRemark } from '../_lib/records'
 import { storeFromEnv } from '../_lib/store'
 
@@ -32,3 +32,6 @@ export const PATCH = handler(async (request) => {
     throw err
   }
 })
+
+/** Both shapes, one source of truth — see `route` in `_lib/http.ts`. */
+export default route({ PATCH })

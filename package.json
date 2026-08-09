@@ -27,7 +27,8 @@
     "check:tour": "node scripts/check-tour.mjs",
     "check:overlap": "node scripts/check-overlap.mjs",
     "check:gate": "node scripts/check-gate.mjs",
-    "check:review": "node scripts/check-review-tools.mjs"
+    "check:review": "node scripts/check-review-tools.mjs",
+    "check:api": "node scripts/check-api-reachable.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.7.0",

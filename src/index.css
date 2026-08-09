@@ -505,13 +505,43 @@ html[data-lang='lsd'] .ix-slide:hover .ix-arrow:not(.rtl-keep) {
    ───────────────────────────────────────────────────────────── */
 :root { --ix-ease: cubic-bezier(.22, .68, .24, 1); }
 
-/* Action cards (large image-left) */
+/* Action cards (large image-left).
+ *
+ * The image-beside-content row is a CONTAINER decision, not a viewport one. It was
+ * `sm:flex-row`, i.e. "row from 640px up", and the cards sit in a `sm:grid-cols-2` grid: at
+ * 768 each card gets 341px and at 1024 it gets 460px, so the row layout was applied to a card
+ * that could not hold it. Binary-searching the card's own width (EN and LSD both) puts the
+ * minimum at 488px — a 228px image plus 260px of content. Below that the countdown block and
+ * the deadline line ran out through `overflow-clip` and were unreachable: 16 of the 26
+ * remaining layout findings, all of them this one card.
+ *
+ * A viewport breakpoint cannot express that, because the same card is ALSO rendered full-width
+ * when it is the only one in its section — where 768px is plenty. `@container` asks the
+ * question the layout actually depends on.
+ */
 .ix-card-lg {
+  container-type: inline-size;
   transition:
     transform .2s var(--ix-ease),
     box-shadow .2s var(--ix-ease),
     border-color .2s var(--ix-ease);
 }
+/* 488px = measured minimum for the row layout; see above.
+ *
+ * The direction is NOT switched here, and that is deliberate: an element cannot match a
+ * container query against itself — `container-type` makes an element a container for its
+ * DESCENDANTS. A `.ix-card-lg { flex-direction: row }` rule inside this block silently never
+ * applied, while the media rule below (a real descendant) did, leaving a 228px-wide image with
+ * zero height at 1440. Measured, not read off the stylesheet.
+ *
+ * So the card is `flex-wrap` and the media width alone decides the layout: at 228px the two
+ * children fit one line and the card reads as a row; below the threshold the media is `w-full`,
+ * takes the whole line, and the content wraps under it. One property, no self-query.
+ */
+@container (min-width: 488px) {
+  .ix-card-media { height: auto; width: 228px; }
+}
+
 .ix-card-lg:hover {
   transform: translateY(-3px);
   box-shadow: 0 26px 52px -26px rgba(15, 70, 50, .3);

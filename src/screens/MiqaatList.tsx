@@ -419,11 +419,11 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
       role="button"
       tabIndex={0}
       onClick={goDetail}
-      className={`ix-card-lg relative flex w-full cursor-pointer flex-col overflow-clip rounded-[18px] border border-solid bg-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)] sm:flex-row ${urgent ? 'ix-urgent border-[#d4af5a]' : 'border-[#ece4d2]'}`}
+      className={`ix-card-lg relative flex w-full cursor-pointer flex-wrap overflow-clip rounded-[18px] border border-solid bg-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)] ${urgent ? 'ix-urgent border-[#d4af5a]' : 'border-[#ece4d2]'}`}
     >
       {urgent && <div className="ix-urgent-bar absolute inset-x-0 top-0 z-[3] h-[4px]" />}
       {/* Image with Raza-status pill */}
-      <div className="relative h-[172px] w-full shrink-0 overflow-hidden sm:h-auto sm:w-[228px]">
+      <div className="ix-card-media relative h-[172px] w-full shrink-0 overflow-hidden">
         <img src={cardImage(m)} alt="" onError={onImgError} className="ix-zoom absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(13,40,28,0.30) 0%, rgba(13,40,28,0) 46%)' }} />
         {/* The status pill sits over the card photo, which is outside the RTL content
@@ -650,9 +650,9 @@ function RequestedCard({ m, request, wide = false }: { m: DisplayMiqaat; request
       role="button"
       tabIndex={0}
       onClick={() => nav(`/miqaats/${m.id}`)}
-      className="ix-card-lg relative flex w-full cursor-pointer flex-col overflow-clip rounded-[18px] border border-solid border-[#ece4d2] bg-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)] sm:flex-row"
+      className="ix-card-lg relative flex w-full cursor-pointer flex-wrap overflow-clip rounded-[18px] border border-solid border-[#ece4d2] bg-white shadow-[0px_6px_22px_-8px_rgba(21,64,47,0.18),0px_2px_8px_-4px_rgba(21,64,47,0.1)]"
     >
-      <div className="relative h-[172px] w-full shrink-0 overflow-hidden sm:h-auto sm:w-[228px]">
+      <div className="ix-card-media relative h-[172px] w-full shrink-0 overflow-hidden">
         <img src={cardImage(m)} alt="" onError={onImgError} className="ix-zoom absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(13,40,28,0.30) 0%, rgba(13,40,28,0) 46%)' }} />
         {/* The status pill sits over the card photo, which is outside the RTL content

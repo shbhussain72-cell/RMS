@@ -15,10 +15,13 @@
  * importing a spreadsheet library is exactly the shape of leak that put the Remarks tool into
  * a production bundle once already.
  */
-import { fail, handler, route } from './_lib/http'
-import { currentOverrides } from './_lib/records'
-import { storeFromEnv } from './_lib/store'
-import generated from '../src/i18n/lsd.json'
+import { fail, handler, route } from './_lib/http.js'
+import { currentOverrides } from './_lib/records.js'
+import { storeFromEnv } from './_lib/store.js'
+// `with { type: 'json' }` is not decoration: package.json says "type": "module", so this
+// file is ESM at runtime and Node REFUSES a JSON module without the attribute
+// (ERR_IMPORT_ATTRIBUTE_MISSING). Bundlers do not need it and will not miss it.
+import generated from '../src/i18n/lsd.json' with { type: 'json' }
 
 interface Entry { lsd?: string; page?: string }
 const DICT = generated as unknown as Record<string, Entry>

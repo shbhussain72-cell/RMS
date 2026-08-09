@@ -9,9 +9,9 @@
  * record so the loser of the race sees what they would have overwritten, rather than
  * overwriting it.
  */
-import { fail, handler, json, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http'
-import { Conflict, NotFound, patchRemark } from '../_lib/records'
-import { storeFromEnv } from '../_lib/store'
+import { fail, handler, json, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http.js'
+import { Conflict, NotFound, patchRemark } from '../_lib/records.js'
+import { storeFromEnv } from '../_lib/store.js'
 
 export const PATCH = handler(async (request) => {
   const raw = segmentAfter(request, 'remarks')

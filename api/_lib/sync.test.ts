@@ -18,9 +18,9 @@ import * as XLSX from 'xlsx'
 import {
   SHARED_STRINGS_PART, SHEET_PART, STYLES_PART,
   patchWordlist, readWordlist, strayCells, verifyPatch,
-} from './wordlistXlsx'
-import { findPart, partBytes, partText, readZip, replacePart, writeZip } from './zip'
-import { CHANGE_LIMIT, planSync } from './syncPlan'
+} from './wordlistXlsx.js'
+import { findPart, partBytes, partText, readZip, replacePart, writeZip } from './zip.js'
+import { CHANGE_LIMIT, planSync } from './syncPlan.js'
 import { bakedValue, isSentinel } from '../../src/i18n/wordlistNorm.mjs'
 
 const ROOT = resolve(__dirname, '../..')

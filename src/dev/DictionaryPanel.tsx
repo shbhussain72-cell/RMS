@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DevDock from './DevDock'
-import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake'
+import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake.mjs'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
 import { SCANNER_IGNORE_ATTR, classifyDetail, inventoryDom, type HitClassDetail, type InventoryResult } from '../i18n/domScan'
 import { REVIEW_TOOLS } from '../reviewTools'

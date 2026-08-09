@@ -14,8 +14,8 @@
  * This file sits in `api/_lib/`, and Vercel ignores `_`-prefixed paths, so it is not deployed.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
-import { __setStoreForTests, memoryStore } from './store'
-import { appendRevision, currentOverrides, decodeKey, encodeKey, history } from './records'
+import { __setStoreForTests, memoryStore } from './store.js'
+import { appendRevision, currentOverrides, decodeKey, encodeKey, history } from './records.js'
 
 const ORIGIN = 'https://review.example'
 const req = (method: string, path: string, body?: unknown, headers: Record<string, string> = {}) =>
@@ -46,10 +46,10 @@ beforeEach(() => {
 })
 
 // Imported after the seam exists so the handlers pick up the injected store on every call.
-const remarksApi = () => import('../remarks/index')
-const remarkApi = () => import('../remarks/[id]')
-const dictApi = () => import('../dictionary/index')
-const dictKeyApi = () => import('../dictionary/[key]')
+const remarksApi = () => import('../remarks/index.js')
+const remarkApi = () => import('../remarks/[id].js')
+const dictApi = () => import('../dictionary/index.js')
+const dictKeyApi = () => import('../dictionary/[key].js')
 
 describe('the flag', () => {
   it('makes every endpoint a 404 when it is off', async () => {

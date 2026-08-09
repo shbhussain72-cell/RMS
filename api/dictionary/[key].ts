@@ -21,10 +21,10 @@
  * corpus, because it is the only one a bad request cannot skip. Same detector as the editor
  * imports — one definition, not a copy that drifts.
  */
-import { BadRequest, fail, handler, json, newId, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http'
-import { appendRevision, decodeKey, history, type Revision } from '../_lib/records'
-import { storeFromEnv } from '../_lib/store'
-import { detectMojibake } from '../../src/dev/mojibake'
+import { BadRequest, fail, handler, json, newId, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http.js'
+import { appendRevision, decodeKey, history, type Revision } from '../_lib/records.js'
+import { storeFromEnv } from '../_lib/store.js'
+import { detectMojibake } from '../../src/dev/mojibake.mjs'
 
 function keyOf(request: Request): string {
   const raw = segmentAfter(request, 'dictionary')

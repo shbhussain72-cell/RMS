@@ -58,11 +58,11 @@
  * Every one is returned to the caller AND written to the status record, so it surfaces in the
  * editor rather than only in a log nobody opens.
  */
-import { GitHubError, getFile, putFile, repoFromEnv } from './github'
-import { currentOverrides } from './records'
-import { storeFromEnv } from './store'
-import { planSync } from './syncPlan'
-import { patchWordlist, readWordlist, verifyPatch } from './wordlistXlsx'
+import { GitHubError, getFile, putFile, repoFromEnv } from './github.js'
+import { currentOverrides } from './records.js'
+import { storeFromEnv } from './store.js'
+import { planSync } from './syncPlan.js'
+import { patchWordlist, readWordlist, verifyPatch } from './wordlistXlsx.js'
 
 /** Where the last run's outcome lives, so the editor can show it without re-running anything. */
 export const STATUS_PATH = 'sync/last.json'

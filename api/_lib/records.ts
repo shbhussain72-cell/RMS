@@ -16,7 +16,7 @@
  * conflict is reported to the human with both values and both authors, and nothing is
  * merged or discarded on their behalf.
  */
-import { AlreadyExists, PreconditionFailed, type Store } from './store'
+import { AlreadyExists, PreconditionFailed, type Store } from './store.js'
 
 // ── remarks ──────────────────────────────────────────────────────────────────────────
 

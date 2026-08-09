@@ -25,14 +25,16 @@
  * purpose (RLM/LRM and the isolates), Arabic presentation forms, and Latin loanwords inside an
  * LSD string. All four are legitimate content here and every one of them would trip a naive
  * "is this ASCII" check.
+ *
+ * -- WHY THIS IS PLAIN .mjs AND NOT .ts ----------------------------------------------
+ *
+ * Same reason as `src/i18n/wordlistNorm.mjs`, and the types are hand-written beside it in
+ * `mojibake.d.mts` for the same reason. Two of the three consumers are Vercel Functions
+ * (`api/dictionary/[key].ts` and `api/_lib/syncPlan.ts`), and a Function may only import a
+ * file that is loadable AS UPLOADED. Whether Vercel transpiles a .ts reached from outside
+ * `api/` is not something this repo can observe or pin; a .mjs needs no transpile at all,
+ * so the question stops being asked. `scripts/check-api-load.mjs` enforces it.
  */
-
-/** One reason a value was refused. `sample` is the offending fragment, for the message. */
-export interface MojibakeFinding {
-  kind: 'replacement-char' | 'utf8-as-latin1' | 'lone-surrogate'
-  sample: string
-  detail: string
-}
 
 /**
  * The trailing half of a mis-decoded UTF-8 pair, as it SURFACES.
@@ -52,8 +54,8 @@ const TRAIL = '[\u0080-\u00BF\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2
  */
 const UTF8_AS_LATIN1 = new RegExp(`[\u00C2-\u00DF]${TRAIL}`)
 
-export function detectMojibake(value: string): MojibakeFinding[] {
-  const out: MojibakeFinding[] = []
+export function detectMojibake(value) {
+  const out = []
   const s = String(value ?? '')
 
   const fffd = s.indexOf('�')
@@ -94,7 +96,7 @@ export function detectMojibake(value: string): MojibakeFinding[] {
 
   // `isWellFormed` is ES2024 and present in the browsers this runs in; the regex covers the
   // rest and is what the node-side check uses.
-  const wellFormed = (s as unknown as { isWellFormed?: () => boolean }).isWellFormed
+  const wellFormed = s.isWellFormed
   const broken = typeof wellFormed === 'function'
     ? !wellFormed.call(s)
     : /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(s)
@@ -110,7 +112,7 @@ export function detectMojibake(value: string): MojibakeFinding[] {
 }
 
 /** Normalisation check, kept separate: NFC is a fixable authoring detail, not damage. */
-export function isNfc(value: string): boolean {
+export function isNfc(value) {
   const s = String(value ?? '')
   return s.normalize('NFC') === s
 }

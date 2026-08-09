@@ -15,8 +15,8 @@
  * The perimeter is Vercel Deployment Protection, the same as every other endpoint here. This
  * is not an auth system and is not presented as one.
  */
-import { handler, json, readJson, route } from './_lib/http'
-import { lastStatus, runSync } from './_lib/runSync'
+import { handler, json, readJson, route } from './_lib/http.js'
+import { lastStatus, runSync } from './_lib/runSync.js'
 
 export const GET = handler(async () => json({ status: await lastStatus() }))
 

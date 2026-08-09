@@ -7,7 +7,7 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened nine times in this repo, in nine different places, to nine different
+This has now happened ten times in this repo, in ten different places, to ten different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
@@ -22,8 +22,11 @@ assert:
 - **9 — the wrong world.** The assertion was about the outcome, it ran, it was pointed at the
   right file, and it was evaluated under settings production does not use. *A probe must run in
   the configuration that ships, not in the one the repo would prefer.*
+- **10 — the wrong verb.** Same file, same settings, and the check performed a WEAKER operation
+  than production does. Resolving is not importing. *A probe must do the thing that fails, not
+  the thing next to it.*
 
-## The nine worked examples
+## The ten worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -318,6 +321,50 @@ API one lib-level above the root's must be rejected (a check that cannot fail is
 Grepping api/ for `.at(` was the tempting fix and is example 3 again: it passes on `Object.hasOwn`,
 `findLast`, `toSorted`, error `cause`, and whatever ES2025 adds next. The compiler already knows
 the whole list. Ask it.
+
+### 10. Three green checks and every Function dead at module load
+
+**Mechanism asserted:** "the modules resolve."
+**Outcome wanted:** "Node can import the Function."
+
+Every route answered FUNCTION_INVOCATION_FAILED. The runtime log said the same thing seven
+times: `ERR_MODULE_NOT_FOUND: Cannot find module '/var/task/api/_lib/…'`. `package.json` says
+`"type": "module"`, so what Vercel emits is ESM, and ESM will not guess an extension —
+`'../_lib/http'` is not a path. Vercel does not bundle these files, it transpiles each one in
+place and hands the result to Node's loader, so the specifier is used verbatim.
+
+Three checks were green over it, and none of them was wrong:
+
+- `tsc` **resolves** modules. It does not import them, and under `moduleResolution: "bundler"`
+  it is explicitly resolving the way a bundler would.
+- `check:api-target` **compiles**. Example 9 fixed which compiler; a compile is still not a load.
+- `routes.test.ts` **imports every route and passes** — through vitest, whose resolver is Vite's,
+  which fills in the extension, maps `.js` onto `.ts`, and inlines JSON. It is the bundler the
+  tsconfig is named after.
+
+That third one is the sharp bit. It really does call `import()` on all seven routes, which reads
+exactly like the assertion that was missing. The verb was right and the runtime was not.
+
+Two more failures were behind the first, and only the load found them: a Function importing
+`src/dev/mojibake.ts`, a TypeScript file outside `api/` that nothing was going to compile for it,
+and `import generated from '../src/i18n/lsd.json'`, which Node refuses in ESM without
+`with { type: 'json' }`. Fixing only the extensions would have moved the error, not removed it.
+
+**Fix:** `check:api-load` builds the deployment's layout — `api/**` transpiled in place, `src/**`
+copied verbatim, the real `package.json` — and imports each route with Node's own loader,
+requiring a callable `fetch` back. `mojibake` became plain `.mjs` with hand-written `.d.mts`
+types, the shape `src/i18n/wordlistNorm.mjs` already had for the same reason.
+
+Two details worth keeping. The model refuses to compile anything under `src/`, because whether
+Vercel's TypeScript handling reaches outside `api/` is not observable from here — assuming it
+does not is the only assumption that cannot fail in the direction that matters. And the staging
+transpiler is `typescript`, not `esbuild`: the esbuild in `node_modules` is Vite's transitive
+0.21.5, which silently drops `with { type: 'json' }`, so the model would have contradicted the
+source in exactly the construct under test, on a version this repo does not pin.
+
+**The rule:** *perform the operation that fails.* A check that resolves where production
+imports, or reads where production parses, is not a weaker version of the right check — it is a
+check of something else that happens to be nearby.
 
 ### Related: source that is load-bearing and invisible
 

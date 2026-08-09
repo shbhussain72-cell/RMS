@@ -14,8 +14,8 @@
  *
  * The schedule is in `vercel.json`. The work is in `api/_lib/runSync.ts`; read its header first.
  */
-import { fail, handler, json, route } from '../_lib/http'
-import { runSync } from '../_lib/runSync'
+import { fail, handler, json, route } from '../_lib/http.js'
+import { runSync } from '../_lib/runSync.js'
 
 export const GET = handler(async (request) => {
   const secret = process.env.CRON_SECRET

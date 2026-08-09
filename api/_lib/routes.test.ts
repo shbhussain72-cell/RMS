@@ -25,13 +25,21 @@
  *
  * ── WHAT IT DOES NOT CLAIM ───────────────────────────────────────────────────────────
  *
- * That the deployment works. Nothing local can assert that; `npm run check:api` fetches the
- * deployed URL and asserts the response is JSON, and it is the only thing that can.
+ * That the deployment works. `npm run check:api` fetches the deployed URL and asserts the
+ * response is JSON, and it is the only thing that can.
+ *
+ * In particular it does NOT claim the modules RESOLVE on Vercel, and it once read as though it
+ * did. The `import()` below goes through vitest, whose resolver is Vite's: it fills in a
+ * missing extension, maps `.js` to `.ts`, and inlines JSON. Node's ESM loader does none of
+ * those. So every route here passed while every route on the deployment died at module load
+ * with ERR_MODULE_NOT_FOUND. `npm run check:api-load` is the suite that asks Node instead, by
+ * building the deployment's layout and importing out of it; this one is about export SHAPE and
+ * behaviour, and the two are not substitutes.
  */
 import { readdirSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { __setStoreForTests, memoryStore } from './store'
+import { __setStoreForTests, memoryStore } from './store.js'
 
 const API_DIR = resolve(__dirname, '..')
 

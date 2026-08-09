@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "npm run build:lsd && vite",
-    "build": "npm run build:lsd && npm run check:lsd && npm run check:api-target && tsc -b && vite build && node scripts/check-dev-only.mjs",
+    "build": "npm run build:lsd && npm run check:lsd && npm run check:api-target && npm run check:api-load && tsc -b && vite build && node scripts/check-dev-only.mjs",
     "preview": "vite preview",
     "audit:lsd": "node scripts/audit-lsd.mjs --write",
     "shoot": "npm run build && node scripts/shoot.mjs",
@@ -30,6 +30,7 @@
     "check:review": "node scripts/check-review-tools.mjs",
     "check:api": "node scripts/check-api-reachable.mjs",
     "check:api-target": "node scripts/check-api-target.mjs",
+    "check:api-load": "node scripts/check-api-load.mjs",
     "check:coldload": "node scripts/check-cold-load.mjs"
   },
   "dependencies": {

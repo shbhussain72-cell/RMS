@@ -6,9 +6,9 @@
  * the CLIENT's filter — if the server dropped them, the filter that brings them back would
  * have nothing to bring back, and the soft delete would be a hard one with extra steps.
  */
-import { handler, json, newId, oneOf, optStr, readJson, route, safeId, str } from '../_lib/http'
-import { createRemark, listRemarks, type SharedRemark } from '../_lib/records'
-import { storeFromEnv } from '../_lib/store'
+import { handler, json, newId, oneOf, optStr, readJson, route, safeId, str } from '../_lib/http.js'
+import { createRemark, listRemarks, type SharedRemark } from '../_lib/records.js'
+import { storeFromEnv } from '../_lib/store.js'
 
 export const GET = handler(async () => json(await listRemarks(storeFromEnv())))
 

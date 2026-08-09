@@ -13,10 +13,10 @@
  * chain is decoding wrongly, and the other values in the same batch came through the same
  * chain. Skipping it would commit the rest and hide the signal.
  */
-import { detectMojibake } from '../../src/dev/mojibake'
+import { detectMojibake } from '../../src/dev/mojibake.mjs'
 import { bakedValue, isSentinel, normKey } from '../../src/i18n/wordlistNorm.mjs'
-import type { Revision } from './records'
-import type { Edit, Wordlist } from './wordlistXlsx'
+import type { Revision } from './records.js'
+import type { Edit, Wordlist } from './wordlistXlsx.js'
 
 /** Above this share of the sheet changing in one run, a human has to say so explicitly. */
 export const CHANGE_LIMIT = 0.2

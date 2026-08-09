@@ -43,7 +43,7 @@
  * an append, so the font travels with the value rather than being restated here.
  */
 import { isSentinel, normKey } from '../../src/i18n/wordlistNorm.mjs'
-import { findPart, partBytes, partText, readZip, replacePart, writeZip, type ZipEntry } from './zip'
+import { findPart, partBytes, partText, readZip, replacePart, writeZip, type ZipEntry } from './zip.js'
 
 export const SHEET_PART = 'xl/worksheets/sheet1.xml'
 export const STYLES_PART = 'xl/styles.xml'

@@ -10,3 +10,12 @@ api/**/*.test.ts
 # command runs `scripts/build-lsd-dict.mjs` and `scripts/check-dev-only.mjs`, so excluding
 # them breaks the deployment's build rather than trimming it. The `_lib` helpers are likewise
 # absent from this file — they are not routes, but every route imports them.
+#
+# The pattern above was suspected of catching those helpers when every route started failing
+# with ERR_MODULE_NOT_FOUND on `/var/task/api/_lib/…`. It does not, and this was measured
+# rather than argued: evaluated under gitignore semantics it matches api/_lib/api.test.ts,
+# routes.test.ts and sync.test.ts, and nothing else — http.ts, records.ts, store.ts, github.ts,
+# runSync.ts, syncPlan.ts, wordlistXlsx.ts and zip.ts all upload. `**` needs a path segment to
+# stand for, and `*.test.ts` still has to match the filename.
+#
+# The real cause was the import specifiers, not this file. See scripts/check-api-load.mjs.

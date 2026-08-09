@@ -5,9 +5,9 @@
  * lives at /api/dictionary/:key, because a reviewer wants the current wordlist here and the
  * story of one string there.
  */
-import { handler, json, route } from '../_lib/http'
-import { currentOverrides } from '../_lib/records'
-import { storeFromEnv } from '../_lib/store'
+import { handler, json, route } from '../_lib/http.js'
+import { currentOverrides } from '../_lib/records.js'
+import { storeFromEnv } from '../_lib/store.js'
 
 export const GET = handler(async () => json({ overrides: await currentOverrides(storeFromEnv()) }))
 

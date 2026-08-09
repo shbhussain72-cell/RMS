@@ -206,10 +206,15 @@ const PROBE = () => {
   /**
    * Nearest fixed/sticky ancestor of `el`, itself included, or null.
    *
-   * The definition of "this is an intentional overlay" for BOTH the overlap test and the
-   * occlusion test. It was written out twice, in one of them only, which is how the same
-   * sticky footer came to be exempt when it covered text and a failure when it covered a
-   * button.
+   * DECLARED intent only, and kept solely as the fallback for when the measured test below
+   * cannot run (nothing on the page is scrollable, so nothing can be observed to stay put).
+   * On its own it was wrong in both directions:
+   *
+   *   - a footer declaring `position: sticky` inside a wrapper of its own height has zero
+   *     travel and behaves as static, and was still granted the exemption;
+   *   - four desktop panels mount a footer that IS pinned — it is the last `shrink-0` child of
+   *     a full-height flex column — and were refused the exemption `/roster` gets for the
+   *     identical arrangement, which sent a whole session after a fix that did not exist.
    */
   const layerOf = (el) => {
     for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
@@ -217,6 +222,54 @@ const PROBE = () => {
       if (pos === 'fixed' || pos === 'sticky') return p
     }
     return null
+  }
+
+  /**
+   * Does `el` stay put when the thing it lives in scrolls?
+   *
+   * This is the OUTCOME form of "is it an intentional overlay": an overlay is a thing that
+   * stays where it is while the page moves under it. Measured, not read off a CSS property —
+   * see docs/assertion-discipline.md.
+   *
+   * Scoped to elements already implicated in a finding, and grouped by scroller, so a page
+   * costs a handful of scroll operations rather than one per candidate. `scrollingElement`
+   * covers the window; the desktop layouts pin page height and scroll an inner panel instead,
+   * and a footer that is a SIBLING of that panel is anchored precisely because scrolling the
+   * panel does not move it.
+   */
+  const anchoredCache = new Map()
+  const scrollerFor = (el) => {
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const st = getComputedStyle(p)
+      if ((st.overflowY === 'auto' || st.overflowY === 'scroll') && p.scrollHeight > p.clientHeight + 4) return p
+    }
+    const de = document.scrollingElement || document.documentElement
+    return de.scrollHeight > de.clientHeight + 4 ? de : null
+  }
+  const isAnchored = (el) => {
+    if (anchoredCache.has(el)) return anchoredCache.get(el)
+    const sc = scrollerFor(el)
+    let verdict
+    if (!sc) {
+      // Nothing to scroll — the measurement is unavailable, so fall back to the declaration
+      // rather than guessing. `detail` records which of the two answered.
+      verdict = { anchored: !!layerOf(el), measured: false }
+    } else {
+      const before = el.getBoundingClientRect()
+      const y = sc.scrollTop
+      const delta = Math.min(120, sc.scrollHeight - sc.clientHeight - y) || -Math.min(120, y)
+      sc.scrollTop = y + delta
+      const after = el.getBoundingClientRect()
+      sc.scrollTop = y
+      verdict = { anchored: Math.abs(after.top - before.top) <= 2, measured: true }
+    }
+    anchoredCache.set(el, verdict)
+    return verdict
+  }
+  const overlayVerdict = (...els) => {
+    const vs = els.map(isAnchored)
+    const win = vs.find((v) => v.anchored)
+    return { anchored: !!win, measured: vs.every((v) => v.measured) }
   }
 
   // ── overlapping interactive elements ──────────────────────────────────────
@@ -231,17 +284,16 @@ const PROBE = () => {
       const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left)
       const oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top)
       if (ox > 4 && oy > 4) {
-        // Same exemption as OVERLAY, same rule, same walk: if EITHER element sits in a
-        // fixed/sticky layer then one is deliberately passing over the other, and this is a
-        // record rather than a defect. Written as a shared helper so the two measurements
-        // cannot drift apart again.
-        const layer = layerOf(a) || layerOf(b)
+        // Same exemption as the occlusion test, same helper: if EITHER element stays put when
+        // its container scrolls, one is deliberately passing over the other and this is a
+        // record rather than a defect.
+        const v = overlayVerdict(a, b)
         out.push({
-          kind: layer ? 'OVERLAP-OVERLAY' : 'OVERLAP',
+          kind: v.anchored ? 'OVERLAP-OVERLAY' : 'OVERLAP',
           where: `${describe(a)} ∩ ${describe(b)}`,
-          detail: layer
-            ? `${Math.round(ox)}x${Math.round(oy)}px overlap, one side inside ${getComputedStyle(layer).position} layer ${describe(layer)}`
-            : `${Math.round(ox)}x${Math.round(oy)}px overlap`,
+          detail: `${Math.round(ox)}x${Math.round(oy)}px overlap` +
+            (v.anchored ? `, one side stays put while its container scrolls` : '') +
+            (v.measured ? '' : ' [declared, not measured — nothing scrollable here]'),
         })
       }
     }
@@ -292,13 +344,14 @@ const PROBE = () => {
     // pointer-events:none and its parent answers for it.
     if (hit === te || te.contains(hit) || hit.contains(te)) continue
 
-    const layer = layerOf(hit)
+    const v = overlayVerdict(hit)
     out.push({
-      kind: layer ? 'OVERLAY' : 'OCCLUDED',
+      kind: v.anchored ? 'OVERLAY' : 'OCCLUDED',
       where: `${describe(hit)} over ${describe(te)}`,
-      detail: layer
-        ? `occluder inside ${getComputedStyle(layer).position} layer ${describe(layer)}`
-        : `in-flow occluder at (${x},${y})`,
+      detail: (v.anchored
+        ? `occluder stays put while its container scrolls`
+        : `occluder scrolls with the page at (${x},${y})`) +
+        (v.measured ? '' : ' [declared, not measured — nothing scrollable here]'),
       text: (te.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40),
     })
   }

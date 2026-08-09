@@ -119,7 +119,7 @@ Every suite in `scripts/`, against the rule above. Run 2026-08-09.
 | `check-numerals`, `check-lsd-clip`, `check-bidi` | rendered text content and rendered box geometry. |
 | `check-mirror` (weekday, breadcrumb) | reading order from rects; which `<path>` is painted, compared between the two languages. |
 
-## Asserts a declaration — three found
+## Asserts a declaration — three found, one since fixed
 
 ### 1. `check-remarks` — `unicode-bidi: isolate` (line 328)
 
@@ -135,27 +135,30 @@ concatenated the runs into one text node.
 **Mitigated, not fixed:** `check-bidi` asserts the outcome (no text node mixes scripts without
 isolation) across every route. The pair is sound; the declaration test alone is not.
 
-### 2. `check-layout`'s `layerOf`, and the same walk in `check-overlap`
+### 2. `check-layout`'s `layerOf` — FIXED
 
-```js
-if (pos === 'fixed' || pos === 'sticky') return p
-```
+Was: the fixed/sticky **exemption** decided by `getComputedStyle(...).position`. Now: decided by
+whether the occluder **stays put when the thing it lives in scrolls**, which is what "intentional
+overlay" actually means. Scoped to elements already implicated in a finding and grouped by
+scroller, so a page costs a handful of scroll operations rather than one per candidate.
 
-The fixed/sticky **exemption** is decided by the declaration. This is now known to be wrong in
-both directions:
+**Result: 147 raw / 40 failing, unchanged. Zero kind flips.** 132 of the 147 are now decided by
+measurement; 107 of those measure as anchored and are correctly log-only.
 
-- **False exempt.** A footer declaring `position: sticky` that has zero travel — the exact bug
-  above — is still granted the exemption while it covers nothing and pins nothing.
-- **False failure.** The four desktop panels (Araz, AddPeople, ArrangeCities, Review) mount a
-  footer that *is* pinned in behaviour, because it is the last `shrink-0` child of a full-height
-  flex column. `layerOf` finds no fixed/sticky ancestor and refuses them the exemption that
-  `/roster` gets for the identical arrangement. That misclassification is what sent the previous
-  session after a fix that did not exist.
+The 15 that could not be measured are the interesting part, and they are *exactly* the group I
+claimed last session was misclassified — `/araz` and `/people` at 768–1440. Nothing on those pages
+scrolls: the desktop layout pins page height, and the members table overflows its panel **without
+being clipped**, so there is no scroller anywhere in the ancestry. They fall back to the
+declaration, and the fallback is labelled in `detail` rather than hidden:
 
-**Not changed.** The outcome form — "does this element stay put while the page scrolls" — is what
-`check-overlap`'s PINNED test now measures, and reusing it inside `check-layout` means scrolling
-per candidate occluder, which is a real cost on 250 visits. Recorded here as the known limit of
-that classification rather than silently carried.
+    ..., 90x21px overlap [declared, not measured — nothing scrollable here]
+
+**And the fallback's verdict is right.** I had called these false failures. They are not: with no
+scroll available anywhere, content under the footer is unreachable by any means, which is strictly
+worse than a sticky overlay you can scroll out from under. `OVERLAP`, failing, is correct.
+
+That is the third time a remote diagnosis of this symptom did not survive measurement — this time
+it was mine.
 
 ### 3. `widths.test.mjs` — imports, not sweeps
 

@@ -25,15 +25,34 @@
  * before. The primitives must be a no-op there, and this is where that is guaranteed.
  */
 import { useT } from '../i18n/index'
-import { Ltr, formatGregorian, formatGregorianText, formatHijri, formatTime, parseDateLabel } from './Bidi'
+import { Iso, Ltr, formatGregorian, formatGregorianText, formatHijri, formatHijriText, formatTime, parseDateLabel } from './Bidi'
 import { notLanguage } from './NotLanguage'
 
 /**
  * `Fri, 26 Jun 2026` → `يوم الجمعة، 26 Jun 2026 ﴿١٠ شهر محرم الحرام ١٤٤٨ھ﴾`
  *
- * The ornate brackets sit OUTSIDE both isolates, in the RTL flow. That is what keeps them on
- * the correct ends: a bracket is a neutral character, so if it were inside the Gregorian
- * isolate it would take that run's LTR direction and mirror to the wrong side.
+ * The brackets must stay OUT of the GREGORIAN isolate: a bracket is a neutral character, so
+ * inside that run it would take its LTR direction and mirror to the wrong side.
+ *
+ * They must equally not be left loose in the paragraph, which is what they were. Bare text
+ * nodes are line-break opportunities, so on any card narrow enough to wrap the date the
+ * closing bracket broke onto a line of its own — measured on /miqaats at 390 and 1440 in LSD,
+ * five cards, each rendering `... يوم الاحد` and then a solitary bracket below it.
+ *
+ * So the bracketed Hijri half becomes ONE unit: its own isolate, holding both brackets and
+ * the inner Hijri isolate, and non-wrapping. The isolate resolves RTL from its own Arabic
+ * content, which is what puts each bracket on its correct end; `nowrap` is what keeps them
+ * attached to the date. The line can still break BEFORE the group — this pins ~130px, not
+ * the whole line, which is the distinction that made `whitespace-nowrap` wrong on the row
+ * itself (see DateTimeRow in MiqaatList).
+ *
+ * `formatHijriText`, NOT `formatHijri`. The element form returns its own <bdi>, and a nested
+ * isolate is opaque to the parent's direction resolution — it counts as a neutral object, so
+ * an outer <bdi> holding `bracket + isolate + bracket` sees NO strong character at all and
+ * falls back to LTR. Measured: that rendered the group as `﴿date﴾`, the brackets inside-out,
+ * the exact defect being fixed. Passing the Arabic as text keeps the strong characters visible
+ * to the isolate, it resolves RTL, and the brackets land on their correct ends. One isolate,
+ * one direction, no nesting.
  */
 export function DateLine({ value, hijri = true }: { value: string; hijri?: boolean }) {
   const { isLsd, t, lang } = useT()
@@ -49,9 +68,8 @@ export function DateLine({ value, hijri = true }: { value: string; hijri?: boole
       {formatGregorian(parsed.date, lang)}
       {hijri ? (
         <>
-          {' ﴿'}
-          {formatHijri(parsed.date, lang)}
-          {'﴾'}
+          {' '}
+          <Iso className="whitespace-nowrap">{'﴿' + formatHijriText(parsed.date, lang) + '﴾'}</Iso>
         </>
       ) : null}
     </>

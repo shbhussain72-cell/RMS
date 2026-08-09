@@ -448,7 +448,10 @@ function RegisteredCard({ m, confirmedCityName, confirmedZoneName, wide = false,
 
           <div className={`mt-[14px] flex items-center justify-between gap-[10px] ${wide ? 'sm:justify-start sm:gap-[16px]' : ''}`}>
             <p className="text-[11px] font-bold uppercase leading-[14px] tracking-[0.7px] text-[#9aa1a8]" style={{ fontFamily: FONT_SANS }} {...tx(selLabel)} />
-            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }} data-numeric><DeadlineLine value={dateText} compact /></p>
+            {/* `data-numeric` REMOVED — DeadlineLine composes weekday + date + time across
+                three separately-directioned parts, so the same forced LTR that broke the
+                hero date applies here too. See the hero date row below. */}
+            <p className="whitespace-nowrap text-[13px] leading-[14px]" style={{ fontFamily: FONT_SANS, fontWeight: 700, color: '#c0392b' }}><DeadlineLine value={dateText} compact /></p>
           </div>
 
           <div className="mt-[8px]">
@@ -564,7 +567,7 @@ function UpcomingRow({ m, onAskHelp }: { m: DisplayMiqaat; onAskHelp?: (init: As
               <span className="size-[7px] rounded-full" style={{ background: accent }} />
               <span className="whitespace-nowrap" style={{ fontWeight: 800, color: accent }} data-numeric>{dLeft}</span>
             </div>
-            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }} data-numeric><DeadlineLine value={dateText} /></p>
+            <p className="mt-[3px] text-[12px] leading-[16px] text-[#8a938e]" style={{ fontFamily: FONT_SANS, fontWeight: 500 }}><DeadlineLine value={dateText} /></p>
           </div>
         </div>
         <div className="flex flex-col gap-[10px] sm:w-auto sm:shrink-0 sm:gap-[8px]">
@@ -752,7 +755,7 @@ function IdentityHeader() {
 
 function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayMiqaat; confirmedCityName?: string; confirmedZoneName?: string }) {
   const nav = useNavigate()
-  const { tx, td, isLsd } = useT()
+  const { tx, td, isLsd, dirProps } = useT()
   const setActiveMiqaat = useStore((s) => s.setActiveMiqaat)
   // Same rule as the cards: Arrange My Cities comes before Select City (see useCard).
   const cityArranged = useStore((s) => !!journeyFor(s.flow, s.registrations, m.id).cityArrangement)
@@ -860,11 +863,20 @@ function AsharaBanner({ m, confirmedCityName, confirmedZoneName }: { m: DisplayM
         <div className="mb-[12px] flex flex-wrap items-center gap-x-[20px] gap-y-[5px] sm:gap-x-[22px]">
           <div className="flex items-center gap-[8px]">
             <img src={DATE_RANGE} alt="" className="size-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric><DateLine value={m.dateLabel} /></span>
+            {/* `data-numeric` REMOVED, and `whitespace-nowrap` with it — same reasons as
+                DateTimeRow above, which this hero row is the one copy of that never got them.
+                The attribute sets `direction: ltr` on the whole element, and DateLine composes
+                a weekday, an LTR Gregorian isolate, and a bracketed Hijri isolate. Forcing
+                the base direction LTR laid those out left-to-right, which put the Arabic
+                weekday at the visual start and turned the ornate brackets inside-out — a
+                bracket is a NEUTRAL character, so it takes its side from the base direction
+                and not from the run it encloses. Asserted by scripts/check-brackets.mjs.
+                Each part already declares its own direction; the element must not override it. */}
+            <span className="text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} {...dirProps}><DateLine value={m.dateLabel} /></span>
           </div>
           <div className="flex items-center gap-[8px]">
             <img src={SCHEDULE} alt="" className="size-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} data-numeric {...td(m.timeLabel)} />
+            <span className="whitespace-nowrap text-[13px] leading-[18px] text-white" style={{ fontFamily: FONT_SANS, fontWeight: 400 }} {...dirProps}><TimeLine value={m.timeLabel} /></span>
           </div>
         </div>
 

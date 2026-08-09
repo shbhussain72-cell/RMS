@@ -91,6 +91,26 @@ export const dictSize = (): number => ENTRIES.size
  * `lsd.json` is not touched. It is generated from the .xlsx, the .xlsx is the source of truth,
  * and an override is a proposal held in front of it until a human moves it into the sheet.
  */
+/**
+ * The value the BUILD baked for this key, from the generated payload — never from `ENTRIES`.
+ *
+ * `ENTRIES` is what the app is currently rendering, and `applySharedOverrides` writes into
+ * it. Reading the baseline from there would compare an override against itself, so every
+ * override would look merged the instant it was applied and would be retired immediately —
+ * the exact opposite failure to never retiring, and just as silent.
+ */
+export function baselineValue(english: string): string | undefined {
+  if (!REVIEW_TOOLS) return undefined
+  const payload = (lastPayload ?? {}) as Record<string, unknown>
+  const key = normKey(english)
+  for (const [k, v] of Object.entries(payload)) {
+    if (k === '//') continue
+    if (normKey(k) !== key) continue
+    return v && typeof v === 'object' ? String((v as { lsd?: string }).lsd ?? '') : undefined
+  }
+  return undefined
+}
+
 export function applySharedOverrides(map: Record<string, string>): void {
   if (!REVIEW_TOOLS) return
   loadEntries(lastPayload)

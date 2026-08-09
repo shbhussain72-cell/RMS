@@ -39,6 +39,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import * as XLSX from 'xlsx'
+import { SENTINELS, bakedValue, normKey } from '../src/i18n/wordlistNorm.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -68,73 +69,15 @@ const EN_COL = 'English name'
 const LSD_COL = 'LSD name'
 const PAGE_COL = 'Page'
 
-/**
- * Decorative Arabic ornaments that keep getting pasted onto the END of English keys when
- * the sheet is edited — U+06DE ۞ is the recurring one (it is a real glyph in the app's
- * Login divider, so it travels with copy/paste). An ornament in the ENGLISH column is
- * always an artifact: it makes the key unmatchable, so `ITS ID۞` silently stops resolving
- * and the string renders English forever.
- *
- * Stripped here rather than hand-cleaned in Excel, because hand-cleaning has now been
- * undone twice by a later revision of the sheet. Only the English key is scrubbed — LSD
- * values legitimately contain these glyphs and are never touched.
- */
-const KEY_ORNAMENTS = /[۞۩﴾﴿]/g
 
 /**
- * Lookup-key normalisation: strip ornaments, collapse whitespace runs, trim.
- * Never lowercase — casing is meaningful in the wordlist (LIVE, OPTIONAL, RAZA STATUS).
+ * SENTINELS, KEY_ORNAMENTS, `normKey` and `bakedValue` now live in
+ * `src/i18n/wordlistNorm.mjs` — see that file for why. They are imported rather than
+ * declared here because the shared review store has to compare a live override against the
+ * value THIS script baked, and a second copy of the baking rule would drift the moment
+ * either side changed. Re-exported so existing importers of this module keep working.
  */
-const normKey = (v) => String(v ?? '').replace(KEY_ORNAMENTS, '').replace(/\s+/g, ' ').trim()
-/**
- * LSD values are trimmed, then given an explicit base direction.
- *
- * A value that mixes Arabic with Latin or digits ("register كرو", "العشرة المباركة 1448ھ",
- * "﴿3﴾ اْگل ودھو") has NEUTRAL characters at its edges — brackets, digits, punctuation.
- * The Unicode bidi algorithm resolves those from the surrounding paragraph, so the same
- * string renders differently depending on what wraps it: a trailing "؟" or a "﴿…﴾" pair
- * jumps to the wrong end, and a leading Latin word drags the line the wrong way.
- *
- * The translator already prefixes most values with U+200F RIGHT-TO-LEFT MARK for exactly
- * this reason — but only 240 of ~300 mixed values had it, which is why some strings looked
- * right and others didn't. Adding it here makes every value behave identically no matter
- * where it is rendered.
- *
- * This is presentation only: RLM is a zero-width formatting character. No word, letter or
- * bracket is altered, and a value that already carries a directional mark is left alone.
- */
-const RLM = '‏'
-const hasArabicScript = (s) => /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/.test(s)
-const startsWithMark = (s) => /^[‎‏؜⁦-⁩]/.test(s)
-
-const normVal = (v) => {
-  const s = String(v ?? '').trim()
-  if (!s || startsWithMark(s)) return s
-  // Only mixed-script values need the hint; pure Arabic and pure Latin are unambiguous.
-  const mixed = hasArabicScript(s) && /[A-Za-z0-9]/.test(s)
-  return mixed ? RLM + s : s
-}
-
-/**
- * SENTINELS — words a wordlist owner writes in an LSD cell to say something ABOUT the
- * string rather than to translate it.
- *
- * The only one so far is `remove`. It is not Lisan al-Dawat for anything; it is an
- * instruction.
- *
- * ⚠️  A sentinel must NEVER reach `lsd.json` as a value. It did, briefly, and that is a
- * whole class of bug: every consumer that reads `entry.lsd` — the renderer, the coverage
- * scanner, the audit script, any future export — would have to know the sentinel list and
- * special-case it, and the first one that forgot would print the English word "remove" to a
- * user as though it were copy. Recognising it HERE, once, at the boundary where the
- * spreadsheet becomes data, means nothing downstream can get it wrong.
- *
- * A sentinel row is therefore emitted as an EMPTY value plus a `sentinel` tag: empty means
- * "no usable LSD copy", which the runtime already handles by falling back to English, and
- * the tag is what lets the report distinguish "nobody has translated this yet" from
- * "somebody deliberately wrote an instruction here that we have not acted on".
- */
-export const SENTINELS = new Set(['remove'])
+export { SENTINELS }
 
 /**
  * Classify one raw LSD cell.
@@ -148,7 +91,7 @@ export function classifyValue(raw) {
   const trimmed = String(raw ?? '').trim()
   const token = trimmed.toLowerCase()
   if (SENTINELS.has(token)) return { value: '', sentinel: token }
-  return { value: normVal(trimmed), sentinel: null }
+  return { value: bakedValue(trimmed), sentinel: null }
 }
 
 

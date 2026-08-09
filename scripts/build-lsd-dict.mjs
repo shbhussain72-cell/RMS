@@ -40,6 +40,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import * as XLSX from 'xlsx'
 import { SENTINELS, bakedValue, normKey } from '../src/i18n/wordlistNorm.mjs'
+import { normaliseKanz } from '../src/i18n/kanzNorm.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -85,13 +86,36 @@ export { SENTINELS }
  * Split out as a pure function so the sentinel rule is unit-testable without a spreadsheet
  * — see scripts/build-lsd-dict.test.mjs.
  *
- * @returns {{ value: string, sentinel: string|null }}
+ * ── KANZ NORMALISATION HAPPENS HERE, AND IT IS PRESENTATION ONLY ─────────────────────
+ *
+ * The spreadsheet still holds Kanz keyboard output on 189 rows. `normaliseKanz` converts it
+ * on the way into the dictionary so the app renders Unicode, while the .xlsx keeps whatever
+ * the wordlist owner typed. Same shape as the RLM prefix `bakedValue` adds: the generated
+ * file differs from the cell deliberately, and the cell stays the source of truth.
+ *
+ * ⚠️ THIS IS DELIBERATELY LESS CONSERVATIVE THAN THE ONE-OFF REPAIR.
+ *
+ * `scripts/repair-kanz.ts` rewrote a word only where its decoding was attested elsewhere in
+ * the sheet, and held 221 occurrences it could not prove. This does not — it converts every
+ * pair it finds, those 221 included. That is the right trade in each direction:
+ *
+ *   · rewriting the owner's only copy of the corpus on an unproven guess is not recoverable,
+ *     so the repair had to be able to say "I do not know";
+ *   · rendering the app in the wrong encoding IS recoverable — rerun this script — and the
+ *     alternative is shipping `اْثثنا` to a reader.
+ *
+ * The consequence to know about: a held word renders converted in the app while its ruling is
+ * still open. `docs/kanz-unattested.md` is generated from the spreadsheet and not from here,
+ * so no ruling is ever silently pre-empted by this.
+ *
+ * @returns {{ value: string, sentinel: string|null, kanz: Array<{doubled: string, single: string, count: number}> }}
  */
 export function classifyValue(raw) {
   const trimmed = String(raw ?? '').trim()
   const token = trimmed.toLowerCase()
-  if (SENTINELS.has(token)) return { value: '', sentinel: token }
-  return { value: bakedValue(trimmed), sentinel: null }
+  if (SENTINELS.has(token)) return { value: '', sentinel: token, kanz: [] }
+  const kanz = normaliseKanz(trimmed)
+  return { value: bakedValue(kanz.value), sentinel: null, kanz: kanz.changes }
 }
 
 

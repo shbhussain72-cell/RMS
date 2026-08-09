@@ -22,6 +22,7 @@ import {
 import { findPart, partBytes, partText, readZip, replacePart, writeZip } from './zip'
 import { CHANGE_LIMIT, planSync } from './syncPlan'
 import { bakedValue, isSentinel } from '../../src/i18n/wordlistNorm.mjs'
+import { kanzNormalised } from '../../src/i18n/kanzNorm.mjs'
 
 const ROOT = resolve(__dirname, '../..')
 const BOOK = new Uint8Array(readFileSync(resolve(ROOT, 'RMS_Mumineen_LSD_wordlist_v4.xlsx')))
@@ -338,8 +339,12 @@ describe('the sync reads the wordlist the way the build does', () => {
         if (!isSentinel(row.value)) disagreements.push(`${key}: build says sentinel, sync reads "${row.value}"`)
         continue
       }
-      if (bakedValue(row.value) !== (entry.lsd ?? '')) {
-        disagreements.push(`${key}: build has "${entry.lsd}", sync reads "${bakedValue(row.value)}"`)
+      // Both sides through the SAME conversion the build applies. `readWordlist` deliberately
+      // returns the RAW cell — that is what keeps "reads the same values SheetJS reads" above
+      // an honest test of the XML parser — so the Kanz step is applied here, at the comparison,
+      // exactly where `planSync` applies it before deciding a value is already merged.
+      if (bakedValue(kanzNormalised(row.value)) !== (entry.lsd ?? '')) {
+        disagreements.push(`${key}: build has "${entry.lsd}", sync reads "${bakedValue(kanzNormalised(row.value))}"`)
       }
     }
     expect(disagreements.slice(0, 10)).toEqual([])

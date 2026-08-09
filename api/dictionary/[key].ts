@@ -24,7 +24,7 @@
 import { BadRequest, fail, handler, json, newId, oneOf, optStr, readJson, route, safeId, segmentAfter, str } from '../_lib/http'
 import { appendRevision, decodeKey, history, type Revision } from '../_lib/records'
 import { storeFromEnv } from '../_lib/store'
-import { detectMojibake } from '../../src/dev/mojibake'
+import { detectByteDamage } from '../../src/dev/mojibake'
 
 function keyOf(request: Request): string {
   const raw = segmentAfter(request, 'dictionary')
@@ -52,7 +52,7 @@ export const POST = handler(async (request) => {
   // the spreadsheet, and a blank override would read as "translated to nothing".
   const value = kind === 'new-row' ? '' : str(body, 'value', 2000)
 
-  const findings = detectMojibake(value)
+  const findings = detectByteDamage(value)
   if (findings.length) {
     return fail(422, 'the value looks like mis-decoded text and was not saved', {
       findings: findings.map((f) => ({ kind: f.kind, sample: f.sample, detail: f.detail })),

@@ -128,26 +128,6 @@ export function detectByteDamage(value: string): ByteDamageFinding[] {
   return out
 }
 
-/**
- * ⚠️ MIGRATION SHIM — the old name, kept ONLY so `api/` keeps compiling.
- *
- * Two call sites still use it: `api/dictionary/[key].ts` and `api/_lib/syncPlan.ts`. Both are
- * owned by another session and were out of scope for this change, so they could not be renamed
- * in the same commit that split the classes.
- *
- * It is an alias, not a second implementation — there is one function and it has one verdict,
- * which is the property that mattered. But the old name is the name that meant BOTH classes,
- * and leaving it reachable is how "detect mojibake" starts meaning "reject Kanz input" again.
- *
- * TO FINISH: point those two files at `detectByteDamage`, add the `normaliseKanz` call the
- * sync's write path is missing (see `src/i18n/kanzNorm.mjs`), and delete this export.
- *
- * @deprecated Use `detectByteDamage`. Class B is `normaliseKanz` in `src/i18n/kanzNorm.mjs`.
- */
-export const detectMojibake = detectByteDamage
-/** @deprecated Use `ByteDamageFinding`. */
-export type MojibakeFinding = ByteDamageFinding
-
 /** Normalisation check, kept separate: NFC is a fixable authoring detail, not damage. */
 export function isNfc(value: string): boolean {
   const s = String(value ?? '')

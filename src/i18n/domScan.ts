@@ -340,6 +340,48 @@ export interface InventoryResult {
 const forMatch = (s: string): string =>
   s.replace(/[\u200e\u200f]/g, '').replace(/\s+/g, ' ').trim()
 
+/**
+ * The nearest element whose `lang` marks IT as a translated string — never the document.
+ *
+ * `applyRootLang` puts `lang="gu-Arab"` on <html> so the PAGE is in LSD. That is the same
+ * attribute and the same value `tx()` puts on a translated NODE, and `closest()` cannot tell
+ * a document-level claim from a string-level one: in LSD it never returns null, so every text
+ * node with no nearer marker resolved to the root and adopted `documentElement.textContent` —
+ * the whole page, plus the dev server's injected <script> source — as its key. One row, every
+ * string on the route inside it, and nothing a reviewer could edit.
+ *
+ * Measured on /miqaats/ashara-1448/people before this existed: 128 visible text nodes, 108 of
+ * them owned by <html>, 27 rows, the first holding 87 nodes under a 172,923-character key.
+ * The same route in Master: 96 nodes, none owned, 79 rows. Two languages disagreeing by 52
+ * rows on one page is the shape of the bug.
+ */
+/**
+ * A single node's text, attributed as best the dictionary allows.
+ *
+ * The reverse index is consulted on the NODE's own text and not only on an owner element's,
+ * because most translated text on a page has no element of its own to carry the marker:
+ * `t()` and `tdText()` return a bare string, so their output lands in whatever JSX the call
+ * site already had. Measured on /miqaats/ashara-1448/people in LSD: one row in eighty-seven
+ * reached its English key, and forty-two were keyed by their own Arabic — a row a reviewer
+ * can read and cannot edit, because the thing the editor writes is the English key.
+ *
+ * Two keys sharing one translation collapse to whichever the index saw first. That is why
+ * `via` is on every hit: an attribution a reviewer can see the provenance of is arguable, and
+ * one they cannot is just wrong.
+ */
+const attributeWith = (byValue: Map<string, string>) => (text: string): { english: string; via: Attribution } => {
+  const mapped = byValue.get(forMatch(text))
+  return mapped ? { english: mapped, via: 'reverse-lookup' } : { english: text, via: 'identity' }
+}
+
+const stringOwner = (start: HTMLElement): HTMLElement | null => {
+  for (let a: HTMLElement | null = start; a; a = a.parentElement) {
+    if (a === document.documentElement || a === document.body) return null
+    if (a.getAttribute?.('lang') === LSD_BCP47) return a
+  }
+  return null
+}
+
 export function inventoryDom(root: ParentNode = document.body): InventoryResult {
   // Rebuilt per scan rather than cached: an override applied since the last pass changes what a
   // value maps back to, and a stale index would attribute a row to the string it used to hold.
@@ -349,6 +391,8 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
     if (v && !byValue.has(v)) byValue.set(v, e.english)
   }
 
+  const attribute = attributeWith(byValue)
+
   const excluded = { skipTag: 0, ignored: 0, notLanguage: 0, blank: 0 }
   /** english -> hit under construction. Merged here so one value split across nodes is one row. */
   const byKey = new Map<string, InventoryHit>()
@@ -357,7 +401,10 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
   const walker = document.createTreeWalker(root as Node, NodeFilter.SHOW_TEXT)
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     const rendered = (n.nodeValue ?? '').replace(/\s+/g, ' ').trim()
-    if (!rendered) { excluded.blank++; continue }
+    // `forMatch` and not `trim` alone: `isolateRuns` leaves nodes holding nothing but an RLM,
+    // which is not whitespace, so they survived as a row keyed by an invisible character —
+    // an empty line in the tab that a reviewer cannot click, read or explain.
+    if (!forMatch(rendered)) { excluded.blank++; continue }
     const el = (n as Text).parentElement
     if (!el || !el.isConnected) { excluded.blank++; continue }
 
@@ -380,7 +427,7 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
     // never find the rendered form, and the identity fallback would file a class-C gap for a
     // string that changes every second and can never have a row of its own.
     const keyed = el.closest?.(`[${KEY_ATTR}]`)
-    const owner = el.closest?.(`[lang="${LSD_BCP47}"]`)
+    const owner = stringOwner(el)
     let english: string
     let via: Attribution
     let shown = rendered
@@ -392,12 +439,18 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
       // The whole element's text, not this node's: `isolateRuns` splits a value with a Latin
       // loanword into several nodes, and three fragments of one translation are not three
       // strings a reviewer can act on.
-      shown = (owner.textContent || rendered).replace(/\s+/g, ' ').trim()
-      english = byValue.get(forMatch(shown)) ?? shown
-      via = byValue.has(forMatch(shown)) ? 'reverse-lookup' : 'identity'
+      //
+      // ONLY while that whole text is a value the dictionary knows. A miss does not mean "an
+      // untranslated string" — it means this element is a CONTAINER holding several of them,
+      // which `dirProps` produces on any element whose text comes from elsewhere. Adopting a
+      // container's text made every node under it one row, keyed by their concatenation. So a
+      // miss falls back to this node's own text, which is what Master does for all of them.
+      const whole = (owner.textContent || rendered).replace(/\s+/g, ' ').trim()
+      const mapped = byValue.get(forMatch(whole))
+      if (mapped) { shown = whole; english = mapped; via = 'reverse-lookup' }
+      else ({ english, via } = attribute(rendered))
     } else {
-      english = rendered
-      via = 'identity'
+      ({ english, via } = attribute(rendered))
     }
 
     const prev = byKey.get(english)
@@ -406,7 +459,10 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
     byKey.set(english, {
       english,
       rendered: shown,
-      translated: via !== 'identity' || Boolean(owner),
+      // Came out of the dictionary. `data-lsd-key` alone does not say that — `tx()` stamps it
+      // on an interpolated MISS too, and that node is still English under `lang="en"`.
+      translated: via === 'reverse-lookup'
+        || (via === 'data-lsd-key' && keyed?.getAttribute('lang') === LSD_BCP47),
       detail: detailOf(entry),
       count: 1,
       where: describe(n as Text),

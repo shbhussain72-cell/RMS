@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened eleven times in this repo, in eleven different places, to eleven
+This has now happened twelve times in this repo, in twelve different places, to twelve
 different kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-The last four are variants worth naming separately, because none is fixed by watching what you
+The last five are variants worth naming separately, because none is fixed by watching what you
 assert:
 
 - **7 — the wrong subject.** The assertion was about the outcome, it was correct, and it was
@@ -28,8 +28,11 @@ assert:
 - **11 — the wrong unit.** The assertion was true, every measurement under it was exact, and the
   subject had been mis-divided one layer upstream, so all of it was about something that was not
   a word. *When a check consults a corpus, the tokenisation of that corpus is part of the check.*
+- **12 — the inverted assertion.** Not weak: inverted. The worse the defect got, the more
+  certainly the check passed, because the check tested for CONTAINMENT and the defect was
+  over-collapse. *An assertion that the fault makes more likely to pass is not a check.*
 
-## The eleven worked examples
+## The twelve worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -417,6 +420,59 @@ only under one way of asking, are all the same signal. And if a combining mark, 
 mark you did not think about can fall outside your character class, it will — write the class
 from the codepoints the data actually contains, not from the ones the script is named after.
 
+### 12. "Every rendered string is in the Page list" — 0 unaccounted, one row on the page
+
+**Mechanism asserted:** that every string on the page was *contained somewhere* in the list.
+**Outcome wanted:** that every string on the page had a row a person could edit.
+
+The Page tab in LSD rendered one row holding the whole route as a run-on string —
+`مرتضى…ENLSD2ENLSD2MBITS ID…` — and no editable field. Master was fine.
+
+`inventoryDom` merges the fragments of one translated value into one row by finding the text
+node's nearest `[lang="gu-Arab"]` ancestor, because `isolateRuns` splits a value carrying a
+Latin loanword across several nodes. But `applyRootLang` puts `lang="gu-Arab"` on `<html>` so
+the PAGE is in LSD — the same attribute, the same value, a completely different claim. In LSD
+`closest()` therefore never returns null. Every node with no nearer marker resolved to the
+root and adopted `documentElement.textContent`: the whole page, the dev server's injected
+`<script>` source included. Measured on `/miqaats/ashara-1448/people`: 128 visible text nodes,
+108 owned by `<html>`, 27 rows, the first holding 87 nodes under a **172,923-character key**.
+The same route in Master: 96 nodes, none owned, 79 rows.
+
+**`check-dictionary` had two assertions pointed straight at this, and both were green.**
+
+    say(r.unaccounted === 0, 'every rendered string is in the Page list')
+    say(r.inventory > r.gapScan, 'the inventory lists more than the gap scan')
+
+Coverage was computed as `covered.some((c) => c === t || c.includes(t))`. A row containing the
+entire page contains every string on it. `unaccounted` was 0 **because of** the defect, not in
+spite of it — and it would have stayed 0 if the merge had collapsed the page into one row on
+every route in the app. The second assertion needed only 27 > 8.
+
+This is the part worth naming. The other eleven are checks that could not SEE their failure.
+This one was driven the wrong way by it: the more nodes wrongly merged into one row, the
+longer that row's text, and the more certainly every string was "contained". Testing a
+superset property against a defect that produces supersets is not a weak test — the arrow
+points backwards, and no amount of care about what you assert will notice, because the
+sentence in the log is true.
+
+**Fix, in two parts.** The scan stops at `<html>`/`<body>` — a document-level language marker
+is not a claim about any string — and a reverse-lookup miss falls back to the node's own text
+instead of adopting a container's. Then, because most translated text has no element of its
+own to carry a marker (`t()` and `tdText()` return bare strings), the reverse index is
+consulted on the node's own text too: reverse-lookups on that route went 1 → 29 and rows keyed
+by their own Arabic — unreadable to an editor that writes English keys — went 42 → 17.
+
+And the check is bounded from the other side: **no row's key may be longer than the longest key
+in the wordlist**, both numbers read from `lsd.json` at run time rather than written down. On
+the unfixed scan that fails instantly at 172,923 > 164. Restoring the old merge under the new
+check turns 0 failing assertions into 6 — including the coverage assertion, which now fails at
+89 unaccounted on the same code that reported 0.
+
+**The rule:** *ask which direction the fault pushes the assertion.* If a bigger fault makes the
+check more likely to pass, the check is measuring the fault's by-product. Every containment,
+"at least N", and "is a superset of" test needs a bound on the other side, and the bound has to
+come from the data rather than from a number that makes today's page pass.
+
 ### Related: source that is load-bearing and invisible
 
 Not an assertion failure, but the same family as the stale notice in example 5 — correct today,
@@ -498,6 +554,7 @@ Each one substituted something *upstream* of the user-visible effect:
 | the login-page pass | that the page was healthy | that the page was the one asked for |
 | the silent skip | nothing, in a line that reads like output | that the assertion ran at all |
 | the sukun tokeniser | that the lookup succeeded | that the token looked up was a word |
+| the Page tab | that every string was contained somewhere | that every string had a row of its own |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.

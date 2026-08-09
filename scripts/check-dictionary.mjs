@@ -233,11 +233,36 @@ try {
   // checked by an independent walk that knows nothing about the dictionary. A hit covers a text
   // node when its `rendered` IS that text or contains it: `isolateRuns` splits one translated
   // value across several nodes, and three fragments of one string are one row, not three.
+  //
+  // ── WHY COVERAGE ALONE IS NOT ENOUGH, AND WHY THIS CHECK WAS GREEN ON A DEAD TAB ────
+  //
+  // `c.includes(t)` cannot fail for a row that holds the whole page. In LSD the scan resolved
+  // every unmarked node's owner to <html> — which carries `lang="gu-Arab"` because the PAGE is
+  // in LSD — and adopted `documentElement.textContent` as one row's key: 87 of 128 nodes in a
+  // single 172,923-character row, the dev server's injected <script> source inside it, and
+  // nothing editable. Coverage was 0 unaccounted. It was 0 BECAUSE of the defect: the more
+  // the merge over-collapses, the more certainly every string is "contained" somewhere.
+  //
+  // An assertion whose satisfaction grows with the fault is not a weak assertion, it is an
+  // inverted one. So coverage is now bounded from the other side: a row may only be as long
+  // as the longest thing the dictionary actually holds. Both numbers are measured from
+  // `lsd.json` at run time rather than written down, so they follow the wordlist.
+  const BOUNDS = await page.evaluate(async () => {
+    const { allEntries } = await import('/src/i18n/index.tsx')
+    let key = 0, value = 0
+    for (const e of allEntries()) {
+      key = Math.max(key, (e.english || '').length)
+      value = Math.max(value, (e.lsd || '').length)
+    }
+    return { key, value }
+  })
+  say(BOUNDS.key > 0 && BOUNDS.value > 0,
+    `the dictionary reports its own bounds (longest key ${BOUNDS.key}, longest value ${BOUNDS.value})`)
   const RECON_ROUTES = ['/miqaats', '/miqaats/ashara-1448', '/miqaats/ashara-1448/people']
   for (const route of RECON_ROUTES) {
     await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded' })
     await waitForApp(page)
-    const r = await page.evaluate(async () => {
+    const r = await page.evaluate(async (bounds) => {
       const scan = await import('/src/i18n/domScan.ts')
       const inv = scan.inventoryDom()
       const gaps = scan.scanDom()
@@ -258,8 +283,14 @@ try {
         for (let a = el; a; a = a.parentElement) if (SKIP.has(a.tagName)) { skipTag = true; break }
         if (skipTag) continue
         if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') continue
-        if (!covered.some((c) => c === t || c.includes(t))) unaccounted.push(t.slice(0, 70))
+        // Containment only counts from a row that is a plausible SIZE for a row. Without the
+        // bound this loop credits a row holding the entire page with covering all of it.
+        if (!covered.some((c) => c === t || (c.length <= bounds.value && c.includes(t)))) {
+          unaccounted.push(t.slice(0, 70))
+        }
       }
+      const longest = inv.hits.reduce((a, h) => (h.english.length > a.english.length ? h : a),
+        { english: '', rendered: '', count: 0, via: '' })
       return {
         inventory: inv.hits.length,
         gapScan: gaps.hits.length,
@@ -268,8 +299,11 @@ try {
         unaccounted: unaccounted.length,
         examples: unaccounted.slice(0, 5),
         byVia: inv.hits.reduce((acc, h) => { acc[h.via] = (acc[h.via] ?? 0) + 1; return acc }, {}),
+        longestKey: longest.english.length,
+        longestKeySample: longest.english.slice(0, 60),
+        longestKeyCount: longest.count,
       }
-    })
+    }, BOUNDS)
     say(r.unaccounted === 0,
       `${route}: every rendered string is in the Page list (${r.inventory} rows for ${r.visible} visible nodes`
       + `, gap scan alone found ${r.gapScan})${r.unaccounted ? ` — ${r.unaccounted} unaccounted: ${JSON.stringify(r.examples)}` : ''}`)
@@ -278,6 +312,13 @@ try {
     // being a gap list under a different name.
     say(r.inventory > r.gapScan,
       `${route}: the inventory lists more than the gap scan (${r.inventory} vs ${r.gapScan}) — attribution ${JSON.stringify(r.byVia)}`)
+    // ONE DICTIONARY KEY PER ROW. A key longer than the longest key in the wordlist is not a
+    // key — it is several strings merged, and the editor has nothing to write it back to.
+    say(r.longestKey <= BOUNDS.key,
+      `${route}: no row is bigger than a dictionary key (longest ${r.longestKey} <= ${BOUNDS.key})`
+      + (r.longestKey > BOUNDS.key
+        ? ` — ${r.longestKeyCount} node(s) merged under ${JSON.stringify(r.longestKeySample)}…`
+        : ''))
   }
 
   await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })

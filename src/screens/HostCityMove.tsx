@@ -915,7 +915,7 @@ function MoveSidebarCard({
               </button>
             )}
           </div>
-          <div className="mt-[12px] grid grid-cols-3 gap-[10px]">
+          <div className="mt-[12px] grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px]">
             {preferredCities.map((c) => (
               <MoveCityGridCard key={c.id} city={c} selected={c.id === activeCityId} added={addedOf(c.id)} onClick={() => onSelectCity(c.id === activeCityId ? null : c)} />
             ))}
@@ -1014,7 +1014,7 @@ function RelayCityAccordionList({ cities, search, activeCityId, addedOf, onSelec
               </span>
             </button>
             {isOpen && (
-              <div className="grid grid-cols-3 gap-[10px] border-t border-[#e7dfc9] p-[10px]">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px] border-t border-[#e7dfc9] p-[10px]">
                 {matches.map((c) => (
                   <MoveCityGridCard key={c.id} city={c} selected={c.id === activeCityId} added={addedOf(c.id)} onClick={() => onSelectCity(c.id === activeCityId ? null : c)} />
                 ))}

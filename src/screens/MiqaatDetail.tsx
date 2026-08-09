@@ -58,12 +58,12 @@ function SectionHeading({ label }: { label: string }) {
           zero width and disappears entirely. Flipping the inset without flipping the gradient
           is the mirror image of that bug: the fade would run outward from the centre instead
           of into it. */}
-      <div className="absolute start-0 end-1/2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r rtl:bg-gradient-to-l from-[#e3cd96] to-[rgba(227,205,150,0)]" />
+      <div className="pointer-events-none absolute start-0 end-1/2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r rtl:bg-gradient-to-l from-[#e3cd96] to-[rgba(227,205,150,0)]" />
       <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center text-[16px] uppercase leading-[18px] tracking-[2.5px] text-[#a8843e]"
         style={{ fontFamily: MUL, fontWeight: 700 }}
         {...tx(label)}
       />
-      <div className="absolute start-1/2 end-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r rtl:bg-gradient-to-l from-[rgba(227,205,150,0)] to-[#e3cd96]" />
+      <div className="pointer-events-none absolute start-1/2 end-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r rtl:bg-gradient-to-l from-[rgba(227,205,150,0)] to-[#e3cd96]" />
     </div>
   )
 }

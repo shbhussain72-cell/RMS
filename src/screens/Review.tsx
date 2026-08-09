@@ -130,8 +130,13 @@ function EditButton({ onClick }: { onClick: () => void }) {
 
 function StatTile({ value, numColor, line1, line2 }: { value: number; numColor: string; line1: string; line2: string }) {
   return (
-    <div className="relative h-[82px] flex-1 overflow-clip rounded-[8px] border border-solid border-[#e7dfc9] bg-[#fffdf8]">
-      <div className="absolute start-0 end-0 top-1/2 mx-auto flex w-[64px] -translate-y-1/2 flex-col items-center gap-[2px] text-center">
+    /* min-w-[85px]: the widest label is "Headcount" at 73px (EN; 66px LSD), plus the 12px of
+       padding below. The row wraps rather than shrinking past it — three tiles share ~215px at
+       768, which is 67px each, and the label was sheared by the tile's own overflow-clip. */
+    <div className="relative h-[82px] min-w-[85px] flex-1 overflow-clip rounded-[8px] border border-solid border-[#e7dfc9] bg-[#fffdf8]">
+      {/* The inner block used to be pinned to w-[64px] — narrower than the label it holds at every
+          width, and still 64px inside a 147px tile at 1440. It spans the tile now. */}
+      <div className="absolute start-0 end-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-[2px] px-[6px] text-center">
         <p className="text-[18px] leading-[20px]" style={{ ...FMU, fontWeight: 700, color: numColor }}>{String(value).padStart(2, '0')}</p>
         {/* <Iso>, not isolateRuns: a tile can pair a translated `line1` with an untranslated
             `line2` (the Group tile stacks an LSD word over the English "members"), and
@@ -323,7 +328,7 @@ export default function Review() {
         <p className="mt-[10px] ps-[16px] pe-[16px] text-[14px] leading-[21px] text-[#5a6660]" style={{ ...FMU, fontWeight: 400 }} {...tx('Check your group before submitting. You can go back to edit any step.')} />
 
         <h2 className="mt-[24px] ps-[16px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Participant Count')} />
-        <div data-tour="review-section" className="mt-[12px] flex gap-[15px] ps-[16px] pe-[16px]">
+        <div data-tour="review-section" className="mt-[12px] flex flex-wrap gap-[15px] ps-[16px] pe-[16px]">
           <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
           <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
           <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />
@@ -396,7 +401,7 @@ export default function Review() {
             </div>
 
             {/* Stat cards */}
-            <div data-tour="review-section" className="mt-[4px] flex gap-[12px]">
+            <div data-tour="review-section" className="mt-[4px] flex flex-wrap gap-[12px]">
               <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
               <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
               <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />

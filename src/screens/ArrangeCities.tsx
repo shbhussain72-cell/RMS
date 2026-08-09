@@ -136,7 +136,7 @@ function PreferredSlotsCard({ slots, liveById, onAdd, onClear }: {
         </svg>
         <p className="text-[17px] leading-[21px] text-[#15402f]" style={{ fontFamily: SERIF }} {...tx('Your Preferred Cities')} />
       </div>
-      <div className="mt-[12px] grid grid-cols-3 gap-[10px]">
+      <div className="mt-[12px] grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px]">
         {slots.map((cid, idx) => {
           const { t } = useT()
           const city = cid ? liveById.get(cid) : undefined
@@ -257,7 +257,7 @@ function RelayOrderCard({ cities, search, onSearch }: {
                 </span>
               </button>
               {isOpen && (
-                <div className="grid grid-cols-3 gap-[10px] border-t border-[#e7dfc9] p-[10px]">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px] border-t border-[#e7dfc9] p-[10px]">
                   {matches.map((c) => (
                     <div
                       key={c.id}

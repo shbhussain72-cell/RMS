@@ -1997,7 +1997,7 @@ function MyPreferredCityCard({
           </button>
         )}
       </div>
-      <div className="mt-[12px] grid grid-cols-3 gap-[10px]">
+      <div className="mt-[12px] grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px]">
         {preferred.map((c) => {
           const live: LiveCity = liveById.get(c.id) ?? { id: c.id, name: c.name, region: c.region, type: c.type ?? 'relay', seatsLeft: 999, totalSeats: 999 }
           return (
@@ -2126,7 +2126,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
                 </span>
               </button>
               {isOpen && (
-                <div className="grid grid-cols-3 gap-[10px] border-t border-[#e7dfc9] p-[10px]">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(98px,1fr))] gap-[10px] border-t border-[#e7dfc9] p-[10px]">
                   {matches.map((c) => (
                     <RelayGridCard key={c.id} city={c} selected={c.id === activeCityId} added={addedOf(c.id)} unavailable={unavailableOf(c)} onClick={() => onSelect(c)} />
                   ))}

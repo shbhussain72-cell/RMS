@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Popover — the app's one anchored overlay.
@@ -104,11 +105,32 @@ export default function Popover({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  return (
+  // PORTALED TO <body>, because `position: fixed` is not always fixed.
+  //
+  // Any ancestor with a `transform`, `filter`, `perspective`, `contain` or `backdrop-filter`
+  // becomes the containing block for its fixed-position descendants, and the panel's
+  // viewport coordinates are then read in that ancestor's coordinate space instead.
+  //
+  // This is not hypothetical here. `MiqaatList` renders the app bar inside
+  // `sticky top-0 z-50 transition-transform` for its hide-on-scroll behaviour, and the
+  // computed transform is `matrix(1, 0, 0, 1, 0, 0)` — an IDENTITY transform, which still
+  // creates the containing block. So the AppBar's account dropdown and notification bell,
+  // once routed through this component, were placed correctly relative to the header and
+  // therefore wrongly relative to the screen: measured 137px and 40px out at 1440.
+  //
+  // `place()` computes viewport coordinates, so the panel has to live somewhere those
+  // coordinates mean what they say. The backdrop moves with it, or it would cover the wrong
+  // box and clicks outside the panel would not close it.
+  return createPortal(
     <>
       <div className="fixed inset-0 z-[90]" onClick={onClose} />
       <div
         ref={panelRef}
+        // A stable hook for the suites. Without it `check-anchor` had to find the panel by
+        // guessing at its width, and matched the Ask Help dock instead — also `fixed`, also
+        // ~180px, also below the trigger. The assertion then measured the wrong element and
+        // reported a placement failure that did not exist.
+        data-popover=""
         className="fixed z-[100] overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white shadow-[0_22px_60px_-14px_rgba(21,64,47,0.32)]"
         style={{
           left: pos?.left ?? 0,
@@ -119,6 +141,7 @@ export default function Popover({
       >
         {children}
       </div>
-    </>
+    </>,
+    document.body,
   )
 }

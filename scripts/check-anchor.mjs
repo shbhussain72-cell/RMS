@@ -159,25 +159,30 @@ for (const lang of ['en', 'lsd']) {
   await page.evaluate(() => document.fonts?.ready)
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
 
-  // [triggerSelector, how to recognise the panel it opens]
+  // [name, what to CLICK, what it is ANCHORED TO, panel width bounds]
+  //
+  // Click target and anchor are separate on purpose. The account menu is opened by the 28px
+  // chevron but anchored to the whole chip, and conflating the two made this assertion compare
+  // the panel against the chevron and report a 177px error that was the test's, not the app's.
   const CASES = [
-    ['account dropdown', '.ix-chip button:last-of-type', 160, 200],
-    ['notification bell', '.ix-bell', 300, 520],
+    ['account dropdown', '.ix-chip button:last-of-type', '.ix-chip', 160, 200],
+    ['notification bell', '.ix-bell', '.ix-bell', 300, 520],
   ]
 
-  for (const [name, sel, minW, maxW] of CASES) {
+  for (const [name, sel, anchorSel, minW, maxW] of CASES) {
     console.log(`
 ${lang} — AppBar ${name} @${width}`)
-    const opened = await page.evaluate(({ sel }) => {
+    const opened = await page.evaluate(({ sel, anchorSel }) => {
       document.querySelectorAll('[data-repro-trigger]').forEach((e) => e.removeAttribute('data-repro-trigger'))
       const t = document.querySelector(sel)
-      if (!t) return 'trigger not found'
+      const a = document.querySelector(anchorSel)
+      if (!t || !a) return 'trigger not found'
       const r = t.getBoundingClientRect()
       if (r.width < 4 || r.height < 4) return 'trigger not laid out'
-      t.setAttribute('data-repro-trigger', '1')
+      a.setAttribute('data-repro-trigger', '1')
       t.click()
       return 'clicked'
-    }, { sel })
+    }, { sel, anchorSel })
     // Not rendered is a SKIP, not a failure: the AppBar chip and bell are desktop chrome and
     // genuinely do not exist at 390. Counting absence as a failure would make the suite
     // permanently red and train everyone to ignore it. Coverage is asserted at the end instead,
@@ -190,15 +195,21 @@ ${lang} — AppBar ${name} @${width}`)
       const t = document.querySelector('[data-repro-trigger]')
       if (!t) return null
       const tr = t.getBoundingClientRect()
-      // The panel is whichever positioned box of about the right width opened below the bar.
-      // Deliberately not keyed on `position: fixed`: the whole point is to catch a consumer
-      // that rendered an `absolute` panel of its own instead of going through Popover.
-      const panel = [...document.querySelectorAll('div')].find((d) => {
-        const s = getComputedStyle(d)
-        if (s.position !== 'fixed' && s.position !== 'absolute') return false
-        const r = d.getBoundingClientRect()
-        return r.width >= minW && r.width <= maxW && r.height > 40 && r.top >= tr.top - 4
-      })
+      // Prefer the primitive's own hook. Falling back to a width guess matched the Ask Help
+      // dock — also fixed, also ~180px wide, also below the trigger — and measured placement
+      // on the wrong element entirely.
+      //
+      // The fallback is kept, and deliberately NOT keyed on `position: fixed`, because the
+      // whole point of this assertion is to catch a consumer that hand-rolled an `absolute`
+      // panel instead of going through Popover. Such a panel has no hook, and must still be
+      // found so it can fail.
+      const panel = document.querySelector('[data-popover]')
+        || [...document.querySelectorAll('div')].find((d) => {
+          const s = getComputedStyle(d)
+          if (s.position !== 'fixed' && s.position !== 'absolute') return false
+          const r = d.getBoundingClientRect()
+          return r.width >= minW && r.width <= maxW && r.height > 40 && r.top >= tr.top - 4
+        })
       if (!panel) return null
       const p = panel.getBoundingClientRect()
       return {

@@ -26,6 +26,7 @@ import { useAnchoredBox, computePos, snapshot, type Box } from './anchor'
 import { CHROME_ATTR, isChrome } from './selector'
 import { useRemarks } from './RemarksProvider'
 import type { Remark } from './types'
+import { REVIEW_TOOLS } from '../reviewTools'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const PIN = 20
@@ -34,7 +35,7 @@ const PIN = 20
 const chromeProps = { [CHROME_ATTR]: '', [SCANNER_IGNORE_ATTR]: '' }
 
 export default function RemarksLayer() {
-  if (!import.meta.env.DEV) return null
+  if (!REVIEW_TOOLS) return null
   return <RemarksLayerInner />
 }
 

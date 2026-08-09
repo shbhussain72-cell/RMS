@@ -18,8 +18,11 @@ import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
 import { CHROME_ATTR } from './selector'
 import { useRemarks } from './RemarksProvider'
 import { download, toJson, toMarkdown } from './export'
+import { markExported, readExported, unexportedOf } from './storage'
+import { useT } from '../i18n'
 import type { Remark } from './types'
 import DevDock from '../dev/DevDock'
+import { REVIEW_TOOLS, REVIEW_TOOLS_DEPLOYED } from '../reviewTools'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const chromeProps = { [CHROME_ATTR]: '', [SCANNER_IGNORE_ATTR]: '' }
@@ -29,7 +32,7 @@ type StatusFilter = 'all' | 'open' | 'resolved'
 type LangFilter = 'all' | 'en' | 'lsd'
 
 export default function RemarksPanel() {
-  if (!import.meta.env.DEV) return null
+  if (!REVIEW_TOOLS) return null
   return <RemarksPanelInner />
 }
 
@@ -46,6 +49,22 @@ function RemarksPanelInner() {
   const [langF, setLangF] = useState<LangFilter>('all')
   const [orphanOnly, setOrphanOnly] = useState(false)
   const [focusId, setFocusId] = useState<string | null>(null)
+  const { t, tx } = useT()
+
+  /**
+   * Which remarks have reached me, keyed by the revision that did.
+   *
+   * Held in state rather than read on every render so that exporting updates the badge
+   * immediately; `readExported()` seeds it once from the same store the export writes to.
+   */
+  const [exported, setExported] = useState<Record<string, string>>(() => readExported())
+  const unexported = useMemo(() => unexportedOf(remarks, exported), [remarks, exported])
+
+  const exportAs = (kind: 'md' | 'json') => {
+    if (kind === 'md') download('remarks.md', toMarkdown(remarks, resolutions), 'text/markdown')
+    else download('remarks.json', toJson(remarks), 'application/json')
+    setExported(markExported(remarks))
+  }
 
   /**
    * Scroll a remark's element into view once it resolves.
@@ -144,30 +163,46 @@ function RemarksPanelInner() {
             ))}
           </div>
 
-          <div className="flex gap-[6px] border-t border-[#eee6d4] p-[8px]" style={{ fontFamily: FONT_SANS }}>
-            <button
-              type="button"
-              onClick={() => download('remarks.md', toMarkdown(remarks, resolutions), 'text/markdown')}
-              className="rounded-[6px] bg-[#f0ece1] px-[8px] py-[4px] text-[11px] font-bold text-[#23302a]"
-            >
-              Export Markdown
-            </button>
-            <button
-              type="button"
-              onClick={() => download('remarks.json', toJson(remarks), 'application/json')}
-              className="rounded-[6px] bg-[#f0ece1] px-[8px] py-[4px] text-[11px] font-bold text-[#23302a]"
-            >
-              Export JSON
-            </button>
-            {/* Opens the orphan-recovery board. Lives here rather than on its own chip so the
-                dev chrome stays to one corner. */}
-            <button
-              type="button" data-rmk="fixture-toggle" onClick={() => setFixtureOn(!fixtureOn)}
-              className={`ms-auto rounded-[6px] px-[8px] py-[4px] text-[11px] font-bold ${fixtureOn ? 'bg-[#b23b3b] text-white' : 'bg-[#f0ece1] text-[#23302a]'}`}
-              title="Synthetic targets for testing orphan recovery"
-            >
-              Fixture
-            </button>
+          {/* Export is the ONLY route out of this browser, so it is the panel's primary action
+              rather than a line in a menu: full-width, first in the footer, and carrying the
+              unexported count. A reviewer who never presses it has written nothing anybody
+              else will ever read. */}
+          <div className="border-t border-[#eee6d4] p-[8px]" style={{ fontFamily: FONT_SANS }}>
+            {REVIEW_TOOLS_DEPLOYED && (
+              <p className="mb-[8px] rounded-[6px] bg-[#fdf6e7] px-[8px] py-[6px] text-[10px] leading-[14px] text-[#8a6a1e]"
+                {...tx('Remarks are saved in this browser only. Export them to send them on — nobody else can see them.')} />
+            )}
+            <div className="flex gap-[6px]">
+              <button
+                type="button"
+                data-rmk="export-md"
+                onClick={() => exportAs('md')}
+                disabled={remarks.length === 0}
+                className="flex-1 rounded-[6px] bg-[#1f5a44] px-[8px] py-[6px] text-[11px] font-bold text-white disabled:opacity-40"
+                title={t('Readable as-is — paste it straight into a message.')}
+              >
+                {t('Export Markdown')}{unexported.length > 0 ? ` (${unexported.length})` : ''}
+              </button>
+              <button
+                type="button"
+                data-rmk="export-json"
+                onClick={() => exportAs('json')}
+                disabled={remarks.length === 0}
+                className="rounded-[6px] border border-[#d8cfb8] bg-white px-[8px] py-[6px] text-[11px] font-bold text-[#23302a] disabled:opacity-40"
+                title={t('Round-trips back into the tool.')}
+              >
+                {t('JSON')}
+              </button>
+              {/* Opens the orphan-recovery board. Lives here rather than on its own chip so the
+                  dev chrome stays to one corner. */}
+              <button
+                type="button" data-rmk="fixture-toggle" onClick={() => setFixtureOn(!fixtureOn)}
+                className={`ms-auto rounded-[6px] px-[8px] py-[4px] text-[11px] font-bold ${fixtureOn ? 'bg-[#b23b3b] text-white' : 'bg-[#f0ece1] text-[#23302a]'}`}
+                title="Synthetic targets for testing orphan recovery"
+              >
+                Fixture
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -183,6 +218,13 @@ function RemarksPanelInner() {
       >
         <span className={enabled ? 'text-[#b23b3b]' : 'text-[#1f5a44]'}>◉ Remarks</span>
         <span className="text-[#23302a]">{counts.open}</span>
+        {/* Unexported is the count that matters on a shared URL: an open remark is work to do,
+            an unexported one is work nobody else can see. Amber, and always shown when > 0. */}
+        {unexported.length > 0 && (
+          <span data-rmk="unexported" className="rounded-full bg-[#fdf6e7] px-[5px] text-[#8a6a1e]" title={t('Not yet exported')}>
+            ↑{unexported.length}
+          </span>
+        )}
         {counts.orphaned > 0 && <span className="text-[#b23b3b]">⚠{counts.orphaned}</span>}
       </button>
     </DevDock>

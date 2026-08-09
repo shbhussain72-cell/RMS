@@ -13,6 +13,48 @@ import type { Remark, RemarksAdapter } from './types'
 
 export const REMARKS_KEY = 'rms-remarks'
 
+/**
+ * Which remarks have been exported, and at which revision.
+ *
+ * On a shared review URL every reviewer has their own private localStorage, so a remark that
+ * has not been exported has not reached anybody — it is not "saved", it is stranded. The panel
+ * needs to say so on the pill, at a glance, without the reviewer opening anything.
+ *
+ * Stored as id -> the `updatedAt` that was exported, not as a flag or a timestamp. A bare
+ * "exported at 14:02" would call an edited remark exported, and editing is how a reviewer
+ * sharpens a vague note into a useful one — exactly the version that must get out.
+ */
+export const EXPORTED_KEY = 'rms-remarks-exported'
+
+export function readExported(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(EXPORTED_KEY)
+    if (!raw) return {}
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    return parsed as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+/** Records the exported revision of every remark in `list`. Merges, never replaces. */
+export function markExported(list: Remark[]): Record<string, string> {
+  const next = { ...readExported() }
+  for (const r of list) next[r.id] = r.updatedAt
+  try {
+    localStorage.setItem(EXPORTED_KEY, JSON.stringify(next))
+  } catch (err) {
+    console.error('[remarks] could not record the export — the unexported count will over-report.', err)
+  }
+  return next
+}
+
+/** Remarks that have never been exported, or have been edited since they were. */
+export function unexportedOf(list: Remark[], exported: Record<string, string>): Remark[] {
+  return list.filter((r) => exported[r.id] !== r.updatedAt)
+}
+
 function readAll(): Remark[] {
   try {
     const raw = localStorage.getItem(REMARKS_KEY)

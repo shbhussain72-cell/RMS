@@ -18,12 +18,24 @@
  * grep is a build step rather than a test: a test can be skipped, and this one is only useful
  * if it runs on the artefact that is about to be deployed.
  *
- * Two assertions:
+ * ── THE FLAG HAS TWO STATES AND THIS CHECKS BOTH ────────────────────────────────────
+ *
+ * The review tooling is gated on VITE_REVIEW_TOOLS (see src/reviewTools.ts), not on DEV, so
+ * that it can be mounted on the deployed Vercel build. A gate that only ever tests one state
+ * is not a gate: asserting "absent" while the flag happens to be off would pass identically
+ * on a build where the flag no longer does anything at all. So this script reads the same
+ * flag the bundle was built with and flips the assertion with it — absent when off, PRESENT
+ * when on. `npm run check:gate` builds both ways and runs it against each.
+ *
+ * Three assertions:
  *
  *   1. FORBIDDEN STRINGS — no dev-only identifier appears in dist/.
  *      With a CONTROL: a string that MUST be present. Without it, a grep that silently
  *      stopped working (wrong path, renamed output, empty dist) would report a clean pass,
  *      which is the worst possible failure for a check like this.
+ *
+ *   1b. REVIEW-TOOL STRINGS — absent with the flag off, present with it on. The second half
+ *      is what proves the flag is still wired to anything.
  *
  *   2. ROUTE TABLE DRIFT — src/remarks/routes.ts still matches src/App.tsx.
  *      Duplicating the route table is only safe if the guard cannot be skipped. It also
@@ -49,6 +61,25 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
  * shipped copy this line should be narrowed CONSCIOUSLY rather than silently weakened.
  */
 const FORBIDDEN = [
+  // Dictionary editor and mojibake tooling. Still gated on `import.meta.env.DEV`, so these
+  // must be absent in EVERY built artefact, review flag or not. P7 moves the editor onto the
+  // review flag; when it does, these move to REVIEW_ONLY below and not before.
+  'wordlist-overrides',
+  '__lsdOverrides',
+  '__lsd/patch',
+  'detectMojibake',
+]
+
+/**
+ * Strings that belong to the review tooling: absent when VITE_REVIEW_TOOLS is off, PRESENT
+ * when it is on.
+ *
+ * `remark` is deliberately the bare word: it is the strongest form of the check, and if a
+ * legitimate product feature ever uses that word in shipped copy this line should be narrowed
+ * CONSCIOUSLY rather than silently weakened. `devtools.pos.v1` and `data-devdock` are here
+ * because DevDock is the shared toolbar both panels mount into — it ships exactly when they do.
+ */
+const REVIEW_ONLY = [
   'remark',
   'rms-remarks',
   'data-remark-chrome',
@@ -58,11 +89,10 @@ const FORBIDDEN = [
   '__lsdScan',
   'devtools.pos.v1',
   'data-devdock',
-  'wordlist-overrides',
-  '__lsdOverrides',
-  '__lsd/patch',
-  'detectMojibake',
 ]
+
+/** The flag the bundle under test was built with. */
+const TOOLS_ON = process.env.VITE_REVIEW_TOOLS === 'true'
 /** Must be present. Proves the search is actually looking at the built app. */
 const CONTROL = 'Ashara'
 
@@ -99,15 +129,34 @@ if (!contents.some(({ text }) => text.includes(CONTROL))) {
   pass(`control "${CONTROL}" present (search is reliable)`)
 }
 
+const present = (needle) => contents.filter(({ text }) => text.includes(needle))
+
 for (const needle of FORBIDDEN) {
-  const hits = contents.filter(({ text }) => text.includes(needle))
+  const hits = present(needle)
   if (hits.length) {
-    fail(`dev-only string "${needle}" shipped to production, in: ${hits.map((h) => h.f.replace(ROOT, '.')).join(', ')}`)
+    fail(`dev-only string "${needle}" shipped, in: ${hits.map((h) => h.f.replace(ROOT, '.')).join(', ')}`)
     console.error('        Likely cause: a reference evaluated OUTSIDE the `import.meta.env.DEV`')
     console.error('        guard — a default parameter, a module-level const, or a re-export.')
     console.error('        Move it behind the early return so the bundler can drop the module.')
   } else {
     pass(`"${needle}" absent from dist/`)
+  }
+}
+
+console.log(`
+  VITE_REVIEW_TOOLS=${process.env.VITE_REVIEW_TOOLS ?? '(unset)'} — review tooling must be ${TOOLS_ON ? 'PRESENT' : 'ABSENT'}`)
+for (const needle of REVIEW_ONLY) {
+  const hits = present(needle)
+  if (TOOLS_ON && !hits.length) {
+    fail(`review-tool string "${needle}" is MISSING from dist/ with the flag on — the flag is `
+      + 'no longer wired to this code, or the tool was removed. Absent-when-off proves nothing '
+      + 'on its own; this is the half that proves the gate still gates something.')
+  } else if (!TOOLS_ON && hits.length) {
+    fail(`review-tool string "${needle}" shipped with the flag off, in: ${hits.map((h) => h.f.replace(ROOT, '.')).join(', ')}`)
+    console.error('        Likely cause: a reference evaluated OUTSIDE the `REVIEW_TOOLS` guard —')
+    console.error('        a default parameter, a module-level const, or a re-export.')
+  } else {
+    pass(`"${needle}" ${TOOLS_ON ? 'present' : 'absent'} as expected`)
   }
 }
 

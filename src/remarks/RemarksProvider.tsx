@@ -26,6 +26,7 @@ import { localStorageAdapter, newId } from './storage'
 import { bestStrategy, captureIdentifiers, resolveRemark } from './selector'
 import { patternFor } from './routes'
 import type { Remark, RemarksAdapter, Resolution, RemarkStatus } from './types'
+import { REVIEW_TOOLS } from '../reviewTools'
 
 /** How long after a navigation/lang change before anchors are judged. */
 const SETTLE_MS = 500
@@ -81,7 +82,7 @@ export function RemarksProvider({
   children: ReactNode
   adapter?: RemarksAdapter
 }) {
-  // The dev gate must come BEFORE any reference to the storage module, and the default
+  // The gate must come BEFORE any reference to the storage module, and the default
   // adapter must NOT be a default parameter.
   //
   // `adapter = localStorageAdapter` in the signature is evaluated on every call, and this
@@ -89,9 +90,9 @@ export function RemarksProvider({
   // kept `storage.ts` alive through tree-shaking and shipped `rms-remarks` plus the whole
   // localStorage adapter into the production bundle — verified by grepping dist/.
   //
-  // Behind the early return, the reference is unreachable once `import.meta.env.DEV` folds to
+  // Behind the early return, the reference is unreachable once `REVIEW_TOOLS` folds to
   // false, so the bundler drops the module with it.
-  if (!import.meta.env.DEV) return <>{children}</>
+  if (!REVIEW_TOOLS) return <>{children}</>
   return <RemarksProviderInner adapter={adapter ?? localStorageAdapter}>{children}</RemarksProviderInner>
 }
 

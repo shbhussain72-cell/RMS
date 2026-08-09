@@ -25,11 +25,12 @@ import { useLocation } from 'react-router-dom'
 import { coverageReport, getCoverageVersion, subscribeCoverage, useLang } from './index'
 import { SCANNER_IGNORE_ATTR, accumulate, cumulative, resetCumulative, scanDom, type ScanResult } from './domScan'
 import DevDock from '../dev/DevDock'
+import { REVIEW_TOOLS } from '../reviewTools'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
 export default function CoveragePanel() {
-  if (!import.meta.env.DEV) return null
+  if (!REVIEW_TOOLS) return null
   return <CoveragePanelInner />
 }
 

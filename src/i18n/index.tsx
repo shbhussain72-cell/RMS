@@ -21,6 +21,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import raw from './lsd.json'
 import { formatNumber, isolateRuns } from '../components/Bidi'
+import { REVIEW_TOOLS } from '../reviewTools'
 
 export type Lang = 'en' | 'lsd'
 
@@ -88,7 +89,11 @@ function subscribeDict(fn: () => void): () => void {
 // every lookup is recorded in dev: which dictionary entries actually got used, and which
 // on-screen English strings had no entry at all.
 
-const DEV = import.meta.env.DEV
+// The coverage tracking exists to feed CoveragePanel, so it is gated by the same flag the
+// panel is: tracking compiled out while the panel is mounted would give a permanently empty
+// report, which reads as "full coverage" — the worst possible failure for this particular
+// tool. Named DEV still because that is what every call site below reads.
+const DEV = REVIEW_TOOLS
 const resolvedKeys = new Set<string>()
 const missedStrings = new Map<string, number>()
 /** Bumped on every miss so subscribed panels re-render without polling. */

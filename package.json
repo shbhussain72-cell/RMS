@@ -25,7 +25,9 @@
     "check:dictionary": "node scripts/check-dictionary.mjs",
     "check:mirror": "node scripts/check-mirror.mjs",
     "check:tour": "node scripts/check-tour.mjs",
-    "check:overlap": "node scripts/check-overlap.mjs"
+    "check:overlap": "node scripts/check-overlap.mjs",
+    "check:gate": "node scripts/check-gate.mjs",
+    "check:review": "node scripts/check-review-tools.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -34,13 +34,14 @@ import { createPortal } from 'react-dom'
 import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
 import { CHROME_ATTR } from './selector'
 import { useRemarks } from './RemarksProvider'
+import { REVIEW_TOOLS } from '../reviewTools'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 
 export type BreakMode = 'deleted' | 'reordered' | 'unrendered' | 'moved' | 'duplicated'
 
 export default function RemarksFixture() {
-  if (!import.meta.env.DEV) return null
+  if (!REVIEW_TOOLS) return null
   return <RemarksFixtureInner />
 }
 

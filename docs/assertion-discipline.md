@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened four times in this repo, in four different places, to four different
+This has now happened five times in this repo, in five different places, to five different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The four worked examples
+## The five worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -68,7 +68,7 @@ one: it is guarding on `tail`.
 This shipped a commit whose build was broken — `check:lsd` was failing on it the whole time,
 and the three lines `tail` printed were the failure message, read as ordinary output.
 
-It is the cheapest of these four to reintroduce, because piping a long build into `tail` is
+It is the cheapest of these to reintroduce, because piping a long build into `tail` is
 the obvious way to keep the transcript short, and the failure is invisible: the command exits
 0 and prints something plausible.
 
@@ -80,6 +80,49 @@ the obvious way to keep the transcript short, and the failure is invisible: the 
 **never verify through a pipe.** If a command's exit code is the thing being checked, nothing
 may come after it in the pipeline.
 
+### 5. "Remarks are saved in this browser only" — true when written, false when read
+
+**Mechanism asserted:** nothing. No test was involved.
+**Outcome wanted:** the sentence in front of the reviewer describes where their remarks go.
+
+This one is a different animal from the first four and it belongs here anyway, because it is the
+same failure with the assertion removed: **a factual claim, correct on the day it was written,
+made false by a change somewhere else, with nothing anywhere that fails.**
+
+The remarks panel carried a notice: *remarks are saved in this browser only*. It was accurate for
+as long as the adapter was `localStorage`. The day the default adapter became `sharedAdapter` the
+sentence became a lie — and not a harmless one. It told a reviewer their notes were private on a
+store six people can read. Nothing in the diff touched the notice. No test mentioned it. The build
+passed, the feature worked, and the only thing wrong with the change was a paragraph it did not
+edit.
+
+The same shape is already latent elsewhere in this tooling. The dictionary editor's **"edited"
+badge** reads `staged: true`, which is set by whatever applied an override. Apply a merged
+override — one whose value is already in the committed wordlist — and the badge goes on claiming
+an unsaved edit for a row that shipped a month ago. True when written, false after the sync
+existed. See `docs/dictionary-editing.md`; the fix was to stop applying merged overrides at all,
+so the badge's input can no longer say something the badge's words deny.
+
+**Why it will recur:** review tooling is mostly claims. "This is only visible to you", "this is not
+yet saved", "anyone with the link can edit this", "N edits not yet in the wordlist". Every one is a
+statement about a property of the system, written once, rendered forever.
+
+**The cheap guard, where one exists:** *derive the sentence from the property it describes.* Not
+
+    <p>Remarks are saved in this browser only.</p>
+
+but a notice whose text is a function of the adapter actually in use, so that changing the adapter
+changes the sentence in the same edit. That converts an invisible staleness into an ordinary code
+change — and if the new adapter has no branch, the notice fails to compile rather than lying. Same
+for counts: "N edits not yet in the wordlist" is safe *because* N is computed from the comparison
+it describes. A hard-coded "some edits are pending" would not be.
+
+**Where no cheap guard exists, say so.** The identity disclaimer — *anyone with the link can type
+any name* — is a claim about Vercel Deployment Protection, not about anything in this repository.
+No property of the code can confirm or deny it. Nothing here can check it, so it does not get a
+guard; it gets a comment at the claim naming what would falsify it (an auth system arriving), and
+that is the whole of the defence. Pretending otherwise would be a third layer of the same mistake.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -90,9 +133,12 @@ Each one substituted something *upstream* of the user-visible effect:
 | min-w | the constraint exists | the content is never clipped |
 | PINNED | the CSS property | the rendered position while scrolling |
 | piping to `tail` | that the command produced output | that the command succeeded |
+| the stale notice | nothing — prose asserts itself | the storage the sentence names |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.
+The fifth is the limit case: there was no assertion to fail, so the only thing that could catch it
+was somebody reading the sentence and remembering what had changed underneath it.
 
 If a probe's number moves a long way in the direction you were hoping for, that is a reason to
 distrust it, not to write it up. Both of the improvements above — 147 → 55, and "the clipping is

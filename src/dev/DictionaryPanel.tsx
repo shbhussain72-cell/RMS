@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DevDock from './DevDock'
 import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake'
-import { clearAllOverrides, getOverrides, loadOverrides, overrideCount, setOverride, subscribeOverrides } from './overrides'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
 import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type ScanHit } from '../i18n/domScan'
+import { REVIEW_TOOLS } from '../reviewTools'
+import {
+  chooseConflict, dismissConflict, headFor, historyFor, isMerged, mergedOverrides,
+  openConflicts, pendingOverrides, refresh, submit, subscribeDictionary,
+  type Conflict, type Revision,
+} from '../shared/dictionaryApi'
+import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
+import { hasAuthor } from '../shared/identity'
 
 /**
- * Dictionary editor — dev-only.
+ * Dictionary editor.
  *
  * Two views of the same wordlist. MASTER is the whole dictionary, for finding a string you
  * know exists. PAGE is only what is rendered on the route you are looking at, which is the
@@ -16,10 +23,25 @@ import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type
  * ── IT STAGES, IT DOES NOT TRANSLATE ─────────────────────────────────────────────────
  *
  * Nothing here authors, suggests, autocompletes or repairs a Lisan al-Dawat value. An edit is
- * stored exactly as typed, or refused. It goes to `wordlist-overrides.json`, never to
- * `src/i18n/lsd.json` (generated) and never to the .xlsx (the source of truth) — the way an
- * edit becomes real is that a human exports the patch and pastes it into the spreadsheet.
- * The build refuses to run while anything is still staged, so that step cannot be skipped.
+ * stored exactly as typed, or refused. It becomes a revision in the shared store, and the sync
+ * later writes it into the .xlsx cell by cell; it never touches `src/i18n/lsd.json`, which is
+ * generated. See `docs/dictionary-editing.md` for the whole route and the sheet's constraints.
+ *
+ * ── EVERY WRITE IS AN APPEND ─────────────────────────────────────────────────────────
+ *
+ * Six people share this store and none of them is authenticated — the name on a revision is a
+ * label, not a login. Overwrite-in-place would let one reviewer erase another's work with no
+ * trace, so nothing is ever replaced: an edit appends, a revert appends, and resolving a
+ * conflict appends the chosen value on top of both. The UI has to make that visible or the
+ * safety is theoretical, which is why the history panel says it in words and the revert button
+ * says what it will do rather than what it undoes.
+ *
+ * ── THE STATUS LINE IS DERIVED, NOT WRITTEN ──────────────────────────────────────────
+ *
+ * `storeLine()` reads the store's actual reachability rather than stating a fact about it. A
+ * hard-coded "saved to the shared store" would have been true when written and false the first
+ * time the API went down — the fifth worked example in `docs/assertion-discipline.md`, and the
+ * reason the remarks panel spent a release telling reviewers their notes were private.
  *
  * ── THE CLASSES ──────────────────────────────────────────────────────────────────────
  *
@@ -30,8 +52,7 @@ import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type
  *   B1 the row exists and its value is blank — awaiting translation. The queue.
  *   B2 the row exists and its value is the English word — loanword identity, per
  *      `src/i18n/loanword-policy.json`. Already correct; needs nothing.
- *   C  no row at all. Cannot be fixed here: a row has to be added to the .xlsx, which is
- *      what the exported patch is for.
+ *   C  no row at all. Editable — the sync appends a new row at the end of the sheet.
  *
  * Sentinel rows (the wordlist's `remove` marker) are shown as their own state and left alone.
  * They fall back to English on purpose and are the wordlist owner's to resolve.
@@ -57,14 +78,30 @@ const CLS_STYLE: Record<Cls, string> = {
  */
 const classify = classifyDetail
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** Absolute, never "2 hours ago" — two revisions a minute apart both read "just now" otherwise. */
+const when = (iso: string): string => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+const KIND_LABEL: Record<Revision['kind'], string> = {
+  edit: 'edit',
+  revert: 'revert',
+  'new-row': 'new row',
+}
+
 /**
- * Renders nothing in a production build: `import.meta.env.DEV` is statically false, so the
- * bundler drops this component, the override client and the mojibake module together. Same
- * gate as `CoveragePanel`, and `wordlist-overrides` is on `check-dev-only.mjs`'s forbidden
- * list so a leak fails the build rather than shipping quietly.
+ * Renders nothing unless VITE_REVIEW_TOOLS is set: the constant folds to `false` and Rollup
+ * drops this component, the mojibake module and the shared dictionary client with it. Same
+ * gate as Remarks and Coverage, and `check-dev-only.mjs` measures both flag states — the
+ * theory that this tree-shakes is not the same as the evidence that it did.
  */
 export default function DictionaryPanel() {
-  if (!import.meta.env.DEV) return null
+  if (!REVIEW_TOOLS) return null
   return <DictionaryPanelInner />
 }
 
@@ -79,10 +116,26 @@ function DictionaryPanelInner() {
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const [refused, setRefused] = useState<MojibakeFinding[]>([])
+  const [problem, setProblem] = useState('')
+  const [queued, setQueued] = useState<string[]>([])
+  const [named, setNamed] = useState(() => hasAuthor())
+  const [storeError, setStoreError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [historyKey, setHistoryKey] = useState<string | null>(null)
+  const [history, setHistory] = useState<Revision[]>([])
   const highlighted = useRef<HTMLElement | null>(null)
 
-  useEffect(() => { void loadOverrides() }, [])
-  useEffect(() => subscribeOverrides(() => force((n) => n + 1)), [])
+  const pull = useCallback(async () => {
+    setLoading(true)
+    try { await refresh(); setStoreError('') }
+    catch (err) { setStoreError(err instanceof Error ? err.message : String(err)) }
+    finally { setLoading(false) }
+  }, [])
+
+  // Only while the panel is open. A closed panel polling a shared store is six browsers of
+  // traffic for a list nobody is looking at.
+  useEffect(() => { if (open) void pull() }, [open, pull])
+  useEffect(() => subscribeDictionary(() => force((n) => n + 1)), [])
 
   // Rescan when the panel opens and whenever the route changes under it. `scanDom` reads the
   // rendered DOM, so it can only ever report what is actually on screen right now — which is
@@ -95,7 +148,9 @@ function DictionaryPanelInner() {
     return () => clearInterval(t)
   }, [open, rescan])
 
-  const staged = getOverrides()
+  const pending = pendingOverrides()
+  const merged = mergedOverrides()
+  const conflicts = openConflicts()
 
   const rows = useMemo(() => {
     const base = tab === 'page'
@@ -107,13 +162,13 @@ function DictionaryPanelInner() {
       .filter((r) => (!needsOnly || r.cls === 'A' || r.cls === 'B1' || r.cls === 'C'))
       .filter((r) => !needle || r.english.toLowerCase().includes(needle) || r.value.includes(q.trim()))
       .slice(0, 400)
-  }, [tab, hits, q, needsOnly, staged])
+  }, [tab, hits, q, needsOnly, pending.length, merged.length])
 
   const counts = useMemo(() => {
     const c: Record<Cls, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
     for (const h of hits) c[classify(h.text)]++
     return c
-  }, [hits, staged])
+  }, [hits, pending.length])
 
   /** Outline the live element a row came from, and scroll it into view. */
   const highlight = (english: string) => {
@@ -131,18 +186,55 @@ function DictionaryPanelInner() {
     }
   }
 
+  const send = async (english: string, value: string, opts: Parameters<typeof submit>[2] = {}) => {
+    setProblem('')
+    try {
+      await submit(english, value, opts)
+      // OUTCOME, not mechanism: `submit` queues an unreachable write silently, so the only way
+      // to know whether this landed is to ask the store what it now holds. A 201 is not proof
+      // either — see the read-back in the remarks push, for the same reason.
+      const landed = headFor(english)?.value === value
+      setQueued((prev) => (landed ? prev.filter((k) => k !== english) : [...new Set([...prev, english])]))
+      if (historyKey === english) void openHistory(english)
+      return true
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : String(err))
+      return false
+    }
+  }
+
   const commit = async (english: string) => {
     const found = detectMojibake(draft)
     if (found.length) { setRefused(found); return }
     // NFC is a normalisation difference, not damage — normalise rather than refuse, and say so.
     const value = isNfc(draft) ? draft : draft.normalize('NFC')
     setRefused([])
-    await setOverride(english, value)
-    setEditing(null)
-    setDraft('')
+    const kind: Revision['kind'] = inspectKey(english).exists ? 'edit' : 'new-row'
+    if (await send(english, value, { kind })) { setEditing(null); setDraft('') }
   }
 
-  const pending = overrideCount()
+  const openHistory = async (english: string) => {
+    setHistoryKey(english)
+    setHistory([])
+    try {
+      const revs = await historyFor(english)
+      setHistory([...revs].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)))
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  /**
+   * The store's reachability, stated by reading it rather than by asserting it. Three states,
+   * and the reviewer needs to be able to tell them apart: a store that is down is a very
+   * different claim from a store that is empty.
+   */
+  const storeLine = (): { text: string; tone: string } => {
+    if (storeError) return { text: `Shared store unreachable — ${storeError}. Edits are queued locally and will be sent when it comes back.`, tone: 'bg-[#f7ecec] text-[#b23b3b]' }
+    if (queued.length) return { text: `${queued.length} edit(s) queued locally — not in the shared store yet.`, tone: 'bg-[#fdf3e2] text-[#a8721e]' }
+    return { text: 'Edits are saved to the shared store and visible to everyone with the link.', tone: 'bg-[#eef3f0] text-[#5a6660]' }
+  }
+  const status = storeLine()
 
   return (
     <DevDock
@@ -152,7 +244,7 @@ function DictionaryPanelInner() {
       className="pointer-events-none fixed bottom-[16px] end-[16px] z-[125] flex flex-col items-end gap-[6px]"
     >
       {open && (
-        <div className="pointer-events-auto flex max-h-[70vh] w-[min(460px,calc(100vw-32px))] flex-col rounded-[12px] border border-[#d8cfb8] bg-white shadow-[0_16px_44px_-12px_rgba(21,64,47,0.45)]" style={{ fontFamily: FONT }}>
+        <div className="pointer-events-auto flex max-h-[74vh] w-[min(460px,calc(100vw-32px))] flex-col rounded-[12px] border border-[#d8cfb8] bg-white shadow-[0_16px_44px_-12px_rgba(21,64,47,0.45)]" style={{ fontFamily: FONT }}>
           <div className="flex items-center gap-[6px] border-b border-[#eee6d4] p-[10px]">
             {(['page', 'master'] as const).map((k) => (
               <button key={k} type="button" onClick={() => setTab(k)}
@@ -162,11 +254,25 @@ function DictionaryPanelInner() {
             ))}
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="filter…"
               className="min-w-0 flex-1 rounded-[6px] border border-[#e7dfc9] bg-[#faf8f2] px-[8px] py-[3px] text-[11px] outline-none" />
+            <button type="button" onClick={() => void pull()} disabled={loading}
+              className="shrink-0 rounded-[6px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
+              {loading ? '…' : 'Refresh'}
+            </button>
             <label className="flex shrink-0 items-center gap-[4px] text-[10px] font-bold text-[#5a6660]">
               <input type="checkbox" checked={needsOnly} onChange={(e) => setNeedsOnly(e.target.checked)} />
               needs work
             </label>
           </div>
+
+          <p className={`px-[10px] py-[5px] text-[10px] font-bold ${status.tone}`}>{status.text}</p>
+
+          {!named && <div className="border-b border-[#eee6d4] p-[10px]"><IdentityPrompt onDone={() => setNamed(true)} /></div>}
+
+          {problem && (
+            <p className="border-b border-[#eee6d4] bg-[#f7ecec] px-[10px] py-[5px] text-[10px] font-bold text-[#b23b3b]">{problem}</p>
+          )}
+
+          {conflicts.map((c) => <ConflictCard key={c.key} conflict={c} onKeep={(w) => void keep(c, w)} />)}
 
           {tab === 'page' && (
             <div className="flex flex-wrap gap-[5px] border-b border-[#eee6d4] px-[10px] py-[6px] text-[10px] font-bold">
@@ -184,7 +290,10 @@ function DictionaryPanelInner() {
             )}
             {rows.map((r) => {
               const isEditing = editing === r.english
-              const stagedVal = staged[normKey(r.english)]?.lsd
+              const head = headFor(r.english)
+              const isPending = !!head && !isMerged(head)
+              const isQueued = queued.includes(r.english)
+              const editable = r.cls !== 'sentinel'
               return (
                 <div key={r.english} className="border-b border-[#f2eee2] px-[10px] py-[7px]"
                   onMouseEnter={() => tab === 'page' && highlight(r.english)}>
@@ -194,29 +303,49 @@ function DictionaryPanelInner() {
                     {r.where && <span className="shrink-0 text-[9px] text-[#a9b1ab]">{r.where}</span>}
                   </div>
                   <div className="mt-[4px] flex items-center gap-[6px]">
-                    {r.cls === 'C' ? (
-                      <span className="text-[10px] text-[#5a4ba3]">no wordlist row — add via the exported patch</span>
-                    ) : r.cls === 'sentinel' ? (
+                    {r.cls === 'sentinel' ? (
                       <span className="text-[10px] text-[#8a6a1e]">sentinel in the wordlist — falls back to English by design</span>
                     ) : isEditing ? (
                       <>
                         <input autoFocus dir="rtl" value={draft} onChange={(e) => { setDraft(e.target.value); setRefused([]) }}
                           onKeyDown={(e) => { if (e.key === 'Enter') void commit(r.english); if (e.key === 'Escape') { setEditing(null); setRefused([]) } }}
                           className="min-w-0 flex-1 rounded-[6px] border border-[#c2a04e] bg-white px-[8px] py-[3px] text-[13px] outline-none" />
-                        <button type="button" onClick={() => void commit(r.english)} className="shrink-0 rounded-[5px] bg-[#1f5a44] px-[7px] py-[3px] text-[10px] font-bold text-white">Stage</button>
+                        <button type="button" onClick={() => void commit(r.english)} className="shrink-0 rounded-[5px] bg-[#1f5a44] px-[7px] py-[3px] text-[10px] font-bold text-white">Save</button>
                       </>
                     ) : (
                       <>
-                        <span dir="rtl" className={`min-w-0 flex-1 truncate text-[13px] ${stagedVal ? 'text-[#a8721e]' : 'text-[#23302a]'}`}>
-                          {stagedVal ?? inspectKey(r.english).value ?? ''}
+                        <span dir="rtl" className={`min-w-0 flex-1 truncate text-[13px] ${isPending ? 'text-[#a8721e]' : 'text-[#23302a]'}`}>
+                          {inspectKey(r.english).value}
                         </span>
-                        <button type="button" onClick={() => { setEditing(r.english); setDraft(stagedVal ?? ''); setRefused([]) }}
-                          className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a]">
-                          {stagedVal ? 'staged' : 'Add'}
-                        </button>
+                        {editable && (
+                          <button type="button" disabled={!named}
+                            onClick={() => { setEditing(r.english); setDraft(inspectKey(r.english).value ?? ''); setRefused([]); setProblem('') }}
+                            className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
+                            {head ? 'Edit' : r.cls === 'C' ? 'Add row' : 'Add'}
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
+
+                  {head && (
+                    <div className="mt-[3px] flex flex-wrap items-center gap-[6px] text-[9px] text-[#8a938e]">
+                      <span>{head.author} · {when(head.createdAt)} · {KIND_LABEL[head.kind]}</span>
+                      {isQueued && <span className="rounded-[4px] bg-[#fdf3e2] px-[4px] py-[1px] font-bold text-[#a8721e]">queued locally</span>}
+                      {isPending
+                        ? <span className="rounded-[4px] bg-[#fdf3e2] px-[4px] py-[1px] font-bold text-[#a8721e]">not yet in the wordlist</span>
+                        : <span className="rounded-[4px] bg-[#eef3f0] px-[4px] py-[1px] font-bold text-[#5a6660]">in the wordlist</span>}
+                      <button type="button" onClick={() => void (historyKey === r.english ? setHistoryKey(null) : openHistory(r.english))}
+                        className="font-bold text-[#1f5a44] underline">
+                        {historyKey === r.english ? 'hide history' : 'history'}
+                      </button>
+                    </div>
+                  )}
+
+                  {historyKey === r.english && (
+                    <HistoryList revisions={history} liveId={head?.revisionId} onRevert={(rev) => void revert(r.english, rev)} disabled={!named} />
+                  )}
+
                   {isEditing && refused.map((f, i) => (
                     <p key={i} className="mt-[4px] rounded-[5px] bg-[#f7ecec] px-[6px] py-[4px] text-[10px] text-[#b23b3b]">
                       Refused ({f.kind}): {f.detail} — near <code>{f.sample}</code>
@@ -227,15 +356,20 @@ function DictionaryPanelInner() {
             })}
           </div>
 
-          <div className="flex items-center gap-[6px] border-t border-[#eee6d4] p-[8px]">
-            <span className="flex-1 text-[10px] font-bold text-[#5a6660]">{pending} staged</span>
-            <a href="/__lsd/patch.xlsx" className={`rounded-[5px] px-[7px] py-[3px] text-[10px] font-bold ${pending ? 'bg-[#1f5a44] text-white' : 'pointer-events-none bg-[#f0ece1] text-[#a9b1ab]'}`}>
-              Export patch
-            </a>
-            <button type="button" disabled={!pending} onClick={() => void clearAllOverrides()}
-              className="rounded-[5px] bg-[#f7ecec] px-[7px] py-[3px] text-[10px] font-bold text-[#b23b3b] disabled:opacity-40">
-              Clear
-            </button>
+          <div className="border-t border-[#eee6d4] p-[8px]">
+            <div className="mb-[6px]"><IdentityRow /></div>
+            <div className="flex items-center gap-[6px]">
+              <span className="flex-1 text-[10px] font-bold text-[#5a6660]">
+                {/* Both numbers are COMPUTED from the retirement comparison, not narrated. A
+                    hard-coded "some edits are pending" is the stale-notice failure waiting to
+                    happen; a count cannot drift from the thing it counts. */}
+                {pending.length} edit(s) not yet in the wordlist
+                {merged.length > 0 && <span className="font-normal text-[#8a938e]"> · {merged.length} already merged</span>}
+              </span>
+              <a href="/api/dictionary-export" className={`rounded-[5px] px-[7px] py-[3px] text-[10px] font-bold ${pending.length ? 'bg-[#1f5a44] text-white' : 'pointer-events-none bg-[#f0ece1] text-[#a9b1ab]'}`}>
+                Export patch
+              </a>
+            </div>
           </div>
         </div>
       )}
@@ -244,8 +378,131 @@ function DictionaryPanelInner() {
         className="pointer-events-auto flex items-center gap-[5px] rounded-[7px] border border-[#d8cfb8] bg-white px-[8px] py-[4px] text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(21,64,47,0.4)]"
         style={{ fontFamily: FONT }} title="Dictionary editor">
         <span className="text-[#1f5a44]">◧ Dict</span>
-        {pending > 0 && <span className="text-[#a8721e]">{pending}</span>}
+        {pending.length > 0 && <span className="text-[#a8721e]">{pending.length}</span>}
+        {conflicts.length > 0 && <span className="text-[#b23b3b]">⚠{conflicts.length}</span>}
       </button>
     </DevDock>
+  )
+
+  async function keep(c: Conflict, winner: Revision) {
+    setProblem('')
+    try { await chooseConflict(c.key, winner) }
+    catch (err) { setProblem(err instanceof Error ? err.message : String(err)) }
+  }
+
+  async function revert(english: string, rev: Revision) {
+    await send(english, rev.value, {
+      kind: 'revert',
+      revertOf: rev.revisionId,
+      note: `reverted to ${rev.author}'s value of ${when(rev.createdAt)}`,
+    })
+  }
+}
+
+/**
+ * Two values, two authors, two timestamps — and which one the app is rendering right now.
+ *
+ * A picker that shows two options without saying which is in effect is worse than no picker:
+ * the reviewer picks the one they prefer, sees no change, and cannot tell whether the click
+ * worked. The live marker is read from the store's own head, so it stays right even when the
+ * answer is "neither" — someone else has edited again since the conflict was raised.
+ */
+function ConflictCard({ conflict, onKeep }: { conflict: Conflict; onKeep: (winner: Revision) => void }) {
+  const liveId = headFor(conflict.key)?.revisionId
+  const both = [conflict.mine, conflict.theirs]
+  const neitherIsLive = !both.some((r) => r.revisionId === liveId)
+
+  return (
+    <div className="border-b border-[#eee6d4] bg-[#fdf8ee] px-[10px] py-[8px]">
+      <p className="text-[10px] font-bold text-[#b23b3b]">
+        ⚠ Two people edited this at the same time. Both are saved — pick the one that should be live.
+      </p>
+      <p className="mt-[2px] break-words text-[10px] text-[#5a6660]">{conflict.key}</p>
+
+      {both.map((r) => {
+        const live = r.revisionId === liveId
+        return (
+          <div key={r.revisionId} className={`mt-[6px] rounded-[6px] border p-[6px] ${live ? 'border-[#1f5a44] bg-white' : 'border-[#e7dfc9] bg-[#faf8f2]'}`}>
+            <div className="flex items-center gap-[5px]">
+              <span className={`rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold ${live ? 'bg-[#1f5a44] text-white' : 'bg-[#f0ece1] text-[#5a6660]'}`}>
+                {live ? 'LIVE NOW' : 'not applied'}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[9px] text-[#8a938e]">{r.author} · {when(r.createdAt)}</span>
+            </div>
+            <p dir="rtl" className="mt-[3px] break-words text-[13px] text-[#23302a]">{r.value || <span dir="ltr" className="text-[10px] text-[#a9b1ab]">(empty)</span>}</p>
+            <button type="button" onClick={() => onKeep(r)}
+              className="mt-[4px] rounded-[5px] bg-[#1f5a44] px-[7px] py-[3px] text-[10px] font-bold text-white">
+              Keep this one
+            </button>
+          </div>
+        )
+      })}
+
+      {neitherIsLive && (
+        <p className="mt-[5px] text-[10px] font-bold text-[#a8721e]">
+          Neither of these is live — the key has been edited again since. Open its history before choosing.
+        </p>
+      )}
+      <p className="mt-[5px] text-[9px] text-[#8a938e]">
+        Keeping one appends it as a new revision. The other stays in the history with its author's name on it —
+        nothing is deleted, and nothing is merged.
+      </p>
+      <button type="button" onClick={() => dismissConflict(conflict.key)}
+        className="mt-[4px] text-[9px] font-bold text-[#5a6660] underline">Decide later</button>
+    </div>
+  )
+}
+
+/**
+ * Revision history, newest first.
+ *
+ * The wording is the feature. "Anyone can edit" is only safe if reverting a colleague's work is
+ * visibly additive — someone who thinks they are erasing an edit behaves differently from
+ * someone who knows they are adding to a record that keeps the other person's name. So the
+ * button says what it does ("Revert — adds a revision") rather than what it undoes, and the
+ * footer states the property outright.
+ */
+function HistoryList({ revisions, liveId, onRevert, disabled }: {
+  revisions: Revision[]
+  liveId?: string
+  onRevert: (rev: Revision) => void
+  disabled: boolean
+}) {
+  if (!revisions.length) return <p className="mt-[5px] text-[10px] text-[#a9b1ab]">Loading history…</p>
+
+  return (
+    <div className="mt-[5px] rounded-[6px] border border-[#e7dfc9] bg-[#faf8f2] p-[6px]">
+      <p className="text-[9px] font-bold text-[#5a6660]">
+        {revisions.length} revision{revisions.length === 1 ? '' : 's'}, newest first. Nothing here is ever deleted.
+      </p>
+      {revisions.map((r) => {
+        const live = r.revisionId === liveId
+        return (
+          <div key={r.revisionId} className="mt-[5px] border-t border-[#eee6d4] pt-[5px] first:border-t-0 first:pt-0">
+            <div className="flex items-center gap-[5px]">
+              {live && <span className="rounded-[4px] bg-[#1f5a44] px-[4px] py-[1px] text-[9px] font-bold text-white">LIVE</span>}
+              <span className="min-w-0 flex-1 truncate text-[9px] text-[#8a938e]">
+                {r.author} · {when(r.createdAt)} · {KIND_LABEL[r.kind]}
+                {r.revertOf && ' of an earlier revision'}
+              </span>
+              {!live && (
+                <button type="button" disabled={disabled} onClick={() => onRevert(r)}
+                  className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[6px] py-[2px] text-[9px] font-bold text-[#23302a] disabled:opacity-40">
+                  Revert — adds a revision
+                </button>
+              )}
+            </div>
+            <p dir="rtl" className="mt-[2px] break-words text-[12px] text-[#23302a]">
+              {r.value || <span dir="ltr" className="text-[10px] text-[#a9b1ab]">(empty)</span>}
+            </p>
+            {r.note && <p className="text-[9px] italic text-[#a9b1ab]">{r.note}</p>}
+          </div>
+        )
+      })}
+      <p className="mt-[6px] border-t border-[#eee6d4] pt-[4px] text-[9px] text-[#8a938e]">
+        Reverting appends a new revision on top. The edit you revert stays in the record, with its
+        author's name and time — you are adding to the history, not erasing anyone's work.
+      </p>
+    </div>
   )
 }

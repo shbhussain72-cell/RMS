@@ -1,4 +1,4 @@
-# Preview verification — the four things a local harness cannot prove
+# Preview verification — the things a local harness cannot prove
 
 `vercel dev` is assumed unavailable, so the whole server surface is tested against an
 in-memory store: 19 assertions drive the real handlers with real `Request` objects and cover
@@ -69,8 +69,13 @@ the key on both *before* either saves.
 5. Open the key's history on either device.
 6. ✅ **Both** `AAA` and `BBB` are in it. A 409 here means "yours is saved and so is theirs",
    not "yours was refused".
-7. Choose one.
-8. ✅ A new revision is appended carrying the chosen value. Nothing was merged.
+7. ✅ Exactly one of the two cards is marked **LIVE NOW** and the other **not applied**. A
+   picker that shows two values without saying which is in effect is worse than no picker —
+   you would choose, see no change, and have no way to tell whether the click worked.
+8. Choose one.
+9. ✅ A new revision is appended carrying the chosen value. Nothing was merged.
+10. ✅ On **A** — which never saw the conflict — a refresh shows the chosen value, and the
+    history holds all three revisions.
 
 ## 4. Losing the network does not lose the edit
 
@@ -129,6 +134,40 @@ search works.
 3. ✅ The old value matches what the generated wordlist currently holds, so the row can be
    reconciled without going back to the app.
 
+## 8. Revert adds to the record instead of erasing it
+
+The property that makes "anyone can edit" safe. It only works if people can see it, so this
+check is about what the screen says, not only about what the store does.
+
+1. On **A**, edit a key. On **B**, edit the same key again (refresh first — this is not a
+   conflict, it is a normal second edit).
+2. On **A**, open the key's **history**.
+3. ✅ Both revisions are listed, newest first, each with **author, time and kind**, and the
+   current one is marked **LIVE**.
+4. ✅ The panel says, in words, that nothing here is ever deleted — before you press anything.
+5. Press **Revert — adds a revision** on the older one.
+6. ✅ The history now has **three** entries. **B**'s edit is still there, still with **B**'s
+   name on it. The new top entry is marked `revert` and its note names whose value it restored.
+7. ✅ Nothing disappeared from the list.
+
+## 9. A merged edit stops being pending
+
+Only checkable once a sync has run — do this after the first `POST /api/sync-wordlist` and the
+redeploy that follows it.
+
+1. Note the footer count: *N edit(s) not yet in the wordlist*.
+2. Run the sync, let the commit land, wait for the redeploy.
+3. Reload the editor.
+4. ✅ The synced keys now say **in the wordlist** rather than **not yet in the wordlist**, and
+   the count has dropped by exactly that many.
+5. ✅ Their revision history is **unchanged** — retirement is about what is applied and counted,
+   never about what is recorded.
+6. ✅ The app renders the same text before and after. A merged override is a no-op by
+   definition; if the text moves, the comparison is wrong somewhere.
+
+If the count never drops, the retirement comparison is not going through `bakedValue` — see
+`docs/dictionary-editing.md`. That failure looks exactly like the feature working.
+
 ---
 
 ## If something fails
@@ -145,3 +184,5 @@ numbers map onto the code:
 | 5 | `api/dictionary/[key].ts` → `detectMojibake` |
 | 6 | `apiEnabled` in `api/_lib/http.ts`, `scripts/check-dev-only.mjs` |
 | 7 | `api/dictionary-export.ts` |
+| 8 | `HistoryList` in `src/dev/DictionaryPanel.tsx`, `submit(kind:'revert')` |
+| 9 | `isMerged`/`pendingOverrides` in `src/shared/dictionaryApi.ts`, `baselineValue` in `src/i18n/index.tsx` |

@@ -73,13 +73,18 @@ const FORBIDDEN = [
   // and has no business shipping to a phone. `sheet_to_json` is one of its exported names.
   'sheet_to_json',
   'SheetJS',
-  // Dictionary editor and mojibake tooling. Still gated on `import.meta.env.DEV`, so these
-  // must be absent in EVERY built artefact, review flag or not. P7 moves the editor onto the
-  // review flag; when it does, these move to REVIEW_ONLY below and not before.
-  'wordlist-overrides',
+  // The file-based override path: a dev-server endpoint that does not exist on Vercel. The
+  // editor no longer uses it — it writes revisions to the shared store — so these must be
+  // absent from EVERY built artefact, review flag or not.
+  //
+  // `/__lsd/overrides` rather than `wordlist-overrides`: the latter appears in client source
+  // only inside COMMENTS, which the build strips, so that grep could never have failed. It
+  // was three releases of a green tick for a search with no possible subject. The endpoint
+  // path is a real string literal in `src/dev/overrides.ts`, so its absence means the module
+  // did not ship.
+  '/__lsd/overrides',
   '__lsdOverrides',
   '__lsd/patch',
-  'detectMojibake',
 ]
 
 /**
@@ -90,6 +95,19 @@ const FORBIDDEN = [
  * legitimate product feature ever uses that word in shipped copy this line should be narrowed
  * CONSCIOUSLY rather than silently weakened. `devtools.pos.v1` and `data-devdock` are here
  * because DevDock is the shared toolbar both panels mount into — it ships exactly when they do.
+ *
+ * ── EVERY ENTRY MUST BE A STRING LITERAL OR A PROPERTY NAME ──────────────────────────
+ *
+ * Never a function or variable name. The build minifies identifiers, so `detectMojibake` —
+ * which sat on the FORBIDDEN list above for three releases — was absent from every bundle
+ * whether the code shipped or not. Moving the editor onto the review flag was supposed to make
+ * that line fail until it was reclassified; it passed, because the grep was reading the
+ * mangler rather than the bundle. Same shape as `PINNED` reading `position: sticky`:
+ * an assertion that cannot fail in the situation it exists for.
+ *
+ * `lone-surrogate` and `utf8-as-latin1` replace it. They are `MojibakeFinding.kind` values —
+ * string literals, so the minifier has to keep them, and they cannot appear from anywhere else.
+ * Verified by building both ways and grepping: absent with the flag off, present with it on.
  */
 const REVIEW_ONLY = [
   'remark',
@@ -101,6 +119,10 @@ const REVIEW_ONLY = [
   '__lsdScan',
   'devtools.pos.v1',
   'data-devdock',
+  // Dictionary editor, now on the review flag: its chrome, and the mojibake detector it calls.
+  'not yet in the wordlist',
+  'lone-surrogate',
+  'utf8-as-latin1',
 ]
 
 /** The flag the bundle under test was built with. */

@@ -1,10 +1,16 @@
 /**
  * check-dictionary.mjs — the dictionary editor's guarantees, end to end.
  *
- * Everything here is about ONE property: an edit made in the browser must be visible
- * immediately, must be impossible to ship, and must never touch either authoritative file.
- * The editor is the only tool in this repo that writes anything, so the assertions are less
- * about its UI than about what it is incapable of doing.
+ * Everything here is about ONE property: a staged edit must be visible immediately, must be
+ * impossible to ship, and must never touch either authoritative file. The assertions are less
+ * about the UI than about what this machinery is incapable of doing.
+ *
+ * SCOPE, since the editor moved: the panel now writes REVISIONS to the shared store, not to
+ * `wordlist-overrides.json`. What is covered below is the dev-server staging file, the Excel
+ * patch it produces, and the build gate that refuses to ship while it is non-empty — all still
+ * live, all still the last line of defence against a translation the .xlsx has never heard of.
+ * The shared write path is covered by `api/_lib/api.test.ts` and, for the two-client behaviour
+ * a local harness cannot honestly claim, by `docs/preview-verification.md`.
  *
  *   npm run check:dictionary
  *
@@ -41,7 +47,10 @@ const beforeLsd = sha(LSD_JSON)
 const beforeXlsx = sha(XLSX)
 
 const PORT = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
-const dev = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
+// VITE_REVIEW_TOOLS is set for the dev server because the panels are gated on it now.
+// Without it the toolbar renders nothing and assertion 1 fails for a reason that has
+// nothing to do with the dictionary.
+const dev = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, VITE_REVIEW_TOOLS: 'true' } })
 await new Promise((ok, fail) => {
   const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
   const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }
@@ -58,7 +67,11 @@ try {
   await page.waitForTimeout(1200)
 
   // ── 1. the editor is there, and it is inside a dock ──
-  const present = await page.evaluate(() => !!document.querySelector('[data-devdock] a[href="/__lsd/patch.xlsx"], [data-devdock]'))
+  // WAIT for it rather than sampling once at a fixed delay. The panel now pulls in the shared
+  // dictionary client, which is more modules for a cold dev server to transform on first paint;
+  // a 1200ms sample caught the page before React had rendered the docks and reported the editor
+  // missing. A timeout still fails — this waits for the outcome instead of guessing at it.
+  const present = await page.waitForSelector('[data-devdock]', { timeout: 20_000 }).then(() => true, () => false)
   say(present, 'dictionary editor mounts on the dev server')
 
   // ── 2. mojibake is refused at entry, not stored ──

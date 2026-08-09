@@ -13,7 +13,8 @@
  * chain is decoding wrongly, and the other values in the same batch came through the same
  * chain. Skipping it would commit the rest and hide the signal.
  */
-import { detectMojibake } from '../../src/dev/mojibake.mjs'
+import { detectByteDamage } from '../../src/dev/mojibake.mjs'
+import { kanzNormalised } from '../../src/i18n/kanzNorm.mjs'
 import { bakedValue, isSentinel, normKey } from '../../src/i18n/wordlistNorm.mjs'
 import type { Revision } from './records.js'
 import type { Edit, Wordlist } from './wordlistXlsx.js'
@@ -52,7 +53,13 @@ export function planSync(wl: Wordlist, revisions: Revision[], opts: { force?: bo
   }
 
   for (const [key, rev] of heads) {
-    const value = String(rev.value ?? '').trim()
+    // ── THE WRITE PATH NORMALISES ──────────────────────────────────────────────────
+    //
+    // Third of the three entry points, sharing one module with the generator and the editor
+    // (see src/i18n/kanzNorm.mjs). A revision can reach the store from a client that never
+    // went through the editor's paste path — an older build, a scripted write — so the last
+    // thing standing between Kanz keyboard output and the wordlist is here.
+    const value = kanzNormalised(String(rev.value ?? '').trim())
     const row = wl.byKey.get(key)
 
     if (!value) {
@@ -63,7 +70,7 @@ export function planSync(wl: Wordlist, revisions: Revision[], opts: { force?: bo
       continue
     }
 
-    const found = detectMojibake(value)
+    const found = detectByteDamage(value)
     if (found.length) {
       aborts.push(`"${key}" contains mojibake (${found[0].kind}) — nothing was committed. ${found[0].detail}`)
       continue
@@ -81,7 +88,10 @@ export function planSync(wl: Wordlist, revisions: Revision[], opts: { force?: bo
       continue
     }
 
-    if (row && bakedValue(value) === bakedValue(row.value)) {
+    // Both sides through the same conversion: the sheet may still hold Kanz input on a row
+    // whose override is already Unicode, and a raw comparison would call that a difference
+    // and rewrite the identical cell on every run, forever, in a fresh commit each time.
+    if (row && bakedValue(value) === bakedValue(kanzNormalised(row.value))) {
       // Already merged. The comparison goes through `bakedValue` for the same reason override
       // retirement does: the build adds a direction mark, so raw equality never matches and
       // the sync would rewrite the same value every night, forever, in a fresh commit each time.

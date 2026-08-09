@@ -27,7 +27,7 @@ describe('classifyValue', () => {
 
   it('matches sentinels case-insensitively and after trimming', () => {
     for (const variant of ['remove', 'REMOVE', ' Remove ', 'ReMoVe']) {
-      expect(classifyValue(variant)).toEqual({ value: '', sentinel: 'remove' })
+      expect(classifyValue(variant)).toEqual({ value: '', sentinel: 'remove', kanz: [] })
     }
   })
 
@@ -46,9 +46,23 @@ describe('classifyValue', () => {
     expect(classifyValue('‏Registration بند').value.charCodeAt(0)).toBe(0x200f)
   })
 
+  it('converts Kanz keyboard output on the way into the dictionary', () => {
+    // The OUTCOME: the value the app will render. Asserted as codepoints because ہ/ھ/ه are
+    // three characters this font draws alike — see docs/kanz-digraphs.md.
+    const out = classifyValue('شظظر')
+    expect(out.value).toBe('شہر')
+    expect([...out.value].map((c) => c.codePointAt(0))).toEqual([0x0634, 0x06C1, 0x0631])
+    expect(out.kanz).toEqual([{ doubled: 'ظظ', single: 'ہ', count: 1 }])
+  })
+
+  it('leaves a value with no Kanz input exactly as it was', () => {
+    expect(classifyValue('شہر').value).toBe('شہر')
+    expect(classifyValue('شہر').kanz).toEqual([])
+  })
+
   it('treats an empty cell as empty, not as a sentinel', () => {
-    expect(classifyValue('')).toEqual({ value: '', sentinel: null })
-    expect(classifyValue(undefined)).toEqual({ value: '', sentinel: null })
+    expect(classifyValue('')).toEqual({ value: '', sentinel: null, kanz: [] })
+    expect(classifyValue(undefined)).toEqual({ value: '', sentinel: null, kanz: [] })
   })
 })
 

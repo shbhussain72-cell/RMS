@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened ten times in this repo, in ten different places, to ten different
-kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
+This has now happened eleven times in this repo, in eleven different places, to eleven
+different kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-The last three are variants worth naming separately, because none is fixed by watching what you
+The last four are variants worth naming separately, because none is fixed by watching what you
 assert:
 
 - **7 — the wrong subject.** The assertion was about the outcome, it was correct, and it was
@@ -25,8 +25,11 @@ assert:
 - **10 — the wrong verb.** Same file, same settings, and the check performed a WEAKER operation
   than production does. Resolving is not importing. *A probe must do the thing that fails, not
   the thing next to it.*
+- **11 — the wrong unit.** The assertion was true, every measurement under it was exact, and the
+  subject had been mis-divided one layer upstream, so all of it was about something that was not
+  a word. *When a check consults a corpus, the tokenisation of that corpus is part of the check.*
 
-## The ten worked examples
+## The eleven worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -366,6 +369,54 @@ source in exactly the construct under test, on a version this repo does not pin.
 imports, or reads where production parses, is not a weaker version of the right check — it is a
 check of something else that happens to be nearby.
 
+### 11. The attestation check that looked up the wrong word
+
+**Asserted:** that a corpus lookup succeeded.
+**Should have asserted:** that the thing looked up was a word.
+
+The Kanz repair (`scripts/repair-kanz.ts`, `docs/kanz-digraphs.md`) may only rewrite a cell in
+the wordlist when the converted form is *attested elsewhere in the same sheet*. That rule is
+the entire safety design: it is what separates "corrupt" from "coincidentally doubled", and
+without it the repair is a blanket find-and-replace on the owner's only copy of the corpus.
+
+The rule was implemented correctly. The check ran. It reported `ثث → پ`, **attested 3 times**,
+and applied it to 50 of the 150 occurrences it converted.
+
+There is no such word. `پ` is a single letter.
+
+The tokeniser's letter class was `[ؠ-ي]` plus the Urdu-extended ranges — and
+**U+0652, the sukun, was in none of them.** It occurs 286 times in this column. So every word
+carrying one was split in half: `اْثثنا` tokenised as `ا` + `ثثنا`, and `اْثث` — the real word,
+which converts to `اْپ` — tokenised as `ا` + `ثث`. The three "attestations" for `پ` were the
+tails of three `اْپ`s, cut at the same place.
+
+**Everything downstream of the split was working perfectly.** The corpus was built correctly
+from the tokens it was given. The lookups were real lookups. The counts were true counts. The
+attestation rule was applied exactly as specified. The check could not have caught this,
+because the check's subject — do these tokens appear in the corpus — was true. The defect was
+one layer up, in what had been handed to it as a token.
+
+**This is the family the `identity` class in `audit-lsd.mjs` belongs to: a value that looks
+like absence and is not.** There, an LSD value equal to its English key looks like a missing
+translation and may be a deliberate loanword. Here, a fragment looks like a word and is not.
+In both, the thing under inspection is well-formed and the *category* is wrong, so every
+measurement taken of it is precise and about the wrong subject.
+
+And it failed green, as all of these do. A tokeniser that splits too eagerly produces MORE
+short tokens, short tokens collide with each other more often, and collisions read as
+attestations. The bug did not suppress applications — it manufactured justification for them.
+
+**What caught it** was not a test. It was that `پ`, as a standalone dictionary word, is
+implausible, and asking the same question a second way disagreed: searching for `پ` bounded by
+non-letters returned 0 rows where the tokeniser reported 3. Two ways of asking must agree.
+
+**The rule:** *when a check consults a corpus, the tokenisation of that corpus is part of the
+check.* Assert the tokens, not only the lookups. A one-character attestation, a corpus whose
+distinct-word count moves when an unrelated character class changes, or an answer that survives
+only under one way of asking, are all the same signal. And if a combining mark, a joiner, or a
+mark you did not think about can fall outside your character class, it will — write the class
+from the codepoints the data actually contains, not from the ones the script is named after.
+
 ### Related: source that is load-bearing and invisible
 
 Not an assertion failure, but the same family as the stale notice in example 5 — correct today,
@@ -446,6 +497,7 @@ Each one substituted something *upstream* of the user-visible effect:
 | the guessing diagnostic | a cause it had not checked | the status, type and body it had |
 | the login-page pass | that the page was healthy | that the page was the one asked for |
 | the silent skip | nothing, in a line that reads like output | that the assertion ran at all |
+| the sukun tokeniser | that the lookup succeeded | that the token looked up was a word |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.

@@ -1,5 +1,9 @@
 /**
- * Types for mojibake.mjs — hand-written because the implementation must stay plain .mjs:
+ * Types for mojibake.mjs — CLASS A (byte damage) only; class B is `src/i18n/kanzNorm.mjs`,
+ * which ships its own `kanzNorm.d.mts`. See the header over there for why they are two
+ * modules and not one function with a flag.
+ *
+ * Hand-written because the implementation must stay plain .mjs:
  * `src/dev/DictionaryPanel.tsx` is TypeScript in the browser bundle, while `api/dictionary/
  * [key].ts` and `api/_lib/syncPlan.ts` are Vercel Functions, which may only import files that
  * load as uploaded. See the header of `mojibake.mjs` for why that rules out .ts.
@@ -10,13 +14,13 @@
  */
 
 /** One reason a value was refused. `sample` is the offending fragment, for the message. */
-export interface MojibakeFinding {
+export interface ByteDamageFinding {
   kind: 'replacement-char' | 'utf8-as-latin1' | 'lone-surrogate'
   sample: string
   detail: string
 }
 
-export declare function detectMojibake(value: string): MojibakeFinding[]
+export declare function detectByteDamage(value: string): ByteDamageFinding[]
 
 /** Normalisation check, kept separate: NFC is a fixable authoring detail, not damage. */
 export declare function isNfc(value: string): boolean

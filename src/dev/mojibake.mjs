@@ -1,11 +1,30 @@
 /**
- * Mojibake detection for dictionary entries — refuse the value at ENTRY, never repair it.
+ * BYTE DAMAGE detection for dictionary entries — refuse the value at ENTRY, never repair it.
  *
- * Repairing is not on the table. A mis-decoded string has already lost information in ways
- * that are not always recoverable, and a guess that looks plausible is worse than a rejection:
- * it lands in the wordlist as if it were authored, and nobody looks at it again. So this only
- * ever answers "is this damaged, and how" — the value is refused and the page number reported,
- * and the person who owns the wordlist fixes it at source.
+ * ═══ THIS FILE IS CLASS A ONLY. CLASS B LIVES IN `src/i18n/kanzNorm.mjs` ═════════════
+ *
+ * Two entirely different things are wrong with text in this wordlist, and they used to share
+ * one name — which forced them to share one verdict:
+ *
+ *   CLASS A — this file. UTF-8 read as latin-1, replacement characters, lone surrogates.
+ *             Bytes are GONE and are not always recoverable. Verdict: BLOCK.
+ *   CLASS B — `kanzNorm.mjs`. The seven Kanz al-Lulu keyboard pairs (ظظ ثث سس كك حح ضض طط).
+ *             Nothing is lost; it is a faithful record in an encoding the app does not read,
+ *             and it converts exactly. Verdict: NORMALISE.
+ *
+ * While one `detectMojibake` answered both questions, the only verdict available to both was
+ * REFUSE — so 254 rows of recoverable keyboard output were filed as damage, and
+ * `docs/lsd-gaps.md` counted them as unfixable alongside the real thing. The cost was not the
+ * refusal. It was that nobody could see there were two problems.
+ *
+ * Two modules, two names, two verdicts. NOT one function with a mode flag — a flag puts the
+ * two back in one place and the next caller passes the wrong one.
+ *
+ * Repairing class A is not on the table. A mis-decoded string has already lost information in
+ * ways that are not always recoverable, and a guess that looks plausible is worse than a
+ * rejection: it lands in the wordlist as if it were authored, and nobody looks at it again. So
+ * this only ever answers "is this damaged, and how" — the value is refused and the page number
+ * reported, and the person who owns the wordlist fixes it at source.
  *
  * Three signatures, in the order they actually occur here:
  *
@@ -54,7 +73,7 @@ const TRAIL = '[\u0080-\u00BF\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2
  */
 const UTF8_AS_LATIN1 = new RegExp(`[\u00C2-\u00DF]${TRAIL}`)
 
-export function detectMojibake(value) {
+export function detectByteDamage(value) {
   const out = []
   const s = String(value ?? '')
 

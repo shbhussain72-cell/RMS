@@ -118,7 +118,7 @@ const FORBIDDEN = [
  * mangler rather than the bundle. Same shape as `PINNED` reading `position: sticky`:
  * an assertion that cannot fail in the situation it exists for.
  *
- * `lone-surrogate` and `utf8-as-latin1` replace it. They are `MojibakeFinding.kind` values —
+ * `lone-surrogate` and `utf8-as-latin1` replace it. They are `ByteDamageFinding.kind` values —
  * string literals, so the minifier has to keep them, and they cannot appear from anywhere else.
  * Verified by building both ways and grepping: absent with the flag off, present with it on.
  *

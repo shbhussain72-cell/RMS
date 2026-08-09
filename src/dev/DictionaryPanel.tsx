@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DevDock from './DevDock'
-import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake.mjs'
+import { detectByteDamage, isNfc, type ByteDamageFinding } from './mojibake.mjs'
+import { describeKanzChanges, normaliseKanz, type KanzChange } from '../i18n/kanzNorm.mjs'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
 import { SCANNER_IGNORE_ATTR, classifyDetail, inventoryDom, type HitClassDetail, type InventoryResult } from '../i18n/domScan'
 import { REVIEW_TOOLS } from '../reviewTools'
@@ -129,7 +130,15 @@ function DictionaryPanelInner() {
   const [, force] = useState(0)
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
-  const [refused, setRefused] = useState<MojibakeFinding[]>([])
+  const [refused, setRefused] = useState<ByteDamageFinding[]>([])
+  /**
+   * What the last Kanz conversion changed, so the author can SEE it.
+   *
+   * Silently correcting somebody's text is not acceptable even when the correction is
+   * right — and the odd-run rule in kanzNorm resolves an ambiguity by convention, so
+   * "right" is doing some work in that sentence. Cleared whenever the draft is retyped.
+   */
+  const [converted, setConverted] = useState<readonly KanzChange[]>([])
   const [problem, setProblem] = useState('')
   const [queued, setQueued] = useState<string[]>([])
   const [named, setNamed] = useState(() => hasAuthor())
@@ -223,7 +232,7 @@ function DictionaryPanelInner() {
   }
 
   const commit = async (english: string) => {
-    const found = detectMojibake(draft)
+    const found = detectByteDamage(draft)
     if (found.length) { setRefused(found); return }
     // NFC is a normalisation difference, not damage — normalise rather than refuse, and say so.
     const value = isNfc(draft) ? draft : draft.normalize('NFC')
@@ -326,8 +335,22 @@ function DictionaryPanelInner() {
                       <span className="text-[10px] text-[#8a6a1e]">sentinel in the wordlist — falls back to English by design</span>
                     ) : isEditing ? (
                       <>
-                        <input autoFocus dir="rtl" value={draft} onChange={(e) => { setDraft(e.target.value); setRefused([]) }}
-                          onKeyDown={(e) => { if (e.key === 'Enter') void commit(r.english); if (e.key === 'Escape') { setEditing(null); setRefused([]) } }}
+                        <input autoFocus dir="rtl" value={draft}
+                          onChange={(e) => { setDraft(e.target.value); setRefused([]); setConverted([]) }}
+                          onPaste={(e) => {
+                            // Convert Kanz keyboard output AT THE PASTE, not at save: the author
+                            // is looking at the field now, and a conversion they can see is one
+                            // they can reject. Class A is left to commit() — pasted damage should
+                            // be refused with its explanation, not quietly half-fixed here.
+                            const pasted = e.clipboardData.getData('text')
+                            const kanz = normaliseKanz(pasted)
+                            if (!kanz.changed) return
+                            e.preventDefault()
+                            const el = e.currentTarget
+                            const next = draft.slice(0, el.selectionStart ?? draft.length) + kanz.value + draft.slice(el.selectionEnd ?? draft.length)
+                            setDraft(next); setRefused([]); setConverted(kanz.changes)
+                          }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') void commit(r.english); if (e.key === 'Escape') { setEditing(null); setRefused([]); setConverted([]) } }}
                           className="min-w-0 flex-1 rounded-[6px] border border-[#c2a04e] bg-white px-[8px] py-[3px] text-[13px] outline-none" />
                         <button type="button" onClick={() => void commit(r.english)} className="shrink-0 rounded-[5px] bg-[#1f5a44] px-[7px] py-[3px] text-[10px] font-bold text-white">Save</button>
                       </>
@@ -338,7 +361,7 @@ function DictionaryPanelInner() {
                         </span>
                         {editable && (
                           <button type="button" disabled={!named}
-                            onClick={() => { setEditing(r.english); setDraft(inspectKey(r.english).value ?? ''); setRefused([]); setProblem('') }}
+                            onClick={() => { setEditing(r.english); setDraft(inspectKey(r.english).value ?? ''); setRefused([]); setConverted([]); setProblem('') }}
                             className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
                             {head ? 'Edit' : r.cls === 'C' ? 'Add row' : 'Add'}
                           </button>
@@ -365,6 +388,11 @@ function DictionaryPanelInner() {
                     <HistoryList revisions={history} liveId={head?.revisionId} onRevert={(rev) => void revert(r.english, rev)} disabled={!named} />
                   )}
 
+                  {isEditing && converted.length > 0 && (
+                    <p className="mt-[4px] rounded-[5px] bg-[#eef3f0] px-[6px] py-[4px] text-[10px] text-[#1f5a44]">
+                      Kanz input converted to Unicode: <code>{describeKanzChanges(converted)}</code>
+                    </p>
+                  )}
                   {isEditing && refused.map((f, i) => (
                     <p key={i} className="mt-[4px] rounded-[5px] bg-[#f7ecec] px-[6px] py-[4px] text-[10px] text-[#b23b3b]">
                       Refused ({f.kind}): {f.detail} — near <code>{f.sample}</code>

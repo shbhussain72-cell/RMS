@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DevDock from './DevDock'
 import { detectMojibake, isNfc, type MojibakeFinding } from './mojibake'
 import { allEntries, inspectKey, normKey, useLang } from '../i18n'
-import { SCANNER_IGNORE_ATTR, classifyDetail, scanDom, type HitClassDetail, type ScanHit } from '../i18n/domScan'
+import { SCANNER_IGNORE_ATTR, classifyDetail, inventoryDom, type HitClassDetail, type InventoryResult } from '../i18n/domScan'
 import { REVIEW_TOOLS } from '../reviewTools'
 import {
   chooseConflict, dismissConflict, headFor, historyFor, isMerged, mergedOverrides,
@@ -111,8 +111,21 @@ function DictionaryPanelInner() {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<Tab>('page')
   const [q, setQ] = useState('')
-  const [needsOnly, setNeedsOnly] = useState(true)
-  const [hits, setHits] = useState<ScanHit[]>([])
+  // Defaults OFF now that the Page tab is an inventory rather than a gap list. With it on, the
+  // tab hides every translated string — which is most of a well-translated page, and is the
+  // defect this pass exists to fix. It stays available: "show me only what needs work" is a
+  // useful view, it is just not what "the strings on this page" means.
+  const [needsOnly, setNeedsOnly] = useState(false)
+  /**
+   * The INVENTORY of this page, not the gap list.
+   *
+   * This was `scanDom().hits`, which rejects any node containing Arabic — so in LSD the Page tab
+   * listed only the strings that were still English. A page showing 142 strings offered three.
+   * `inventoryDom` keeps translated nodes and attributes each back to its English key, which is
+   * what "the tab lists what is on the page" requires.
+   */
+  const [scan, setScan] = useState<InventoryResult | null>(null)
+  const hits = scan?.hits ?? []
   const [, force] = useState(0)
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -146,7 +159,7 @@ function DictionaryPanelInner() {
   // Rescan when the panel opens and whenever the route changes under it. `scanDom` reads the
   // rendered DOM, so it can only ever report what is actually on screen right now — which is
   // also why the static sweep in `check-lsd-coverage.mjs` exists alongside it.
-  const rescan = useCallback(() => { if (open) setHits(scanDom().hits) }, [open])
+  const rescan = useCallback(() => { if (open) setScan(inventoryDom()) }, [open])
   useEffect(() => { rescan() }, [rescan, lang])
   useEffect(() => {
     if (!open) return
@@ -160,7 +173,7 @@ function DictionaryPanelInner() {
 
   const rows = useMemo(() => {
     const base = tab === 'page'
-      ? hits.map((h) => ({ english: h.text, where: h.where, count: h.count }))
+      ? hits.map((h) => ({ english: h.english, where: h.where, count: h.count }))
       : allEntries().map((e) => ({ english: e.english, where: e.page ? `p.${e.page}` : '', count: 0 }))
     const needle = q.trim().toLowerCase()
     return base
@@ -172,7 +185,7 @@ function DictionaryPanelInner() {
 
   const counts = useMemo(() => {
     const c: Record<Cls, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
-    for (const h of hits) c[classify(h.text)]++
+    for (const h of hits) c[h.detail]++
     return c
   }, [hits, pending.length])
 

@@ -41,7 +41,12 @@ const STORAGE_KEY = 'rms-lang'
  * `gu-Arab` is the correct, standards-valid tag — there is no registered "lsd" subtag.
  * This drives font fallback and screen-reader pronunciation, not our own lookup.
  */
-const LSD_BCP47 = 'gu-Arab'
+/**
+ * Stamped on every element `tx()` renders a HIT into, and on <html> in LSD mode. Exported
+ * because `domScan`'s inventory pass uses it to tell a translated node from a hardcoded one:
+ * it is the only marker in the DOM that means "this text came out of the dictionary".
+ */
+export const LSD_BCP47 = 'gu-Arab'
 
 /** Identical normalisation to the build script — both sides must agree or nothing matches. */
 export const normKey = (s: string): string => String(s ?? '').replace(/\s+/g, ' ').trim()

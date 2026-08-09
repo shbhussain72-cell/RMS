@@ -29,7 +29,7 @@
  * Dev-only. The single caller is CoveragePanel, which returns null when
  * `import.meta.env.DEV` is false, so this module is dropped from production bundles.
  */
-import { inspectKey, normKey } from './index'
+import { allEntries, inspectKey, LSD_BCP47, normKey } from './index'
 
 /** Latin word: two or more consecutive ASCII letters. Single letters are too noisy. */
 const LATIN_WORD = /[A-Za-z]{2,}/
@@ -270,3 +270,161 @@ export function cumulative() {
 }
 
 export function resetCumulative(): void { seen.clear() }
+
+// ─────────────────────────────────────────────────────────────────────────────────────
+// THE INVENTORY PASS
+// ─────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Every string on the page, translated or not — as opposed to `scanDom`, which finds gaps.
+ *
+ * ── WHY BOTH EXIST ───────────────────────────────────────────────────────────────────
+ *
+ * `scanDom` rejects any text node containing Arabic and any node without a Latin word. That is
+ * correct for what it is: a gap finder, answering "what on this screen is still English". But
+ * the dictionary editor's Page tab was built on it, so the tab could only ever list strings
+ * that are NOT yet translated — and the better the wordlist got, the emptier it became.
+ *
+ * Measured on the LSD build before this existed:
+ *
+ *     /miqaats                  142 visible strings ->  4 hits ->  3 rows listed
+ *     /miqaats/ashara-1448       77 visible strings -> 10 hits ->  1 row listed
+ *     /miqaats/ashara-1448/people 99 visible strings ->  7 hits
+ *
+ * A reviewer looking at a page of 142 strings was offered three. So this pass answers the other
+ * question — "what is on this screen, and what does the dictionary say about each" — and the
+ * Page tab reads it. `scanDom` is unchanged; the coverage numbers built on it still mean what
+ * they meant.
+ *
+ * ── ATTRIBUTION, AND WHY IT IS RECORDED PER ROW ──────────────────────────────────────
+ *
+ * A row is only editable if the English key behind it is known, and the rendered text is not
+ * that key once it has been translated. Three routes to it, in descending reliability:
+ *
+ *   data-lsd-key    `tx()` stamps it whenever interpolation changed the string. Authoritative.
+ *   reverse-lookup  the element carries `lang="gu-Arab"`, which `tx()` sets on every HIT, so
+ *                   its text IS a dictionary value; look the value up to get its key.
+ *   identity        no dictionary marker — hardcoded JSX, or English that never called `t()`.
+ *                   The rendered text is its own key, which is what makes it class C.
+ *
+ * `via` is on every hit because attribution can be wrong — two rows sharing a translation
+ * collapse to whichever the reverse index saw first — and a wrong row a reviewer can see the
+ * provenance of is arguable. One they cannot is just wrong.
+ */
+export type Attribution = 'data-lsd-key' | 'reverse-lookup' | 'identity'
+
+export interface InventoryHit {
+  /** The English key. What the editor edits. */
+  english: string
+  /** What this page is actually showing — the translation in LSD, the key itself in English. */
+  rendered: string
+  /** True when `rendered` came out of the dictionary rather than out of the JSX. */
+  translated: boolean
+  detail: HitClassDetail
+  count: number
+  where: string
+  dictValue?: string
+  via: Attribution
+}
+
+export interface InventoryResult {
+  route: string
+  /** Distinct visible text nodes, before merging. The ceiling the tab reconciles against. */
+  visibleTextNodes: number
+  /** Text nodes excluded by a NAMED rule, so the gap between the two is never a mystery. */
+  excluded: { skipTag: number; ignored: number; notLanguage: number; blank: number }
+  hits: InventoryHit[]
+}
+
+/** RLM/LRM and whitespace carry no meaning for matching a value back to its row. */
+const forMatch = (s: string): string =>
+  s.replace(/[\u200e\u200f]/g, '').replace(/\s+/g, ' ').trim()
+
+export function inventoryDom(root: ParentNode = document.body): InventoryResult {
+  // Rebuilt per scan rather than cached: an override applied since the last pass changes what a
+  // value maps back to, and a stale index would attribute a row to the string it used to hold.
+  const byValue = new Map<string, string>()
+  for (const e of allEntries()) {
+    const v = forMatch(e.lsd || '')
+    if (v && !byValue.has(v)) byValue.set(v, e.english)
+  }
+
+  const excluded = { skipTag: 0, ignored: 0, notLanguage: 0, blank: 0 }
+  /** english -> hit under construction. Merged here so one value split across nodes is one row. */
+  const byKey = new Map<string, InventoryHit>()
+  let visibleTextNodes = 0
+
+  const walker = document.createTreeWalker(root as Node, NodeFilter.SHOW_TEXT)
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const rendered = (n.nodeValue ?? '').replace(/\s+/g, ' ').trim()
+    if (!rendered) { excluded.blank++; continue }
+    const el = (n as Text).parentElement
+    if (!el || !el.isConnected) { excluded.blank++; continue }
+
+    let drop: keyof typeof excluded | null = null
+    for (let a: HTMLElement | null = el; a; a = a.parentElement) {
+      if (SKIP_TAGS.has(a.tagName)) { drop = 'skipTag'; break }
+      if (a.hasAttribute?.(SCANNER_IGNORE_ATTR)) { drop = 'ignored'; break }
+      // Data, not copy: an ITS id, a file size, an authored proper noun. Excluded here for the
+      // same reason `scanDom` excludes it — there is nothing for a translator to do with it —
+      // but COUNTED, so the difference between "on screen" and "listed" is always accounted for.
+      if (a.hasAttribute?.(NOT_LANGUAGE_ATTR)) { drop = 'notLanguage'; break }
+    }
+    if (drop) { excluded[drop]++; continue }
+    if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') { excluded.blank++; continue }
+
+    visibleTextNodes++
+
+    // NOTE the order. `data-lsd-key` beats the language marker because an interpolated string
+    // renders as `Close in 00:42:11` and its key is `Close in {time}` — the reverse index would
+    // never find the rendered form, and the identity fallback would file a class-C gap for a
+    // string that changes every second and can never have a row of its own.
+    const keyed = el.closest?.(`[${KEY_ATTR}]`)
+    const owner = el.closest?.(`[lang="${LSD_BCP47}"]`)
+    let english: string
+    let via: Attribution
+    let shown = rendered
+    if (keyed) {
+      english = keyed.getAttribute(KEY_ATTR) || rendered
+      via = 'data-lsd-key'
+      shown = (keyed.textContent || rendered).replace(/\s+/g, ' ').trim()
+    } else if (owner) {
+      // The whole element's text, not this node's: `isolateRuns` splits a value with a Latin
+      // loanword into several nodes, and three fragments of one translation are not three
+      // strings a reviewer can act on.
+      shown = (owner.textContent || rendered).replace(/\s+/g, ' ').trim()
+      english = byValue.get(forMatch(shown)) ?? shown
+      via = byValue.has(forMatch(shown)) ? 'reverse-lookup' : 'identity'
+    } else {
+      english = rendered
+      via = 'identity'
+    }
+
+    const prev = byKey.get(english)
+    if (prev) { prev.count++; continue }
+    const entry = inspectKey(english)
+    byKey.set(english, {
+      english,
+      rendered: shown,
+      translated: via !== 'identity' || Boolean(owner),
+      detail: detailOf(entry),
+      count: 1,
+      where: describe(n as Text),
+      ...(entry.exists ? { dictValue: entry.value } : {}),
+      via,
+    })
+  }
+
+  const hits = [...byKey.values()]
+  // Untranslated first — a reviewer opening the tab is usually looking for work — then by how
+  // often the string appears, then alphabetically so two runs of one screen are diffable.
+  const rank: Record<HitClassDetail, number> = { C: 0, B1: 1, A: 2, B2: 3, sentinel: 4 }
+  hits.sort((a, b) => rank[a.detail] - rank[b.detail] || b.count - a.count || (a.english < b.english ? -1 : 1))
+
+  return {
+    route: typeof location !== 'undefined' ? location.pathname : '',
+    visibleTextNodes,
+    excluded,
+    hits,
+  }
+}

@@ -179,6 +179,67 @@ try {
   await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })
   await waitForApp(page)
 
+  // ── 3c. THE PAGE TAB LISTS WHAT IS ON THE PAGE ──
+  //
+  // The Page tab used to read `scanDom().hits`, which rejects any node containing Arabic — so in
+  // LSD it listed only the strings that were still English, and the better the wordlist got the
+  // emptier it became. Measured before the fix: /miqaats showed 3 rows for 142 visible strings.
+  //
+  // The reconciliation is deliberately NOT "inventory count equals scan count" — those two
+  // already agreed, on the wrong quantity. It is "nothing rendered is missing from the list",
+  // checked by an independent walk that knows nothing about the dictionary. A hit covers a text
+  // node when its `rendered` IS that text or contains it: `isolateRuns` splits one translated
+  // value across several nodes, and three fragments of one string are one row, not three.
+  const RECON_ROUTES = ['/miqaats', '/miqaats/ashara-1448', '/miqaats/ashara-1448/people']
+  for (const route of RECON_ROUTES) {
+    await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded' })
+    await waitForApp(page)
+    const r = await page.evaluate(async () => {
+      const scan = await import('/src/i18n/domScan.ts')
+      const inv = scan.inventoryDom()
+      const gaps = scan.scanDom()
+      const covered = inv.hits.map((h) => h.rendered)
+      const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA'])
+      const unaccounted = []
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        const t = (n.nodeValue || '').replace(/\s+/g, ' ').trim()
+        if (!t) continue
+        const el = n.parentElement
+        if (!el || !el.isConnected) continue
+        // The same NAMED exclusions the inventory uses, restated here rather than imported:
+        // if this walk shared the scanner's filter it would agree with it by construction.
+        if (el.closest('[data-lsd-scanner-ignore]')) continue
+        if (el.closest('[data-lsd-not-language]')) continue
+        let skipTag = false
+        for (let a = el; a; a = a.parentElement) if (SKIP.has(a.tagName)) { skipTag = true; break }
+        if (skipTag) continue
+        if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') continue
+        if (!covered.some((c) => c === t || c.includes(t))) unaccounted.push(t.slice(0, 70))
+      }
+      return {
+        inventory: inv.hits.length,
+        gapScan: gaps.hits.length,
+        visible: inv.visibleTextNodes,
+        excluded: inv.excluded,
+        unaccounted: unaccounted.length,
+        examples: unaccounted.slice(0, 5),
+        byVia: inv.hits.reduce((acc, h) => { acc[h.via] = (acc[h.via] ?? 0) + 1; return acc }, {}),
+      }
+    })
+    say(r.unaccounted === 0,
+      `${route}: every rendered string is in the Page list (${r.inventory} rows for ${r.visible} visible nodes`
+      + `, gap scan alone found ${r.gapScan})${r.unaccounted ? ` — ${r.unaccounted} unaccounted: ${JSON.stringify(r.examples)}` : ''}`)
+    // The contrast that shows the fix did something. In LSD the gap scan sees single digits on
+    // these routes; if the inventory ever collapses to that number again, it has regressed to
+    // being a gap list under a different name.
+    say(r.inventory > r.gapScan,
+      `${route}: the inventory lists more than the gap scan (${r.inventory} vs ${r.gapScan}) — attribution ${JSON.stringify(r.byVia)}`)
+  }
+
+  await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
   await page.waitForTimeout(400)   // sleep: the override write lands on disk out-of-band from the browser call
   const onDisk = existsSync(OVERRIDES) ? JSON.parse(readFileSync(OVERRIDES, 'utf8')) : {}
   say(onDisk[KEY]?.lsd === VALUE, 'the edit is written to wordlist-overrides.json')

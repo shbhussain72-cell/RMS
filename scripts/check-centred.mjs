@@ -17,6 +17,19 @@
  *
  * Runs at 390/768/1024/1440. The first pass covered only 390 and 1440 — the two widths where
  * the PhoneScreen desktop branch and its known occlusion class do NOT appear.
+ *
+ * ── SECOND INVARIANT: A TRANSLATED NODE STILL RENDERS THE ALIGNMENT IT ASKS FOR ──
+ *
+ * The LSD reset `:where(html[data-lang='lsd']) :where([dir]) { text-align: start }` exists to
+ * stop a centred ancestor leaking its alignment onto translated copy. For as long as it was
+ * written `html[data-lang='lsd'] :where([dir])` it ALSO overrode every `text-center` an author
+ * put on such an element, because that selector weighs (0,1,1) and Tailwind's utility weighs
+ * (0,1,0) — while the comment above it asserted (0,0,1) and concluded the opposite.
+ *
+ * So the second half of this file asserts the RENDERED alignment of every element that asks
+ * for one and carries a `dir`. Not the specificity arithmetic — the arithmetic is what was
+ * wrong, and re-deriving it in a test would just reproduce the mistake in a second place.
+ * See docs/assertion-discipline.md.
  */
 import { chromium } from 'playwright'
 import { readFileSync } from 'node:fs'
@@ -69,6 +82,8 @@ let checked = 0
 let flexSeen = 0
 const off = []
 const nowrap = []
+let aligned = 0
+const misaligned = []
 
 try {
   for (const lang of ['en', 'lsd']) {
@@ -169,9 +184,28 @@ try {
                 margin: clip ? Math.round(clip.width - r.width) : null,
               })
             }
+            // ── ALIGNMENT SURVIVES TRANSLATION ────────────────────────────────────
+            // Every element that ASKS for an alignment and also carries a `dir` — i.e. one
+            // that went through tx()/td()/tdAuthored(). The LSD reset in src/index.css
+            // matches `[dir]`, so these are exactly the elements it can override, and the
+            // question is whether the class the author wrote still wins.
+            for (const el of document.querySelectorAll('[dir][class*="text-center"], [dir][class*="text-start"], [dir][class*="text-end"]')) {
+              if (!el.getClientRects().length) continue
+              const cls = el.className || ''
+              const want = /text-center/.test(cls) ? 'center' : /text-end/.test(cls) ? 'end' : 'start'
+              const got = getComputedStyle(el).textAlign
+              // `start`/`end` compute as themselves; `center` computes as `center`.
+              out.push({
+                align: true,
+                ok: got === want,
+                want, got,
+                cls: (el.textContent || '').trim().slice(0, 30),
+              })
+            }
             return out
           })
           for (const row of rows) {
+            if (row.align) { aligned++; if (!row.ok) misaligned.push({ ...row, lang, width, route }); continue }
             if (row.nowrap) { nowrap.push({ ...row, lang, width, route }); continue }
             checked++
             if (row.cls.startsWith('FLEX:')) flexSeen++
@@ -205,4 +239,13 @@ const tight = inClipper.filter((n) => n.margin >= 0).sort((a, b) => a.margin - b
 for (const t of tight) console.log(`  tightest: "${t.cls}" ${t.lang}@${t.width} w=${t.w} clipper=${t.cbW} margin=${t.margin}px  ${t.route}`)
 for (const c of clipping.slice(0, 8)) console.log(`  CLIPPED : "${c.cls}" ${c.lang}@${c.width} w=${c.w} clipper=${c.cbW} margin=${c.margin}px  ${c.route}`)
 
-process.exit(off.length || clipping.length ? 1 : 0)
+console.log('')
+console.log(`translated nodes asking for an alignment: ${aligned}`)
+console.log(`  NOT rendering the alignment they ask for: ${misaligned.length}`)
+for (const m of misaligned.slice(0, 20)) {
+  console.log(`  ${m.lang}@${m.width} ${m.route}  wants ${m.want}, computes ${m.got}  "${m.cls}"`)
+}
+// Coverage: a run that found no such node measured nothing, and must not read as a pass.
+if (aligned === 0) console.log('  FAIL  no translated node with an alignment class was found — this check measured nothing')
+
+process.exit(off.length || clipping.length || misaligned.length || aligned === 0 ? 1 : 0)

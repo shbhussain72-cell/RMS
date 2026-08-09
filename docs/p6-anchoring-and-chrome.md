@@ -48,7 +48,7 @@ left alone.
 | §4.6 Documents card gradient | **yes** | fixed |
 | §4.7 Duplicate instruction rows | **yes** — 4 of the 5 rows twice, in 10 of 10 views | fixed |
 | §4.8 Sticky footers cover content | **no** | measured below |
-| §4.9 `مرحلو 1 · LIVE` info popover | **no** | `CitySelection.tsx` already routes both info popovers through `components/Popover` (lines 363, 1163). `check:anchor` 0 failing at 390 and 1440, both languages. |
+| §4.9 `مرحلو 1 · LIVE` info popover | **no** | `CitySelection.tsx` already routes both info popovers through `components/Popover` (lines 363, 1163). ~~`check:anchor` 0 failing at 390 and 1440, both languages.~~ **CORRECTION: that zero says nothing about these two.** `check:anchor` never loads `/city` — see "Suites that pass because they never looked" below. Routing through the primitive is not the same as being exercised. |
 | §4.10 Ask Help dock | **no** | `AskHelpChat.tsx` is a `fixed inset-0` drawer with `min-h-0 flex-1 overflow-y-auto`. `inset-0` plus padding bounds it to the viewport more strictly than `max-h-[85dvh]` would, and it already scrolls internally. Nothing runs off the bottom at 833px. |
 | §4.11 Success has no AppBar | **yes** | fixed |
 

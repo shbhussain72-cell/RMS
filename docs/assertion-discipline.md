@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened six times in this repo, in six different places, to six different
+This has now happened seven times in this repo, in seven different places, to seven different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The six worked examples
+## The seven worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -170,6 +170,54 @@ challenge, `FUNCTION_INVOCATION_FAILED` is a function that threw, an empty body 
 came back. It may not state why, unless it checked. If a cause is worth guessing at, put it in
 the docs and let the reader apply it to the evidence; do not stamp it on the evidence.
 
+### 7. A comment computed a specificity and nobody ever recomputed it
+
+**Mechanism asserted:** "this selector weighs (0,0,1), so the utility class still wins."
+**Outcome wanted:** "a centred translated node renders centred."
+
+A new shape for this file. The first six were probes measuring the wrong subject. This one is not
+a probe at all — it is a **comment stating a computed value, sitting directly above the rule it
+describes, and wrong about it.** There was nothing to fail. It read:
+
+```css
+/* `:where()` contributes ZERO specificity, so the selector weighs (0,0,1) and any
+   Tailwind alignment utility on the element (`text-center` on a hero heading)
+   still wins. Centred copy stays centred in both languages. */
+html[data-lang='lsd'] :where([dir]) {
+  text-align: start;
+}
+```
+
+Every clause of that is checkable and the conclusion is false. `:where()` zeroes only what it
+*contains*. The two compounds outside it still count: the type selector `html` and — the one that
+was overlooked — the **attribute** selector `[data-lang='lsd']`. The rule weighs **(0,1,1)**.
+Tailwind's `.text-center` weighs (0,1,0). The rule wins, and had won since it was written.
+
+The consequence: **every translated node in LSD carrying an explicit `text-center` was flushed to
+the reading start, for as long as the rule existed.** It surfaced as two of the five defects in
+one review brief — `/login`'s heading, reported as "small and off-centre", and `/success`'s
+"Registration كامياب تهيو", reported as needing centring — filed as unrelated bugs on unrelated
+screens by someone who could only see the symptoms. `/login`'s heading was also overflowing the
+panel's right edge, which is what "off-centre" looked like on a narrow screen.
+
+Two things made it durable. It is **self-certifying**: the sentence explains why the thing works,
+so a reader checking "is this handled?" finds an answer and stops. And a specificity is
+**arithmetic on a selector**, which reads like something already verified rather than something
+someone did in their head once. Nobody re-derives a number that is already written down.
+
+**Fix:** wrap the whole selector — `:where(html[data-lang='lsd']) :where([dir])` — which puts it
+at (0,0,0) and matches what the comment always claimed. It still resets an alignment *inherited*
+from a centred ancestor, which is the case it exists for, because any matching declaration beats
+an inherited value at any specificity.
+
+**Guard:** `scripts/check-centred.mjs` now asserts the **rendered** `text-align` of every element
+that asks for one and carries a `dir` — 215 nodes across 25 routes, both languages, four widths.
+
+Note what the guard deliberately does NOT do: **recompute the specificity.** A test asserting
+`(0,0,0)` would be this very bug written a second time — the same arithmetic, by the same person,
+with the same blind spot, now with a green tick on it. The browser already knows the answer; ask
+it what it painted. Sabotage-tested by restoring the old selector: 120 of the 215 fail.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -182,11 +230,18 @@ Each one substituted something *upstream* of the user-visible effect:
 | piping to `tail` | that the command produced output | that the command succeeded |
 | the stale notice | nothing — prose asserts itself | the storage the sentence names |
 | the guessing diagnostic | a cause it had not checked | the status, type and body it had |
+| the specificity comment | arithmetic done once, in prose | the alignment the browser painted |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.
 The fifth is the limit case: there was no assertion to fail, so the only thing that could catch it
 was somebody reading the sentence and remembering what had changed underneath it.
+
+The seventh extends the fifth. A sentence asserts itself, and a sentence containing a COMPUTED
+VALUE asserts itself hardest of all: it looks like the output of a check rather than the input to
+one. Treat any number written in prose — a specificity, a threshold, a ratio, a count — as
+unverified until something re-derives it from the running system. If it cannot be re-derived, it
+is a claim, not a fact, and it should say so.
 
 If a probe's number moves a long way in the direction you were hoping for, that is a reason to
 distrust it, not to write it up. Both of the improvements above — 147 → 55, and "the clipping is

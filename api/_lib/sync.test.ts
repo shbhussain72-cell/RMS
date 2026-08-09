@@ -65,7 +65,11 @@ describe('reading the wordlist', () => {
 
   it('indexes every row by its normalised English key', () => {
     expect(wl.byKey.size).toBeGreaterThan(1000)
-    expect(wl.lastRow).toBe(DATA_ROWS + 1)           // +1 for the header row
+    // `lastRow` is the highest row NUMBER, which is not `DATA_ROWS + 1` once the sheet has
+    // gaps — two tool-chrome rows were removed without renumbering, exactly as the sync's own
+    // prohibition requires, so the numbering runs past the row count. What the sync depends on
+    // is only that appending lands after everything that already exists.
+    expect(wl.lastRow).toBeGreaterThanOrEqual(DATA_ROWS + 1)
   })
 
   it('finds the ornamented keys under their stripped form', () => {
@@ -197,7 +201,8 @@ describe('appending a new key', () => {
 
   it('extends the dimension so the new row is inside the used range', () => {
     const xml = partText(findPart(readZip(patched.bytes), SHEET_PART)!)
-    expect(xml).toContain(`<dimension ref="A1:F${DATA_ROWS + 2}"`)   // header + data + the new row
+    // Derived from the sheet's own last row number, not from the row count — see above.
+    expect(xml).toContain(`<dimension ref="A1:F${readWordlist(BOOK).lastRow + 1}"`)
   })
 
   it('does not renumber anything — the Read me cites rows 230, 231, 312, 457 and 500', () => {

@@ -23,12 +23,41 @@ export class ApiError extends Error {
   }
 }
 
-/** The response was not JSON. Almost always the SPA rewrite or a protection challenge. */
+/**
+ * The response was not JSON.
+ *
+ * ── THIS MESSAGE REPORTS, IT DOES NOT DIAGNOSE ───────────────────────────────────────
+ *
+ * It used to end with "this usually means /api is being served the app shell". That was a
+ * cause it had never checked. The real response was `500 text/plain` carrying
+ * `FUNCTION_INVOCATION_FAILED` — the request HAD reached a function, and the function threw —
+ * but the sentence named a routing rule, so two people went and read `vercel.json`, which was
+ * not the file with the fault in it. The guess cost more than the failure did.
+ *
+ * A diagnostic that guesses is worse than one that says "not JSON, and here is what came
+ * back", because a plausible wrong cause stops the search. So this reports exactly three
+ * observed facts — status, content type, first line of the body — and stops. The body is what
+ * distinguishes every case that lands here, and every one of them wants a different fix:
+ *
+ *   <!doctype html …            the SPA rewrite matched /api, or a protection challenge
+ *   FUNCTION_INVOCATION_FAILED  the function was reached and threw
+ *   NOT_FOUND / 404 html        no function is deployed at that path
+ *   (empty)                     the response had no body at all
+ *
+ * See `docs/assertion-discipline.md` — a diagnostic asserting an unobserved cause is the same
+ * defect as a test asserting a mechanism, and it fails the same way: confidently, in a
+ * direction that feels like an answer.
+ */
 export class NotJson extends ApiError {
   constructor(status: number, public contentType: string, public sample: string) {
-    super(status, `The API returned ${contentType || 'no content type'} instead of JSON. `
-      + 'This usually means /api is being served the app shell — the request never reached a '
-      + 'function, so nothing was saved.')
+    // Whitespace collapsed rather than first-line-only: Vercel's plain-text error puts
+    // "A server error has occurred" on line 1 and the part that identifies it —
+    // FUNCTION_INVOCATION_FAILED — on line 3. A first-line report would have shown the
+    // generic half and hidden the useful half, which is how this message went wrong the
+    // first time.
+    const start = sample.replace(/\s+/g, ' ').trim().slice(0, 100) || '(empty body)'
+    super(status, `The API answered ${status} ${contentType || 'with no content type'}, not JSON. `
+      + `The response began: ${JSON.stringify(start)}`)
     this.name = 'NotJson'
   }
 }

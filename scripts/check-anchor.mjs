@@ -133,6 +133,101 @@ for (const lang of ['en', 'lsd']) {
   }
 }
 
+/** How many (width, lang) combinations actually exercised each AppBar case. */
+const exercised = {}
+
+// ── AppBar: the account dropdown and the notification bell ───────────────────────────
+//
+// Added after both shipped broken to production in LSD while this suite passed. It passed
+// because it only ever drove the /araz relay dropdown: the two chrome popovers were never
+// covered, so "check:anchor is green" said nothing about them.
+//
+// Both were raw `position: absolute` panels with an inline `right: var(--content-px)` — a
+// PHYSICAL right, resolved against the bar rather than the trigger. In LTR the bar's end and
+// the physical right coincide, so it looked correct; in LSD the chip and bell move to the
+// physical left while the panel stays pinned right, and the panel lands at the opposite edge
+// of the bar from the control that opened it.
+//
+// The assertion is the same placement contract as above, so a future consumer that hand-rolls
+// its own panel again fails here rather than in production.
+for (const width of NARROW_WIDTHS) {
+for (const lang of ['en', 'lsd']) {
+  const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' })
+  await ctx.addInitScript(seed(lang))
+  const page = await ctx.newPage()
+  await page.goto(`http://localhost:${port}/miqaats`, { waitUntil: 'domcontentloaded' })
+  await page.evaluate(() => document.fonts?.ready)
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+
+  // [triggerSelector, how to recognise the panel it opens]
+  const CASES = [
+    ['account dropdown', '.ix-chip button:last-of-type', 160, 200],
+    ['notification bell', '.ix-bell', 300, 520],
+  ]
+
+  for (const [name, sel, minW, maxW] of CASES) {
+    console.log(`
+${lang} — AppBar ${name} @${width}`)
+    const opened = await page.evaluate(({ sel }) => {
+      document.querySelectorAll('[data-repro-trigger]').forEach((e) => e.removeAttribute('data-repro-trigger'))
+      const t = document.querySelector(sel)
+      if (!t) return 'trigger not found'
+      const r = t.getBoundingClientRect()
+      if (r.width < 4 || r.height < 4) return 'trigger not laid out'
+      t.setAttribute('data-repro-trigger', '1')
+      t.click()
+      return 'clicked'
+    }, { sel })
+    // Not rendered is a SKIP, not a failure: the AppBar chip and bell are desktop chrome and
+    // genuinely do not exist at 390. Counting absence as a failure would make the suite
+    // permanently red and train everyone to ignore it. Coverage is asserted at the end instead,
+    // so "skipped everywhere" cannot masquerade as "passed".
+    if (opened !== 'clicked') { console.log(`  skip  ${name}: ${opened} at ${width}`); continue }
+    exercised[name] = (exercised[name] ?? 0) + 1
+    await page.waitForTimeout(200)
+
+    const m = await page.evaluate(({ minW, maxW }) => {
+      const t = document.querySelector('[data-repro-trigger]')
+      if (!t) return null
+      const tr = t.getBoundingClientRect()
+      // The panel is whichever positioned box of about the right width opened below the bar.
+      // Deliberately not keyed on `position: fixed`: the whole point is to catch a consumer
+      // that rendered an `absolute` panel of its own instead of going through Popover.
+      const panel = [...document.querySelectorAll('div')].find((d) => {
+        const s = getComputedStyle(d)
+        if (s.position !== 'fixed' && s.position !== 'absolute') return false
+        const r = d.getBoundingClientRect()
+        return r.width >= minW && r.width <= maxW && r.height > 40 && r.top >= tr.top - 4
+      })
+      if (!panel) return null
+      const p = panel.getBoundingClientRect()
+      return {
+        panel: { left: p.left, right: p.right, width: p.width },
+        trig: { left: tr.left, right: tr.right },
+        dir: getComputedStyle(document.documentElement).direction,
+        viewport: window.innerWidth,
+        position: getComputedStyle(panel).position,
+      }
+    }, { minW, maxW })
+    if (!m) { say(false, `${name}: panel did not open (or was not found)`); continue }
+
+    const MARGIN2 = 12
+    const rtl = m.dir === 'rtl'
+    const startAligned = rtl ? m.trig.right - m.panel.width : m.trig.left
+    const expected = Math.max(MARGIN2, Math.min(startAligned, m.viewport - m.panel.width - MARGIN2))
+    say(Math.abs(m.panel.left - expected) <= 1,
+      `${rtl ? 'RTL' : 'LTR'} ${name}: panel left ${Math.round(m.panel.left)}, inline-start alignment wants ${Math.round(expected)} (trigger ${Math.round(m.trig.left)}..${Math.round(m.trig.right)}, ${m.position})`)
+    say(m.panel.left >= MARGIN2 - 1 && m.panel.right <= m.viewport - MARGIN2 + 1,
+      `${name}: panel stays inside the viewport (${Math.round(m.panel.left)}..${Math.round(m.panel.right)} within 0..${m.viewport})`)
+
+    await page.keyboard.press('Escape').catch(() => {})
+    await page.evaluate(() => { const b = document.querySelector('.fixed.inset-0'); if (b) b.dispatchEvent(new MouseEvent('click', { bubbles: true })) }).catch(() => {})
+    await page.waitForTimeout(120)
+  }
+  await ctx.close()
+}
+}
+
 await browser.close(); proc.kill()
 console.log(`\n${fails} failing assertion(s)`)
 process.exit(fails === 0 ? 0 : 1)

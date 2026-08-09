@@ -11,6 +11,7 @@ import {
   type NotifGroup,
   type RelTime,
 } from '../../data/notifications'
+import Popover from '../Popover'
 import { useStore } from '../../store'
 import { InvitationPopup } from './InvitationPopup'
 import { formNotificationPending } from '../../lib/registrationForm'
@@ -217,7 +218,7 @@ export function FilterChips({
 
 // ─── desktop dropdown panel ───────────────────────────────────────────────────
 
-export default function NotificationPanel({ onClose }: { onClose: () => void }) {
+export default function NotificationPanel({ anchor, onClose }: { anchor: HTMLElement | null; onClose: () => void }) {
                                                                                   const { tx } = useT()
   const nav = useNavigate()
   const [filter, setFilter] = useState<NotifFilter>('All')
@@ -255,20 +256,28 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
 
   return (
     <>
-      {/* Backdrop — invisible, catches outside clicks */}
-      <div className="fixed inset-0 z-[55]" onClick={onClose} />
+      {/* Through `Popover`, anchored to the bell that opens it.
 
-      {/* Panel */}
-      <div
-        className="absolute z-[60] flex flex-col overflow-hidden rounded-[16px] border border-[#ede8df] bg-white notif-panel-in"
-        style={{
-          top: 'calc(100% + 8px)',
-          right: 'var(--content-px)',
-          width: 'clamp(360px, 34vw, 460px)',
-          maxHeight: '78vh',
-          boxShadow: '0 12px 48px rgba(0,0,0,0.14), 0 2px 12px rgba(0,0,0,0.07)',
-        }}
+          This carried the same defect as the account dropdown and for the same reason: an
+          `absolute` panel with an inline `right: var(--content-px)`, which is a PHYSICAL
+          right resolved against the bar. Correct-looking in LTR, and in LSD the panel opened
+          at the opposite edge from the bell — measured at 1440: panel left 940, bell
+          300..338.
+
+          `Popover` supplies the backdrop, the border, the rounding, the shadow, the
+          inline-start alignment, the flip and the scroll/resize re-placement, so all of that
+          is deleted here rather than kept in a second copy. What stays is what is specific to
+          this panel: the entry animation and the 78vh cap.
+
+          The width was `clamp(360px, 34vw, 460px)` in CSS; `Popover` takes a number, so the
+          clamp is evaluated here. It is additionally bounded by the viewport so the panel can
+          never be wider than the screen it has to fit inside. */}
+      <Popover
+        anchor={anchor}
+        width={Math.round(Math.min(460, Math.max(360, window.innerWidth * 0.34), window.innerWidth - 24))}
+        onClose={onClose}
       >
+      <div className="notif-panel-in flex max-h-[78vh] flex-col">
         {/* ── Sticky header ── */}
         <div className="flex items-center justify-between border-b border-[#f0ece4] px-[20px] pb-[12px] pt-[18px]">
           <div className="flex items-center gap-[8px]">
@@ -331,6 +340,7 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
           )}
         </div>
       </div>
+      </Popover>
 
       {/* Success toast */}
       {toastMsg && (

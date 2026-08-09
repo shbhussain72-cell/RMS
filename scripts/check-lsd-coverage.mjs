@@ -101,12 +101,23 @@ const looksLikeCopy = (s) =>
   !NOISE.some((re) => re.test(s)) && !FRAGMENT.test(s)
 
 /** Directory names under src/ that hold tooling rather than product copy. */
-const DEV_ONLY_DIRS = new Set(['i18n', 'remarks', 'dev'])
+const DEV_ONLY_DIRS = new Set(['i18n', 'remarks', 'dev', 'shared'])
 
 const walk = (dir, out = []) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name)
-    // `i18n`, `remarks` and `dev` are DEV-ONLY INTERNAL TOOLING, not app copy.
+    // `i18n`, `remarks`, `dev` and `shared` are DEV-ONLY INTERNAL TOOLING, not app copy.
+    //
+    // `shared` joined the list after its chrome reached the SHIPPED BUNDLE. Its strings go
+    // through t()/tx(), so this scanner asked for wordlist rows; rows are what `lsd.json` is
+    // generated from; and `lsd.json` is imported by the app. The result was the English string
+    // "What should your remarks be signed with?" sitting in every user's bundle, and
+    // `check-dev-only.mjs` failing the build on the bare word `remark` — correctly. The guard
+    // was not wrong; asking for the rows was.
+    //
+    // Every file in src/shared/ is review tooling: transport, outbox, poll, identity,
+    // IdentityPrompt, remarksApi, dictionaryApi, syncApi. If app code is ever put there, this
+    // line is the thing that has to change, not the guard that caught it.
     //
     // Both are gated behind `import.meta.env.DEV` and never reach a user, so their English
     // chrome ("Export Markdown", "Enter remark mode") is not a translation gap — it is the

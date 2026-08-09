@@ -5,6 +5,7 @@ import { unreadCount, visibleNotifications } from '../../data/notifications'
 import { useStore } from '../../store'
 import { formNotificationPending } from '../../lib/registrationForm'
 import NotificationPanel from './NotificationPanel'
+import Popover from '../Popover'
 import LogoutConfirmSheet from './LogoutConfirmSheet'
 import TourHelpButton from '../../tour/TourHelpButton'
 import LanguageToggle from '../../i18n/LanguageToggle'
@@ -57,6 +58,10 @@ export default function AppBar({
   const notificationCount = unreadCount(readNotifIds, visibleNotifications(invitationReceived, formNotificationPending(flow, registrations)))
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  // Anchors held as STATE, not refs: Popover needs the element on the same render that opens
+  // the panel, and assigning to a ref does not trigger one.
+  const [chipEl, setChipEl] = useState<HTMLElement | null>(null)
+  const [bellEl, setBellEl] = useState<HTMLElement | null>(null)
   const [showLogout, setShowLogout] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const confirmLogout = () => { setShowLogout(false); logout(); nav('/login') }
@@ -162,6 +167,7 @@ export default function AppBar({
         {/* Bell */}
         <button
           type="button"
+          ref={setBellEl}
           onClick={() => { onBellClick?.(); setNotifOpen((v) => !v); setDropdownOpen(false) }}
           className="ix-hdr ix-bell relative z-10 me-[14px] flex size-[38px] shrink-0 items-center justify-center rounded-[11px]"
           aria-label={t('Notifications')}
@@ -174,10 +180,10 @@ export default function AppBar({
           )}
         </button>
 
-        {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
+        {notifOpen && <NotificationPanel anchor={bellEl} onClose={() => setNotifOpen(false)} />}
 
         {/* Avatar + identity text + chevron */}
-        <div className="ix-hdr ix-chip relative z-10 flex min-w-0 items-center gap-[10px] rounded-[12px] px-[8px] py-[4px]">
+        <div ref={setChipEl} className="ix-hdr ix-chip relative z-10 flex min-w-0 items-center gap-[10px] rounded-[12px] px-[8px] py-[4px]">
           <div className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-white">
             <span className="text-[14px] font-bold text-[#1f5a44]" style={{ fontFamily: FONT_SANS }} {...notLanguage}>
               {initials(account.name)}
@@ -196,9 +202,20 @@ export default function AppBar({
           </button>
         </div>
 
-        {/* Account dropdown */}
+        {/* Account dropdown.
+
+            Through `Popover`, anchored to the account chip. It used to be a raw `absolute`
+            panel with an inline `right: var(--content-px)` — a PHYSICAL right, resolved
+            against the BAR rather than against the trigger. In LTR the bar's inline end and
+            the physical right coincide, so it looked correct; in LSD the chip moves to the
+            physical left while the panel stayed pinned right, and Logout opened 1200px away
+            from the avatar that opened it. Measured at 1440: panel left 1220, trigger
+            48..76.
+
+            `check:anchor` was green throughout because it only drove the /araz relay
+            dropdown. It now covers this trigger and the bell. */}
         {dropdownOpen && (
-          <div className="absolute top-full z-50 mt-[6px] w-[180px] overflow-hidden rounded-[12px] border border-[#e7dfc9] bg-white shadow-[0_8px_24px_rgba(15,77,60,0.12)]" style={{ right: 'var(--content-px)' }}>
+          <Popover anchor={chipEl} width={180} onClose={() => setDropdownOpen(false)}>
             <button
               type="button"
               onClick={() => { setDropdownOpen(false); setShowLogout(true) }}
@@ -209,7 +226,7 @@ export default function AppBar({
               </svg>
               <span className="text-[14px] font-semibold text-[#b23b3b]" style={{ fontFamily: FONT_SANS }} {...tx('Logout')} />
             </button>
-          </div>
+          </Popover>
         )}
       </div>
 

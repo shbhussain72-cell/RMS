@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened five times in this repo, in five different places, to five different
+This has now happened six times in this repo, in six different places, to six different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The five worked examples
+## The six worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -123,6 +123,53 @@ No property of the code can confirm or deny it. Nothing here can check it, so it
 guard; it gets a comment at the claim naming what would falsify it (an auth system arriving), and
 that is the whole of the defence. Pretending otherwise would be a third layer of the same mistake.
 
+### 6. "This usually means /api is being served the app shell"
+
+**Asserted:** a cause.
+**Observed:** a content type.
+
+The API client threw on any non-JSON response — correct, and the reason nothing was silently
+lost. But the message it threw ended with a diagnosis:
+
+> The API returned text/plain; charset=utf-8 instead of JSON. This usually means /api is being
+> served the app shell — the request never reached a function, so nothing was saved.
+
+It had checked the content type. It had not checked the body, the status, or anything else. The
+actual response was:
+
+    500  text/plain
+    A server error has occurred
+    FUNCTION_INVOCATION_FAILED
+
+The request *had* reached a function; the function threw. Every word after "instead of JSON"
+was invented, and it named a file — `vercel.json` — that had nothing wrong with it. Two people
+went and read it. The rewrite was narrowed, which was harmless and irrelevant. The actual fault
+sat untouched for as long as the guess was believed.
+
+**This is the same defect as the five above, moved one layer out.** A test that asserts a
+mechanism substitutes something it can see for something it cannot; a diagnostic that asserts a
+cause does exactly that, and then says it out loud to the next person. Both fail confidently, in
+a direction that feels like an answer.
+
+**A wrong cause is worse than no cause,** because "not JSON" leaves the search open and "the
+rewrite is matching /api" closes it. The cost is not the sentence — it is every minute spent in
+the file the sentence named.
+
+**Fix:** report the observation and stop.
+
+    The API answered 500 text/plain; charset=utf-8, not JSON.
+    The response began: "A server error has occurred FUNCTION_INVOCATION_FAILED bom1::abc"
+
+Whitespace collapsed rather than first-line-only, because Vercel puts the generic half on line
+1 and the identifying half on line 3 — a first-line report would have hidden the useful part,
+which is how the message went wrong to begin with. Every case that reaches this throw now
+identifies itself from the body alone: `<!doctype html>` is the rewrite or a protection
+challenge, `FUNCTION_INVOCATION_FAILED` is a function that threw, an empty body is neither.
+
+**The rule:** a diagnostic may state what it observed — status, content type, the bytes that
+came back. It may not state why, unless it checked. If a cause is worth guessing at, put it in
+the docs and let the reader apply it to the evidence; do not stamp it on the evidence.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -134,6 +181,7 @@ Each one substituted something *upstream* of the user-visible effect:
 | PINNED | the CSS property | the rendered position while scrolling |
 | piping to `tail` | that the command produced output | that the command succeeded |
 | the stale notice | nothing — prose asserts itself | the storage the sentence names |
+| the guessing diagnostic | a cause it had not checked | the status, type and body it had |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.

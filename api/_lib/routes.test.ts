@@ -71,10 +71,18 @@ const req = (method: string, rel: string) =>
     ...(method === 'GET' ? {} : { body: '{}', headers: { 'content-type': 'application/json' } }),
   })
 
+/**
+ * Volatile fields are blanked before comparison. `sync-wordlist` stamps `new Date()` into its
+ * status record, so a byte-for-byte body comparison across two calls fails whenever they
+ * straddle a millisecond — it passed for a day and then reported the two export shapes
+ * disagreeing over `.597Z` vs `.598Z`. Everything else must still match exactly.
+ */
+const STAMP = /\d{4}-\d{2}-\d{2}T[\d:.]+Z/g
+
 const read = async (res: Response) => ({
   status: res.status,
   type: (res.headers.get('content-type') || '').split(';')[0],
-  body: await res.text(),
+  body: (await res.text()).replace(STAMP, '<timestamp>'),
 })
 
 beforeEach(() => {

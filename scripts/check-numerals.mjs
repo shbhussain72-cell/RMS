@@ -25,6 +25,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
+import { createArrival } from './arrival.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -123,15 +124,24 @@ const browser = await chromium.launch()
 const mixedBy = new Map()
 const asciiBy = new Map()
 let visits = 0
+const failedVisits = []
+
+/** One language, one width — so the matrix is exactly the route list. Derived, never typed. */
+const VIEWPORT_W = 1024
+const arrival = createArrival({ expected: routes.length })
 
 try {
-  const ctx = await browser.newContext({ viewport: { width: 1024, height: 1000 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata' })
+  const ctx = await browser.newContext({ viewport: { width: VIEWPORT_W, height: 1000 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata' })
   await ctx.addInitScript(seed)
   const page = await ctx.newPage()
   for (const route of routes) {
     try {
       await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 30_000 })
       await page.evaluate(() => new Promise((r) => setTimeout(r, 400)))
+      // Arrival is this suite's problem, because "no mixed numerals" is true of a page with no
+      // numerals on it. `visit` records the route that did not arrive and returns false; the
+      // shortfall is asserted at the end rather than swallowed here.
+      if (!await arrival.visit(page, route, `lsd@${VIEWPORT_W}`)) continue
       const { mixed, ascii } = await page.evaluate(PROBE)
       for (const m of mixed) {
         const k = `${m.text}|${m.where}`
@@ -144,7 +154,12 @@ try {
         else asciiBy.set(k, { ...a, count: 1, routes: new Set([route]) })
       }
       visits++
-    } catch { /* a route that fails to render is check-layout's problem, not this one */ }
+    } catch (err) {
+      // Was: "a route that fails to render is check-layout's problem, not this one". It was not
+      // check-layout's problem — check-layout had the same hole and passed on the same blank
+      // pages. A hand-off to a suite that cannot receive it is a swallow with a citation.
+      failedVisits.push(`${route}: ${err.message.split('\n')[0]}`)
+    }
   }
 } finally {
   await browser.close()
@@ -169,4 +184,12 @@ if (JSON_OUT) {
   console.log(`\nfull report: artifacts/audit/numerals.json`)
 }
 
-process.exit(mixed.length ? 1 : 0)
+// Arrival and coverage are assertions of this suite, not preconditions somebody else checks.
+// "0 nodes mixing both systems" over a sweep that reached nothing is the exact green this
+// suite used to print on a build where every route redirected to /login.
+const problems = arrival.verify()
+for (const f of failedVisits) console.error(`  FAIL  visit threw — ${f}`)
+for (const p of problems) console.error(`  FAIL  ${p}`)
+console.log(`arrived at ${arrival.arrived}/${routes.length} routes`)
+
+process.exit(mixed.length || problems.length || failedVisits.length ? 1 : 0)

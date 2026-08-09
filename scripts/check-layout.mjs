@@ -58,6 +58,7 @@ import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import { CANONICAL_WIDTHS } from './widths.mjs'
 import { installProbeDom } from './probe-dom.mjs'
+import { createArrival } from './arrival.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -413,6 +414,10 @@ const findings = []
 const failed = []
 let visits = 0
 
+// Derived from the three lists actually swept, AFTER --route/--lang/--width narrowing, so a
+// focused run asserts its own smaller matrix instead of failing against the full one.
+const arrival = createArrival({ expected: targets.length * WIDTHS.length * LANGS.length })
+
 try {
   for (const lang of LANGS) {
     for (const width of WIDTHS) {
@@ -429,6 +434,10 @@ try {
           await page.goto(`http://localhost:${PREVIEW_PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
           await page.evaluate(() => document.fonts?.ready)
           await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+          // Occlusion, clipping and overflow are all negatives: a page that never rendered has
+          // none of them. This suite was the one others handed their render failures to, and it
+          // passed on a build where every route redirected to /login.
+          if (!await arrival.visit(page, route, `${lang}@${width}`)) continue
           const hits = await page.evaluate(PROBE)
           for (const h of hits) findings.push({ ...h, route, lang, width })
           visits++
@@ -488,4 +497,8 @@ if (JSON_OUT) {
   console.log(`\nwrote ${OUT.replace(ROOT, '.')}`)
 }
 
-process.exit(failures.length === 0 ? 0 : 1)
+const problems = arrival.verify()
+for (const p of problems) console.error(`  FAIL  ${p}`)
+console.log(`arrived at ${arrival.arrived}/${targets.length * WIDTHS.length * LANGS.length} matrix visits`)
+
+process.exit(failures.length === 0 && problems.length === 0 && failed.length === 0 ? 0 : 1)

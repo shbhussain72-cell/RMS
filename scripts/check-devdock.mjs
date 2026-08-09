@@ -72,7 +72,7 @@ for (const lang of ['en', 'lsd']) {
   await page.mouse.down()
   await page.mouse.move(gx + dx, gy + 220, { steps: 12 })
   await page.mouse.up()
-  await page.waitForTimeout(120)
+  await page.waitForTimeout(120)   // sleep: drag release; the dock animates to its snapped position
   const moved = await box(page, DOCK)
   say(Math.abs(moved.x - (start.x + dx)) <= 6 && Math.abs(moved.y - (start.y + 220)) <= 6,
     `drag moved it to (${moved.x},${moved.y}); expected about (${start.x + dx},${start.y + 220})`)
@@ -83,7 +83,7 @@ for (const lang of ['en', 'lsd']) {
   // 3. It survives a reload.
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForSelector(DOCK, { timeout: 15_000 }).catch(() => {})
-  await page.waitForTimeout(150)
+  await page.waitForTimeout(150)   // sleep: mount is awaited above; this covers the entrance transition only
   const restored = await box(page, DOCK)
   say(restored && Math.abs(restored.x - moved.x) <= 2 && Math.abs(restored.y - moved.y) <= 2,
     `position restored after reload (${restored?.x},${restored?.y})`)
@@ -91,7 +91,7 @@ for (const lang of ['en', 'lsd']) {
 
   // 4. A position saved wide must not strand the panel off a narrow viewport.
   await page.setViewportSize({ width: 390, height: 800 })
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(200)   // sleep: viewport resize reflow, which fires no event of its own
   const narrow = await box(page, DOCK)
   // The 8px edge gap is asserted, not just "on screen": clamping with a stale size lands the
   // dock flush against the edge it was supposed to be held away from, which still passes a

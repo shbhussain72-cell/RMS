@@ -27,6 +27,18 @@
  *    count. Switch that wrapper to `position: fixed` and its height stops being reserved, the
  *    last screenful of every long page becomes unreachable, and this fails immediately — which
  *    is the point at which padding WOULD be the right fix.
+ *
+ * ── KNOWN GAP: SKIPS HAVE NO FLOOR ──────────────────────────────────────────────────
+ *
+ * This suite can legitimately skip an assertion when the element is genuinely absent at a width,
+ * and that decision is right — see docs/assertion-discipline.md, example 8. What is missing is
+ * the floor: a run in which EVERY assertion skipped prints `0 failing assertion(s)` and exits 0.
+ *
+ * `scripts/coverage-floor.mjs` exists for this. Declare the runs each case should produce,
+ * DERIVED from the width and language lists rather than typed, call `cov.ran(name)` where the
+ * case executes and `cov.skip(name, why)` where it does not, and `cov.verify(say)` at the end.
+ * Deferred behind a user-facing defect; recorded here so it is found by whoever next edits a
+ * skip rather than by whoever next reads the docs.
  */
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
@@ -96,7 +108,7 @@ for (const lang of ['en', 'lsd']) {
       return true
     }, { LOGOUT_SRC: 'logout|باهر نكلو', ACCOUNT_SRC: 'account menu|account ني فهرست' })
     if (!opened) { say(false, 'could not find the AppBar logout control to open a sheet'); await ctx.close(); continue }
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(200)   // sleep: bottom-sheet open transition, no completion event
 
     const hit = await page.evaluate(() => {
       const sheet = document.querySelector('[data-name="BottomSheet"]')

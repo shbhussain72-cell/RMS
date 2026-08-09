@@ -32,6 +32,18 @@
  *
  * Runs against the DEV server so it can share the screenshot harness's route enumeration and
  * localStorage seeding; nothing here depends on dev-only code.
+ *
+ * ── KNOWN GAP: THIS SUITE DOES NOT PROVE IT ARRIVED ─────────────────────────────────
+ *
+ * Measured, not suspected: pointed at a build where every route redirects to /login, this suite
+ * PASSED. See "The arrival audit" in docs/assertion-discipline.md. Its assertions are negatives,
+ * and a negative is most true of a page with nothing on it.
+ *
+ * The fix is `createArrival` from ./arrival.mjs, as used by check-numerals, check-lsd-clip,
+ * check-overlap, check-layout and check-centred: derive `expected` from the matrix this suite
+ * sweeps, call `arrival.visit(page, route, combo)` before measuring, and fold `arrival.verify()`
+ * into the exit code. Deferred behind a user-facing defect, deliberately — this is a known hole,
+ * not an unknown one.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -194,6 +206,47 @@ function freePort() {
   }
 }
 
+/**
+ * Kill the vite process TREE, not the shell in front of it.
+ *
+ * ── WHY THIS SUITE NEVER FINISHED ────────────────────────────────────────────────────
+ *
+ * This has been "the slow suite" for several sessions. It is not slow. It completes its
+ * measurement in about six minutes and then **never exits**, so anything running it under a
+ * timeout kills it after the work is done and reports a timeout — and anything running it by
+ * hand sits at a blank prompt until somebody gives up. A suite that does not terminate is a
+ * suite nobody can put in a harness, which is why the bidi census below it has been gated shut
+ * this whole time.
+ *
+ * Two things combine:
+ *
+ *   1. vite is spawned with `shell: true`, so `proc` is cmd.exe and the real node server is its
+ *      CHILD. `proc.kill()` kills the shell and orphans the server, which keeps holding the
+ *      port — the reason `freePort()` had to be written at all. Its own docblock records the
+ *      symptom without naming this as the cause.
+ *   2. The orphan's stdout is piped here and has a listener on it, so the event loop never
+ *      empties, so node never exits on its own.
+ *
+ * The suite deliberately sets `process.exitCode` instead of calling `process.exit()`, because
+ * the latter truncated the `--json` output mid-object. That decision is right and stays; it
+ * just left nothing to close the loop. This kills the tree, and the tail of the file force
+ * exits once stdout has actually drained.
+ */
+function stopServer(proc) {
+  if (!proc?.pid) return
+  if (process.platform === 'win32') {
+    // /T takes the children with it — the point of the whole function. /F because vite in a
+    // shell does not respond to a polite signal here.
+    try { execSync(`taskkill /F /T /PID ${proc.pid}`, { stdio: 'ignore' }) } catch { /* already gone */ }
+  }
+  try { proc.kill() } catch { /* already gone */ }
+  // Belt and braces: even a killed child leaves its pipe referenced until it is unref'd, and a
+  // referenced pipe is enough on its own to keep node alive.
+  proc.stdout?.destroy()
+  proc.stderr?.destroy()
+  proc.unref()
+}
+
 async function serve() {
   freePort()
   const proc = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
@@ -241,7 +294,7 @@ try {
   }
 } finally {
   await browser.close()
-  server.kill()
+  stopServer(server)
 }
 
 const violations = [...byText.values()]
@@ -273,6 +326,13 @@ full report: ${OUT.replace(ROOT, '.')}`)
   }
 }
 
-// `process.exitCode`, never `process.exit()`: the latter tears the process down before a
+// `process.exitCode`, never a bare `process.exit()`: the latter tears the process down before a
 // piped stdout has flushed, which silently truncated the --json output mid-object.
 process.exitCode = violations.length === 0 ? 0 : 1
+
+// …but setting the code and hoping the loop empties is what made this suite hang for several
+// sessions. `stopServer` should have emptied it; this makes termination the outcome rather than
+// the expectation. The empty write's callback fires only after everything queued ahead of it has
+// been handed to the OS, so the flush the comment above protects still happens — and then we
+// leave, whatever else is still holding a handle open.
+process.stdout.write('', () => process.exit(process.exitCode))

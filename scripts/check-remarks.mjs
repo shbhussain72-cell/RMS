@@ -74,7 +74,7 @@ const seed = (lang) => `
 `
 
 /** Wait for the resolution pass (settle 500ms + 1s interval) to have run at least once. */
-const settle = (page) => page.waitForTimeout(1400)
+const settle = (page) => page.waitForTimeout(1400)   // sleep: the resolution pass is interval-driven (500ms settle + 1s tick) with no completion event
 
 async function openPanel(page) {
   if (!(await page.locator('[data-rmk="panel"]').count())) {

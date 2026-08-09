@@ -36,6 +36,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CANONICAL_WIDTHS } from './widths.mjs'
 import { installProbeDom } from './probe-dom.mjs'
+import { createArrival } from './arrival.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT_ID = 'ashara-1448'
@@ -221,6 +222,13 @@ const PAGE_FN = (notices) => {
 
 const browser = await chromium.launch()
 const summary = { covered: [], offscreen: [], dupes: [], appbar: [], unpinned: [] }
+const failedVisits = []
+const NL = '\n'
+
+// routes x widths x languages, derived from the three lists this suite sweeps. A visit that
+// never arrived cannot contribute a finding, so "0 distinct" over a short sweep is a smaller
+// claim than it reads as — this makes the difference an assertion rather than a footnote.
+const arrival = createArrival({ expected: routes.length * WIDTHS.length * LANGS.length })
 try {
   for (const width of WIDTHS) {
     for (const lang of LANGS) {
@@ -233,8 +241,14 @@ try {
       for (const route of routes) {
         try {
           await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'networkidle', timeout: 20_000 })
-        } catch { continue }
-        await page.waitForTimeout(160)
+        } catch (err) {
+          failedVisits.push(`${lang}@${width} ${route}: ${err.message.split(NL)[0]}`)
+          continue
+        }
+        await page.waitForTimeout(160)   // sleep: sticky and fixed chrome settles into place after networkidle
+        // Every assertion below is a negative — no content covered, nothing off-screen, no
+        // duplicate notice, no unpinned footer. A page that never rendered satisfies all four.
+        if (!await arrival.visit(page, route, `${lang}@${width}`)) continue
         const r = await page.evaluate(PAGE_FN, NOTICES)
         const at = `${route} [${lang}@${width}]`
         for (const c of r.covered) summary.covered.push({ at, ...c })

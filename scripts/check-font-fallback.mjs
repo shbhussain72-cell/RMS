@@ -24,6 +24,18 @@
  * Arabic coverage, so a blocked webfont meant every Arabic glyph rendered as tofu — boxes,
  * not smaller text. The assertion below is therefore not "some font was used" but "the face
  * that painted the Arabic is not a Latin-only one".
+ *
+ * ── KNOWN GAP: THIS SUITE DOES NOT PROVE IT ARRIVED ─────────────────────────────────
+ *
+ * Measured, not suspected: pointed at a build where every route redirects to /login, this suite
+ * PASSED. See "The arrival audit" in docs/assertion-discipline.md. Its assertions are negatives,
+ * and a negative is most true of a page with nothing on it.
+ *
+ * The fix is `createArrival` from ./arrival.mjs, as used by check-numerals, check-lsd-clip,
+ * check-overlap, check-layout and check-centred: derive `expected` from the matrix this suite
+ * sweeps, call `arrival.visit(page, route, combo)` before measuring, and fold `arrival.verify()`
+ * into the exit code. Deferred behind a user-facing defect, deliberately — this is a known hole,
+ * not an unknown one.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync } from 'node:fs'

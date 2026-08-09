@@ -11,7 +11,19 @@ import RemarksLayer from './remarks/RemarksLayer'
 import RemarksPanel from './remarks/RemarksPanel'
 import RemarksFixture from './remarks/RemarksFixture'
 import { miqaats } from './data/seed'
+import { REVIEW_TOOLS } from './reviewTools'
 import './index.css'
+
+// Re-apply stored dictionary edits before the app settles. Without this an edit changed the
+// running page and disappeared on the next load — see src/dev/bootOverrides.ts, which also
+// explains why the two override stores share this moment and nothing else.
+//
+// Dynamic import inside the guard: `REVIEW_TOOLS` compiles to a literal `false` in a production
+// build, so Rollup drops this branch and the dev-only modules it reaches with it. A static
+// import would keep them alive and `check-dev-only.mjs` would fail on the shipped bundle.
+if (REVIEW_TOOLS) {
+  void import('./dev/bootOverrides').then((m) => m.applyStoredOverridesAtBoot())
+}
 
 // Every miqaat ships an authored LSD name (`titleArabic`) next to its English `title`.
 // Registering the pairs here lets any screen render the LSD name from the English string

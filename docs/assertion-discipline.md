@@ -7,11 +7,20 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened six times in this repo, in six different places, to six different
+This has now happened eight times in this repo, in eight different places, to eight different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The six worked examples
+The last two are variants worth naming separately, because neither is fixed by watching what you
+assert:
+
+- **7 — the wrong subject.** The assertion was about the outcome, it was correct, and it was
+  pointed at the wrong page. *A probe must prove it reached the thing it is testing, not merely
+  that the thing it looked at was healthy.*
+- **8 — no subject at all.** The assertion did not run, said so in a line nobody reads, and the
+  suite exited 0. *A probe must prove it ran, not merely that nothing it ran failed.*
+
+## The eight worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -170,6 +179,179 @@ challenge, `FUNCTION_INVOCATION_FAILED` is a function that threw, an empty body 
 came back. It may not state why, unless it checked. If a cause is worth guessing at, put it in
 the docs and let the reader apply it to the evidence; do not stamp it on the evidence.
 
+### 7. Twenty-four assertions passed on a page none of them were about
+
+**Asserted:** that the page it looked at was healthy.
+**Should have asserted:** that the page it looked at was the page it asked for.
+
+`check-cold-load` seeds a saved session into `localStorage` before boot and walks three routes in
+two languages at every narrow width, asserting on each that the error boundary did not render and
+that the body holds more than forty characters. It reported **24 passes out of 24**. Every one of
+those visits was sitting on `/login`.
+
+The cause was one line away: `PERSIST_VERSION` had been set to 1 with no `migrate`, so zustand
+discarded the seeded session, the app booted logged out, and `RequireAuth` sent all three routes
+to the login page. And the login page renders cleanly. It has no error boundary, it throws
+nothing, it is 137 characters of perfectly healthy content. **Every assertion was true.** The
+suite was not wrong about what it measured; it was wrong about what it was measuring.
+
+That is what makes this one different from the six above. Those substituted something *upstream*
+of the user-visible effect — a CSS property for a rendered position, a build for a source tree.
+This one asserted the effect, correctly, **on the wrong subject**. Nothing about the assertion
+needed fixing. Its reach did.
+
+**Why it will recur in any suite that navigates.** Almost every probe here asserts a negative:
+no boundary, no overlap, no clipping, no mixed-script text node, no Latin numeral. A negative is
+satisfied *most thoroughly* by a page with nothing on it. The better the assertion sounds — "no
+element in the entire document occludes any other" — the more completely a blank or wrong page
+satisfies it. Arriving is a precondition of every one of them and is asserted by none of them.
+
+**The tell was in the output the whole time:** three different routes, each reporting exactly 137
+characters. A threshold cannot see that. Only a comparison can, and there was no comparison,
+because each route was judged alone.
+
+**The fix, and which third of it generalises.** Three checks now stand between the suite and a
+green run on the wrong page:
+
+| check | catches | misses |
+|---|---|---|
+| `location.pathname` is still the route asked for | a redirect — `<Navigate to="/login" replace>` changes the URL | a fallback rendered *in place*, which keeps the URL |
+| the body clears a floor measured from the real login page (137 → 400) | a blank mount, a shell with no route in it | a wrong page that happens to be long |
+| **the three routes render different text from one another** | any case where the routes are not distinct pages, whatever the reason | a genuine bug that breaks all three identically |
+
+The third is the one that would have caught this, and it is the one to copy. Note what it does
+*not* require: a per-route marker string. That matters more here than in most codebases — every
+visible string on these pages is translated into Lisan al-Dawat, so a marker-string assertion
+either has to be authored in a language nobody on this side may write, or the suite can only run
+in English, which is the half where the bugs aren't. Distinctness needs no copy at all and works
+in both languages unchanged.
+
+**The rule:** *a navigating probe must be capable of failing on a page that is not the page it
+asked for.* If you cannot describe the assertion that would fail, the suite is reporting on
+whatever it happened to land on. See the arrival audit at the end of this file for what happened
+when every suite in `scripts/` was pointed at a build where all routes redirect to `/login`.
+
+### 8. A skipped assertion is indistinguishable from a passing one
+
+**Asserted:** nothing. It printed a line and moved on.
+**Should have asserted:** that it ran at all.
+
+`check-anchor` exercises the AppBar account dropdown and notification bell. Neither exists at
+390px — they are desktop chrome — so when the trigger is not found the suite logs
+
+    skip  account dropdown: trigger not found at 390
+
+and continues. **That decision is correct.** Counting a legitimately absent element as a failure
+would make the suite permanently red at half its widths, and a permanently red suite is one
+everybody learns to ignore. The reasoning is sound and it should stay.
+
+The consequence is not sound. `skip` prints a line that scrolls past in a column of `ok` lines,
+adds nothing to `fails`, and a run in which **every** assertion skipped exits 0 and reports
+`0 failing assertion(s)`. The suite cannot distinguish "the thing I test is correct" from "the
+thing I test was not there."
+
+And the file already knew. The comment above that line reads:
+
+> Coverage is asserted at the end instead, so "skipped everywhere" cannot masquerade as "passed".
+
+`exercised[name]` is incremented on the line below it and **is never read anywhere in the file**.
+The floor the comment describes does not exist. So this is example 5 as well as example 8: a
+sentence that was true of an intention, and stayed on the page after the intention went unbuilt.
+
+**Why arrival checking does not cover this.** A skip happens on exactly the right page. The route
+loaded, the URL matches, the content is real — the element is genuinely absent at this width, or
+the artefact the assertion consumes was never generated. Every arrival check passes. There is
+simply nothing being tested, and nothing anywhere says so.
+
+**Where it is reachable today:**
+
+| site | what goes untested when it fires |
+|---|---|
+| `check-anchor:190` | one AppBar popover at one width |
+| `check-chrome:146` | the footer-reservation assertion at that width |
+| `check-mirror:181` | the back-arrow direction on that route |
+| `check-mirror:193` | **the entire bidi census** — its input is another suite's artefact |
+
+The last is the dangerous one. It is not one assertion opting out, it is a whole section, and its
+precondition is that somebody ran `npm run check:bidi` first. Miss that and `check-mirror` still
+prints `0 failing assertion(s)`.
+
+**The fix is a coverage floor, not an arrival check.** Each suite states how many assertions it
+expects to actually run and fails when fewer do. The weak form is a declared constant. The strong
+form — and the one that matches example 2's rule about measured numbers — is an **expected-absence
+table**: write down that the chip and bell are absent at 390 and present at 1440, and let any
+*unexpected* skip fail. Then the day the bell stops rendering at 1440, the suite goes red instead
+of quietly dropping to half coverage.
+
+**The rule:** *a suite must report how many assertions ran, and fail if that number is not the
+number it expected.* A count of failures is only meaningful beside a count of attempts.
+
+### Related: source that is load-bearing and invisible
+
+Not an assertion failure, but the same family as the stale notice in example 5 — correct today,
+undetectably fragile — and worth one line because it is cheap to avoid and impossible to review.
+
+While adding the reload assertion above I wrote a right-to-left mark, U+200F, as a **literal
+character inside a regex**. It worked. It also renders as
+`replace(//g, '')` to anyone reading the diff, deleting the character changes what the program
+matches and changes nothing a reader can see, and no review catches either. This codebase is
+full of RLM-bearing strings, so the temptation recurs.
+
+The general form: **if removing a character would change behaviour but not appearance, it should
+not be in the source.** Write the escape (`\u200f`), or restructure so the character is not
+needed — the marker here is arbitrary test text, so the fix was to stop putting an RLM in it at
+all rather than to escape one.
+
+Same shape as the specificity comment: a property of the code that is real, load-bearing, and
+invisible at the point somebody would have to notice it.
+
+**The strongest evidence that this class is real is how this entry was written.** Drafting the
+paragraph above — the one warning against literal U+200F in source — I typed a literal U+200F
+into it, inside the code sample demonstrating the danger, where it rendered as
+`replace(//g, '')`: an empty regex, in a sentence about how an empty-looking regex is the tell.
+It was caught by an assertion that no U+200F survives anywhere in the file, not by reading.
+
+So the character is invisible to the person most alert to it, in the moment they are most alert,
+in the text they are writing about it. That is not a lapse of attention that more attention
+fixes. It is why the rule is "do not put it in the source" rather than "be careful with it" —
+and why the fixed-delay rule two doors down is a failing test rather than a paragraph.
+
+A note on enforcement, since the two are the same argument: `scripts/source-hygiene.test.mjs`
+bans `page.waitForTimeout` outright unless the line carries a `\`// sleep: <reason>`\`
+justification. Three fixed-delay false findings landed in one session, the third inside the fix
+for the first, one step after writing the shared helper meant to prevent it. Documentation does
+not reach a reflex; a failing build does. The escape hatch exists because some sleeps are
+legitimate — a CSS transition has no completion event, and in `check-cold-load` waiting for
+content would beg the question, because whether content arrives is the subject. Where the honest
+justification would be "for the thing I am about to assert", writing it down is what makes the
+bug obvious.
+
+### Related: the forward reference to something not yet written
+
+Example 5 is a sentence made false by a change somewhere else. This is the same class with the
+change removed — a sentence that was **never** true of the artefact, only of the plan.
+
+Writing example 7 I ended it with:
+
+> See the arrival audit at the end of this file for what happened when every suite in `scripts/`
+> was pointed at a build where all routes redirect to `/login`.
+
+There was no arrival audit at the end of this file. I intended to write one, wrote the reference
+first, and moved on. The sentence was true of what I was going to do and false of the document it
+was in — sitting two screens below the entry describing exactly that failure, in the document
+about it.
+
+**A forward reference is the purest form of the class**, because the gap between claim and
+artefact is not caused by drift, distance or time. It is there the moment the sentence is
+written, and nothing anywhere fails: prose does not compile, a broken cross-reference in Markdown
+renders as ordinary text, and the only reader who could catch it is one who goes looking for a
+section they have no reason to doubt exists.
+
+The audit section exists now. The general form is worth more than the fix: **do not write a
+reference to something you have not written.** If it needs a placeholder, the placeholder should
+say so in a way a reader cannot mistake for a citation — and if a tool can check the link, that
+is better than either.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -182,11 +364,15 @@ Each one substituted something *upstream* of the user-visible effect:
 | piping to `tail` | that the command produced output | that the command succeeded |
 | the stale notice | nothing — prose asserts itself | the storage the sentence names |
 | the guessing diagnostic | a cause it had not checked | the status, type and body it had |
+| the login-page pass | that the page was healthy | that the page was the one asked for |
+| the silent skip | nothing, in a line that reads like output | that the assertion ran at all |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.
 The fifth is the limit case: there was no assertion to fail, so the only thing that could catch it
-was somebody reading the sentence and remembering what had changed underneath it.
+was somebody reading the sentence and remembering what had changed underneath it. The seventh is
+the other limit case: twenty-four assertions fired, all of them true, none of them about the
+subject — a probe can be entirely correct and still tell you nothing.
 
 If a probe's number moves a long way in the direction you were hoping for, that is a reason to
 distrust it, not to write it up. Both of the improvements above — 147 → 55, and "the clipping is
@@ -201,6 +387,12 @@ fixed" — would have been reported as wins.
 > If no, it is asserting the mechanism.
 
 A good assertion survives the first question and fails the second one loudly.
+
+And for anything that navigates, a third: **if this probe were served a completely different page,
+would any assertion in it fail?** If no, it is not testing the route named in its own output.
+
+And for anything that can decline to run, a fourth: **if every assertion in this suite skipped,
+what would it print?** If the answer is `0 failing assertion(s)`, the suite has no floor.
 
 ## Where a declaration IS the right subject
 
@@ -296,3 +488,134 @@ been visible without comparing two literals by hand.
 `deliverables.test.mjs` is static by necessity, and was validated against the real bug rather than
 against green: the patch was restored to `artifacts/audit/`, `shoot.mjs` reverted, and the test
 confirmed to name the line. That validation is what a static proxy owes.
+
+---
+
+# The arrival audit
+
+Run 2026-08-10. Every browser suite in `scripts/` was pointed at a build with the auth gate
+forced shut — `RequireAuth` returns `<Navigate to="/login" replace>` for every route — in an
+isolated git worktree pinned at `2901258`. **A suite that passed could not tell it never
+arrived.**
+
+The control was `check-cold-load`, which had just been given arrival assertions for a different
+reason. It failed all 24 combinations on both of them. Without a control that goes red, a table
+of green results proves only that the probe build was wrong.
+
+## The rule the table is evidence for
+
+> **A positive assertion proves arrival for free. A negative assertion never does.**
+
+"The account dropdown opens and its panel is inline-start aligned" cannot pass on a page with no
+account dropdown. "No text node mixes scripts without isolation" is *most* true of a page with no
+text on it.
+
+That is the whole split below. It is not by author, age or care — every suite that noticed asserts
+that something specific EXISTS, and every suite that did not asserts that something bad is ABSENT
+and gets its answer for free from an empty page.
+
+**Which means you can classify a suite before running it.** Read your own assertions and ask what
+each one does on a blank page. If they are all negatives, arrival is a precondition none of them
+check, and the suite needs `scripts/arrival.mjs` whatever else it does. The table is how this was
+found; the rule is how the next one is predicted.
+
+## The result
+
+| suite | verdict | why |
+|---|---|---|
+| `check-anchor` | noticed | positive assertions — a named trigger must exist and be clickable |
+| `check-chrome` | noticed | same |
+| `check-cold-load` | noticed | **control**; URL + distinctness, added in the fix that started this |
+| `check-deeplink` | noticed | the only suite that already asserted `location.pathname` |
+| `check-devdock` | noticed | positive assertions |
+| `check-mirror` | noticed | positive — "no 7-column weekday row found" is a failure, not a skip |
+| `check-remarks` | noticed | positive assertions |
+| `check-review-tools` | noticed | positive assertions |
+| `check-tour` | noticed | 18 failures, and 1716s against 563s on the real app |
+| `check-bidi` | **hole** | *and* it never terminated — see below |
+| `check-centred` | **hole** | `off.length ? 1 : 0` |
+| `check-dictionary` | **hole** | 13/13 green; asserted through module imports, never the DOM |
+| `check-font-fallback` | **hole** | walked `document.body` and measured the login page's Arabic |
+| `check-layout` | **hole** | `failures.length === 0 ? 0 : 1` — and the suite others deferred to |
+| `check-lsd-clip` | **hole** | `clips.length ? 1 : 0` |
+| `check-numerals` | **hole** | `mixed.length ? 1 : 0` |
+| `check-overlap` | **hole** | every assertion a negative |
+
+**Nine noticed, eight holes.**
+
+## Two shapes the rule does not cover
+
+Two of the holes were not sweeps at all. `check-dictionary` asserted `i18n.resolve(key)` — what
+the module would return, never what the page showed — so the route was irrelevant to it.
+`check-font-fallback` did measure rendered text, and measured whatever page it happened to be on.
+
+Three of the sweeps had a `catch` that swallowed render failures, two of them deferring
+explicitly to `check-layout`, which had the same hole. **A hand-off to a suite that cannot
+receive it is a swallow with a citation.**
+
+## What each suite needed
+
+| need | suites | state |
+|---|---|---|
+| arrival assertions | `numerals`, `lsd-clip`, `overlap`, `layout`, `centred`, `dictionary` | **done** — all use `scripts/arrival.mjs` |
+| arrival assertions | `font-fallback`, `bidi` | **outstanding** |
+| a distinct-site floor | `centred` | **done** — 11 declared sites, 8 reached, 3 declared unreachable |
+| a hard failure on a missing artefact | `mirror` (bidi census) | **done** |
+| a skip floor | `anchor`, `chrome`, `mirror` (back arrow) | **outstanding** — `scripts/coverage-floor.mjs` exists, not yet wired |
+| nothing | `deeplink`, `cold-load`, `devdock`, `remarks`, `review-tools`, `tour` | sound as written |
+
+## Three things the audit found by opening gates
+
+**`check-bidi` never terminated.** It completed its measurement in 86 seconds and then held the
+process open forever: vite is spawned with `shell: true`, so `proc.kill()` killed the shell and
+orphaned the server, whose piped stdout kept the event loop alive. `freePort()` was written to
+work around the orphan without naming it as the cause. Anything running the suite under a timeout
+reported a timeout *after the work was done*; anyone running it by hand gave up at a blank prompt.
+It had been the unrun suite for several sessions.
+
+**The census it gates was therefore never run, and it fails.** Of 26 findings, 24 are an
+untranslated key beside a converted numeral and clear when those rows land. Two carry a Latin word
+INSIDE the LSD value, where no row landing can reach them. The claim attached to those findings had
+been "they are all an untranslated key beside a converted numeral" — false, and unfalsifiable while
+the gate was shut. `artifacts/` is gitignored, so on a fresh clone the census had *never* run.
+
+**A site the probe matched and then dropped.** `check-centred` filtered out-of-flow children and
+required exactly one in-flow child, so the Review screen's avatar — one absolutely-positioned span,
+centred by the physical `left-1/2 -translate-x-1/2` idiom, the only remaining one in the app — hit
+`continue` and vanished from a suite counting it as covered. Measured once the filter reported
+instead of skipping: **0 off-centre at 10/10 cells. Not wrong, unseen.**
+
+## Three defects in the audit itself
+
+Recorded because they are the same failures this document is about, committed by someone holding
+the document open.
+
+**`MIN_CHARS = 400`** was reasoned off the login page being 137 characters. Run against a real
+build it failed 48 of 250 visits, every one a correct page — five real routes render under 400
+characters. That is example 2 exactly: a round number that makes the case in front of you pass.
+Worse, a floor failure also skipped the route, so it cost `check-centred` both `/login` centring
+sites. Now 40, measured off the smallest real route (87) and a blank mount (0).
+
+**A missing `VITE_REVIEW_TOOLS`** made the panel's override path look completely broken.
+`applySharedOverrides` returns on its first line without the flag. The probe was measuring its own
+harness and reporting it as a finding about the app.
+
+**A fixed delay inside the fix for the fixed-delay problem.** The assertion added to prove live
+editing works used `waitForTimeout(1200)` and failed under load while the behaviour was correct —
+written one step after the shared `waitForApp` helper, by the author of that helper. This is why
+`source-hygiene.test.mjs` now bans `waitForTimeout` outright rather than discouraging it.
+
+## Known and deliberately not chased
+
+`api/_lib/api.test.ts` fails intermittently under load — a different subset each run, always a
+5000ms timeout, and its sibling tests legitimately take 2.8s and 6.2s against that default. It
+reproduces on an unmodified tree and three sessions have now hit it independently, so it is real
+and it is not any one session's. Recorded rather than fixed: chasing an order-dependent timeout
+in the middle of a user-facing defect costs more than it returns, and an undiagnosed flake that
+everyone knows about is cheaper than a wrong fix nobody revisits. The thing to resist is treating
+a red run as noise WITHOUT checking it is this one.
+
+Two suites still do not prove arrival — `check-font-fallback` and `check-bidi` — and three still
+have unfloored skips — `check-anchor`, `check-chrome`, `check-mirror`'s back arrow. All five carry
+a `KNOWN GAP` block in their own header naming the fix, because the person who needs it is
+whoever next edits that file, not whoever next reads this one.

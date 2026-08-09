@@ -125,7 +125,7 @@ for (const save of SAVES) {
       for (const route of ROUTES) {
         thrown.length = 0
         await page.goto(`http://localhost:${PORT}${route.path}`, { waitUntil: 'domcontentloaded' })
-        await page.waitForTimeout(1400)
+        await page.waitForTimeout(1400)   // sleep: whether the route renders at all IS the subject, so waiting for content would beg the question
 
         const seen = await page.evaluate(() => ({
           boundary: document.body.innerText.includes('Something went wrong on this page'),

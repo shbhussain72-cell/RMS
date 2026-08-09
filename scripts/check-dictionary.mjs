@@ -24,6 +24,7 @@
  */
 import { chromium } from 'playwright'
 import { spawn, spawnSync } from 'node:child_process'
+import { waitForApp } from './arrival.mjs'
 import { createServer } from 'node:net'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs'
@@ -64,7 +65,6 @@ try {
   await ctx.addInitScript(`try{localStorage.setItem('rms-lang','lsd');const p=JSON.parse(localStorage.getItem('miqaat-flow')||'{}');localStorage.setItem('miqaat-flow',JSON.stringify({...p,state:{...(p.state||{}),loggedIn:true},version:p.version??0}))}catch{}`)
   const page = await ctx.newPage()
   await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(1200)
 
   // ── 1. the editor is there, and it is inside a dock ──
   // WAIT for it rather than sampling once at a fixed delay. The panel now pulls in the shared
@@ -99,10 +99,87 @@ try {
     const i18n = await import('/src/i18n/index.tsx')
     return { resolved: i18n.resolve(KEY, 'lsd').text, staged: i18n.inspectKey(KEY).staged }
   }, { KEY, VALUE })
-  say(applied.resolved === VALUE, `a staged edit resolves live in the app (got ${JSON.stringify(applied.resolved)})`)
+  // NOTE WHAT THIS ASSERTS, AND WHAT IT DOES NOT.
+  //
+  // `resolve()` is the dictionary module answering what it WOULD return. It is not the page.
+  // This assertion passed on a build where every route redirected to /login and there was no
+  // app on screen at all — see docs/assertion-discipline.md, example 7. It is kept because the
+  // module's answer is worth knowing, and immediately followed by the outcome version below.
+  say(applied.resolved === VALUE, `the dictionary module resolves a staged edit (got ${JSON.stringify(applied.resolved)})`)
   say(applied.staged === true, 'the entry reports itself as staged, not as a wordlist value')
 
-  await page.waitForTimeout(400)
+  // ── 3b. THE RENDERED PAGE, live and after a reload ──
+  //
+  // The defect this exists for: an edit changed the running page and vanished on reload, which
+  // is exactly the action somebody takes to confirm it landed. Two stores had the same hole for
+  // two different reasons — `loadOverrides()` had no caller at all, and `refresh()` was called
+  // only when the panel was open. An assertion of the form "the loader runs at boot" would have
+  // passed on the second one throughout. So this asserts the DOM, on a route with app on it.
+  const LIVE_ROUTE = '/miqaats/ashara-1448'
+  // No RLM in the marker: it is arbitrary test text, and an invisible character in a
+  // string literal is a thing future editors delete by accident. The wordlist's own values
+  // carry one; nothing here needs to.
+  const MARKER = 'زززز تجربة زززز'
+  await page.goto(`http://localhost:${PORT}${LIVE_ROUTE}`, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  // Self-selecting: a hard-coded key that stopped rendering would make this pass by absence,
+  // which is the failure mode under investigation.
+  const target = await page.evaluate(async () => {
+    const i18n = await import('/src/i18n/index.tsx')
+    const text = document.body.innerText.replace(/\s+/g, ' ')
+    for (const e of i18n.allEntries()) {
+      const v = (e.lsd || '').trim()
+      if (v.length < 6 || e.sentinel) continue
+      if (text.includes(v)) return { english: e.english, lsd: v }
+    }
+    return null
+  })
+  say(!!target, target
+    ? `found a translated string rendered on ${LIVE_ROUTE} to edit: ${JSON.stringify(target.english)}`
+    : `no translated string is rendered on ${LIVE_ROUTE} — the live-edit assertions below cannot run`)
+
+  if (target) {
+    await page.evaluate(async ({ english, value }) => {
+      const o = await import('/src/dev/overrides.ts')
+      await o.setOverride(english, value)
+    }, { english: target.english, value: MARKER })
+    // WAIT FOR THE OUTCOME, not a delay. This assertion first shipped with a fixed 1200ms
+    // sleep and failed under load while the edit had in fact applied — the third time a fixed
+    // delay has produced a false finding in this repo, inside the very assertion added to stop
+    // the previous one. `waitForFunction` resolving IS the outcome; the timeout is the failure.
+    const liveShown = await page
+      .waitForFunction((m) => document.body.innerText.replace(/\s+/g, ' ').includes(m), MARKER, { timeout: 15_000 })
+      .then(() => true, () => false)
+    const live = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '))
+    say(liveShown, `the RENDERED page shows the edit with no reload${liveShown ? '' : ` (page still reads ${JSON.stringify(live.slice(0, 120))})`}`)
+    say(!live.includes(target.lsd), 'and the old value is gone from the page, not merely joined by the new one')
+
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await waitForApp(page)
+    const survived = await page
+      .waitForFunction((m) => document.body.innerText.replace(/\s+/g, ' ').includes(m), MARKER, { timeout: 15_000 })
+      .then(() => true, () => false)
+    say(survived, 'the edit SURVIVES a reload — the stored overrides are re-applied at boot')
+
+    await page.evaluate(async ({ english }) => {
+      const o = await import('/src/dev/overrides.ts')
+      await o.clearOverride(english)
+    }, { english: target.english })
+    await page.waitForTimeout(400)   // sleep: clearOverride POSTs to the dev middleware; the file lands out-of-band
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await waitForApp(page)
+    const cleared = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '))
+    // The control. Without it, an assertion that the marker is present would also pass if the
+    // marker had somehow been baked into the wordlist rather than applied as an override.
+    say(!cleared.includes(MARKER) && cleared.includes(target.lsd),
+      'clearing the edit restores the wordlist value on reload')
+  }
+
+  await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  await page.waitForTimeout(400)   // sleep: the override write lands on disk out-of-band from the browser call
   const onDisk = existsSync(OVERRIDES) ? JSON.parse(readFileSync(OVERRIDES, 'utf8')) : {}
   say(onDisk[KEY]?.lsd === VALUE, 'the edit is written to wordlist-overrides.json')
 
@@ -130,7 +207,7 @@ try {
     const o = await import('/src/dev/overrides.ts')
     await o.clearAllOverrides()
   })
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(400)   // sleep: clearAllOverrides deletes the file out-of-band; the check below reads the disk
   say(!existsSync(OVERRIDES), 'clearing the queue deletes the file rather than leaving {}')
 
   await ctx.close()

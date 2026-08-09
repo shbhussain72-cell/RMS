@@ -78,7 +78,7 @@ try {
   // element it annotates, so its Save button can legitimately sit outside the viewport — the
   // keyboard path is the one a reviewer uses there anyway.
   await input.press('Control+Enter')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(300)   // sleep: the composer persists to localStorage asynchronously after Ctrl+Enter
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('rms-remarks') || '[]'))
   check('a remark created through the UI persists', stored.length === 1 && stored[0].remark === TEXT,
     `${stored.length} stored`)
@@ -114,7 +114,7 @@ try {
   check('JSON export parses', Array.isArray(parsed) && parsed.length === 1)
 
   // Exporting clears the badge — otherwise the count means nothing.
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(200)   // sleep: export clears the badge through that same asynchronous write
   check('badge clears once exported', (await page.locator('[data-rmk="unexported"]').count()) === 0)
 
   // ── 5. the JSON re-imports: wipe, write it back, reload, the remark is there ────────
@@ -145,7 +145,7 @@ try {
   const before = page.url()
   await page.locator('a[href], [role="button"]').first().click({ trial: true }).then(() => true).catch(() => false)
   await page.locator('.ix-card-lg').first().click()
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(500)   // sleep: card click navigates, and the route transition has no awaitable end
   check('an app control still navigates', page.url() !== before, `still at ${page.url()}`)
 
   const focus = await page.evaluate(() => {

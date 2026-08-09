@@ -131,6 +131,10 @@ const FORBIDDEN = [
  *   not yet in the wordlist  rendered copy. It has to reach the DOM, so it reaches the bundle.
  *   lone-surrogate           a discriminant value in an object literal, compared with `===`.
  *   utf8-as-latin1           the same.
+ *   /api/dictionary          a fetch() URL in `shared/dictionaryApi.ts`. Argument to a call.
+ *   [dictionary] a stored…   a module constant in `dev/bootOverrides.ts`, passed to a warn.
+ *                            Held as a named constant rather than written inline precisely so
+ *                            it is a value in an argument position and cannot be minified.
  *
  * The rule that generates that list: an entry is a value the program CARRIES, never a name the
  * program uses. If you can rename it in the editor without changing behaviour, the minifier can
@@ -150,6 +154,16 @@ const REVIEW_ONLY = [
   'not yet in the wordlist',
   'lone-surrogate',
   'utf8-as-latin1',
+  // The boot-time override apply, and the shared store it loads.
+  //
+  // `src/main.tsx` reaches `dev/bootOverrides.ts` through a DYNAMIC import inside
+  // `if (REVIEW_TOOLS)`, which is what lets Rollup drop the branch and everything it reaches.
+  // A static import at the top of main.tsx would look tidier, would pass tsc, would pass every
+  // test, and would ship the dictionary client to every visitor — the same shape as the default
+  // parameter that shipped Remarks. Hoisting it is the obvious tidy-up, so it is asserted here
+  // rather than left to a comment: with the flag off these must be absent, with it on present.
+  '/api/dictionary',
+  '[dictionary] a stored override source was unavailable at boot',
 ]
 
 /** The flag the bundle under test was built with. */

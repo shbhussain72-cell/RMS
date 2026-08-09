@@ -316,7 +316,7 @@ try {
         // Re-open on a fresh load: the walk above finished the tour, which unmounts it.
         const p2 = await ctx.newPage()
         await p2.goto(`http://localhost:${PORT}${url}`, { waitUntil: 'networkidle' })
-        await p2.waitForTimeout(1400)
+        await p2.waitForTimeout(1400)   // sleep: the spotlight animates into place; measuring early reads the pre-animation rect
         const cov = await scanOverlay(p2)
         if (cov) for (const k of Object.keys(overlayCoverage)) for (const s of cov[k] ?? []) overlayCoverage[k].add(s)
         await p2.close()

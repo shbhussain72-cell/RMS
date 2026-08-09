@@ -182,3 +182,79 @@ describe('directional CSS', () => {
     expect(offenders).toEqual([])
   })
 })
+
+describe('no unjustified fixed delays in scripts/', () => {
+  /**
+   * `page.waitForTimeout(n)` is banned unless the line carries a `sleep:` justification.
+   *
+   * ── WHY A BAN AND NOT A NOTE ───────────────────────────────────────────────────────
+   *
+   * A fixed delay produced three false findings in a single session:
+   *
+   *   check-dictionary sampled at 1200ms and reported the dictionary editor MISSING, on a cold
+   *   dev server that simply had not finished transforming the panel's modules.
+   *
+   *   two live-edit probes sampled at 2500ms and reported "no dictionary value is rendered on
+   *   this route" — indistinguishable from the real finding they were written to look for.
+   *
+   *   and then the assertion added to FIX that, in the same session, by the same author, one
+   *   step after writing a shared `waitForApp` helper to prevent it, used waitForTimeout(1200)
+   *   and failed while the behaviour under test was working correctly.
+   *
+   * The third one is why this is a test. It is not carelessness — a sleep is the shortest thing
+   * to type when you want the page to have caught up, and it passes on the machine you write it
+   * on. Documentation does not reach a reflex; a failing build does.
+   *
+   * ── THE ESCAPE HATCH ───────────────────────────────────────────────────────────────
+   *
+   * Some sleeps are legitimate. A CSS transition has no completion event Playwright can await;
+   * an interval-driven pass has no "done" signal; and in `check-cold-load` waiting for content
+   * would BEG THE QUESTION, because whether content arrives is the thing under test.
+   *
+   * So the rule is not "never sleep", it is "a sleep must say what it is waiting for, in a form
+   * a reader can disagree with". Where the answer is "for the thing I am about to assert",
+   * that is the bug, and writing the justification is what makes it obvious.
+   *
+   *     await page.waitForTimeout(150)   // sleep: popover open transition, no event to await
+   *
+   * A justification that is merely a restatement ("wait for it to be ready") is not one; there
+   * is no way to test for that, and it is the reviewer's job. The length floor only stops an
+   * empty marker being used to silence the rule.
+   */
+  // Dot-prefixed names are excluded: `scripts/.tmp-*` is gitignored scratch, not tooling, and a
+  // throwaway probe should not have to argue for its sleeps. Anything committed here does.
+  const scriptFiles = readdirSync(resolve(ROOT, 'scripts'))
+    .filter((n) => !n.startsWith('.'))
+    .filter((n) => /\.(mjs|cjs)$/.test(n) && !/\.test\.(mjs|cjs)$/.test(n))
+    .map((n) => join(ROOT, 'scripts', n))
+
+  const SLEEP_CALL = /\.waitForTimeout\s*\(/
+  const JUSTIFIED = /\/\/\s*sleep:\s*(.{20,})/
+
+  it('finds the scripts to sweep — without this the assertion is vacuous', () => {
+    expect(scriptFiles.length).toBeGreaterThan(20)
+  })
+
+  it('every waitForTimeout carries a `// sleep: <reason>` justification', () => {
+    const offenders = []
+    for (const file of scriptFiles) {
+      const lines = readFileSync(file, 'utf8').split(NEWLINE)
+      lines.forEach((line, i) => {
+        if (!SLEEP_CALL.test(line)) return
+        // Same line, or the line immediately above — a long reason does not fit beside the call.
+        if (JUSTIFIED.test(line) || (i > 0 && JUSTIFIED.test(lines[i - 1]))) return
+        offenders.push(`${rel(file)}:${i + 1}  ${line.trim()}`)
+      })
+    }
+    expect(offenders, `a fixed delay must say what it is waiting for:${NEWLINE}${offenders.join(NEWLINE)}`).toEqual([])
+  })
+
+  it('the rule can actually fail — a bare waitForTimeout is rejected', () => {
+    // Guards the regex itself. A typo in SLEEP_CALL would make the sweep above pass on
+    // everything, which is the failure mode this whole file exists to prevent.
+    expect(SLEEP_CALL.test('await page.waitForTimeout(150)')).toBe(true)
+    expect(JUSTIFIED.test('await page.waitForTimeout(150)')).toBe(false)
+    expect(JUSTIFIED.test('await page.waitForTimeout(150) // sleep: too short')).toBe(false)
+    expect(JUSTIFIED.test('await page.waitForTimeout(150) // sleep: popover open transition, no event to await')).toBe(true)
+  })
+})

@@ -12,6 +12,18 @@
  * clamped to the viewport edge; at 1440 the desktop layout pins the page height and scrolls an
  * inner `overflow-y: auto` panel instead, which is the case a listener bound to `window` alone
  * never sees.
+ *
+ * ── KNOWN GAP: SKIPS HAVE NO FLOOR ──────────────────────────────────────────────────
+ *
+ * This suite can legitimately skip an assertion when the element is genuinely absent at a width,
+ * and that decision is right — see docs/assertion-discipline.md, example 8. What is missing is
+ * the floor: a run in which EVERY assertion skipped prints `0 failing assertion(s)` and exits 0.
+ *
+ * `scripts/coverage-floor.mjs` exists for this. Declare the runs each case should produce,
+ * DERIVED from the width and language lists rather than typed, call `cov.ran(name)` where the
+ * case executes and `cov.skip(name, why)` where it does not, and `cov.verify(say)` at the end.
+ * Deferred behind a user-facing defect; recorded here so it is found by whoever next edits a
+ * skip rather than by whoever next reads the docs.
  */
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
@@ -51,7 +63,7 @@ for (const lang of ['en', 'lsd']) {
     return 'clicked'
   })
   if (opened !== 'clicked') { say(false, `could not find the relay radio (${opened})`); continue }
-  await page.waitForTimeout(150)
+  await page.waitForTimeout(150)   // sleep: relay panel opens on a CSS transition; no event fires when it settles
 
   const trigger = await page.evaluate(() => {
     const btns = [...document.querySelectorAll('button')]
@@ -65,7 +77,7 @@ for (const lang of ['en', 'lsd']) {
     return { top: r.top, left: r.left, bottom: r.bottom, right: r.right }
   })
   if (!trigger) { say(false, 'could not find the relay trigger button'); continue }
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(200)   // sleep: same open transition, measured after the trigger click
 
   const before = await page.evaluate(() => {
     const panel = [...document.querySelectorAll('div')].find((d) => {
@@ -94,7 +106,7 @@ for (const lang of ['en', 'lsd']) {
     return 'nothing scrollable'
   })
   say(scrolled !== 'nothing scrollable', `found something to scroll (${scrolled})`)
-  await page.waitForTimeout(150)
+  await page.waitForTimeout(150)   // sleep: scrolling is async; the rects read next must be post-scroll
   const after = await page.evaluate(() => {
     const panel = [...document.querySelectorAll('div')].find((d) => {
       const s = getComputedStyle(d)
@@ -189,7 +201,7 @@ ${lang} — AppBar ${name} @${width}`)
     // so "skipped everywhere" cannot masquerade as "passed".
     if (opened !== 'clicked') { console.log(`  skip  ${name}: ${opened} at ${width}`); continue }
     exercised[name] = (exercised[name] ?? 0) + 1
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(200)   // sleep: AppBar popover open transition, no completion event
 
     const m = await page.evaluate(({ minW, maxW }) => {
       const t = document.querySelector('[data-repro-trigger]')
@@ -233,7 +245,7 @@ ${lang} — AppBar ${name} @${width}`)
 
     await page.keyboard.press('Escape').catch(() => {})
     await page.evaluate(() => { const b = document.querySelector('.fixed.inset-0'); if (b) b.dispatchEvent(new MouseEvent('click', { bubbles: true })) }).catch(() => {})
-    await page.waitForTimeout(120)
+    await page.waitForTimeout(120)   // sleep: close transition, so the next case cannot measure the previous panel
   }
   await ctx.close()
 }

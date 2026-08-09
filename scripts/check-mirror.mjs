@@ -23,16 +23,37 @@
  *                      change it reported 0 mirrored elements forever. This one asks which
  *                      path is actually being painted.
  *
- *   3. BIDI CENSUS     `check-bidi` reports N unisolated runs and the claim attached to them
- *                      is "they are all an untranslated key beside a converted numeral, so
- *                      they clear when rows land". That is checkable, so it is checked: every
- *                      finding must be Latin + Arabic-INDIC-DIGIT only. A finding that mixes
- *                      Latin with an Arabic LETTER is a real unisolated run and fails.
+ *   3. BIDI CENSUS     `check-bidi` reports N unisolated runs, and the claim attached to them
+ *                      WAS "they are all an untranslated key beside a converted numeral, so
+ *                      they clear when rows land". Checked for the first time on 2026-08-10 —
+ *                      `check-bidi` had never terminated, so this section had never run — and
+ *                      the claim is false. Of 26 findings, 24 are that shape. Two are not:
+ *
+ *                        "Ready for Registration"     -> `‏registration واسطسس تيار`
+ *                        "People in your reservation" -> `‏اْثث نا reservation نا ممبرو`
+ *
+ *                      The LSD VALUE itself carries a Latin word, so there is no row to land
+ *                      that clears them — they need the translation edited. So the population
+ *                      splits, and the assertion says so: findings whose Latin run is an
+ *                      untranslated KEY clear on their own; a finding mixing Latin with an
+ *                      Arabic LETTER is a real unisolated run in shipped copy and fails.
+ *
+ * ── KNOWN GAP: SKIPS HAVE NO FLOOR ──────────────────────────────────────────────────
+ *
+ * This suite can legitimately skip an assertion when the element is genuinely absent at a width,
+ * and that decision is right — see docs/assertion-discipline.md, example 8. What is missing is
+ * the floor: a run in which EVERY assertion skipped prints `0 failing assertion(s)` and exits 0.
+ *
+ * `scripts/coverage-floor.mjs` exists for this. Declare the runs each case should produce,
+ * DERIVED from the width and language lists rather than typed, call `cov.ran(name)` where the
+ * case executes and `cov.skip(name, why)` where it does not, and `cov.verify(say)` at the end.
+ * Deferred behind a user-facing defect; recorded here so it is found by whoever next edits a
+ * skip rather than by whoever next reads the docs.
  */
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
@@ -43,6 +64,25 @@ const MIQAAT_ID = 'ashara-1448'
 let fails = 0
 const say = (ok, msg) => { if (!ok) fails++; console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${msg}`) }
 const skip = (msg) => console.log(`  --    ${msg}`)
+
+/**
+ * The mtime of the most recently touched file under `src/`.
+ *
+ * Used to decide whether the bidi census artefact describes the code that is here now. Cached,
+ * because the census asks for it twice and walking src/ twice to print one message would be
+ * silly.
+ */
+let newestSrc = null
+function newestSourceMtime() {
+  if (newestSrc !== null) return newestSrc
+  const SRC = resolve(ROOT, 'src')
+  newestSrc = 0
+  for (const rel of readdirSync(SRC, { recursive: true })) {
+    const s = statSync(resolve(SRC, rel))
+    if (s.isFile() && s.mtimeMs > newestSrc) newestSrc = s.mtimeMs
+  }
+  return newestSrc
+}
 
 const TOUR_KEYS = [...new Set(
   [...readFileSync(resolve(ROOT, 'src/tour/steps.ts'), 'utf8').matchAll(/key: '([a-zA-Z0-9_-]+)'/g)].map((m) => m[1]),
@@ -81,7 +121,7 @@ try {
 
     // ── 1. weekday headers ────────────────────────────────────────────────
     await page.goto(`http://localhost:${PORT}/miqaats/${MIQAAT_ID}/timeline`, { waitUntil: 'networkidle' })
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(500)   // sleep: calendar lays out after fonts resolve; networkidle does not cover layout
     const rows = await page.evaluate(() => {
       // Selector-driven, not shape-guessed: the calendar's header row is the first
       // `grid-cols-7` whose children are all spans. `textContent` rather than a leaf-node
@@ -142,14 +182,14 @@ try {
     })
 
     await page.goto(`http://localhost:${PORT}/miqaats/${MIQAAT_ID}/araz`, { waitUntil: 'networkidle' })
-    await page.waitForTimeout(400)
+    await page.waitForTimeout(400)   // sleep: breadcrumb chevrons animate in after navigation
     const rtlChev = await visibleChevrons()
 
     const enCtx = await browser.newContext({ viewport: { width, height: 1000 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata' })
     await enCtx.addInitScript(seed.replace("'lsd'", "'en'"))
     const enPage = await enCtx.newPage()
     await enPage.goto(`http://localhost:${PORT}/miqaats/${MIQAAT_ID}/araz`, { waitUntil: 'networkidle' })
-    await enPage.waitForTimeout(400)
+    await enPage.waitForTimeout(400)   // sleep: the same transition on the English page, kept symmetric with the LSD one
     const ltrChev = await enPage.evaluate(() => {
       const out = { sep: [], back: [] }
       for (const box of document.querySelectorAll('[data-name="chevron-right"]')) {
@@ -189,8 +229,41 @@ try {
 
   // ── 3. the bidi census ──────────────────────────────────────────────────
   const REPORT = resolve(ROOT, 'artifacts/audit/bidi.json')
+  //
+  // ── WHY THIS IS A FAILURE AND NOT A SKIP ───────────────────────────────────────────
+  //
+  // This section is a whole census, not one assertion, and its input is another suite's
+  // artefact. It used to `skip` when the file was missing, which meant `check-mirror` printed
+  // `0 failing assertion(s)` and exited 0 having tested none of it. Worse, `artifacts/` is
+  // gitignored, so on any fresh clone the file is ALWAYS absent and the census has never once
+  // run there. A census whose input is missing is a suite that did not run, not one that passed.
+  //
+  // Staleness is the same defect one step along, and it is example 1 of
+  // docs/assertion-discipline.md exactly: a report generated before the current source
+  // describes code that no longer exists, and asserts against it with full confidence.
+  //
+  // ── WHY mtime AND NOT A CONTENT HASH ───────────────────────────────────────────────
+  //
+  // A hash looks more rigorous and answers a different question. The question here is not
+  // "is the source identical to what was measured" — it is "was this measured AFTER the thing
+  // it measures", and an ordering question is answered by an ordering comparison. mtime is not
+  // an approximation of the hash; it is the direct form of the property.
+  //
+  // A hash would also be strictly worse in both directions. It cannot tell you which of two
+  // differing trees came first, so it cannot distinguish a stale report from a report made
+  // against a tree that has since been reverted — and reverting to a previously measured state
+  // is exactly when you would want the census re-run, since it never ran against the tree in
+  // between. And it costs a full walk plus a read of every file to answer a question two stat
+  // calls already answer.
+  //
+  // The failure mode of mtime is a clock going backwards or a checkout that rewrites
+  // timestamps, both of which make the census re-run — noisy in the safe direction. The
+  // failure mode of "no check at all" is what shipped: a census asserting against 2026-08-09.
+  //
   if (!existsSync(REPORT)) {
-    skip('artifacts/audit/bidi.json absent — run `npm run check:bidi` first')
+    say(false, 'artifacts/audit/bidi.json is absent, so the bidi census below did not run — `npm run check:bidi` writes it')
+  } else if (newestSourceMtime() > statSync(REPORT).mtimeMs) {
+    say(false, `artifacts/audit/bidi.json predates src/ (report ${new Date(statSync(REPORT).mtimeMs).toISOString()}, newest source ${new Date(newestSourceMtime()).toISOString()}) — it describes code that has since changed; re-run \`npm run check:bidi\``)
   } else {
     const v = JSON.parse(readFileSync(REPORT, 'utf8')).violations ?? []
     const ARABIC_LETTER = /[ؠ-يٮ-ۓۺ-ۿ]/
@@ -200,9 +273,13 @@ try {
       const kind = ARABIC_LETTER.test(x.text) ? 'LATIN+ARABIC-LETTER' : 'latin+arabic-digit'
       console.log(`    ${kind}  ${x.kind}  ${JSON.stringify(x.text)}  ${x.where}`)
     }
+    // Two populations, stated separately, because they need different repairs and lumping them
+    // under one sentence is how the false claim survived. The count that clears on its own is
+    // reported as progress; the count that needs a wordlist edit is what fails.
     say(real.length === 0,
-      `every finding is an untranslated key beside a converted numeral (${v.length - real.length}/${v.length}); ` +
-      `${real.length} mix Latin with an Arabic LETTER`)
+      `${v.length - real.length}/${v.length} findings are an untranslated key beside a converted ` +
+      `numeral and clear when those rows land; ${real.length} carry Latin INSIDE the LSD value ` +
+      `and need the translation edited — no row landing will reach them`)
   }
 } finally {
   await browser.close()

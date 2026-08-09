@@ -32,6 +32,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { createArrival } from './arrival.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -122,6 +123,11 @@ const server = await serve()
 const browser = await chromium.launch()
 const by = new Map()
 let visits = 0
+const failedVisits = []
+
+// One language (the seed forces lsd), so the matrix is routes x widths. Derived from the two
+// lists it sweeps, never typed — a literal here is a number somebody lowers until it is quiet.
+const arrival = createArrival({ expected: routes.length * WIDTHS.length })
 
 try {
   for (const width of WIDTHS) {
@@ -133,13 +139,20 @@ try {
         await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 30_000 })
         await page.evaluate(() => document.fonts.ready.catch(() => {}))
         await page.evaluate(() => new Promise((r) => setTimeout(r, 350)))
+        // "No clipped LSD" is true of a page with no LSD on it, so arrival is asserted here
+        // rather than assumed. See scripts/arrival.mjs.
+        if (!await arrival.visit(page, route, `lsd@${width}`)) continue
         for (const hit of await page.evaluate(PROBE)) {
           const k = `${hit.where}|${hit.text}`
           if (by.has(k)) { by.get(k).count++; by.get(k).routes.add(route) }
           else by.set(k, { ...hit, count: 1, routes: new Set([route]) })
         }
         visits++
-      } catch { /* render failures belong to check-layout */ }
+      } catch (err) {
+        // Was: "render failures belong to check-layout". They do not — check-layout passed on
+        // the same blank pages this suite did. Nothing was receiving the hand-off.
+        failedVisits.push(`${width}px ${route}: ${err.message.split('\n')[0]}`)
+      }
     }
     await ctx.close()
   }
@@ -167,4 +180,9 @@ if (JSON_OUT) {
   console.log(`\nfull report: artifacts/audit/lsd-clip.json`)
 }
 
-process.exit(clips.length ? 1 : 0)
+const problems = arrival.verify()
+for (const f of failedVisits) console.error(`  FAIL  visit threw — ${f}`)
+for (const p of problems) console.error(`  FAIL  ${p}`)
+console.log(`arrived at ${arrival.arrived}/${routes.length * WIDTHS.length} matrix visits`)
+
+process.exit(clips.length || problems.length || failedVisits.length ? 1 : 0)

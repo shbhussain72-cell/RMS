@@ -292,7 +292,7 @@ export default function Review() {
 
   const footer = (
     <StickyFooter
-      caption={isRequest ? t('Submit a registration request') : t('Ready for Registration')}
+      caption={isRequest ? tx('Submit a registration request') : tx('Ready for Registration')}
       title={footerHint}
       button={isRequest ? t('Request') : t('Register ({n})', { n: total })}
       onButton={doSubmit}

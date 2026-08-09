@@ -284,6 +284,25 @@ const PROBE = () => {
       const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left)
       const oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top)
       if (ox > 4 && oy > 4) {
+        // Both controls must actually be PAINTED where they overlap.
+        //
+        // `getBoundingClientRect` reports geometry, not paint: a table row scrolled past the
+        // bottom of an `overflow-y: auto` panel still reports an on-screen rect while nothing
+        // of it is drawn there. The occlusion test has honoured that since `pointVisible` was
+        // written — its docblock records it as the single largest false-positive class in this
+        // file — and this test never got the same treatment.
+        //
+        // It cost a session. Every OVERLAP on /araz and /people was a member-table row clipped
+        // below its scroller, whose rect happens to land in the footer's band; `elementFromPoint`
+        // at the overlap centre returns the footer because the row is not painted at all. Three
+        // separate causes were proposed and measured for a defect that did not exist.
+        //
+        // This does NOT suppress the case the test is for: two controls both painted, one
+        // covering the other, still overlap and still fail.
+        const cx = (Math.max(ra.left, rb.left) + Math.min(ra.right, rb.right)) / 2
+        const cy = (Math.max(ra.top, rb.top) + Math.min(ra.bottom, rb.bottom)) / 2
+        if (!pointVisible(a, cx, cy) || !pointVisible(b, cx, cy)) continue
+
         // Same exemption as the occlusion test, same helper: if EITHER element stays put when
         // its container scrolls, one is deliberately passing over the other and this is a
         // record rather than a defect.

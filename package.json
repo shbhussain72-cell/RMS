@@ -28,7 +28,8 @@
     "check:overlap": "node scripts/check-overlap.mjs",
     "check:gate": "node scripts/check-gate.mjs",
     "check:review": "node scripts/check-review-tools.mjs",
-    "check:api": "node scripts/check-api-reachable.mjs"
+    "check:api": "node scripts/check-api-reachable.mjs",
+    "check:coldload": "node scripts/check-cold-load.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.7.0",

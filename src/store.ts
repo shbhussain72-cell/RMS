@@ -296,7 +296,7 @@ export interface VisaDocument {
   uploadedAt: string
 }
 
-interface StoreState {
+export interface StoreState {
   loggedIn: boolean
   /** The registration journey currently being edited (its `miqaatId` names the active event). */
   flow: RegistrationFlow
@@ -484,6 +484,87 @@ function buildDemoRegistrations(): Record<string, RegistrationFlow> {
       confirmedCity: { id: 'colombo', name: 'Colombo', region: 'Sri Lanka', type: 'host', seatsLeft: 15, totalSeats: 100 },
       cityConfirmedAt: new Date().toISOString(),
     },
+  }
+}
+
+/**
+ * DELIBERATELY 0, and bumping it is a bigger decision than it looks.
+ *
+ * zustand discards a persisted state whose version does not match unless a `migrate` is
+ * supplied — it logs "State loaded from storage couldn't be migrated since no migrate function
+ * was provided" and boots from defaults. Setting this to 1 was tried: every saved session was
+ * thrown away, the app came up logged out at /login, and the browser suite went green because
+ * "no error boundary" is perfectly true of a login page. Wiping a user's party, city and
+ * registration is a worse outcome than the crash this was meant to fix.
+ *
+ * Adding a FIELD never needs a bump: `normaliseFlow` repairs shape on every rehydration, which
+ * covers the field somebody adds next week without remembering this file. Bump only for a
+ * change a default cannot express — a renamed field, a changed unit, a restructured object —
+ * and write the `migrate` in the same commit.
+ */
+const PERSIST_VERSION = 0
+
+/**
+ * A persisted flow, brought up to the current shape.
+ *
+ * ── WHY THIS EXISTS ──────────────────────────────────────────────────────────────────
+ *
+ * zustand's default `merge` is a SHALLOW spread of the persisted state over the initial
+ * state. `flow` is one key, so a persisted `flow` replaces the whole object — and every field
+ * added to `RegistrationFlow` since that browser last saved is simply missing. Not defaulted:
+ * absent.
+ *
+ * That is the crash on `/miqaats/:id/people`. The route reads `flow.questionnaire`, a nested
+ * object added after some sessions were saved, and `validateQuestionnaire` dereferences
+ * `q.needsAccommodation` on the first line it runs — `TypeError: Cannot read properties of
+ * undefined`. It reproduces on a COLD load and never in a session that created its own state,
+ * which is why it looked intermittent and why it survived a round of `family.find` guards:
+ * those hardened the roster reads, and the roster was not the problem.
+ *
+ * Every top-level key is restored from `emptyFlow`, and `questionnaire` is merged field by
+ * field because it is the one nested object whose fields are read without a null check.
+ *
+ * ── WHY NOT A `migrate` ──────────────────────────────────────────────────────────────
+ *
+ * `migrate` runs only when the stored VERSION differs, so it fixes the shapes you predicted
+ * and bumped for. This runs on every rehydration, which means a field added tomorrow by
+ * someone who forgets to bump is still defaulted rather than undefined. The version is kept
+ * for changes that need real transformation — a renamed field, a changed unit — where a
+ * default is the wrong answer.
+ */
+export function normaliseFlow(persisted: unknown): RegistrationFlow {
+  const f = (persisted ?? {}) as Partial<RegistrationFlow>
+  return {
+    ...emptyFlow,
+    ...f,
+    questionnaire: { ...emptyQuestionnaire, ...((f.questionnaire ?? {}) as Partial<QuestionnaireAnswers>) },
+  }
+}
+
+/** The persisted slice, as `partialize` writes it. */
+type PersistedSlice = Pick<StoreState, 'loggedIn' | 'flow' | 'registrations' | 'reopenRequests' | 'stageOverrides'>
+
+/**
+ * Persisted state over defaults, with every flow normalised.
+ *
+ * `registrations` holds a full `RegistrationFlow` per miqaat and has exactly the same problem
+ * as `flow`, so each entry goes through the same repair. A key the persisted state does not
+ * carry at all keeps the value the store was built with rather than becoming `undefined` —
+ * losing the demo registrations to an older save would empty the app's home screen.
+ */
+export function mergePersisted(persisted: unknown, current: StoreState): StoreState {
+  const p = (persisted ?? {}) as Partial<PersistedSlice>
+  const registrations = p.registrations ?? current.registrations
+  return {
+    ...current,
+    ...p,
+    loggedIn: p.loggedIn ?? current.loggedIn,
+    flow: normaliseFlow(p.flow),
+    registrations: Object.fromEntries(
+      Object.entries(registrations).map(([id, f]) => [id, normaliseFlow(f)]),
+    ),
+    reopenRequests: p.reopenRequests ?? current.reopenRequests,
+    stageOverrides: p.stageOverrides ?? current.stageOverrides,
   }
 }
 
@@ -940,7 +1021,17 @@ export const useStore = create<StoreState>()(
           return { flow }
         }),
     }),
-    { name: 'miqaat-flow', partialize: (s) => ({ loggedIn: s.loggedIn, flow: s.flow, registrations: s.registrations, reopenRequests: s.reopenRequests, stageOverrides: s.stageOverrides }) },
+    {
+      name: 'miqaat-flow',
+      version: PERSIST_VERSION,
+      partialize: (s) => ({ loggedIn: s.loggedIn, flow: s.flow, registrations: s.registrations, reopenRequests: s.reopenRequests, stageOverrides: s.stageOverrides }),
+      // Present so that a future version bump cannot silently discard everyone's saved
+      // session — the default behaviour when `migrate` is absent. Shape repair belongs in
+      // `merge`, which runs every time; this exists for transformations a default cannot
+      // express, and passing the state through is the right answer until there is one.
+      migrate: (persisted) => persisted,
+      merge: mergePersisted,
+    },
   ),
 )
 

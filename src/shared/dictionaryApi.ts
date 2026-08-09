@@ -13,10 +13,11 @@
  * it in. That is unchanged by the store now being shared — it is the whole reason the export
  * still exists.
  */
-import { applySharedOverrides } from '../i18n'
+import { applySharedOverrides, baselineValue } from '../i18n'
 import { enqueue } from './outbox'
 import { apiFetch, ConflictError } from './transport'
 import { getAuthor } from './identity'
+import { bakedValue } from '../i18n/wordlistNorm.mjs'
 
 export type RevisionKind = 'edit' | 'revert' | 'new-row'
 
@@ -43,10 +44,41 @@ const listeners = new Set<() => void>()
 let current: Revision[] = []
 let conflicts: Conflict[] = []
 
+/**
+ * Has this override already been baked into the committed wordlist?
+ *
+ * The sync writes overrides into the xlsx, the xlsx is committed, and the next build
+ * regenerates `lsd.json`. From that point the override's value is identical to the baseline
+ * and applying it is a no-op — but it is still in the store, and if it is never retired the
+ * pending list grows forever and stops meaning anything.
+ *
+ * The comparison MUST go through `bakedValue`. The build prefixes mixed-script values with
+ * RLM, so the store's `register كرو` is `‏register كرو` in `lsd.json`. Comparing raw to baked
+ * never matches, nothing ever retires, and the count climbs while every edit is already in
+ * the wordlist — silent, and indistinguishable from the feature working.
+ */
+export const isMerged = (rev: Revision): boolean => {
+  if (rev.kind === 'new-row') return false
+  const base = baselineValue(rev.key)
+  if (base === undefined) return false          // no row yet — cannot have been merged
+  return bakedValue(rev.value) === bakedValue(base)
+}
+
+/** Overrides whose value is not yet in the committed wordlist. This is the count the UI shows. */
+export const pendingOverrides = (): Revision[] => current.filter((r) => !isMerged(r))
+export const mergedOverrides = (): Revision[] => current.filter((r) => isMerged(r))
+
 const notify = () => {
   // i18n first, then the panel: the other order renders the editor's new state against the
   // app's old text for a frame, which reads as the edit not having worked.
-  applySharedOverrides(Object.fromEntries(current.filter((r) => r.value).map((r) => [r.key, r.value])))
+  //
+  // Merged overrides are NOT applied. Their value already is the baseline, so applying them
+  // changes nothing visible — but it would keep them marked `staged: true` in the dictionary,
+  // which is what the editor draws its "edited" badge from. A row that has been in the
+  // wordlist for a month would go on claiming to be an unsaved edit.
+  applySharedOverrides(Object.fromEntries(
+    current.filter((r) => r.value && !isMerged(r)).map((r) => [r.key, r.value]),
+  ))
   listeners.forEach((fn) => fn())
 }
 

@@ -167,7 +167,19 @@ export function readWordlist(bytes: Uint8Array): Wordlist {
     // written five values into rows the generated dictionary ignores — the commit would land,
     // the diff would look right, and the app would never show the new text.
     //
-    // `sync.test.ts` asserts the two agree, key by key, against the real lsd.json.
+    // ── THE REQUIREMENT IS AGREEMENT, NOT CORRECTNESS ──────────────────────────────
+    //
+    // Neither rule is right on its own. There is no independently correct answer to "which
+    // row is this key" — the sheet contains two, and what matters is only that the sync and
+    // the generator pick the SAME one. If they diverge, the sync writes a cell the dictionary
+    // does not read, and nothing fails anywhere: the commit lands, the diff is clean, the
+    // build is green, and the app keeps showing the old text.
+    //
+    // So DO NOT "improve" this rule alone, and do not improve the generator's alone. Changing
+    // either side is changing a contract between two files. `sync.test.ts` compares this
+    // reader against the real `lsd.json` for all 1078 keys and is the only thing that holds
+    // the contract; a change on one side must make that test fail, and the fix is to change
+    // both sides together — never to relax the test.
     const prev = byKey.get(key)
     if (prev && isSentinel(prev.value) && !isSentinel(value)) continue
     byKey.set(key, { row, key, value: value.trim() })

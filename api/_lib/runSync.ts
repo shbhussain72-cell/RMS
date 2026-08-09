@@ -27,6 +27,18 @@
  * unrelated strings: documentation broken, not data, so no diff looks wrong and nothing
  * fails. New keys go at the END with an empty Page column.
  *
+ * ── THE SYNC MUST AGREE WITH THE GENERATOR, KEY FOR KEY ──────────────────────────────
+ *
+ * Six English keys appear twice in the sheet, so "which row is this key" has no independently
+ * correct answer — only a shared one. `readWordlist` reproduces `build-lsd-dict.mjs`'s rule
+ * exactly (last row wins; a standing sentinel is never replaced), and the requirement is that
+ * AGREEMENT, not the merits of either rule.
+ *
+ * Diverge and nothing fails: the sync writes a cell the dictionary does not read, the commit
+ * lands, the diff looks right, the build is green, and the app never changes. `sync.test.ts`
+ * compares the two readers across all 1078 keys and is the whole defence. Never change one
+ * side alone, and never relax that test to make a one-sided change pass.
+ *
  * ── DIRECTION OF TRUTH ───────────────────────────────────────────────────────────────
  *
  * The .xlsx stays the source of truth and `src/i18n/lsd.json` stays generated from it. This

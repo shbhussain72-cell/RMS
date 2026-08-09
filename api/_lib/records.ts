@@ -118,7 +118,11 @@ export type RevisionKind = 'edit' | 'revert' | 'new-row'
 export interface Revision {
   revisionId: string
   key: string
-  /** The proposed Lisan al-Dawat value. Empty ONLY for `new-row`, which requests a blank row. */
+  /**
+   * The proposed Lisan al-Dawat value. May be empty on a `new-row` request, which then means
+   * "create the row, I have nothing to put in it yet" — but a `new-row` CARRYING a value is the
+   * ordinary case: it is what the editor sends for every string with no wordlist row.
+   */
   value: string
   author: string
   createdAt: string

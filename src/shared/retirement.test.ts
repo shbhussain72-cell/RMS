@@ -84,8 +84,33 @@ describe('isMerged, against the real generated dictionary', () => {
     expect(isMerged(rev(KEY, `${committed} CHANGED`))).toBe(false)
   })
 
-  it('never retires a new-row request, which has no baseline by definition', () => {
+  it('keeps a new-row for a key the wordlist still does not have', () => {
     expect(isMerged(rev('A string with no wordlist row at all', '', 'new-row'))).toBe(false)
+  })
+
+
+  // ── A new-row that CARRIES a value ──
+  //
+  // This is what the Page tab sends for every class-C string: the key has no wordlist row, so
+  // the kind is `new-row`, and the reviewer has typed a translation into it. `isMerged` used to
+  // answer `false` on the kind alone, before looking at the value or the baseline — correct only
+  // while `new-row` meant "and no value", which it no longer does. Left as it was, every
+  // class-C edit would sit in the pending count permanently, including after the sync had
+  // appended the row and the build had baked it.
+
+  it('retires a new-row whose typed value is now the committed one', () => {
+    expect(isMerged(rev(KEY, committed as string, 'new-row'))).toBe(true)
+  })
+
+  it('keeps a new-row whose typed value is not in the wordlist yet', () => {
+    expect(isMerged(rev(KEY, `${committed} CHANGED`, 'new-row'))).toBe(false)
+  })
+
+  it('retires a BLANK new-row once the key has a row at all', () => {
+    // The blank form asks for the row to exist, nothing more — `scripts/emit-blank-rows.mjs`
+    // is what sends it. Comparing its empty value against a filled cell would never match, so
+    // a fulfilled request would report as outstanding for as long as the store kept it.
+    expect(isMerged(rev(KEY, '', 'new-row'))).toBe(true)
   })
 
   it('does not retire an override for a key that has no row yet', () => {

@@ -48,9 +48,17 @@ export const POST = handler(async (request) => {
   const body = await readJson(request)
   const kind = body.kind === undefined ? 'edit' : oneOf(body, 'kind', ['edit', 'revert', 'new-row'] as const)
 
-  // A `new-row` request stores no value and never will: it exists to make a gap visible in
-  // the spreadsheet, and a blank override would read as "translated to nothing".
-  const value = kind === 'new-row' ? '' : str(body, 'value', 2000)
+  // `new-row` says "this key has no row in the sheet yet". It does NOT say "and no value was
+  // typed" — the two used to be conflated here, and the value was thrown away unconditionally.
+  // The editor sends this kind for every class-C string, so a reviewer typing a translation for
+  // a string with no wordlist row got a 201, a revision, and an empty cell: the one write path
+  // the Page tab needs most, silently discarding its payload.
+  //
+  // The value stays OPTIONAL, because the blank form is a real request with its own meaning —
+  // `scripts/emit-blank-rows.mjs` asks for a row to be created so a gap is visible in the
+  // spreadsheet. Omitting `value` still stores `''`, and `syncPlan` still declines to write a
+  // blank cell, which would be indistinguishable from an untranslated row.
+  const value = kind === 'new-row' ? (optStr(body, 'value', 2000) ?? '') : str(body, 'value', 2000)
 
   const findings = detectByteDamage(value)
   if (findings.length) {

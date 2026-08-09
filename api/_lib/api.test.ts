@@ -211,11 +211,30 @@ describe('dictionary revisions', () => {
     expect(body.revisions[1].value).toBe('wrong register')
   })
 
-  it('stores no value for a new-row request', async () => {
+  it('stores no value for a new-row request that sends none', async () => {
     const { POST } = await dictKeyApi()
     const res = await POST(req('POST', `/api/dictionary/${encodeKey('Untranslated thing')}`, { author: 'Z', kind: 'new-row' }))
     expect(res.status).toBe(201)
     expect((await res.json()).revision.value).toBe('')
+  })
+
+  // The Page tab's class-C write path, at the only layer that can lose it silently. The editor
+  // sends `new-row` for any string with no wordlist row, and the reviewer's translation rides
+  // on that request; the handler used to overwrite `value` with `''` on the kind alone, answer
+  // 201, and store a revision of nothing. Nothing errored, the row appeared in the panel with
+  // the author's name on it, and the value was gone.
+  it('stores the value on a new-row request that carries one', async () => {
+    const { POST, GET } = await dictKeyApi()
+    const key = encodeKey('A string with no wordlist row at all')
+    const res = await POST(req('POST', `/api/dictionary/${key}`, {
+      value: 'كرو', author: 'Z', kind: 'new-row', revisionId: 'n1',
+    }))
+    expect(res.status).toBe(201)
+    // Read it back rather than trusting the response body: the store is what the sync reads.
+    const body = await (await GET(req('GET', `/api/dictionary/${key}`))).json()
+    expect(body.revisions).toHaveLength(1)
+    expect(body.revisions[0].value).toBe('كرو')
+    expect(body.revisions[0].kind).toBe('new-row')
   })
 })
 

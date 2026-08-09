@@ -58,9 +58,17 @@ let conflicts: Conflict[] = []
  * the wordlist — silent, and indistinguishable from the feature working.
  */
 export const isMerged = (rev: Revision): boolean => {
-  if (rev.kind === 'new-row') return false
   const base = baselineValue(rev.key)
   if (base === undefined) return false          // no row yet — cannot have been merged
+  // A BLANK new-row is a request for the row to EXIST, not for it to hold anything. It is
+  // fulfilled the moment the wordlist has the key, whatever the owner put in the cell.
+  if (rev.kind === 'new-row' && !rev.value) return true
+  // A new-row that CARRIES a value retires exactly like an edit: the sync appends the row, the
+  // build bakes it, and the override is a no-op from then on. This function used to return
+  // false for every 'new-row' before it looked at anything, which was right while that kind
+  // implied an empty value, and wrong the moment it stopped: the class-C edits the Page tab
+  // exists to collect would have counted as pending forever, in a number whose whole job is
+  // to go down.
   return bakedValue(rev.value) === bakedValue(base)
 }
 

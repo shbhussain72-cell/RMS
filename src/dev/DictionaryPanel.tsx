@@ -54,10 +54,21 @@ import { fetchSyncStatus, isForceable, runSyncNow, type SyncStatus } from '../sh
  *   B1 the row exists and its value is blank — awaiting translation. The queue.
  *   B2 the row exists and its value is the English word — loanword identity, per
  *      `src/i18n/loanword-policy.json`. Already correct; needs nothing.
- *   C  no row at all. Editable — the sync appends a new row at the end of the sheet.
+ *   C  no row at all. The sync appends a new row at the end of the sheet.
  *
- * Sentinel rows (the wordlist's `remove` marker) are shown as their own state and left alone.
- * They fall back to English on purpose and are the wordlist owner's to resolve.
+ * Sentinel rows (the wordlist's `remove` marker) are shown as their own state.
+ *
+ * ── THE CLASS IS INFORMATION. IT IS NOT A PERMISSION ─────────────────────────────────
+ *
+ * Every row on the Page tab is editable and opens prefilled, whatever its class. It used to be
+ * the other way round: class C opened an empty box (there is no wordlist row, so there was no
+ * value to prefill with) and a sentinel row had no edit control at all. Both are rows a
+ * reviewer can READ on screen — the string is rendered, it is right there — and could not
+ * correct, which is the one thing this tab exists to let them do.
+ *
+ * `prefill()` is the whole rule, and it never consults the class: the wordlist's value if
+ * there is one, otherwise the text this page is actually showing. See its own comment for the
+ * two cases where the screen's text is not a value and the box therefore opens empty.
  */
 
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -79,6 +90,42 @@ const CLS_STYLE: Record<Cls, string> = {
  * one of them while these badges read the other.
  */
 const classify = classifyDetail
+
+/**
+ * What the edit box opens with, and where that text came from.
+ *
+ * ── WHY THE SCREEN IS A LEGITIMATE SOURCE ────────────────────────────────────────────
+ *
+ * A class-C row has no wordlist row, so `inspectKey().value` is `''` and the box opened
+ * empty — on a string the reviewer is looking at, in a tab whose entire purpose is correcting
+ * what is on the page. The same was true of every blank B1 row. The text IS available: the
+ * inventory pass already carries what each row rendered, which for an untranslated string is
+ * the English the page put on screen. Opening with it costs nothing and is what "correct what
+ * I can see" means.
+ *
+ * The wordlist wins when it has a value, and that is not a hedge. On a class-A row the screen
+ * shows English while the wordlist holds a real translation — the string simply is not wired
+ * to the lookup. Prefilling the screen's English there would invite a reviewer to save English
+ * over a finished translation, which is a worse failure than an empty box.
+ *
+ * ── THE TWO CASES THAT OPEN EMPTY, AND WHY ───────────────────────────────────────────
+ *
+ * `interpolated`  the row renders with its variables filled in — `Close in 00:42:11` for the
+ *                key `Close in {time}`. That text is a value of the string at one instant, not
+ *                a translation of it; saving it would write a timestamp into the wordlist and
+ *                the placeholder would be gone. The row stays editable — the reviewer types the
+ *                pattern — but there is nothing honest to prefill it with.
+ * `source:none`  nothing rendered and nothing in the wordlist. Only reachable from the Master
+ *                tab, which lists rows regardless of whether this page shows them.
+ */
+type Prefill = { value: string; draft: string; source: 'wordlist' | 'screen' | 'none' }
+
+const prefill = (r: { english: string; rendered: string; interpolated: boolean }): Prefill => {
+  const value = inspectKey(r.english).value
+  if (value) return { value, draft: value, source: 'wordlist' }
+  if (r.rendered && !r.interpolated) return { value, draft: r.rendered, source: 'screen' }
+  return { value, draft: '', source: 'none' }
+}
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -181,12 +228,20 @@ function DictionaryPanelInner() {
   const conflicts = openConflicts()
 
   const rows = useMemo(() => {
+    // `rendered` is carried through rather than dropped. It was dropped, and that is why a
+    // class-C row had nothing to open with: the inventory knew what the page was showing and
+    // the row threw it away one line later.
     const base = tab === 'page'
-      ? hits.map((h) => ({ english: h.english, where: h.where, count: h.count }))
-      : allEntries().map((e) => ({ english: e.english, where: e.page ? `p.${e.page}` : '', count: 0 }))
+      ? hits.map((h) => ({
+          english: h.english, where: h.where, count: h.count, rendered: h.rendered,
+          // `tx()` stamps `data-lsd-key` only when interpolation changed the string, so this is
+          // exactly "the screen shows this key with its variables filled in". See `prefill`.
+          interpolated: h.via === 'data-lsd-key' && h.rendered !== h.english,
+        }))
+      : allEntries().map((e) => ({ english: e.english, where: e.page ? `p.${e.page}` : '', count: 0, rendered: '', interpolated: false }))
     const needle = q.trim().toLowerCase()
     return base
-      .map((r) => ({ ...r, cls: classify(r.english), value: inspectKey(r.english).value }))
+      .map((r) => ({ ...r, cls: classify(r.english), ...prefill(r) }))
       .filter((r) => (!needsOnly || r.cls === 'A' || r.cls === 'B1' || r.cls === 'C'))
       .filter((r) => !needle || r.english.toLowerCase().includes(needle) || r.value.includes(q.trim()))
       .slice(0, 400)
@@ -275,12 +330,12 @@ function DictionaryPanelInner() {
         <div className="pointer-events-auto flex max-h-[74vh] w-[min(460px,calc(100vw-32px))] flex-col rounded-[12px] border border-[#d8cfb8] bg-white shadow-[0_16px_44px_-12px_rgba(21,64,47,0.45)]" style={{ fontFamily: FONT }}>
           <div className="flex items-center gap-[6px] border-b border-[#eee6d4] p-[10px]">
             {(['page', 'master'] as const).map((k) => (
-              <button key={k} type="button" onClick={() => setTab(k)}
+              <button key={k} type="button" data-dict-tab={k} onClick={() => setTab(k)}
                 className={`rounded-[6px] px-[8px] py-[3px] text-[11px] font-bold ${tab === k ? 'bg-[#1f5a44] text-white' : 'bg-[#f0ece1] text-[#5a6660]'}`}>
                 {k === 'page' ? 'This page' : 'Master'}
               </button>
             ))}
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="filter…"
+            <input value={q} data-dict-filter onChange={(e) => setQ(e.target.value)} placeholder="filter…"
               className="min-w-0 flex-1 rounded-[6px] border border-[#e7dfc9] bg-[#faf8f2] px-[8px] py-[3px] text-[11px] outline-none" />
             <button type="button" onClick={() => void pull()} disabled={loading}
               className="shrink-0 rounded-[6px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
@@ -321,9 +376,19 @@ function DictionaryPanelInner() {
               const head = headFor(r.english)
               const isPending = !!head && !isMerged(head)
               const isQueued = queued.includes(r.english)
-              const editable = r.cls !== 'sentinel'
+              // No `editable` flag any more. There was one, it was `r.cls !== 'sentinel'`, and a
+              // class is a description of a string rather than a statement about who may type.
+              // What a sentinel row needs is the WARNING below, which the missing button was
+              // standing in for — and standing in badly, because a disabled control explains
+              // nothing and this row is the wordlist owner's to resolve either way.
               return (
-                <div key={r.english} className="border-b border-[#f2eee2] px-[10px] py-[7px]"
+                // `data-dict-*` are handles for `scripts/check-dictionary.mjs`, which drives these
+                // rows the way a reviewer does — clicks the control, reads the box. Addressing them
+                // by Tailwind class was the alternative and it makes the check a test of the
+                // stylesheet. Free of charge: the panel's whole subtree is `data-lsd-scanner-ignore`,
+                // so nothing here is ever inventoried as a string on the page.
+                <div key={r.english} data-dict-row={r.english} data-dict-cls={r.cls}
+                  className="border-b border-[#f2eee2] px-[10px] py-[7px]"
                   onMouseEnter={() => tab === 'page' && highlight(r.english)}>
                   <div className="flex items-start gap-[6px]">
                     <span className={`mt-[1px] shrink-0 rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold ${CLS_STYLE[r.cls]}`}>{r.cls}</span>
@@ -331,11 +396,9 @@ function DictionaryPanelInner() {
                     {r.where && <span className="shrink-0 text-[9px] text-[#a9b1ab]">{r.where}</span>}
                   </div>
                   <div className="mt-[4px] flex items-center gap-[6px]">
-                    {r.cls === 'sentinel' ? (
-                      <span className="text-[10px] text-[#8a6a1e]">sentinel in the wordlist — falls back to English by design</span>
-                    ) : isEditing ? (
+                    {isEditing ? (
                       <>
-                        <input autoFocus dir="rtl" value={draft}
+                        <input autoFocus dir="rtl" data-dict-input value={draft}
                           onChange={(e) => { setDraft(e.target.value); setRefused([]); setConverted([]) }}
                           onPaste={(e) => {
                             // Convert Kanz keyboard output AT THE PASTE, not at save: the author
@@ -356,19 +419,42 @@ function DictionaryPanelInner() {
                       </>
                     ) : (
                       <>
-                        <span dir="rtl" className={`min-w-0 flex-1 truncate text-[13px] ${isPending ? 'text-[#a8721e]' : 'text-[#23302a]'}`}>
-                          {inspectKey(r.english).value}
+                        {/* The wordlist's value, or — when it has none — the text this page is
+                            showing, muted and labelled. A row that renders something must never
+                            look blank here: blank is what "there is nothing to work with" looks
+                            like, and it was wrong on every class-C string on the screen. */}
+                        <span dir="rtl" className={`min-w-0 flex-1 truncate text-[13px] ${
+                          r.source === 'screen' ? 'text-[#8a938e] italic' : isPending ? 'text-[#a8721e]' : 'text-[#23302a]'}`}>
+                          {r.draft}
                         </span>
-                        {editable && (
-                          <button type="button" disabled={!named}
-                            onClick={() => { setEditing(r.english); setDraft(inspectKey(r.english).value ?? ''); setRefused([]); setConverted([]); setProblem('') }}
-                            className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
-                            {head ? 'Edit' : r.cls === 'C' ? 'Add row' : 'Add'}
-                          </button>
-                        )}
+                        {r.source === 'screen' && <span className="shrink-0 text-[9px] text-[#a9b1ab]">on screen</span>}
+                        <button type="button" disabled={!named} data-dict-edit
+                          onClick={() => { setEditing(r.english); setDraft(r.draft); setRefused([]); setConverted([]); setProblem('') }}
+                          className="shrink-0 rounded-[5px] bg-[#f0ece1] px-[7px] py-[3px] text-[10px] font-bold text-[#23302a] disabled:opacity-40">
+                          {r.cls === 'C' && !head ? 'Add row' : 'Edit'}
+                        </button>
                       </>
                     )}
                   </div>
+
+                  {/* SAID, not enforced. Both of these are rows a reviewer can type into and
+                      should be able to; what they cannot do is silently succeed. A control that
+                      is simply absent teaches nothing, and the reviewer finds out what the tool
+                      refuses to do by their edit never appearing in the sheet. */}
+                  {r.cls === 'sentinel' && (
+                    <p data-dict-sentinel-note className="mt-[3px] text-[10px] text-[#8a6a1e]">
+                      Sentinel in the wordlist — the row holds an instruction, not a translation, and the
+                      string falls back to English by design. You can stage an edit here, but the sync will
+                      not overwrite a sentinel: the wordlist owner has to clear it first.
+                    </p>
+                  )}
+                  {r.interpolated && (
+                    <p className="mt-[3px] text-[10px] text-[#8a6a1e]">
+                      Interpolated — the screen shows <code>{r.rendered}</code>, which is this string with its
+                      variables filled in at render. Type the pattern with its <code>{'{…}'}</code> placeholders,
+                      not what is on screen; the filled-in text would be stale the moment it was saved.
+                    </p>
+                  )}
 
                   {head && (
                     <div className="mt-[3px] flex flex-wrap items-center gap-[6px] text-[9px] text-[#8a938e]">
@@ -427,7 +513,7 @@ function DictionaryPanelInner() {
         </div>
       )}
 
-      <button type="button" onClick={() => setOpen((v) => !v)}
+      <button type="button" data-dict-open onClick={() => setOpen((v) => !v)}
         className="pointer-events-auto flex items-center gap-[5px] rounded-[7px] border border-[#d8cfb8] bg-white px-[8px] py-[4px] text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(21,64,47,0.4)]"
         style={{ fontFamily: FONT }} title="Dictionary editor">
         <span className="text-[#1f5a44]">◧ Dict</span>

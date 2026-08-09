@@ -62,7 +62,7 @@ await new Promise((ok, fail) => {
 const browser = await chromium.launch()
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce' })
-  await ctx.addInitScript(`try{localStorage.setItem('rms-lang','lsd');const p=JSON.parse(localStorage.getItem('miqaat-flow')||'{}');localStorage.setItem('miqaat-flow',JSON.stringify({...p,state:{...(p.state||{}),loggedIn:true},version:p.version??0}))}catch{}`)
+  await ctx.addInitScript(`try{localStorage.setItem('rms-lang','lsd');localStorage.setItem('rms-remark-author','check-dictionary');const p=JSON.parse(localStorage.getItem('miqaat-flow')||'{}');localStorage.setItem('miqaat-flow',JSON.stringify({...p,state:{...(p.state||{}),loggedIn:true},version:p.version??0}))}catch{}`)
   const page = await ctx.newPage()
   await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })
 
@@ -319,6 +319,224 @@ try {
       + (r.longestKey > BOUNDS.key
         ? ` — ${r.longestKeyCount} node(s) merged under ${JSON.stringify(r.longestKeySample)}…`
         : ''))
+  }
+
+
+  // ── 3d. EVERY ROW ON THE PAGE TAB CAN BE TYPED INTO, PREFILLED ──
+  //
+  // The tab listing a string is not the same as the tab letting you correct it, and for two
+  // whole categories it did not. A class-C row has no wordlist row, so the box was prefilled
+  // from `inspectKey().value` and opened EMPTY — on a string the reviewer is looking at. A
+  // sentinel row had no control at all. Both were rows you could read and could not touch.
+  //
+  // Driven through the panel rather than through `prefill()`, and deliberately: a unit test of
+  // the rule would have passed on the old build too, because the old rule was also a correct
+  // implementation of itself. What was wrong was the OUTCOME — the box the reviewer sees. So
+  // this clicks every row's control the way a reviewer does and reads what the box holds.
+  //
+  // The comparison is against a text-node walk of the page that knows nothing about the
+  // dictionary, the inventory or the panel. Asking `inventoryDom` what it rendered and then
+  // checking that the panel agrees would be two readings of one number.
+  const TAB_ROUTES = ['/miqaats', '/miqaats/ashara-1448/people']
+  for (const route of TAB_ROUTES) {
+    await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded' })
+    await waitForApp(page)
+    await page.click('[data-dict-open]')
+    const opened = await page.waitForSelector('[data-dict-row]', { timeout: 20_000 }).then(() => true, () => false)
+    say(opened, `${route}: the Page tab renders rows when opened`)
+    if (!opened) continue
+
+    // Retried once, and a persistent failure is REPORTED rather than thrown. The walk runs for
+    // several seconds against a live app; a navigation underneath it destroys the execution
+    // context, and an uncaught throw there took the twelve assertions after this one with it —
+    // which reads in the log as those assertions not existing rather than as this one failing.
+    const walk = async () => await page.evaluate(async () => {
+      const nap = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const norm = (s) => (s || '').replace(/[‎‏]/g, '').replace(/\s+/g, ' ').trim()
+
+      // What the PAGE is showing, walked independently. The panel is excluded by the same
+      // attribute that keeps the scanner out of it, so the editor cannot satisfy this with
+      // its own text.
+      const onScreen = new Set()
+      const sweep = () => {
+        const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+        for (let n = w.nextNode(); n; n = w.nextNode()) {
+          const el = n.parentElement
+          if (!el || !el.isConnected || el.closest('[data-lsd-scanner-ignore]')) continue
+          const s = norm(n.nodeValue)
+          if (s) onScreen.add(s)
+        }
+      }
+      sweep()
+
+      // By KEY, never by index, and the box is closed again before moving on. Both matter for
+      // the same reason: the tab re-scans the live DOM every 1.2s and re-sorts, so an index
+      // taken before a click can address a different row after it. The first run of this walk
+      // did exactly that and reported "no edit control" for three rows that have one — it had
+      // landed back on the row it just opened, whose control is replaced by the box.
+      const rowFor = (k) => [...document.querySelectorAll('[data-dict-row]')]
+        .find((e) => e.getAttribute('data-dict-row') === k)
+      const keys = [...document.querySelectorAll('[data-dict-row]')].map((e) => e.getAttribute('data-dict-row'))
+      const out = []
+      const gone = []
+      for (const key of keys) {
+        const row = rowFor(key)
+        // A row that vanished mid-walk is a string that CHANGED — a countdown, a clock. That is
+        // not a row without a control, and reporting it as one would be a finding about the walk.
+        if (!row) { gone.push(key); continue }
+        const cls = row.getAttribute('data-dict-cls')
+        const btn = row.querySelector('[data-dict-edit]')
+        if (!btn || btn.disabled) { out.push({ key, cls, control: false }); continue }
+        btn.click()
+        await nap()
+        const same = rowFor(key)
+        // Changed BETWEEN the click and the read — the same event as one that changed before it,
+        // and it has to be filed the same way. Counting it as "the control did not open a box"
+        // is a finding about a clock, and it is the finding this walk produced on its first run.
+        if (!same) { gone.push(key); continue }
+        const input = same.querySelector('[data-dict-input]')
+        out.push({ key, cls, control: true, opened: !!input, draft: input ? input.value : null })
+        if (input) { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await nap() }
+      }
+
+      // Swept AGAIN, and unioned. Some of these strings tick — a countdown, a clock — so the
+      // text the tab captured on its last scan can be a second out of date by the time the walk
+      // reaches that row, and the row would be reported as prefilled with something the page
+      // never showed. It did show it. Unioning the two sweeps admits the value it had when the
+      // tab read it AND the value it has now, and still admits nothing that was never rendered,
+      // which is the property under test.
+      sweep()
+
+      const i18n = await import('/src/i18n/index.tsx')
+      return {
+        rows: out.length,
+        gone,
+        byCls: out.reduce((a, r) => { a[r.cls] = (a[r.cls] ?? 0) + 1; return a }, {}),
+        noControl: out.filter((r) => !r.control).map((r) => `${r.cls} ${r.key}`),
+        didNotOpen: out.filter((r) => r.control && !r.opened).map((r) => `${r.cls} ${r.key}`),
+        // A box that opened empty. Legitimate ONLY for a parameterised key: `Close in {time}`
+        // renders as `Close in 00:42:11`, and prefilling that would write one instant's text
+        // into the wordlist and lose the placeholder. Stated as a property of the KEY, rather
+        // than by asking the panel which rows it decided to leave blank.
+        emptyBox: out.filter((r) => r.opened && !r.draft).map((r) => `${r.cls} ${r.key}`),
+        emptyBoxWithoutPlaceholder: out
+          .filter((r) => r.opened && !r.draft && !/\{[^}]+\}/.test(r.key))
+          .map((r) => `${r.cls} ${r.key}`),
+        // THE ASSERTION THIS SECTION EXISTS FOR. Where the wordlist holds nothing, the box has
+        // to open with text the page is actually displaying — matched EXACTLY against a node
+        // the walk above found, never by containment. A containment test here would be the
+        // inverted kind: the longer the prefill, the more certainly it "covers" something.
+        fromNothing: out.filter((r) => r.opened && !i18n.inspectKey(r.key).value).length,
+        notOnScreen: out
+          .filter((r) => r.opened && !i18n.inspectKey(r.key).value && r.draft && !onScreen.has(norm(r.draft)))
+          .map((r) => `${r.cls} ${JSON.stringify(String(r.draft).slice(0, 50))}`),
+        screenNodes: onScreen.size,
+      }
+    })
+
+    let t = null
+    let walkErr = ''
+    for (let attempt = 0; attempt < 2 && !t; attempt++) {
+      if (attempt) {
+        await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded' })
+        await waitForApp(page)
+        await page.click('[data-dict-open]')
+        await page.waitForSelector('[data-dict-row]', { timeout: 20_000 }).catch(() => {})
+      }
+      try { t = await walk() } catch (err) { walkErr = err instanceof Error ? err.message : String(err) }
+    }
+    say(!!t, t ? `${route}: the row walk completed` : `${route}: the row walk could not run — ${walkErr}`)
+    if (!t) continue
+
+    say(t.rows > 0 && t.screenNodes > 0,
+      `${route}: ${t.rows} rows against ${t.screenNodes} rendered text nodes — ${JSON.stringify(t.byCls)}`
+      + (t.gone.length ? ` (${t.gone.length} changed mid-walk: ${JSON.stringify(t.gone.slice(0, 3))})` : ''))
+    // The skip above is a hole, so it is bounded rather than trusted. A walk that lost most of
+    // the tab would satisfy every assertion below by having nothing left to look at.
+    say(t.gone.length * 4 < t.rows,
+      `${route}: the walk covered the tab — ${t.rows} of ${t.rows + t.gone.length} rows visited`)
+    say(t.noControl.length === 0,
+      `${route}: every row has an enabled edit control`
+      + (t.noControl.length ? ` — ${t.noControl.length} without one: ${JSON.stringify(t.noControl.slice(0, 5))}` : ''))
+    say(t.didNotOpen.length === 0,
+      `${route}: every control opens an edit box`
+      + (t.didNotOpen.length ? ` — ${t.didNotOpen.length} did not: ${JSON.stringify(t.didNotOpen.slice(0, 5))}` : ''))
+    say(t.emptyBoxWithoutPlaceholder.length === 0,
+      `${route}: no box opens empty except on a parameterised key (${t.emptyBox.length} empty, all with placeholders)`
+      + (t.emptyBoxWithoutPlaceholder.length
+        ? ` — ${t.emptyBoxWithoutPlaceholder.length} unexplained: ${JSON.stringify(t.emptyBoxWithoutPlaceholder.slice(0, 5))}` : ''))
+    // NON-VACUITY. Every assertion above is satisfied by a tab with no rows the wordlist cannot
+    // answer for — which is precisely the state this change is about. If these routes ever stop
+    // producing them, those assertions stop meaning anything and this one says so.
+    say(t.fromNothing > 0,
+      `${route}: ${t.fromNothing} row(s) have nothing in the wordlist — the case that used to open blank`)
+    say(t.notOnScreen.length === 0,
+      `${route}: every one of those opens with text the page is actually showing`
+      + (t.notOnScreen.length ? ` — ${t.notOnScreen.length} not found on screen: ${JSON.stringify(t.notOnScreen.slice(0, 5))}` : ''))
+
+    await page.click('[data-dict-open]')
+  }
+
+
+  // ── 3e. A SENTINEL ROW IS TYPEABLE, AND SAYS WHAT WILL HAPPEN TO THE EDIT ──
+  //
+  // The one row class that had no edit control at all. It is not a defect in the wordlist: the
+  // owner has written an instruction into the cell (`remove`), the string falls back to English
+  // on purpose, and `syncPlan` refuses to overwrite a sentinel with a translation. But an absent
+  // button explains none of that. It reads as "this tool is broken here", and the reviewer's
+  // only way to find out otherwise is to go and read the sync.
+  //
+  // So the control is there and the constraint is written on the row instead. This asserts both
+  // halves, because either alone is worse than what it replaced: a button with no warning is a
+  // trap, and a warning with no button is the old behaviour with more words.
+  //
+  // Reached through the Master tab because sentinels are rare — none of them rendered on the
+  // two routes above, and an assertion that only runs when one happens to be on screen is an
+  // assertion that mostly does not run.
+  const sentinelKey = await page.evaluate(async () => {
+    const i18n = await import('/src/i18n/index.tsx')
+    const hit = i18n.allEntries().find((e) => e.sentinel)
+    return hit ? hit.english : null
+  })
+  say(!!sentinelKey, sentinelKey
+    ? `the wordlist has a sentinel row to test with: ${JSON.stringify(sentinelKey.slice(0, 48))}…`
+    : 'the wordlist has NO sentinel rows — the assertions below cannot run')
+
+  if (sentinelKey) {
+    await page.click('[data-dict-open]')
+    await page.waitForSelector('[data-dict-row]', { timeout: 20_000 })
+    await page.click('[data-dict-tab="master"]')
+    await page.fill('[data-dict-filter]', sentinelKey.slice(0, 40))
+    const shown = await page
+      .waitForSelector(`[data-dict-cls="sentinel"]`, { timeout: 10_000 })
+      .then(() => true, () => false)
+    say(shown, 'the sentinel row is listed')
+
+    if (shown) {
+      const sen = await page.evaluate(async () => {
+        const nap = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        const row = document.querySelector('[data-dict-cls="sentinel"]')
+        const note = row.querySelector('[data-dict-sentinel-note]')
+        const btn = row.querySelector('[data-dict-edit]')
+        if (!btn || btn.disabled) return { control: false, note: note ? note.textContent : null }
+        btn.click()
+        await nap()
+        const again = [...document.querySelectorAll('[data-dict-row]')]
+          .find((e) => e.getAttribute('data-dict-row') === row.getAttribute('data-dict-row'))
+        const input = again && again.querySelector('[data-dict-input]')
+        if (input) { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await nap() }
+        return { control: true, typeable: !!input, note: note ? note.textContent.replace(/\s+/g, ' ').trim() : null }
+      })
+      say(sen.control && sen.typeable, 'a sentinel row opens an edit box like any other row')
+      // The wording is not asserted; what the reviewer must be told is. `syncPlan` declines the
+      // write, so the row has to say the sync will not take it — silence here is the trap.
+      say(!!sen.note && /sync will not/i.test(sen.note),
+        `and it says the sync will not overwrite the sentinel (${JSON.stringify((sen.note || '').slice(0, 60))}…)`)
+    }
+
+    await page.click('[data-dict-tab="page"]')
+    await page.fill('[data-dict-filter]', '')
+    await page.click('[data-dict-open]')
   }
 
   await page.goto(`http://localhost:${PORT}/miqaats`, { waitUntil: 'domcontentloaded' })

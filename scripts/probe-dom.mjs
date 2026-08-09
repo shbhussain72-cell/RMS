@@ -89,6 +89,44 @@ export function installProbeDom() {
     return true
   }
 
+  /**
+   * The part of `r` that survives every clipping ancestor of `el`, or null if none of it does.
+   *
+   * `pointVisible` answers a yes/no about one point, which leaves the CALLER to choose the
+   * point — and the obvious choice, the rect's geometric centre, is wrong for anything sitting
+   * at a clipper's edge. A 28px heading whose lower half is cut off by the bottom of a scroll
+   * panel has its centre exactly ON the boundary, where the renderer paints whatever comes
+   * next. Sampling there reports the next thing as an occluder while the heading's visible half
+   * is uncovered and perfectly legible.
+   *
+   * So callers ask for the painted rect and sample the middle of THAT. A real occlusion is
+   * unaffected: text genuinely covered by an in-flow element is fully inside its clipper, and
+   * the painted rect is the whole rect.
+   */
+  const paintedRect = (el, r) => {
+    const rect = r || el.getClientRects()[0] || el.getBoundingClientRect()
+    if (!rect) return null
+    let { left, top, right, bottom } = rect
+    const pos = getComputedStyle(el).position
+    let escaping = pos === 'absolute' || pos === 'fixed'
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p)
+      if (escaping) {
+        const cb = pos === 'fixed'
+          ? s.transform !== 'none' || s.filter !== 'none' || s.perspective !== 'none'
+          : s.position !== 'static' || s.transform !== 'none' || s.filter !== 'none'
+        if (!cb) continue
+        escaping = false
+      }
+      if (!/^(hidden|clip|auto|scroll)$/.test(s.overflowX) && !/^(hidden|clip|auto|scroll)$/.test(s.overflowY)) continue
+      const pr = p.getBoundingClientRect()
+      left = Math.max(left, pr.left); top = Math.max(top, pr.top)
+      right = Math.min(right, pr.right); bottom = Math.min(bottom, pr.bottom)
+    }
+    if (right - left < 2 || bottom - top < 2) return null
+    return { left, top, right, bottom, width: right - left, height: bottom - top }
+  }
+
   /** Is any part of `el` painted where its own box says it is? Centre-sampled. */
   const selfPainted = (el) => {
     const r = el.getClientRects()[0] || el.getBoundingClientRect()
@@ -96,5 +134,5 @@ export function installProbeDom() {
     return pointVisible(el, r.left + r.width / 2, r.top + r.height / 2)
   }
 
-  window.__probe = { isVisible, pointVisible, selfPainted }
+  window.__probe = { isVisible, pointVisible, paintedRect, selfPainted }
 }

@@ -103,7 +103,7 @@ const seed = (lang) => `
  */
 const PROBE = () => {
   const out = []
-  const { isVisible, pointVisible } = window.__probe
+  const { isVisible, pointVisible, paintedRect } = window.__probe
   const describe = (el) => {
     const cls = typeof el.className === 'string' ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join('.') : ''
     const name = el.getAttribute('data-name') || el.getAttribute('data-tour') || ''
@@ -300,12 +300,17 @@ const PROBE = () => {
   for (const te of textEls) {
     // First client rect, not the bounding box: a wrapped line's bounding box spans the full
     // column and its centre can fall in the gap between lines, where nothing is painted.
-    const r = te.getClientRects()[0]
-    if (!r || r.width < 4 || r.height < 4) continue
+    const r0 = te.getClientRects()[0]
+    if (!r0 || r0.width < 4 || r0.height < 4) continue
+    // Sample the middle of the part that is actually PAINTED, not of the whole box. A heading
+    // half-clipped by the bottom of a scroll panel has its geometric centre exactly on the
+    // panel's edge, where the renderer paints whatever comes next — which is how the footer on
+    // /people at 1024 was reported as covering a heading whose visible half is uncovered.
+    const r = paintedRect(te, r0)
+    if (!r) continue
     const x = Math.round(r.left + r.width / 2)
     const y = Math.round(r.top + r.height / 2)
     if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) continue
-    // On screen by geometry is not the same as painted there — see `pointVisible`.
     if (!pointVisible(te, x, y)) continue
     const hit = document.elementFromPoint(x, y)
     if (!hit) continue

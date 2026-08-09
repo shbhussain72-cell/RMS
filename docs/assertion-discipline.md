@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened three times in this repo, in three different suites, to three different
+This has now happened four times in this repo, in four different places, to four different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The three worked examples
+## The four worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -53,6 +53,33 @@ anything stops generating occlusion findings. A 63% improvement, and it was pure
 
 **Fix:** scroll to the middle of the page and look at where the footer is.
 
+### 4. `npm run build | tail -3` cannot report a failure
+
+**Mechanism asserted:** "some text came out of the build."
+**Outcome wanted:** "the build succeeded."
+
+A shell pipeline exits with the status of its LAST command. `tail` always succeeds. So
+
+    npm run build 2>&1 | tail -3 && git commit ...
+
+commits whatever the build did, including failing. The `&&` looks like a guard and is not
+one: it is guarding on `tail`.
+
+This shipped a commit whose build was broken — `check:lsd` was failing on it the whole time,
+and the three lines `tail` printed were the failure message, read as ordinary output.
+
+It is the cheapest of these four to reintroduce, because piping a long build into `tail` is
+the obvious way to keep the transcript short, and the failure is invisible: the command exits
+0 and prints something plausible.
+
+**Fix:** capture the status of the command you care about, not of the formatter.
+
+    npm run build > /tmp/build.txt 2>&1; echo "EXIT=$?"; tail -20 /tmp/build.txt
+
+`set -o pipefail` also works where the shell supports it. Either way the rule is the same:
+**never verify through a pipe.** If a command's exit code is the thing being checked, nothing
+may come after it in the pipeline.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -62,6 +89,7 @@ Each one substituted something *upstream* of the user-visible effect:
 | stale dist | the artifact that was built | the source in hand |
 | min-w | the constraint exists | the content is never clipped |
 | PINNED | the CSS property | the rendered position while scrolling |
+| piping to `tail` | that the command produced output | that the command succeeded |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.

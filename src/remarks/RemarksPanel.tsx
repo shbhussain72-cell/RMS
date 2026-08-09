@@ -19,6 +19,9 @@ import { CHROME_ATTR } from './selector'
 import { useRemarks } from './RemarksProvider'
 import { download, toJson, toMarkdown } from './export'
 import { markExported, readExported, unexportedOf } from './storage'
+import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
+import { hasAuthor } from '../shared/identity'
+import { pushLocalRemarks, readLocalRemarks, unpushedLocal } from '../shared/remarksApi'
 import { useT } from '../i18n'
 import type { Remark } from './types'
 import DevDock from '../dev/DevDock'
@@ -39,8 +42,9 @@ export default function RemarksPanel() {
 function RemarksPanelInner() {
   const {
     enabled, setEnabled, panelOpen, setPanelOpen,
-    remarks, resolutions, route, updateRemark, removeRemark, author, setAuthor,
+    remarks, resolutions, route, updateRemark, removeRemark,
     fixtureOn, setFixtureOn,
+    reload, pendingWrites, storeError,
   } = useRemarks()
   const navigate = useNavigate()
 
@@ -57,6 +61,10 @@ function RemarksPanelInner() {
    * Held in state rather than read on every render so that exporting updates the badge
    * immediately; `readExported()` seeds it once from the same store the export writes to.
    */
+  const [named, setNamed] = useState(() => hasAuthor())
+  const [busy, setBusy] = useState(false)
+  const [pushNote, setPushNote] = useState<string | null>(null)
+  const [localToPush, setLocalToPush] = useState(() => unpushedLocal(readLocalRemarks()).length)
   const [exported, setExported] = useState<Record<string, string>>(() => readExported())
   const unexported = useMemo(() => unexportedOf(remarks, exported), [remarks, exported])
 
@@ -113,6 +121,10 @@ function RemarksPanelInner() {
     >
       {panelOpen && (
         <div data-rmk="panel" className="pointer-events-auto flex max-h-[70vh] w-[min(380px,calc(100vw-32px))] flex-col rounded-[12px] border border-[#d8cfb8] bg-white shadow-[0_16px_44px_-12px_rgba(21,64,47,0.45)]">
+          {/* Asked once, before anything can be written. Every remark and every dictionary
+              revision carries this name, and it is the only attribution the shared store has. */}
+          {!named && <IdentityPrompt onDone={() => setNamed(true)} />}
+
           <div className="border-b border-[#eee6d4] p-[10px]">
             <div className="flex items-center gap-[6px]">
               <button
@@ -122,13 +134,13 @@ function RemarksPanelInner() {
               >
                 {enabled ? 'Exit remark mode' : 'Enter remark mode'}
               </button>
-              <input
-                value={author} onChange={(e) => setAuthor(e.target.value)}
-                placeholder="your name"
-                className="min-w-0 flex-1 rounded-[6px] border border-[#e7dfc9] px-[6px] py-[4px] text-[11px] outline-none focus:border-[#1f5a44]"
-                style={{ fontFamily: FONT_SANS }}
-                dir="auto"
-              />
+              <button
+                type="button" data-rmk="refresh" onClick={() => { void reload() }}
+                className="rounded-[6px] border border-[#d8cfb8] bg-white px-[8px] py-[4px] text-[11px] font-bold text-[#23302a]"
+                title="Fetch everyone else's remarks now"
+              >
+                {t('Refresh')}
+              </button>
             </div>
 
             <div className="mt-[8px] flex flex-wrap gap-[4px]" style={{ fontFamily: FONT_SANS }}>
@@ -153,6 +165,52 @@ function RemarksPanelInner() {
             )}
           </div>
 
+          {/* Shared-store status. Every one of these is a statement the reviewer needs and
+              would otherwise have to infer from an empty list. */}
+          {(storeError || pendingWrites > 0 || localToPush > 0 || pushNote) && (
+            <div className="border-b border-[#eee6d4] px-[10px] py-[8px] text-[10px] leading-[14px]" style={{ fontFamily: FONT_SANS }} dir="ltr">
+              {storeError && (
+                <p data-rmk="store-error" className="rounded-[6px] bg-[#fdf1f1] px-[8px] py-[6px] font-bold text-[#b23b3b]">
+                  {storeError}
+                </p>
+              )}
+              {pendingWrites > 0 && (
+                <p data-rmk="pending" className="mt-[6px] rounded-[6px] bg-[#fdf6e7] px-[8px] py-[6px] font-bold text-[#8a6a1e]">
+                  {t('{n} change(s) queued in this browser — not yet sent.', { n: pendingWrites })}
+                </p>
+              )}
+              {localToPush > 0 && (
+                <div className="mt-[6px] rounded-[6px] bg-[#f4f7f5] px-[8px] py-[6px]">
+                  <p className="text-[#5a6660]">
+                    {t('{n} remark(s) from before the shared store was set up are only in this browser.', { n: localToPush })}
+                  </p>
+                  <button
+                    type="button" data-rmk="push-local" disabled={busy}
+                    onClick={async () => {
+                      setBusy(true)
+                      try {
+                        const res = await pushLocalRemarks(readLocalRemarks())
+                        // Reads back what actually landed. Says so honestly when some did not.
+                        setPushNote(res.failed
+                          ? t('Pushed {n} of {total}. {failed} did not arrive and are still here — try again.', { n: res.pushed, total: res.total, failed: res.failed })
+                          : t('Pushed {n}. Your local copy is untouched.', { n: res.pushed }))
+                        setLocalToPush(unpushedLocal(readLocalRemarks()).length)
+                      } catch (err) {
+                        setPushNote((err as Error).message)
+                      } finally {
+                        setBusy(false)
+                      }
+                    }}
+                    className="mt-[5px] rounded-[6px] bg-[#1f5a44] px-[8px] py-[4px] text-[10px] font-bold text-white disabled:opacity-40"
+                  >
+                    {busy ? t('Pushing…') : t('Push them to the shared store')}
+                  </button>
+                </div>
+              )}
+              {pushNote && <p data-rmk="push-note" className="mt-[6px] text-[#5a6660]">{pushNote}</p>}
+            </div>
+          )}
+
           <div className="min-h-0 flex-1 overflow-y-auto p-[8px]">
             {filtered.length === 0 ? (
               <p className="p-[10px] text-[11px] text-[#8a938e]" style={{ fontFamily: FONT_SANS }}>
@@ -168,9 +226,13 @@ function RemarksPanelInner() {
               unexported count. A reviewer who never presses it has written nothing anybody
               else will ever read. */}
           <div className="border-t border-[#eee6d4] p-[8px]" style={{ fontFamily: FONT_SANS }}>
+            <div className="mb-[8px]"><IdentityRow /></div>
+            {/* The store is shared now, so the old "this browser only" line would be false —
+                and a stale warning is worse than none: it tells a reviewer their work is
+                private when six people can read it. */}
             {REVIEW_TOOLS_DEPLOYED && (
-              <p className="mb-[8px] rounded-[6px] bg-[#fdf6e7] px-[8px] py-[6px] text-[10px] leading-[14px] text-[#8a6a1e]"
-                {...tx('Remarks are saved in this browser only. Export them to send them on — nobody else can see them.')} />
+              <p className="mb-[8px] rounded-[6px] bg-[#eef4f1] px-[8px] py-[6px] text-[10px] leading-[14px] text-[#2c5347]"
+                {...tx('Remarks are shared with every reviewer on this link. Export is for getting them into the tracker, not for sharing them.')} />
             )}
             <div className="flex gap-[6px]">
               <button

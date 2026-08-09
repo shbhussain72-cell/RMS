@@ -23,6 +23,10 @@ import {
 import { useLocation } from 'react-router-dom'
 import { useLang } from '../i18n'
 import { localStorageAdapter, newId } from './storage'
+import { sharedAdapter, subscribeShared, fingerprint as remarksFingerprint, pull, cached as cachedRemarks } from '../shared/remarksApi'
+import { getAuthor, setAuthor as persistAuthor, subscribeAuthor } from '../shared/identity'
+import { outboxCount, startOutbox, subscribeOutbox } from '../shared/outbox'
+import { startPolling } from '../shared/poll'
 import { bestStrategy, captureIdentifiers, resolveRemark } from './selector'
 import { patternFor } from './routes'
 import type { Remark, RemarksAdapter, Resolution, RemarkStatus } from './types'
@@ -60,6 +64,16 @@ export interface RemarksContextValue {
   removeRemark: (id: string) => Promise<void>
   /** Force an immediate re-resolve — used after the fixture toggles a break mode. */
   refresh: () => void
+
+  /** Re-read the shared store now. Bound to the panel's manual refresh control. */
+  reload: () => Promise<void>
+  /** Writes still queued locally. Non-zero means work that has not reached anyone else. */
+  pendingWrites: number
+  /**
+   * The last error from the shared store, or null. Surfaced in the panel rather than logged:
+   * a reviewer whose remarks are not saving must be told, and an empty list is not a message.
+   */
+  storeError: string | null
 }
 
 const Ctx = createContext<RemarksContextValue | null>(null)
@@ -93,7 +107,10 @@ export function RemarksProvider({
   // Behind the early return, the reference is unreachable once `REVIEW_TOOLS` folds to
   // false, so the bundler drops the module with it.
   if (!REVIEW_TOOLS) return <>{children}</>
-  return <RemarksProviderInner adapter={adapter ?? localStorageAdapter}>{children}</RemarksProviderInner>
+  // `sharedAdapter` is the default now: remarks live in the shared store so every reviewer
+  // sees them. `localStorageAdapter` is still exported and still what the outbox falls back
+  // through — it is no longer the destination, it is the queue.
+  return <RemarksProviderInner adapter={adapter ?? sharedAdapter}>{children}</RemarksProviderInner>
 }
 
 function RemarksProviderInner({ children, adapter }: { children: ReactNode; adapter: RemarksAdapter }) {
@@ -104,9 +121,11 @@ function RemarksProviderInner({ children, adapter }: { children: ReactNode; adap
   const [fixtureOn, setFixtureOn] = useState(false)
   const [remarks, setRemarks] = useState<Remark[]>([])
   const [resolutions, setResolutions] = useState<Map<string, Resolution>>(new Map())
-  const [author, setAuthorState] = useState<string>(() => {
-    try { return localStorage.getItem(AUTHOR_KEY) || 'reviewer' } catch { return 'reviewer' }
-  })
+  // No default of "reviewer". Six people sharing one label makes the author field on every
+  // record useless, and it is the only attribution this design has — the panel asks once.
+  const [author, setAuthorState] = useState<string>(() => getAuthor())
+  const [pendingWrites, setPendingWrites] = useState<number>(() => outboxCount())
+  const [storeError, setStoreError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   const route = location.pathname
@@ -122,7 +141,7 @@ function RemarksProviderInner({ children, adapter }: { children: ReactNode; adap
 
   const setAuthor = useCallback((v: string) => {
     setAuthorState(v)
-    try { localStorage.setItem(AUTHOR_KEY, v) } catch { /* private mode */ }
+    persistAuthor(v)
   }, [])
 
   const refresh = useCallback(() => setTick((t) => t + 1), [])
@@ -244,13 +263,45 @@ function RemarksProviderInner({ children, adapter }: { children: ReactNode; adap
     return () => window.removeEventListener('keydown', onKey)
   }, [enabled])
 
+  /** The shared store pushes here whenever it pulls, so every open panel re-renders. */
+  useEffect(() => subscribeShared(() => setRemarks(cachedRemarks())), [])
+  useEffect(() => subscribeOutbox(() => setPendingWrites(outboxCount())), [])
+  useEffect(() => subscribeAuthor(() => setAuthorState(getAuthor())), [])
+  useEffect(() => startOutbox(), [])
+
+  const reload = useCallback(async () => {
+    try {
+      setRemarks(await pull())
+      setStoreError(null)
+    } catch (err) {
+      // Shown, never swallowed. An empty panel means "nobody has filed anything", which is a
+      // very different claim from "the connection is down".
+      setStoreError((err as Error).message)
+    }
+  }, [])
+
+  /**
+   * Poll only while the panel is open — and `startPolling` additionally stops on a hidden tab
+   * and backs off when nothing changes. Every list is a billed operation against the store,
+   * and a panel left open on a forgotten tab should cost nothing overnight.
+   */
+  useEffect(() => {
+    if (!panelOpen) return
+    return startPolling({
+      fingerprint: remarksFingerprint,
+      onChange: () => { setRemarks(cachedRemarks()); setStoreError(null) },
+      onError: (err) => setStoreError((err as Error).message),
+    })
+  }, [panelOpen])
+
   const value = useMemo<RemarksContextValue>(() => ({
     enabled, setEnabled, panelOpen, setPanelOpen, fixtureOn, setFixtureOn,
     remarks, resolutions, route, routePattern,
     author, setAuthor,
     addRemark, updateRemark, removeRemark, refresh,
+    reload, pendingWrites, storeError,
   }), [enabled, panelOpen, fixtureOn, remarks, resolutions, route, routePattern, author, setAuthor,
-    addRemark, updateRemark, removeRemark, refresh])
+    addRemark, updateRemark, removeRemark, refresh, reload, pendingWrites, storeError])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

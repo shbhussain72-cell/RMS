@@ -123,25 +123,75 @@ export const sharedAdapter: RemarksAdapter = {
 /**
  * One-time push of remarks written before the store was shared.
  *
- * Their localStorage is left exactly as it is. Nothing is migrated and nothing is discarded —
- * this only copies up, keeping each remark's own id so pressing it twice cannot duplicate
- * anything, and stamping `importedFrom` so the origin is visible in the export.
+ * ── THE LOCAL COPY IS NEVER DELETED ──────────────────────────────────────────────────
+ *
+ * Not on success, not after confirmation, not ever from here. `rms-remarks` is left exactly
+ * as it was, and the ids that are confirmed present in the shared store are recorded
+ * SEPARATELY under `rms-remarks-pushed`. So pressing the button twice is a no-op, the button
+ * can say "12 of 14 pushed" honestly, and the one irreversible operation available — deleting
+ * a reviewer's own notes — is not something this code can do by accident.
+ *
+ * Confirmation is a READ-BACK, not a 201. A write that returned 201 and then failed to appear
+ * would otherwise be marked pushed, which is the state that loses work: the local copy looks
+ * redundant and the shared copy does not exist.
  */
-export async function pushLocalRemarks(local: Remark[]): Promise<{ pushed: number; failed: number }> {
-  let pushed = 0
-  let failed = 0
+export const PUSHED_KEY = 'rms-remarks-pushed'
+
+export function pushedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(PUSHED_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(parsed) ? (parsed as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function markPushed(ids: string[]): void {
+  const next = pushedIds()
+  ids.forEach((id) => next.add(id))
+  try {
+    localStorage.setItem(PUSHED_KEY, JSON.stringify([...next]))
+  } catch { /* private mode — the button simply offers the push again next time */ }
+}
+
+/** Local remarks that are not yet confirmed present in the shared store. */
+export function unpushedLocal(local: Remark[]): Remark[] {
+  const done = pushedIds()
+  return local.filter((r) => !done.has(r.id))
+}
+
+export async function pushLocalRemarks(local: Remark[]): Promise<{ pushed: number; failed: number; total: number }> {
+  const todo = unpushedLocal(local)
   const author = getAuthor()
-  for (const r of local) {
+
+  for (const r of todo) {
     try {
       await apiFetch('/api/remarks', {
         method: 'POST',
         body: JSON.stringify({ ...toBody(r), importedFrom: author || 'local' }),
       })
-      pushed += 1
     } catch {
-      failed += 1
+      // Counted by the read-back below, not here. A 201 is not evidence the record is there.
     }
   }
-  await pull().catch(() => cache)
-  return { pushed, failed }
+
+  // Read back and confirm. Only ids that are actually IN the shared store are marked pushed.
+  const shared = await pull()
+  const present = new Set(shared.map((r) => r.id))
+  const confirmed = todo.filter((r) => present.has(r.id)).map((r) => r.id)
+  markPushed(confirmed)
+
+  return { pushed: confirmed.length, failed: todo.length - confirmed.length, total: todo.length }
+}
+
+/** Remarks in this browser's pre-shared localStorage. Read-only — nothing here writes it. */
+export function readLocalRemarks(): Remark[] {
+  try {
+    const raw = localStorage.getItem('rms-remarks')
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? (parsed as Remark[]).filter((r) => r && typeof r.id === 'string') : []
+  } catch {
+    return []
+  }
 }

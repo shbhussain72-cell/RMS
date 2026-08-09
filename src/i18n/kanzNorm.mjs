@@ -57,6 +57,23 @@
  * The confirmed mapping. Order is not significant — no doubled sequence here is a prefix of
  * another — but it is kept in the order `docs/kanz-digraphs.md` presents it so the two can be
  * read against each other.
+ *
+ * ── KNOWN AND ACCEPTED: THIS TABLE SHIPS IN THE PRODUCTION BUNDLE ────────────────────
+ *
+ * ~200 bytes of frozen pairs land in `dist/assets/index-*.js`, immediately after the stubbed
+ * dictionary panel (`function I3(){return null}`). The review-tools gate replaces the
+ * COMPONENT, not the module graph, so this file is still evaluated even though nothing in the
+ * shipped app calls it. `src/dev/mojibake.ts` escapes the same fate only because its strings
+ * live inside function bodies that do get dropped.
+ *
+ * Checked and left alone deliberately: no tooling text, no dev-only strings, and
+ * `scripts/check-dev-only.mjs` — which encodes what must not ship — passes.
+ *
+ * ⚠️ `/*#__PURE__*\/` on the `Object.freeze` and `new Map` calls was tried and made NO
+ * difference; the table still shipped. Whatever retains it is something else, and that was
+ * not diagnosed. Do not re-apply the PURE annotations expecting a different result, and do
+ * not treat this note as a diagnosis — it records only what was observed and what was ruled
+ * out, which is the whole point of `docs/assertion-discipline.md` §6.
  */
 export const KANZ_PAIRS = Object.freeze([
   Object.freeze({ doubled: 'ظظ', single: 'ہ' }),

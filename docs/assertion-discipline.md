@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened six times in this repo, in six different places, to six different
+This has now happened seven times in this repo, in seven different places, to seven different
 kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-## The six worked examples
+## The seven worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -170,6 +170,54 @@ challenge, `FUNCTION_INVOCATION_FAILED` is a function that threw, an empty body 
 came back. It may not state why, unless it checked. If a cause is worth guessing at, put it in
 the docs and let the reader apply it to the evidence; do not stamp it on the evidence.
 
+### 7. The attestation check that looked up the wrong word
+
+**Asserted:** that a corpus lookup succeeded.
+**Should have asserted:** that the thing looked up was a word.
+
+The Kanz repair (`scripts/repair-kanz.ts`, `docs/kanz-digraphs.md`) may only rewrite a cell in
+the wordlist when the converted form is *attested elsewhere in the same sheet*. That rule is
+the entire safety design: it is what separates "corrupt" from "coincidentally doubled", and
+without it the repair is a blanket find-and-replace on the owner's only copy of the corpus.
+
+The rule was implemented correctly. The check ran. It reported `ثث → پ`, **attested 3 times**,
+and applied it to 50 of the 150 occurrences it converted.
+
+There is no such word. `پ` is a single letter.
+
+The tokeniser's letter class was `[ؠ-ي]` plus the Urdu-extended ranges — and
+**U+0652, the sukun, was in none of them.** It occurs 286 times in this column. So every word
+carrying one was split in half: `اْثثنا` tokenised as `ا` + `ثثنا`, and `اْثث` — the real word,
+which converts to `اْپ` — tokenised as `ا` + `ثث`. The three "attestations" for `پ` were the
+tails of three `اْپ`s, cut at the same place.
+
+**Everything downstream of the split was working perfectly.** The corpus was built correctly
+from the tokens it was given. The lookups were real lookups. The counts were true counts. The
+attestation rule was applied exactly as specified. The check could not have caught this,
+because the check's subject — do these tokens appear in the corpus — was true. The defect was
+one layer up, in what had been handed to it as a token.
+
+**This is the family the `identity` class in `audit-lsd.mjs` belongs to: a value that looks
+like absence and is not.** There, an LSD value equal to its English key looks like a missing
+translation and may be a deliberate loanword. Here, a fragment looks like a word and is not.
+In both, the thing under inspection is well-formed and the *category* is wrong, so every
+measurement taken of it is precise and about the wrong subject.
+
+And it failed green, as all of these do. A tokeniser that splits too eagerly produces MORE
+short tokens, short tokens collide with each other more often, and collisions read as
+attestations. The bug did not suppress applications — it manufactured justification for them.
+
+**What caught it** was not a test. It was that `پ`, as a standalone dictionary word, is
+implausible, and asking the same question a second way disagreed: searching for `پ` bounded by
+non-letters returned 0 rows where the tokeniser reported 3. Two ways of asking must agree.
+
+**The rule:** *when a check consults a corpus, the tokenisation of that corpus is part of the
+check.* Assert the tokens, not only the lookups. A one-character attestation, a corpus whose
+distinct-word count moves when an unrelated character class changes, or an answer that survives
+only under one way of asking, are all the same signal. And if a combining mark, a joiner, or a
+mark you did not think about can fall outside your character class, it will — write the class
+from the codepoints the data actually contains, not from the ones the script is named after.
+
 ## The shape they share
 
 Each one substituted something *upstream* of the user-visible effect:
@@ -182,6 +230,7 @@ Each one substituted something *upstream* of the user-visible effect:
 | piping to `tail` | that the command produced output | that the command succeeded |
 | the stale notice | nothing — prose asserts itself | the storage the sentence names |
 | the guessing diagnostic | a cause it had not checked | the status, type and body it had |
+| the sukun tokeniser | that the lookup succeeded | that the token looked up was a word |
 
 And each failed in the same direction: **silently, in the green direction, at the moment of the
 change it was written to police.** None produced an error. Two produced an apparent improvement.

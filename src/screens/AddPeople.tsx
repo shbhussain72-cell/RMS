@@ -234,9 +234,20 @@ function MembersTableShell({ selectable = false, selectAllChecked = false, onSel
   return (
     <div className="overflow-x-auto rounded-[16px] border border-[#e7dfc9] bg-white shadow-[0_6px_24px_-12px_rgba(15,77,60,0.12)]">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed', minWidth: selectable ? '520px' : '460px' }}>
+        {/* The member column was 48% when a checkbox column is present. That is not a free
+            choice: the third column holds the guardian/caregiver warning strip, and the two
+            compete for the same 520px. Sweeping the split against the tallest rendered row —
+            768 and 1024, EN and LSD — gives a U-shaped curve with its floor at 36%. EN at 768
+            goes 149 -> 133 -> 101 across 48/40/36 and back up to 107 at 32; LSD bottoms out
+            slightly wider, so 36 is the worse language's optimum and comfortably inside the
+            other's. The rows were 149px because the warning wrapped to six short lines, not
+            because the name column had collapsed.
+
+            The 54% (no checkbox column) variant is a different geometry and has never produced
+            a tall row; it is unmeasured and deliberately untouched. */}
         <colgroup>
           {selectable && <col style={{ width: '52px' }} />}
-          <col style={{ width: selectable ? '48%' : '54%' }} />
+          <col style={{ width: selectable ? '36%' : '54%' }} />
           <col />
         </colgroup>
         <thead>

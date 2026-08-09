@@ -89,6 +89,45 @@ try {
   say(moji.refused.every(Boolean), `mojibake refused: UTF-8-as-latin1, U+FFFD, Ã-family (${moji.refused.filter(Boolean).length}/3)`)
   say(moji.accepted.every(Boolean), `legitimate LSD accepted — RLM, ornate brackets, Latin loanwords (${moji.accepted.filter(Boolean).length}/3)`)
 
+  // ── 2b. Kanz keyboard input is CONVERTED, not refused — and the editor says so ──
+  //
+  // The two classes must not share a verdict. Class A has lost bytes and blocks; class B is
+  // a faithful record in the wrong encoding and converts. Asserted on the RENDERED text and
+  // the RENDERED notice, because the failure this guards against is a conversion that happens
+  // silently or one that happens to the wrong character — ہ, ھ and ه are three codepoints
+  // this font draws alike, so "it looks right" proves nothing.
+  //
+  // Retried once: the FIRST import of a module the dev server has not transformed yet can make
+  // Vite re-optimise and reload the page, which destroys the execution context mid-evaluate.
+  // That is a property of the harness, not of the thing under test, and failing on it would be
+  // reporting the wrong subject — so warm the module, then measure.
+  const evalKanz = () => page.evaluate(async () => {
+    const k = await import('/src/i18n/kanzNorm.mjs')
+    const m = await import('/src/dev/mojibake.ts')
+    const out = k.normaliseKanz('مظظمان نسس اذن اْثثو')
+    return {
+      text: out.value,
+      codepoints: [...out.value].map((c) => c.codePointAt(0)),
+      notice: k.describeKanzChanges(out.changes),
+      blockedAsDamage: m.detectByteDamage('شظظر مظظمان').length > 0,
+      classAStillBlocks: m.detectByteDamage('Ø§Ù„Ø´Ù‡Ø±').length > 0,
+      damageNotConverted: k.normaliseKanz('Ø§Ù„Ø´Ù‡Ø±').value === 'Ø§Ù„Ø´Ù‡Ø±',
+    }
+  })
+  const kanz = await evalKanz().catch(async () => {
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(1500)
+    return evalKanz()
+  })
+  say(kanz.text === 'مہمان نے اذن اْپو', `Kanz input converts to Unicode (got ${JSON.stringify(kanz.text)})`)
+  say(kanz.codepoints.includes(0x06C1) && !kanz.codepoints.includes(0x0647),
+    'and lands on ہ U+06C1, not the ه U+0647 this font draws almost identically')
+  say(kanz.notice.includes('ظظ→ہ') && kanz.notice.includes('سس→ے'),
+    `the conversion is reported for the author to see ("${kanz.notice}")`)
+  say(!kanz.blockedAsDamage, 'Kanz input is NOT refused as byte damage — class B normalises')
+  say(kanz.classAStillBlocks, 'class A byte damage is still blocked')
+  say(kanz.damageNotConverted, 'and normalising damaged text does not silently half-repair it')
+
   // ── 3. staging an edit reaches the file AND the running app ──
   const KEY = 'Registration status'
   const VALUE = '‏تجربة'

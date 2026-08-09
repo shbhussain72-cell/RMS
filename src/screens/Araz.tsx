@@ -691,7 +691,7 @@ export default function Araz() {
     return (
       <PhoneScreen footer={
         <div className="sm:hidden">
-          <StickyFooter caption={tx('Araz · Preferred City')} title={t('Preferences submitted')} button={t('Go home')} onButton={goHome} />
+          <StickyFooter caption={tx('Araz · Preferred City')} title={tx('Preferences submitted')} button={t('Go home')} onButton={goHome} />
         </div>
       }>
         <AppBar notificationCount={3} />
@@ -761,10 +761,13 @@ export default function Araz() {
   // Read-only view state → an info-only footer (the action lives in the header's Edit toggle). While
   // editing (or on a first-time submission) → the Save/Update CTA.
   const footer = locked ? (
-    <StickyFooter caption={tx('Araz · Preferred City')} title={t('Preferences submitted')} button={t('Go back')} onButton={() => nav(-1)} />
+    <StickyFooter caption={tx('Araz · Preferred City')} title={tx('Preferences submitted')} button={t('Go back')} onButton={() => nav(-1)} />
   ) : (
     <StickyFooter
       caption={tx('Araz · Preferred City')}
+      // CLASS A, NOT FIXED HERE — `Submit your preferences` HAS a wordlist entry and this
+      // renders English anyway. Same trade as Review.tsx's footerHint: routing it also
+      // exposes `Update your preferences` as a NO_ROW gap and grows the coverage baseline.
       title={submitted ? 'Update your preferences' : 'Submit your preferences'}
       button={submitted ? 'Update preferences' : 'Save Preferences'}
       onButton={handleSave}

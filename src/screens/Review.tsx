@@ -254,6 +254,12 @@ export default function Review() {
   // "My family members" tile counts the immediate family only; the "Group members" tile counts the
   // people added via Add People (group: true). The participant breakdown already shows in the tiles
   // above, so the footer carries an action hint instead of repeating the count.
+  // CLASS A, NOT FIXED HERE. `You're all set` HAS a wordlist entry and this renders English
+  // anyway, because the strings are literals the scanner cannot see. Routing both branches
+  // through tx() is the fix and is two lines — but it also makes `Ready to send` visible as
+  // a NO_ROW gap, which grows scripts/lsd-baseline.json. That file may only grow by someone
+  // deliberately running `check-lsd-coverage --baseline`, and that is the wordlist owner's
+  // call, not a side effect of a layout branch. Pair it with an xlsx row for the new key.
   const footerHint = isRequest ? 'Ready to send' : "You're all set"
 
   const doSubmit = () => {

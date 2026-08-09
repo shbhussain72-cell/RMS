@@ -1950,7 +1950,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const footer = (
     <StickyFooter
       caption={tx('Allocation')}
-      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
+      title={tx('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? t('Confirm ({n})', { n: movedCount }) : t('Confirm')) : (movedCount > 0 ? t('Submit request ({n})', { n: movedCount }) : t('Submit request'))}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
@@ -1959,7 +1959,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   const desktopFooter = (
     <StickyFooter
       caption={tx('Allocation')}
-      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
+      title={tx('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}

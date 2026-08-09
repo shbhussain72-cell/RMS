@@ -473,7 +473,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
     <div className="sm:hidden">
       <StickyFooter
         caption={tx(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
-        title={t('1st choice {city}', { city: tdText(cities[0]?.name ?? '') })}
+        title={tx('1st choice {city}', { city: tdText(cities[0]?.name ?? '') })}
         button={t('Confirm')}
         onButton={handleConfirm}
       />

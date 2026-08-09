@@ -667,7 +667,7 @@ export default function ArrangeCities() {
   const footer = (
     <StickyFooter
       caption={tx('City arrangement')}
-      title={t('Save your city layout')}
+      title={tx('Save your city layout')}
       button={t('Save my layout')}
       onButton={handleSave}
       buttonDisabled={false}

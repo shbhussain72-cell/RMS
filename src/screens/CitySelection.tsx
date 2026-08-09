@@ -3059,7 +3059,7 @@ export default function CitySelection() {
     const successFooter = (
       <StickyFooter
         caption={tx('City confirmed')}
-        title={t('{n} members allocated', { n: totalAllocated })}
+        title={tx('{n} members allocated', { n: totalAllocated })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3298,7 +3298,7 @@ export default function CitySelection() {
     const successZoneFooter = (
       <StickyFooter
         caption={tx('Zone confirmed')}
-        title={t('{n} members allocated', { n: totalAllocated || totalMembers })}
+        title={tx('{n} members allocated', { n: totalAllocated || totalMembers })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3456,7 +3456,7 @@ export default function CitySelection() {
     <StickyFooter
       dataTour="city-confirm"
       caption={isRequest ? tx('Request') : tx('Allocation')}
-      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
+      title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
@@ -3490,7 +3490,7 @@ export default function CitySelection() {
     <StickyFooter
       dataTour="city-confirm"
       caption={isRequest ? tx('Request') : tx('Allocation')}
-      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
+      title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}

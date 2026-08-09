@@ -1324,7 +1324,7 @@ export default function ZoneSelection() {
     const successFooter = (
       <StickyFooter
         caption={tx('Zone confirmed')}
-        title={t(plural(totalMembers, '{city} · {n} member', '{city} · {n} members'), { city: tdText(cityName), n: totalMembers })}
+        title={tx(plural(totalMembers, '{city} · {n} member', '{city} · {n} members'), { city: tdText(cityName), n: totalMembers })}
         button={t('Done')}
         onButton={() => nav('/miqaats')}
       />

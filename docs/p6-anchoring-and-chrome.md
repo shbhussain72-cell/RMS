@@ -95,8 +95,23 @@ All positive.
 > shell's job and not the footer's. The instruction to make it structural was withdrawn by its
 > author after the test. See `docs/assertion-discipline.md`.
 >
-> Scoped content-inset inside the two desktop panels that genuinely need it is a different thing
-> and is applied — see §4.8-scoped below.
+> Scoped content-inset inside the two desktop panels was the next hypothesis and it was measured
+> and rejected too — see §4.8-scoped below.
+
+### PENDING ASSERTION — register, so it cannot be forgotten
+
+| | |
+|---|---|
+| **What** | On `/araz` at 768, `elementFromPoint` at the intersection of the "Host City" button and the sticky-footer CTA must return **the button**, not the footer. |
+| **Status** | Written and passing-as-failing: it currently returns `FOOTER`. Deliberately **not** in `check:overlap` yet. |
+| **Trigger** | Add it to `check:overlap` in the same commit that lands the `/araz` desktop-panel fix. Not before, and not later. |
+| **Why not now** | A suite carrying a known failing assertion stops being read, and then everything else it protects goes unwatched. |
+| **Why registered here** | An acceptance test that exists and is referenced by nothing is how a fix quietly never happens. If the `/araz` fix ships without this row being deleted, the fix is not done. |
+
+The defect it accepts: the members table is 878px tall from y=404 inside a 773px panel, is clipped
+by nothing, and the footer paints over the part that lands in its band. Confirmed independently by
+`check-layout`'s measured exemption, which cannot even find a scroller on that page — so the
+covered button is unreachable by any means, not merely hidden until you scroll.
 
 What the class gets instead is an assertion, which also covers the `/preferred-city` clipped-
 buttons variant that padding would not have caught: `npm run check:overlap` walks **every route

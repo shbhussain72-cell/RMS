@@ -11,6 +11,7 @@ import {
 } from '../shared/dictionaryApi'
 import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { hasAuthor } from '../shared/identity'
+import { fetchSyncStatus, isForceable, runSyncNow, type SyncStatus } from '../shared/syncApi'
 
 /**
  * Dictionary editor.
@@ -121,6 +122,8 @@ function DictionaryPanelInner() {
   const [named, setNamed] = useState(() => hasAuthor())
   const [storeError, setStoreError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [sync, setSync] = useState<SyncStatus | null>(null)
+  const [syncing, setSyncing] = useState(false)
   const [historyKey, setHistoryKey] = useState<string | null>(null)
   const [history, setHistory] = useState<Revision[]>([])
   const highlighted = useRef<HTMLElement | null>(null)
@@ -130,6 +133,9 @@ function DictionaryPanelInner() {
     try { await refresh(); setStoreError('') }
     catch (err) { setStoreError(err instanceof Error ? err.message : String(err)) }
     finally { setLoading(false) }
+    // Separately, and never fatal: a sync that has never run is a legitimate state, and the
+    // editor still works without knowing what the last one did.
+    try { setSync(await fetchSyncStatus()) } catch { /* status unavailable */ }
   }, [])
 
   // Only while the panel is open. A closed panel polling a shared store is six browsers of
@@ -357,6 +363,12 @@ function DictionaryPanelInner() {
           </div>
 
           <div className="border-t border-[#eee6d4] p-[8px]">
+            <SyncRow
+              status={sync}
+              busy={syncing}
+              pending={pending.length}
+              onRun={(force) => void runSync(force)}
+            />
             <div className="mb-[6px]"><IdentityRow /></div>
             <div className="flex items-center gap-[6px]">
               <span className="flex-1 text-[10px] font-bold text-[#5a6660]">
@@ -383,6 +395,23 @@ function DictionaryPanelInner() {
       </button>
     </DevDock>
   )
+
+  async function runSync(force: boolean) {
+    setProblem('')
+    setSyncing(true)
+    try {
+      const result = await runSyncNow(force)
+      setSync(result)
+      // A successful sync makes overrides merged, which is only visible once the COMMIT has
+      // been built and deployed. Pulling now still matters: it picks up anything other
+      // reviewers wrote while this was running.
+      await pull()
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : String(err))
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   async function keep(c: Conflict, winner: Revision) {
     setProblem('')
@@ -503,6 +532,84 @@ function HistoryList({ revisions, liveId, onRevert, disabled }: {
         Reverting appends a new revision on top. The edit you revert stays in the record, with its
         author's name and time — you are adding to the history, not erasing anyone's work.
       </p>
+    </div>
+  )
+}
+
+/**
+ * What the last sync did, and the button that runs another one.
+ *
+ * Every abort the sync can produce is something a person has to act on — a value that arrived
+ * as mojibake, a run that would have rewritten a fifth of the sheet, a spreadsheet edited by
+ * hand while the cron was mid-flight. So aborts are rendered in full here rather than
+ * summarised: "the sync failed" tells a reviewer nothing they can do, and the pending count
+ * would otherwise climb with no explanation attached to it.
+ *
+ * `force` appears only when the change-share rail is what stopped the run, because that is the
+ * only abort it overrides. A force button next to a mojibake abort would invite someone to
+ * push damaged text into the corpus.
+ */
+function SyncRow({ status, busy, pending, onRun }: {
+  status: SyncStatus | null
+  busy: boolean
+  pending: number
+  onRun: (force: boolean) => void
+}) {
+  const wrote = status ? status.updated.length + status.appended.length : 0
+  const line = !status
+    ? 'The wordlist sync has not run yet.'
+    : status.ok
+      ? wrote === 0
+        ? `Last sync ${when(status.at)} (${status.trigger}): nothing to write.`
+        : `Last sync ${when(status.at)} (${status.trigger}): ${status.updated.length} updated, ${status.appended.length} appended.`
+      : `Last sync ${when(status.at)} (${status.trigger}) was refused. Nothing was committed.`
+
+  return (
+    <div className="mb-[6px] rounded-[6px] border border-[#e7dfc9] bg-[#faf8f2] p-[6px]">
+      <div className="flex items-center gap-[6px]">
+        <span className={`min-w-0 flex-1 text-[9px] font-bold ${status && !status.ok ? 'text-[#b23b3b]' : 'text-[#5a6660]'}`}>
+          {line}
+        </span>
+        <button type="button" disabled={busy} onClick={() => onRun(false)}
+          className="shrink-0 rounded-[5px] bg-[#1f5a44] px-[7px] py-[3px] text-[10px] font-bold text-white disabled:opacity-40">
+          {busy ? 'Syncing…' : 'Sync now'}
+        </button>
+      </div>
+
+      {status?.commit && (
+        <p className="mt-[2px] text-[9px] text-[#8a938e]">
+          Commit {status.commit.slice(0, 7)}. The new text appears once that commit is built and deployed.
+        </p>
+      )}
+
+      {status?.aborts.map((a, i) => (
+        <p key={i} className="mt-[3px] rounded-[5px] bg-[#f7ecec] px-[6px] py-[4px] text-[9px] text-[#b23b3b]">{a}</p>
+      ))}
+
+      {isForceable(status) && (
+        <button type="button" disabled={busy} onClick={() => onRun(true)}
+          className="mt-[3px] rounded-[5px] border border-[#b23b3b] px-[6px] py-[2px] text-[9px] font-bold text-[#b23b3b] disabled:opacity-40">
+          Run it anyway — I have seen how many rows change
+        </button>
+      )}
+
+      {!!status?.skipped.length && (
+        <details className="mt-[3px]">
+          <summary className="cursor-pointer text-[9px] text-[#8a938e]">{status.skipped.length} skipped</summary>
+          {status.skipped.map((s) => (
+            <p key={s.key} className="text-[9px] text-[#8a938e]"><span className="font-bold">{s.key}</span> — {s.why}</p>
+          ))}
+        </details>
+      )}
+
+      {pending > 0 && status?.ok && wrote === 0 && (
+        // The one combination that reads as a contradiction and is not: everything pending is
+        // waiting on something the sync will not do — a blank value, a sentinel row, or a
+        // deploy that has not happened yet.
+        <p className="mt-[2px] text-[9px] text-[#a8721e]">
+          {pending} edit(s) are still pending but none were eligible — open the skipped list, or wait for the last commit to deploy.
+        </p>
+      )}
     </div>
   )
 }

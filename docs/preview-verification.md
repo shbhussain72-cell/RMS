@@ -168,6 +168,32 @@ redeploy that follows it.
 If the count never drops, the retirement comparison is not going through `bakedValue` — see
 `docs/dictionary-editing.md`. That failure looks exactly like the feature working.
 
+## 10. The sync writes cells, not a new workbook
+
+The one that cannot be checked by looking at values, because the values would be right either way.
+
+1. Make one dictionary edit. Press **Sync now** in the editor's footer.
+2. ✅ The footer reports a commit, `N updated`, and the commit sha.
+3. Open the commit on GitHub and download the .xlsx from it.
+4. ✅ Open it in Excel: **column C is still Kanz-al-Lulu**, still right-aligned, still RTL. The
+   sheet still reads right-to-left. Column widths are unchanged.
+5. ✅ `F370` still contains **1448**.
+6. ✅ Your edit is in column C of the row that already existed — no new row was added for a key
+   that already had one.
+7. ✅ The `Read me` sheet is untouched.
+8. Press **Sync now** again without making an edit.
+9. ✅ It reports *nothing to write* and **no second commit appears**. A no-op must not commit.
+
+## 11. A new key lands at the end with an empty Page
+
+1. Find a class **C** string in the editor (no wordlist row) and give it a value.
+2. Sync.
+3. ✅ The new row is the **last** row of the sheet, its Page cell is **empty**, and every
+   existing row still has the row number it had before — the `Read me` cites rows 230, 231,
+   312, 457 and 500 by number.
+4. ✅ After the commit deploys, the string renders in LSD and the editor shows it as
+   **in the wordlist** rather than pending.
+
 ---
 
 ## If something fails
@@ -186,3 +212,5 @@ numbers map onto the code:
 | 7 | `api/dictionary-export.ts` |
 | 8 | `HistoryList` in `src/dev/DictionaryPanel.tsx`, `submit(kind:'revert')` |
 | 9 | `isMerged`/`pendingOverrides` in `src/shared/dictionaryApi.ts`, `baselineValue` in `src/i18n/index.tsx` |
+| 10 | `api/_lib/zip.ts`, `api/_lib/wordlistXlsx.ts` → `verifyPatch`, `api/_lib/runSync.ts` |
+| 11 | `patchWordlist`'s append branch — empty Page, end of sheet |

@@ -109,6 +109,31 @@ if someone hand-cleans them), that the store key never equals the raw cell, that
 misses exactly those rows while a `normKey`-keyed index finds them, and that no wordlist consumer
 strips ornaments with a rule of its own.
 
+### Six English keys appear twice, and the later row usually wins
+
+Found by asserting against the real sheet rather than reasoning about it, and it would have
+made five edits vanish.
+
+| key | rows | what happens |
+|---|---|---|
+| `Children below 10 years of age must be…` | 76, 1083 | 1083 says `remove` |
+| `Host City registrations may close early…` | 81, 1085 | 1085 says `remove` |
+| `Registration closes on 5 June 2026…` | 89, 1082 | 1082 says `remove` |
+| `Tickets will only be generated after…` | 92, 1086 | 1086 says `remove` |
+| `Venue allocation is subject to…` | 94, 1084 | 1084 says `remove` |
+| `Host City` | 80, 1062 | identical value in both |
+
+The wordlist owner annotated five already-translated strings by adding `remove` rows at the
+end rather than by editing the originals. So "which row is this key" has a real answer, and it
+is not the first one.
+
+`scripts/build-lsd-dict.mjs` resolves it as **last row wins, except that a standing sentinel is
+never replaced by a later translation**. `api/_lib/wordlistXlsx.ts` reproduces that rule exactly,
+because the sync must edit the row the *build* reads. A first-wins reader was written first and
+would have written five values into rows the generated dictionary ignores: the commit lands, the
+diff looks right, and the app never shows the new text. `sync.test.ts` asserts the two readers
+agree key by key against the real `lsd.json`.
+
 ### The sync must patch the XML, not rewrite the workbook
 
 Measured, by round-tripping the real file through SheetJS `read` → `write`:
@@ -143,3 +168,46 @@ and only touch column C", which is what it sounds like and is not the same thing
 - Tool chrome is English, carries `SCANNER_IGNORE_ATTR`, and goes through `t()`/`tx()`.
 - **You never author Lisan al-Dawat.** The editor stores exactly the characters a human typed, or
   refuses them.
+
+---
+
+## 4. The sync
+
+`POST /api/sync-wordlist` (button) and `GET /api/cron/sync-wordlist` (nightly, 02:00 UTC,
+`Authorization: Bearer $CRON_SECRET`). The work is in `api/_lib/runSync.ts`; read its header
+before changing anything.
+
+The cron has its own path deliberately. Vercel invokes cron paths with GET, so the alternative
+is a GET that commits to a repository whenever it recognises its caller — and that is a GET
+that commits on a link preview, a prefetch, or an uptime check, the day the recognition is
+wrong.
+
+### What aborts a run
+
+Every abort writes nothing at all. A partial sync of a wordlist is worse than none, because the
+half that landed looks exactly like a successful run.
+
+| rail | why |
+|---|---|
+| base file unreadable | it is **never** created fresh — 1085 curated rows would become however many edits happened to be pending |
+| any pending value contains mojibake | aborts the **whole** run. One bad cell is evidence about the chain the other values came through |
+| more than 20% of rows would change | unless `force` is passed by a person who has seen the number. The cron never forces |
+| the patched bytes fail `verifyPatch` | rows lost, fonts changed, or any part other than `sheet1.xml` touched |
+| the file moved under us | GitHub's 409 on the compare-and-swap. Surfaced, never retried — a retry would re-read a file somebody is mid-way through changing |
+
+A run with nothing to do is a **success** and must not produce an empty commit; a cron that
+commits nightly regardless buries the runs that matter.
+
+### What is never a sync candidate
+
+Sentinel rows (the owner is answering a question, not waiting for a translation), sentinel
+values, empty values (a blank-row request is not a translation), and anything whose baked value
+already equals the cell. That last one is override retirement seen from the other side, and it
+goes through `bakedValue` for the same reason: raw equality never matches a mixed-script value,
+so the sync would rewrite the same cell in a fresh commit every night, forever.
+
+### Where the result shows up
+
+`sync/last.json` in the Blob store, rendered in the editor's footer — the run's outcome, the
+commit, every abort in full, and the skipped list. An abort that only reaches a server log is an
+abort nobody knows about, and the pending count would sit there climbing with no explanation.

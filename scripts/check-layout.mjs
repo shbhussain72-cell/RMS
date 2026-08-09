@@ -57,6 +57,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import { CANONICAL_WIDTHS } from './widths.mjs'
+import { installProbeDom } from './probe-dom.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -93,67 +94,16 @@ const seed = (lang) => `
   } catch {}
 `
 
-/** Runs in the page. Self-contained — stringified across the boundary. */
+/**
+ * Runs in the page. Self-contained — stringified across the boundary.
+ *
+ * `isVisible` and `pointVisible` come from `scripts/probe-dom.mjs` via `addInitScript`, so
+ * that every probe in this repo shares ONE definition of "rendered" and ONE definition of
+ * "painted here". They used to be copied per file; see that module for what the copy cost.
+ */
 const PROBE = () => {
   const out = []
-  /**
-   * Visibility must be inherited, not read off the element alone.
-   *
-   * `opacity` does NOT inherit as a computed value: a `<p>` inside an `opacity-0` tooltip
-   * still reports `opacity: 1`. Checking only the element itself therefore counted every
-   * hover tooltip's contents as visible on-screen text — and since a real element is of
-   * course painted where a hidden tooltip sits, the occlusion probe reported one finding per
-   * line of hidden tooltip. That alone was 149 of 279 OCCLUDED hits, all on /timeline, all
-   * from the EventJourney day-cell tooltip. Same reason `visibility: hidden` on a wrapper has
-   * to be honoured for its descendants.
-   */
-  const isVisible = (el) => {
-    const r = el.getBoundingClientRect()
-    if (r.width < 2 || r.height < 2) return false
-    for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
-      const s = getComputedStyle(p)
-      if (s.visibility === 'hidden' || s.display === 'none' || s.opacity === '0') return false
-      if (s.contentVisibility === 'hidden') return false
-    }
-    return true
-  }
-  /**
-   * Is the point (x,y) actually inside every clipping ancestor of `el`?
-   *
-   * `getBoundingClientRect` reports GEOMETRY, not what is painted. A table row scrolled past
-   * the bottom of an `overflow-y: auto` panel — or a line inside a collapsed
-   * `overflow-hidden` accordion — still reports an on-screen rect, but nothing of it is drawn
-   * there. `elementFromPoint` at that rect's centre therefore returns whatever IS drawn there,
-   * which is usually the sticky footer or the next card, and the probe called it an occlusion.
-   *
-   * That was the single largest false-positive class in this file: measured across
-   * /araz, /city, /zone and /review at 768-1440, 51 of 53 OCCLUDED hits were text scrolled
-   * out of a clipper, not text covered by anything. It also scaled with line-height, so any
-   * typographic change looked like it had introduced dozens of collisions.
-   *
-   * Out-of-flow elements are exempted until their containing block is reached: `absolute`
-   * escapes every static ancestor and `fixed` escapes everything that is not a
-   * transform/filter/perspective containing block. Without that, a dropdown anchored inside
-   * an `overflow-hidden` card would be judged unpainted while it is plainly on screen.
-   */
-  const pointVisible = (el, x, y) => {
-    const pos = getComputedStyle(el).position
-    let escaping = pos === 'absolute' || pos === 'fixed'
-    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
-      const s = getComputedStyle(p)
-      if (escaping) {
-        const cb = pos === 'fixed'
-          ? s.transform !== 'none' || s.filter !== 'none' || s.perspective !== 'none'
-          : s.position !== 'static' || s.transform !== 'none' || s.filter !== 'none'
-        if (!cb) continue
-        escaping = false
-      }
-      if (!/^(hidden|clip|auto|scroll)$/.test(s.overflowX) && !/^(hidden|clip|auto|scroll)$/.test(s.overflowY)) continue
-      const pr = p.getBoundingClientRect()
-      if (x < pr.left - 1 || x > pr.right + 1 || y < pr.top - 1 || y > pr.bottom + 1) return false
-    }
-    return true
-  }
+  const { isVisible, pointVisible } = window.__probe
   const describe = (el) => {
     const cls = typeof el.className === 'string' ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join('.') : ''
     const name = el.getAttribute('data-name') || el.getAttribute('data-tour') || ''
@@ -464,6 +414,7 @@ try {
       const ctx = await browser.newContext({
         viewport: { width, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
       })
+      await ctx.addInitScript(installProbeDom)
       await ctx.addInitScript(seed(lang))
       const page = await ctx.newPage()
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' }).catch(() => {})

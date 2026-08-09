@@ -110,6 +110,8 @@ for (const lang of ['en', 'lsd']) {
       // A point in the dimmed area above the sheet, well clear of both edges.
       const y = Math.round(Math.max(8, s.top / 2))
       const x = Math.round(window.innerWidth / 2)
+      // probe-dom: point is chosen, not derived from a rect — the midpoint of the dimmed
+      // gap above the sheet. Nothing about it can be stale, so no paint gate is needed.
       const el = document.elementFromPoint(x, y)
       const backdrop = sheet.querySelector('button[class*="inset-0"]')
       return {

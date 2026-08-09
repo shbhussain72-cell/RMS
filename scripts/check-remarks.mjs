@@ -141,6 +141,7 @@ async function runLang(browser, lang, port) {
   // Assert on the real mechanism rather than a proxy: at a point over ordinary app content,
   // the topmost element must not belong to the remarks layer.
   const intercepts = await page.evaluate(() => {
+    // probe-dom: point is chosen, not derived from a rect — the centre of the viewport.
     const el = document.elementFromPoint(Math.round(innerWidth / 2), Math.round(innerHeight / 2))
     return !!el?.closest('[data-remark-chrome]')
   })

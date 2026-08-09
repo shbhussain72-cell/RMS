@@ -35,6 +35,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CANONICAL_WIDTHS } from './widths.mjs'
+import { installProbeDom } from './probe-dom.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT_ID = 'ashara-1448'
@@ -159,6 +160,18 @@ const PAGE_FN = (notices) => {
       if (r.width < 1 || r.height < 1) continue
       if (r.bottom <= f.top || r.top >= f.bottom) continue
       if (r.right <= f.left || r.left >= f.right) continue
+      // The text must actually be PAINTED where its rect says it is. A rect reports geometry:
+      // a row scrolled past the bottom of an `overflow-y: auto` panel still reports a box in
+      // the footer's band while nothing of it is drawn there, so this test would report the
+      // footer covering text that is not on screen at all. Same predicate as check-layout's
+      // OVERLAP, from the same module, for exactly the reason recorded there.
+      //
+      // The end-of-scroll pass above happens to hide most of that case — scrolled-to-bottom
+      // content is painted — which is why this probe read clean without the check. That is
+      // luck, not soundness: it only holds for content a vertical scroll can reach.
+      const ix = (Math.max(r.left, f.left) + Math.min(r.right, f.right)) / 2
+      const iy = (Math.max(r.top, f.top) + Math.min(r.bottom, f.bottom)) / 2
+      if (!window.__probe.pointVisible(el, ix, iy)) continue
       const key = `${el.tagName}.${Math.round(r.top)}.${text.slice(0, 30)}`
       if (seen.has(key)) continue
       seen.add(key)
@@ -214,6 +227,7 @@ try {
       const ctx = await browser.newContext({
         viewport: { width, height: 833 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
       })
+      await ctx.addInitScript(installProbeDom)
       await ctx.addInitScript(seed(lang))
       const page = await ctx.newPage()
       for (const route of routes) {

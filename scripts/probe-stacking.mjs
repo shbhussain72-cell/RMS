@@ -27,6 +27,7 @@ import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { installProbeDom } from './probe-dom.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT = 'ashara-1448'
@@ -73,6 +74,7 @@ for (const lang of ['en', 'lsd']) {
     const ctx = await browser.newContext({
       viewport: { width, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
     })
+    await ctx.addInitScript(installProbeDom)
     await ctx.addInitScript(seed(lang))
     const page = await ctx.newPage()
 
@@ -107,11 +109,17 @@ for (const lang of ['en', 'lsd']) {
         const r = victim.getClientRects()[0]
         if (r) {
           const x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2)
-          const hit = document.elementFromPoint(x, y)
+          // The point comes from the victim's OWN rect, so it may be a stale one: an element
+          // clipped out of a scroller still reports a box, and hit-testing it returns whatever
+          // legitimately occupies that space. Without this gate the probe reports a stacking
+          // fault for text that is simply not on screen.
+          const painted = window.__probe.pointVisible(victim, x, y)
+          const hit = painted ? document.elementFromPoint(x, y) : null
           out.heading = {
             text: (victim.textContent || '').trim().slice(0, 28),
-            hit: hit ? `${hit.tagName.toLowerCase()}.${String(hit.className).split(/\s+/).slice(0, 2).join('.')}` : 'null',
-            isSelfOrKin: !!hit && (hit === victim || victim.contains(hit) || hit.contains(victim)),
+            painted,
+            hit: hit ? `${hit.tagName.toLowerCase()}.${String(hit.className).split(/\s+/).slice(0, 2).join('.')}` : (painted ? 'null' : 'not painted at its own rect'),
+            isSelfOrKin: !painted || (!!hit && (hit === victim || victim.contains(hit) || hit.contains(victim))),
           }
         }
       }

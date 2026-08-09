@@ -138,12 +138,60 @@ not on screen. Adding it would have asserted something false about a screen that
 Registering it was still right: it is the reason this was revisited instead of being left as a
 to-do that quietly aged out.
 
+## The residue — closed
+
+`check-layout` **exits 0**. Every number below is measured on the rendered page in both
+languages at all five widths.
+
+| | raw | failing | why |
+|---|---:|---:|---|
+| reference | 151 | 44 | five widths, exemption fixed |
+| carried in | 133 | 26 | after the OVERLAP paint check |
+| shared paint predicate | 133 | 26 | instrument unified; **no count moved** |
+| miqaat card | 116 | 10 | `@container`, 488px measured |
+| city grid + stat tile + divider | 111 | 5 | three measured constants |
+| painted-rect sampling | 110 | 4 | one boundary artefact |
+| members table split | **106** | **0** | 36% is the measured floor |
+
+### The instrument sweep
+
+Only `OVERLAP` ever compared raw rects wrongly, and it was already fixed. The other reads in
+`check-layout` are scroll-invariant by construction — `CLIPPED` compares a descendant with its
+own ancestor, `RTL-SCROLL` a container with its own first child, `TALL-ROW` reads a height.
+Both members of those pairs translate together, so no stale-rect false positive is possible.
+
+The sweep found the defect one file over: `check-overlap`'s STICKY compares a text rect with
+the footer rect ungated. It reads clean only because it scrolls every scroller to the bottom
+first, which happens to paint what it then measures — true only for content a vertical scroll
+can reach. The predicates now live in `scripts/probe-dom.mjs`, installed identically in every
+probe, guarded by `probe-dom.test.mjs`. That guard found a live offender on its first run:
+`probe-stacking.mjs` hit-tested at a point taken from the victim's own rect.
+
+### The three defects, and the two things that were not defects
+
+| what | measured | fix |
+|---|---|---|
+| miqaat card, 16 findings | row needs 488px; got 341 at 768, 460 at 1024 | `@container`, media width alone decides |
+| relay city grid, 6 sites | widest status "Not available" 74px + 24px padding | `auto-fill minmax(98px,1fr)` |
+| StatTile | label 73px pinned inside `w-[64px]` at every width | span the tile, measured 85px min, row wraps |
+| SectionDivider rule | gradient alpha 0 at the sample point — **nothing visible** | `pointer-events-none`; a hit-test artefact |
+| /people "Other Details" | heading 772-800, panel ends 786 — **centre on the boundary** | probe now samples the painted rect |
+| members table rows | U-shaped curve, floor at 36%; widening trades 95px scroll for 295px | 36% split |
+
+Two of the six were instrument artefacts, not app defects. Both are recorded as such rather
+than absorbed into a lower number.
+
+### Found by eye, not by any assertion
+
+The "Request all to Mumbai" pill on `/manage/relay` at 768 is sheared by the left pane's edge.
+`CLIPPED` cannot see it — its clipper is not `overflow-x: hidden`. Not fixed.
+
 ## Verification
 
 | check | result |
 |---|---|
 | `tsc -b` | clean |
-| `vitest run` | **83 passed**, 9 files (+3 width guards) |
+| `vitest run` | **86 passed**, 10 files (+3 probe-dom guards) |
 | `npm run build` | passes — build:lsd, check:lsd, tsc, vite build |
 | dev-only dist grep | 13/13, route table in step (26 routes) |
 | `check:lsd` | 199 outstanding, 199 baselined, no new |
@@ -154,6 +202,8 @@ to-do that quietly aged out.
 | `check:remarks` | 56/56 |
 | `check:overlap` | 0 failing — sticky, reachable, once, appbar |
 | `deliverables` / `widths` guards | pass |
-| `check-layout` | **147 raw / 40 failing** against the 151 / 44 five-width baseline |
+| `check-layout` | **106 raw / 0 failing** against the 151 / 44 five-width baseline — exits 0 |
+| `probe-dom` guards | 3 rules, incl. every hit test gated or explicitly exempted |
+| `check:bidi` | **not re-run to completion** — exceeded a 500s cap; no bidi-related code changed |
 
 Screenshots: **250** — 25 routes x 5 widths x 2 languages, one run, at the end.

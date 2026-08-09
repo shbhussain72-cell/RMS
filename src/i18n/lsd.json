@@ -5394,5 +5394,535 @@
     "lsd": "زون تبديل",
     "page": "src/chat/useAskHelpChat.ts",
     "list": "permanent"
+  },
+  "— select members below": {
+    "lsd": "ممبر ححنو",
+    "page": "",
+    "list": "permanent"
+  },
+  "(Demo) Tap to advance the demo.": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "11:59 PM (before City Selection opens)": {
+    "lsd": "‏11:59 اختيار الشظظر كهلوا ثثظظلا",
+    "page": "",
+    "list": "permanent"
+  },
+  "3 family members": {
+    "lsd": "‏3 اهل نا ممبرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "4.0 MB": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Abu Dhabi": {
+    "lsd": "أبو ذبي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Action": {
+    "lsd": "اعمل",
+    "page": "",
+    "list": "permanent"
+  },
+  "added": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Admin registered on your behalf": {
+    "lsd": "‏اْثث نا طرف سي خدمة ككزار register تهئي ككيا ؛",
+    "page": "",
+    "list": "permanent"
+  },
+  "Ajman": {
+    "lsd": "اجمان",
+    "page": "",
+    "list": "permanent"
+  },
+  "Al Ain": {
+    "lsd": "الان",
+    "page": "",
+    "list": "permanent"
+  },
+  "All": {
+    "lsd": "سككلا",
+    "page": "",
+    "list": "permanent"
+  },
+  "Allocate": {
+    "lsd": "تعيين",
+    "page": "",
+    "list": "permanent"
+  },
+  "Allocation": {
+    "lsd": "تعيين",
+    "page": "",
+    "list": "permanent"
+  },
+  "An Idaratul Miqaat admin registered you for Eid-e-Ghadeer 1447H.": {
+    "lsd": "‏اْثث نسس إدارة الميقات نا خدمة ككزار  يھ عيد غديرخم واسطسس register كيدا ؛",
+    "page": "",
+    "list": "permanent"
+  },
+  "Araz · Preferred City": {
+    "lsd": "عرض - احب شظظر",
+    "page": "",
+    "list": "permanent"
+  },
+  "Berlin": {
+    "lsd": "برلن",
+    "page": "",
+    "list": "permanent"
+  },
+  "Birmingham": {
+    "lsd": "برمنككام",
+    "page": "",
+    "list": "permanent"
+  },
+  "Calgary": {
+    "lsd": "كلككري",
+    "page": "",
+    "list": "permanent"
+  },
+  "Change Relay City": {
+    "lsd": "ريلسس موضع بدلو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Chicago": {
+    "lsd": "شيكاككو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Choose city": {
+    "lsd": "شظظر ححنو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Choose the Host City radio for each member in the table below.": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Choose the Host City radio for each member in the table.": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Choose the members to move to the Host City.": {
+    "lsd": "موضع الفصل ما تعيين واسطسس ممبرو ححنو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Choose the Relay City radio, then pick a city from the dropdown for each member.": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "city": {
+    "lsd": "شظظر",
+    "page": "",
+    "list": "permanent"
+  },
+  "City arrangement": {
+    "lsd": "شظظر ني ترتيب",
+    "page": "",
+    "list": "permanent"
+  },
+  "City selection has closed.": {
+    "lsd": "اختيار الشظظر بيد تهئي ككيو ؛",
+    "page": "",
+    "list": "permanent"
+  },
+  "Close in 00:42:11": {
+    "lsd": "‏00:42:11 ما بند تهاسسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Cologne": {
+    "lsd": "كولون",
+    "page": "",
+    "list": "permanent"
+  },
+  "CURRENT": {
+    "lsd": "في الحال",
+    "page": "",
+    "list": "permanent"
+  },
+  "Frankfurt": {
+    "lsd": "فرينك فرت",
+    "page": "",
+    "list": "permanent"
+  },
+  "Glasgow": {
+    "lsd": "ككلسككو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Headcount": {
+    "lsd": "كل ممبرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "‏Home": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "host": {
+    "lsd": "موضع الفصل",
+    "page": "",
+    "list": "permanent"
+  },
+  "Host city": {
+    "lsd": "موضع الفصل",
+    "page": "",
+    "list": "permanent"
+  },
+  "Houston": {
+    "lsd": "هيوسضضن",
+    "page": "",
+    "list": "permanent"
+  },
+  "Invitation": {
+    "lsd": "اذن",
+    "page": "",
+    "list": "permanent"
+  },
+  "Invited Mehmaan stay": {
+    "lsd": "اذن اْثثيلا مظظمان نو رهوانو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Leeds": {
+    "lsd": "ليدٌس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Liverpool": {
+    "lsd": "ليورثثول",
+    "page": "",
+    "list": "permanent"
+  },
+  "Los angels": {
+    "lsd": "لوس انككلس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Manchester": {
+    "lsd": "منححيسضضر",
+    "page": "",
+    "list": "permanent"
+  },
+  "Max": {
+    "lsd": "ميكس",
+    "page": "",
+    "list": "permanent"
+  },
+  "members": {
+    "lsd": "ممبرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "members below": {
+    "lsd": "اْ سككلا مظظمانو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Miami": {
+    "lsd": "ميامي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Montreal": {
+    "lsd": "مونضضرييال",
+    "page": "",
+    "list": "permanent"
+  },
+  "Move to Colombo": {
+    "lsd": "كولمبو ما بدلو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Munich": {
+    "lsd": "ميونحح",
+    "page": "",
+    "list": "permanent"
+  },
+  "Murtaza bhai Moiz bhai Gheewala has been assigned as your guardian. Please accept the request to continue.": {
+    "lsd": "مرتضى بهائي معز بهائي ككهي ولا نسس اْثث يھ محافظ ححنا ؛ ، عرض قبول كريئسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Murtaza bhai Moiz bhai Gheewala has invited you to join their group": {
+    "lsd": "مرتضى بهائي معز بهائي ككهي ولا يھ اْثث نسس اهنا ككروثث ما اذن اْثثو ؛",
+    "page": "",
+    "list": "permanent"
+  },
+  "My family": {
+    "lsd": "مارا اهل",
+    "page": "",
+    "list": "permanent"
+  },
+  "New york": {
+    "lsd": "نيو يورك",
+    "page": "",
+    "list": "permanent"
+  },
+  "None selected": {
+    "lsd": "‏كئي select نتهي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Not confirmed": {
+    "lsd": "‏confirm نتهي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Other Cities (": {
+    "lsd": "بيجا شظظر",
+    "page": "",
+    "list": "permanent"
+  },
+  "Ottawa": {
+    "lsd": "اوضضاوا",
+    "page": "",
+    "list": "permanent"
+  },
+  "PDF · 248 KB": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "People in your reservation": {
+    "lsd": "‏اْثث نا reservation نا ممبرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Raza has not been issued yet for your group.": {
+    "lsd": "هجي اْثث نا ككروثث نسس رزا نتهي ملي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Raza letter — Eid-e-Ghadeer 1447H": {
+    "lsd": "‏رزا ليضضر - عيد غدير خم 1447ھ",
+    "page": "",
+    "list": "permanent"
+  },
+  "Raza Pending": {
+    "lsd": "رزا باقي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Raza Status": {
+    "lsd": "رزا حال",
+    "page": "",
+    "list": "permanent"
+  },
+  "Reach out to your Miqaat coordinator if something here needs correcting.": {
+    "lsd": "‏اغلاط درست كراوا واسطسس اْثث نا ميقات نا coordinator نسس خبر كريئسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Ready for Registration": {
+    "lsd": "‏registration واسطسس تيار",
+    "page": "",
+    "list": "permanent"
+  },
+  "‏Registered": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Registration opens in {date}": {
+    "lsd": "‏registration كهلوا ما ﴿تأريخ﴾",
+    "page": "",
+    "list": "permanent"
+  },
+  "relay": {
+    "lsd": "ريلسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "request": {
+    "lsd": "عرض",
+    "page": "",
+    "list": "permanent"
+  },
+  "Request": {
+    "lsd": "عرض",
+    "page": "",
+    "list": "permanent"
+  },
+  "Request all": {
+    "lsd": "سككلا واسطسس عرض",
+    "page": "",
+    "list": "permanent"
+  },
+  "Request received": {
+    "lsd": "عرض تهئي ككئي",
+    "page": "",
+    "list": "permanent"
+  },
+  "Request to": {
+    "lsd": "عرض كرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Requests": {
+    "lsd": "عرائض",
+    "page": "",
+    "list": "permanent"
+  },
+  "San Francisco": {
+    "lsd": "سين فرينسيسكو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Sat, 21 Jun, 2026": {
+    "lsd": "‏يوم السبت ، june 21",
+    "page": "",
+    "list": "permanent"
+  },
+  "Save Preferences": {
+    "lsd": "‏تفاضيل save كريئسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Seattle": {
+    "lsd": "سئيضضل",
+    "page": "",
+    "list": "permanent"
+  },
+  "Sharjah": {
+    "lsd": "شارقة",
+    "page": "",
+    "list": "permanent"
+  },
+  "Slot": {
+    "lsd": "جككه",
+    "page": "",
+    "list": "permanent"
+  },
+  "Slot reminder": {
+    "lsd": "جككه واسطسس تذكار",
+    "page": "",
+    "list": "permanent"
+  },
+  "starts": {
+    "lsd": "شروع",
+    "page": "",
+    "list": "permanent"
+  },
+  "Stuttgart": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Submit for approval": {
+    "lsd": "قبول تهاوا واسطسس موكليسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Submit request": {
+    "lsd": "عرض موكليسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Submit your preferences": {
+    "lsd": "‏تفاضيل submit كريئسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Switch to Colombo": {
+    "lsd": "كولمبو ما بدلو",
+    "page": "",
+    "list": "permanent"
+  },
+  "System": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "terms and conditions": {
+    "lsd": "شروط انسس احكام",
+    "page": "",
+    "list": "permanent"
+  },
+  "The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.": {
+    "lsd": "اْثث ني ميقات ني تمام سفر يظظاطط ديكهيئسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "This Miqaat can no longer be registered for.": {
+    "lsd": "‏اْ ميقات واسطسس هوسس register نظظيطط تهئي سكائسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Total": {
+    "lsd": "كل",
+    "page": "",
+    "list": "permanent"
+  },
+  "United Arab Emirates": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "until they accept their invitation. A seat is only used when each one accepts.": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "Vancouver": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "What should your remarks be signed with?": {
+    "lsd": "",
+    "page": "",
+    "list": "permanent"
+  },
+  "You're all set": {
+    "lsd": "تمام",
+    "page": "",
+    "list": "permanent"
+  },
+  "Your family(": {
+    "lsd": "اْثثنا اهل",
+    "page": "",
+    "list": "permanent"
+  },
+  "Your members (": {
+    "lsd": "اْثثنا ممبرو",
+    "page": "",
+    "list": "permanent"
+  },
+  "Your name": {
+    "lsd": "اْثثنو نام",
+    "page": "",
+    "list": "permanent"
+  },
+  "Your Phase 1 city selection slot opens in 1 hour. Be ready to pick your city.": {
+    "lsd": "‏اختيار الشظظر نو ثثظظلو phase جلدي كلاك ما كهلسسس",
+    "page": "",
+    "list": "permanent"
+  },
+  "Your registered Miqaats that require your attention.": {
+    "lsd": "‏اْثث نا register كيديلا مواقيت",
+    "page": "",
+    "list": "permanent"
+  },
+  "Zone selection has closed.": {
+    "lsd": "اختيار الموضع بند تهئي ككيو ؛",
+    "page": "",
+    "list": "permanent"
   }
 }

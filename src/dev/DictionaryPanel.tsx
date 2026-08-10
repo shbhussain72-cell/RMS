@@ -51,6 +51,9 @@ import { fetchSyncStatus, isForceable, runSyncNow, type SyncStatus } from '../sh
  *
  *   A  the dictionary has a translation, and English is on screen anyway — a WIRING bug.
  *      Nothing to type; the string is not going through `t()`/`tx()`.
+ *   ok the dictionary has a translation and the page is showing it. Nothing to do.
+ *      This used to be reported as A, because the class was computed from the wordlist row and
+ *      never from what was painted — 62 of the 63 "wiring bugs" on /miqaats were this.
  *   B1 the row exists and its value is blank — awaiting translation. The queue.
  *   B2 the row exists and its value is the English word — loanword identity, per
  *      `src/i18n/loanword-policy.json`. Already correct; needs nothing.
@@ -82,6 +85,7 @@ const CLS_STYLE: Record<Cls, string> = {
   B2: 'bg-[#eef3f0] text-[#5a6660]',
   C: 'bg-[#f0ecf7] text-[#5a4ba3]',
   sentinel: 'bg-[#f0ece1] text-[#8a6a1e]',
+  ok: 'bg-[#eaf3ed] text-[#1f7a4d]',
 }
 
 /**
@@ -248,7 +252,7 @@ function DictionaryPanelInner() {
   }, [tab, hits, q, needsOnly, pending.length, merged.length])
 
   const counts = useMemo(() => {
-    const c: Record<Cls, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
+    const c: Record<Cls, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0, ok: 0 }
     for (const h of hits) c[h.detail]++
     return c
   }, [hits, pending.length])
@@ -359,7 +363,7 @@ function DictionaryPanelInner() {
 
           {tab === 'page' && (
             <div className="flex flex-wrap gap-[5px] border-b border-[#eee6d4] px-[10px] py-[6px] text-[10px] font-bold">
-              {(['A', 'B1', 'B2', 'C', 'sentinel'] as const).map((c) => (
+              {(['A', 'B1', 'B2', 'C', 'sentinel', 'ok'] as const).map((c) => (
                 <span key={c} className={`rounded-[5px] px-[6px] py-[2px] ${CLS_STYLE[c]}`}>{c} {counts[c]}</span>
               ))}
             </div>

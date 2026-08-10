@@ -1,0 +1,361 @@
+[
+  {
+    "english": "11:59 PM (before City Selection opens)",
+    "where": "span < p.mt-[3px] < div.mt-[11px]",
+    "dictValue": "11:59 اختيار الشہر كهلوا پہلا",
+    "routes": [
+      "/miqaats"
+    ]
+  },
+  {
+    "english": "Go Home",
+    "where": "button.cursor-pointer < div.flex < div[Breadcrumb].flex",
+    "dictValue": "Home",
+    "routes": [
+      "/miqaats/ashara-1448",
+      "/miqaats/ashara-1448/questionnaire",
+      "/miqaats/ashara-1448/people",
+      "/miqaats/ashara-1448/invite",
+      "/miqaats/ashara-1448/review",
+      "/miqaats/ashara-1448/preferred-city",
+      "/miqaats/ashara-1448/arrange",
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/araz",
+      "/miqaats/ashara-1448/zone",
+      "/miqaats/ashara-1448/manage",
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay",
+      "/miqaats/ashara-1448/city-allocation",
+      "/miqaats/ashara-1448/zone-allocation",
+      "/miqaats/ashara-1448/roster",
+      "/miqaats/ashara-1448/raza"
+    ]
+  },
+  {
+    "english": "Max",
+    "where": "span.text-[11px] < button.mt-[8px] < div",
+    "dictValue": "ميكس",
+    "routes": [
+      "/miqaats/ashara-1448/questionnaire",
+      "/miqaats/ashara-1448/people",
+      "/miqaats/ashara-1448/preferred-city"
+    ]
+  },
+  {
+    "english": "terms and conditions",
+    "where": "span.inline-flex < span.text-[14px] < button.flex",
+    "dictValue": "شروط انے احكام",
+    "routes": [
+      "/miqaats/ashara-1448/questionnaire",
+      "/miqaats/ashara-1448/people",
+      "/miqaats/ashara-1448/preferred-city"
+    ]
+  },
+  {
+    "english": "3 family members",
+    "where": "p.truncate < div.min-w-0 < div.flex",
+    "dictValue": "3 اهل نا ممبرو",
+    "routes": [
+      "/miqaats/ashara-1448/people"
+    ]
+  },
+  {
+    "english": "Not confirmed",
+    "where": "p.mt-[6px] < div < div.grid",
+    "dictValue": "confirm نتهي",
+    "routes": [
+      "/miqaats/ashara-1448/review",
+      "/miqaats/ashara-1448/city-allocation",
+      "/miqaats/ashara-1448/zone-allocation",
+      "/miqaats/ashara-1448/roster",
+      "/miqaats/ashara-1448/raza"
+    ]
+  },
+  {
+    "english": "members",
+    "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "dictValue": "ممبرو",
+    "routes": [
+      "/miqaats/ashara-1448/review",
+      "/miqaats/ashara-1448/roster"
+    ]
+  },
+  {
+    "english": "Headcount",
+    "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "dictValue": "كل ممبرو",
+    "routes": [
+      "/miqaats/ashara-1448/review"
+    ]
+  },
+  {
+    "english": "My family",
+    "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "dictValue": "مارا اهل",
+    "routes": [
+      "/miqaats/ashara-1448/review"
+    ]
+  },
+  {
+    "english": "None selected",
+    "where": "p.mt-[6px] < div < div.mt-[16px]",
+    "dictValue": "كئي select نتهي",
+    "routes": [
+      "/miqaats/ashara-1448/review",
+      "/miqaats/ashara-1448/city-allocation",
+      "/miqaats/ashara-1448/zone-allocation",
+      "/miqaats/ashara-1448/roster",
+      "/miqaats/ashara-1448/raza"
+    ]
+  },
+  {
+    "english": "Total",
+    "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "dictValue": "كل",
+    "routes": [
+      "/miqaats/ashara-1448/review"
+    ]
+  },
+  {
+    "english": "You're all set",
+    "where": "p.truncate < div.min-w-0 < div.flex",
+    "dictValue": "تمام",
+    "routes": [
+      "/miqaats/ashara-1448/review"
+    ]
+  },
+  {
+    "english": "Male",
+    "where": "bdi < p.mt-[2px] < div.min-w-0",
+    "dictValue": "مرد",
+    "routes": [
+      "/miqaats/ashara-1448/arrange",
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/araz",
+      "/miqaats/ashara-1448/zone"
+    ]
+  },
+  {
+    "english": "Female",
+    "where": "bdi < p.mt-[2px] < div.min-w-0",
+    "dictValue": "بئيرو",
+    "routes": [
+      "/miqaats/ashara-1448/arrange",
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/araz",
+      "/miqaats/ashara-1448/zone"
+    ]
+  },
+  {
+    "english": "Host city",
+    "where": "p.text-[14px] < div.min-w-0 < div.mt-[12px]",
+    "dictValue": "موضع الفصل",
+    "routes": [
+      "/miqaats/ashara-1448/arrange",
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/manage/host"
+    ]
+  },
+  {
+    "english": "Other Cities (",
+    "where": "p.text-[20px] < div.flex < div.rounded-[16px]",
+    "dictValue": "بيجا شہر",
+    "routes": [
+      "/miqaats/ashara-1448/arrange",
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "city",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "شہر",
+    "routes": [
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "host",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "موضع الفصل",
+    "routes": [
+      "/miqaats/ashara-1448/city",
+      "/miqaats/ashara-1448/manage/host"
+    ]
+  },
+  {
+    "english": "members below",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "اْ سگلا مہمانو",
+    "routes": [
+      "/miqaats/ashara-1448/city"
+    ]
+  },
+  {
+    "english": "request",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "عرض",
+    "routes": [
+      "/miqaats/ashara-1448/city"
+    ]
+  },
+  {
+    "english": "Action",
+    "where": "th.px-[16px] < tr < thead",
+    "dictValue": "اعمل",
+    "routes": [
+      "/miqaats/ashara-1448/araz",
+      "/miqaats/ashara-1448/zone"
+    ]
+  },
+  {
+    "english": "Save Preferences",
+    "where": "span.whitespace-nowrap < button.flex < div.flex",
+    "dictValue": "تفاضيل save كريئے",
+    "routes": [
+      "/miqaats/ashara-1448/araz"
+    ]
+  },
+  {
+    "english": "Submit your preferences",
+    "where": "p.truncate < div.min-w-0 < div.flex",
+    "dictValue": "تفاضيل submit كريئے",
+    "routes": [
+      "/miqaats/ashara-1448/araz"
+    ]
+  },
+  {
+    "english": "Request",
+    "where": "button.inline-flex < td.px-[14px] < tr.cursor-pointer",
+    "dictValue": "عرض",
+    "routes": [
+      "/miqaats/ashara-1448/zone"
+    ]
+  },
+  {
+    "english": "Switch to Colombo",
+    "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "dictValue": "كولمبو ما بدلو",
+    "routes": [
+      "/miqaats/ashara-1448/manage/host"
+    ]
+  },
+  {
+    "english": "CURRENT",
+    "where": "th.px-[12px] < tr < thead",
+    "dictValue": "في الحال",
+    "routes": [
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "Request to",
+    "where": "span.truncate < button.inline-flex < div.flex",
+    "dictValue": "عرض كرو",
+    "routes": [
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "Submit request",
+    "where": "span.whitespace-nowrap < button.flex < div.flex",
+    "dictValue": "عرض موكليے",
+    "routes": [
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "— select members below",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "ممبر چنو",
+    "routes": [
+      "/miqaats/ashara-1448/manage/host",
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "Change Relay City",
+    "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "dictValue": "ريلے موضع بدلو",
+    "routes": [
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "relay",
+    "where": "bdi < span.text-[14px] < span.inline-flex",
+    "dictValue": "ريلے",
+    "routes": [
+      "/miqaats/ashara-1448/manage/relay"
+    ]
+  },
+  {
+    "english": "Registered",
+    "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "dictValue": "مواقيت Registered",
+    "routes": [
+      "/miqaats/ashara-1448/roster"
+    ]
+  },
+  {
+    "english": "Raza Status",
+    "where": "th.px-[16px] < tr < thead",
+    "dictValue": "رزا حال",
+    "routes": [
+      "/miqaats/ashara-1448/roster"
+    ]
+  },
+  {
+    "english": "Raza Pending",
+    "where": "p.text-[14px] < div.min-w-0 < div.flex",
+    "dictValue": "رزا باقي",
+    "routes": [
+      "/miqaats/ashara-1448/raza"
+    ]
+  },
+  {
+    "english": "Raza has not been issued yet for your group.",
+    "where": "p.text-[12px] < div.min-w-0 < div.flex",
+    "dictValue": "هجي اْپ نا گروپ نے رزا نتهي ملي",
+    "routes": [
+      "/miqaats/ashara-1448/raza"
+    ]
+  },
+  {
+    "english": "The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.",
+    "where": "p.mt-[8px] < div.mt-[14px] < div.w-full",
+    "dictValue": "اْپ ني ميقات ني تمام سفر يہاں ديكهيئے",
+    "routes": [
+      "/miqaats/ashara-1448/timeline"
+    ]
+  },
+  {
+    "english": "Request received",
+    "where": "p.text-[15px] < div.min-w-0 < div.flex",
+    "dictValue": "عرض تهئي گئي",
+    "routes": [
+      "/join-group"
+    ]
+  },
+  {
+    "english": "Murtaza bhai Moiz bhai Gheewala has invited you to join their group",
+    "where": "p.mt-[3px] < div.min-w-0 < div.flex",
+    "dictValue": "مرتضى بهائي معز بهائي گهي ولا يھ اْپ نے اهنا گروپ ما اذن اْپو ؛",
+    "routes": [
+      "/join-group"
+    ]
+  },
+  {
+    "english": "Sat, 21 Jun, 2026",
+    "where": "span.text-[12px] < div.flex < div.mt-[6px]",
+    "dictValue": "يوم السبت ، june 21",
+    "routes": [
+      "/join-group"
+    ]
+  }
+]

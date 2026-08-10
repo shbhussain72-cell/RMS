@@ -75,7 +75,7 @@ export type HitClass = 'A' | 'B' | 'C'
  * Sentinel rows (the wordlist's `remove` marker) are their own state for the same reason: they
  * fall back to English deliberately, so they are neither a defect nor work outstanding.
  */
-export type HitClassDetail = 'A' | 'B1' | 'B2' | 'C' | 'sentinel'
+export type HitClassDetail = 'A' | 'B1' | 'B2' | 'C' | 'sentinel' | 'ok'
 
 export interface ScanHit {
   text: string
@@ -121,6 +121,35 @@ function detailOf(entry: ReturnType<typeof inspectKey>): HitClassDetail {
  */
 export function classifyDetail(text: string): HitClassDetail {
   return detailOf(inspectKey(text))
+}
+
+/**
+ * 'ok' — the wordlist has a translation AND it is what the page painted.
+ *
+ * ── WHY THIS EXISTS ──────────────────────────────────────────────────────────────────
+ *
+ * `detailOf` answers a question about the WORDLIST ROW: does this key have a usable value.
+ * That is the whole question for `scanDom`, which only ever looks at Latin-only text nodes —
+ * there, "the row has a translation" and "English is on screen anyway" are the same statement,
+ * and that statement is class A, the wiring defect.
+ *
+ * `inventoryDom` lists every string on the route, translated ones included, and it reused the
+ * same function. So a perfectly wired string that rendered its LSD value came out class A: the
+ * badge said "the dictionary has a translation and English is on screen anyway — a WIRING bug",
+ * about a row that was showing Arabic.
+ *
+ * Measured on the LSD build before this: /miqaats reported 63 class-A rows, of which 62 were
+ * rendering Arabic and 1 was a real defect; /review reported 40, of which 8 were real. A
+ * reviewer reading the legend — which is correct — was told there were 63 wiring bugs on a page
+ * that had one, and no way to tell which.
+ *
+ * So the DOM decides, not the dictionary: a hit whose rendered text came out of the wordlist is
+ * 'ok'. Everything else keeps the row's own verdict. Note this cannot be derived from the class
+ * alone, which is exactly why it lives here and not in `detailOf`.
+ */
+const renderedDetail = (entry: ReturnType<typeof inspectKey>, translated: boolean): HitClassDetail => {
+  const row = detailOf(entry)
+  return row === 'A' && translated ? 'ok' : row
 }
 
 /**
@@ -208,7 +237,7 @@ export function scanDom(root: ParentNode = document.body): ScanResult {
   const rank = { A: 0, B: 1, C: 2 } as const
   hits.sort((a, b) => rank[a.cls] - rank[b.cls] || b.count - a.count || (a.text < b.text ? -1 : 1))
 
-  const detail: Record<HitClassDetail, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
+  const detail: Record<HitClassDetail, number> = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0, ok: 0 }
   for (const h of hits) detail[h.detail]++
 
   return {
@@ -258,9 +287,9 @@ export function cumulative() {
     A: hits.filter((h) => h.cls === 'A').length,
     B: hits.filter((h) => h.cls === 'B').length,
     C: hits.filter((h) => h.cls === 'C').length,
-    detail: (['A', 'B1', 'B2', 'C', 'sentinel'] as const).reduce(
+    detail: (['A', 'B1', 'B2', 'C', 'sentinel', 'ok'] as const).reduce(
       (acc, c) => { acc[c] = hits.filter((h) => h.detail === c).length; return acc },
-      { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 } as Record<HitClassDetail, number>,
+      { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0, ok: 0 } as Record<HitClassDetail, number>,
     ),
     hits: hits.map((h) => ({
       text: h.text, cls: h.cls, detail: h.detail, count: h.count,
@@ -456,14 +485,16 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
     const prev = byKey.get(english)
     if (prev) { prev.count++; continue }
     const entry = inspectKey(english)
+    // Came out of the dictionary. `data-lsd-key` alone does not say that — `tx()` stamps it
+    // on an interpolated MISS too, and that node is still English under `lang="en"`.
+    // Hoisted out of the object literal because the CLASS now depends on it: see `renderedDetail`.
+    const translatedNow = via === 'reverse-lookup'
+      || (via === 'data-lsd-key' && keyed?.getAttribute('lang') === LSD_BCP47)
     byKey.set(english, {
       english,
       rendered: shown,
-      // Came out of the dictionary. `data-lsd-key` alone does not say that — `tx()` stamps it
-      // on an interpolated MISS too, and that node is still English under `lang="en"`.
-      translated: via === 'reverse-lookup'
-        || (via === 'data-lsd-key' && keyed?.getAttribute('lang') === LSD_BCP47),
-      detail: detailOf(entry),
+      translated: translatedNow,
+      detail: renderedDetail(entry, translatedNow),
       count: 1,
       where: describe(n as Text),
       ...(entry.exists ? { dictValue: entry.value } : {}),
@@ -474,7 +505,8 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
   const hits = [...byKey.values()]
   // Untranslated first — a reviewer opening the tab is usually looking for work — then by how
   // often the string appears, then alphabetically so two runs of one screen are diffable.
-  const rank: Record<HitClassDetail, number> = { C: 0, B1: 1, A: 2, B2: 3, sentinel: 4 }
+  // 'ok' last: it is the finished work, and a reviewer opening the tab is looking for the rest.
+  const rank: Record<HitClassDetail, number> = { C: 0, B1: 1, A: 2, B2: 3, sentinel: 4, ok: 5 }
   hits.sort((a, b) => rank[a.detail] - rank[b.detail] || b.count - a.count || (a.english < b.english ? -1 : 1))
 
   return {

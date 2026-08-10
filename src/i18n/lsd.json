@@ -96,7 +96,7 @@
     "list": "permanent"
   },
   "Registered": {
-    "lsd": "‏Registered",
+    "lsd": "‏مواقيت Registered",
     "page": "2 (22 pages)",
     "list": "permanent"
   },
@@ -121,7 +121,7 @@
     "list": "permanent"
   },
   "Registration open in": {
-    "lsd": "‏Registration كھولوا ما",
+    "lsd": "‏Registration شروع تهاوا ما",
     "page": "2 (2 pages)",
     "list": "permanent"
   },
@@ -311,7 +311,7 @@
     "list": "permanent"
   },
   "Miqaats Current & Upcoming": {
-    "lsd": "‏چالو انے اْونارا مواقيت",
+    "lsd": "سگلا مواقيت",
     "page": "5",
     "list": "permanent"
   },
@@ -321,7 +321,7 @@
     "list": "permanent"
   },
   "View all current and upcoming Miqaats in one place.": {
-    "lsd": "‏سگلا مواقيت ايك جگہ پر ديكهو.",
+    "lsd": "تمام مواقيت يہاں ديكهي سكائے ؛.",
     "page": "5",
     "list": "permanent"
   },
@@ -1226,12 +1226,12 @@
     "list": "permanent"
   },
   "CITY SELECTION CLOSED": {
-    "lsd": "اختيار ‏الشہر بند",
+    "lsd": "اختيار الشہر بند تهئي گيو ؛",
     "page": "32 (6 pages)",
     "list": "permanent"
   },
   "Select zone": {
-    "lsd": "‏zone اختيار كرو",
+    "lsd": "زون اختيار كرو",
     "page": "32",
     "list": "permanent"
   },
@@ -2071,7 +2071,7 @@
     "list": "permanent"
   },
   "City & zone": {
-    "lsd": "‏شہر انے zone",
+    "lsd": "شہر انے زون",
     "page": "74 (14 pages)",
     "list": "permanent"
   },
@@ -3586,7 +3586,7 @@
     "list": "permanent"
   },
   "Registration has closed.": {
-    "lsd": "‏Registration بند تھئي گئي چھے.",
+    "lsd": "‏Registration بند تھئي گيو چھے.",
     "page": "MiqaatList",
     "list": "permanent"
   },

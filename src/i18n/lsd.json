@@ -41,7 +41,7 @@
     "list": "permanent"
   },
   "Use your ITS credentials to access the portal": {
-    "lsd": "‏داخل تھاوا واسطے اْپ نا ITS نا تفاصيل نو استعمال كرو",
+    "lsd": "‏اْپ نا ITS نا تفاصيل درج كريئے",
     "page": "1",
     "list": "permanent"
   },
@@ -101,12 +101,12 @@
     "list": "permanent"
   },
   "Registration closed": {
-    "lsd": "‏Registration بند",
+    "lsd": "‏Registration تمام",
     "page": "2 (4 pages)",
     "list": "permanent"
   },
   "Registration closes in": {
-    "lsd": "‏Registration بند تهاوا ما",
+    "lsd": "‏Registration تمام تهاوا ما",
     "page": "2 (3 pages)",
     "list": "permanent"
   },
@@ -341,7 +341,7 @@
     "list": "permanent"
   },
   "Registration opens in": {
-    "lsd": "‏Registration كھلوا ما",
+    "lsd": "‏Registration شروع تهاوا ما",
     "page": "6 (5 pages)",
     "list": "permanent"
   },
@@ -2916,7 +2916,7 @@
     "list": "permanent"
   },
   "Logout": {
-    "lsd": "‏باهر نكلو",
+    "lsd": "اخرج",
     "page": "AppBar / MiqaatList",
     "list": "permanent"
   },
@@ -3241,7 +3241,7 @@
     "list": "permanent"
   },
   "Open Registration": {
-    "lsd": "‏Registration كھولو",
+    "lsd": "‏Registration شروع كرو",
     "page": "DemoProgressionControl",
     "list": "permanent"
   },
@@ -3586,7 +3586,7 @@
     "list": "permanent"
   },
   "Registration has closed.": {
-    "lsd": "‏Registration بند تھئي گيو چھے.",
+    "lsd": "‏Registration تمام تھئي گيو چھے.",
     "page": "MiqaatList",
     "list": "permanent"
   },
@@ -4126,7 +4126,7 @@
     "list": "permanent"
   },
   "ITS ID must be exactly 8 digits": {
-    "lsd": "‏ITS ID برابر 8 عدد نو هووو جوئيے",
+    "lsd": "‏ITS ID برابر 8 عدد نو هوو جوئيے",
     "page": "Login",
     "list": "permanent"
   },

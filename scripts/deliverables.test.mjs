@@ -41,10 +41,10 @@ const BACKSLASH = String.fromCharCode(92)
 const NEWLINE = String.fromCharCode(10)
 
 const declared = JSON.parse(readFileSync(resolve(ROOT, 'scripts/deliverables.json'), 'utf8'))
-const DELIVERABLES = declared.paths.map((p) => ({
-  path: p,
-  segs: p.replace(/\/$/, '').split('/'),
-}))
+const segsOfPath = (p) => p.replace(/\/$/, '').split('/')
+const DELIVERABLES = declared.paths.map((p) => ({ path: p, segs: segsOfPath(p) }))
+const NEVER_OVERWRITE = declared.neverOverwrite.map((d) => ({ ...d, segs: segsOfPath(d.path) }))
+const MAY_OVERWRITE = new Set(declared.mayOverwrite.map((m) => m.module))
 
 // ── which files count as "a script" ──────────────────────────────────────────────────
 // Anything that can run and delete: the scripts directory, plus the config files that carry
@@ -66,6 +66,22 @@ const FILES = [
 
 // ── the destructive calls we look for ────────────────────────────────────────────────
 const DESTRUCTIVE = /(?:^|[^\w.])(?:fs\.|fsp\.|promises\.|await\s+)?(rmSync|rmdirSync|unlinkSync|rm|rmdir|unlink)\s*\(/g
+
+/**
+ * A WHOLE-FILE WRITE is destructive too, and it is how a deliverable was actually lost.
+ *
+ * The guard above reads DELETES. It did not catch `emit-blank-rows.mjs`, which built a fresh
+ * workbook and wrote it over docs/wordlist-patch.xlsx: nothing was unlinked, 91 authored
+ * translations were gone, and the run printed its usual success line.
+ *
+ * `renameSync`/`copyFileSync`/`cpSync` are here for the same reason — each replaces a
+ * destination whole — and `XLSX.writeFile`, which is how the one deliverable that is a
+ * spreadsheet gets written and would otherwise be the blind spot that matters most.
+ *
+ * See `overwriteNote` in deliverables.json for why this guard is narrower than the delete one,
+ * and for the gap that narrowing leaves.
+ */
+const OVERWRITE = /(?:^|[^\w.])(?:fs\.|fsp\.|promises\.|XLSX\.|await\s+)?(writeFileSync|writeFile|copyFileSync|cpSync|renameSync|createWriteStream)\s*\(/g
 
 /**
  * Blank out comments, keeping every byte position and every line break.
@@ -247,15 +263,15 @@ function overlaps(a, b) {
   return true
 }
 
-/** Every destructive call site in the repo's scripts, with its resolved path. */
-function callSites() {
+/** Every call site matching `pattern` in the repo's scripts, with its resolved path. */
+function callSites(pattern = DESTRUCTIVE) {
   const sites = []
   for (const file of FILES) {
     const src = stripComments(readFileSync(file, 'utf8'))
     const consts = constsOf(src)
     // For a script at scripts/x.mjs this is ['scripts']; for vite.config.ts it is [].
     const fileDirSegs = normalise(rel(dirname(file)).split('/'))
-    for (const m of src.matchAll(DESTRUCTIVE)) {
+    for (const m of src.matchAll(pattern)) {
       const open = src.indexOf('(', m.index + m[0].length - 1)
       const arg = firstArg(src, open)
       if (arg === null) continue
@@ -289,6 +305,54 @@ describe('deliverables', () => {
       }
     }
     expect(violations).toEqual([])
+  })
+
+  it('every path in neverOverwrite exists, and every exempted module exists', () => {
+    // A guard pointed at a renamed file protects nothing while still reporting green — and an
+    // exemption for a module that is gone is an exemption held open for whatever takes its name.
+    expect(NEVER_OVERWRITE.filter((d) => !existsSync(resolve(ROOT, d.path))).map((d) => d.path)).toEqual([])
+    expect([...MAY_OVERWRITE].filter((m) => !existsSync(resolve(ROOT, m)))).toEqual([])
+  })
+
+  it('every exemption says what it verifies', () => {
+    // The reason is the whole rail: an exemption is granted for re-reading and checking, not for
+    // being inconvenient to fix. An empty `why` is an exemption nobody argued for.
+    const thin = declared.mayOverwrite.filter((m) => (m.why ?? '').length < 80).map((m) => m.module)
+    expect(thin).toEqual([])
+  })
+
+  it('no script overwrites a file whose content a human typed', () => {
+    const sites = callSites(OVERWRITE)
+    // If this ever finds nothing, the matcher has stopped matching — which also reads as green.
+    expect(sites.length).toBeGreaterThan(0)
+
+    const violations = []
+    for (const s of sites) {
+      if (MAY_OVERWRITE.has(s.file)) continue
+      // Fully resolved only. Unlike a delete, an unanalysable WRITE target is the common case —
+      // every codemod writes `file` inside a loop — and reporting those would bury the real
+      // ones until someone deleted the guard. The cost of that choice is in deliverables.json.
+      if (s.segs.includes('*')) continue
+      for (const d of NEVER_OVERWRITE) {
+        if (!overlaps(s.segs, d.segs)) continue
+        violations.push(
+          `${s.file}:${s.line}  ${s.fn}(${s.arg})  →  ${s.segs.join('/')}  overwrites ${d.path}. ` +
+          `${d.why} Read it, merge, then re-read and verify — see scripts/lib/patch-merge.mjs — ` +
+          `or add the module to mayOverwrite in deliverables.json with what it checks.`,
+        )
+      }
+    }
+    expect(violations).toEqual([])
+  })
+
+  it('the overwrite matcher can actually see a clobber', () => {
+    // The inverted assertion. Every check above passes against a matcher that stopped matching,
+    // so this asserts the one call site the guard exists for is still visible to it — and that
+    // it is visible BECAUSE it is exempted, not because it went unnoticed.
+    const seen = callSites(OVERWRITE).filter((s) => MAY_OVERWRITE.has(s.file))
+    expect(seen.length).toBeGreaterThan(0)
+    const targets = new Set(seen.map((s) => s.segs.join('/')))
+    expect([...targets].some((t) => t.endsWith('.xlsx') || t.includes('*'))).toBe(true)
   })
 
   it('no script shells out to a recursive delete of a deliverable', () => {

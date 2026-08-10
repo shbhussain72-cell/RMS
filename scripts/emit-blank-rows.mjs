@@ -14,17 +14,29 @@
  * Nothing here authors a translation. Every LSD cell this emits is empty and always will be —
  * the point of the exercise is to make the gap visible to the person who fills it, not to guess.
  *
- * ── WHY IT GOES THROUGH THE DEV SERVER ───────────────────────────────────────────
+ * ── IT MERGES. IT USED TO REGENERATE, AND THAT WAS A WIPE ────────────────────────
  *
- * The workbook is built by the `/__lsd/patch.xlsx` handler in vite.config.ts, and this script
- * drives that handler rather than re-implementing it. Two implementations of "what shape is a
- * patch row" is one implementation too many; the one in the plugin already carries the rails
- * (never overwrite an existing row's LSD value, never emit more rows than were staged) and it
- * is the one the dictionary editor's own Export button uses.
+ * This script used to stage the keys as overrides, ask the `/__lsd/patch.xlsx` dev-server
+ * handler for a workbook, and write those bytes over docs/wordlist-patch.xlsx. The handler emits
+ * every LSD cell EMPTY — correct for what it is, the dictionary editor's Export button, which
+ * hands back only the rows you staged.
  *
- * The queue file it reads, `wordlist-overrides.json`, is written here and DELETED before this
- * script exits — a staged queue makes `vite build` fail by design, and leaving one behind would
- * break the build for a reason that has nothing to do with the build.
+ * Written over a file the wordlist owner has been typing into, it is a wipe. When this was
+ * found the patch held 91 authored translations and the sanctioned command for adding one row
+ * to it would have destroyed all 91, then printed `wrote ./docs/wordlist-patch.xlsx` and exited
+ * 0. Nothing in the output said anything was gone. The comment that used to sit here argued the
+ * design was right because it avoided a second implementation of the row shape, which was true
+ * and beside the point.
+ *
+ * It now reads the file, merges the missing keys in as blank rows, and keeps the write only if
+ * it can prove — against the file on disk, re-read after writing — that no row was dropped, no
+ * existing LSD value changed, and every row it added is blank. Any of those failing restores
+ * the original bytes. That lives in `scripts/lib/patch-merge.mjs` and is unit-tested there,
+ * including the case where the merge IS destructive, so the checker is known to fire.
+ *
+ * The dev server is gone with it: it existed only to shape three columns, and a spawn plus a
+ * staged `wordlist-overrides.json` (which fails `vite build` by design if a crash leaves one
+ * behind) is a lot of machinery to produce `['', key, '']`.
  *
  * ── WHERE THE LIST COMES FROM ────────────────────────────────────────────────────
  *
@@ -35,28 +47,22 @@
  *   scripts/check-lsd-coverage.mjs      the build gate's NO_ROW list, read from source. Sees
  *                                       unreachable states, cannot know what renders.
  */
-import { spawn, spawnSync } from 'node:child_process'
-import { createServer } from 'node:net'
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { mergeIntoPatch } from './lib/patch-merge.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const OVERRIDES = resolve(ROOT, 'wordlist-overrides.json')
 const SCAN = resolve(ROOT, 'artifacts/audit/routes-final.json')
 // docs/, NOT artifacts/. The patch is a DELIVERABLE — it is the wordlist owner's queue and the
 // one output here that no rerun can reconstruct once the translations are typed into it. It used
 // to live in artifacts/audit/, which is a directory scripts delete; `shoot.mjs` opened with
 // `rmSync(artifacts/audit)` and taking screenshots silently destroyed it. `deliverables.test.mjs`
-// now asserts that no script can delete a path containing this file.
+// asserts that no script can delete a path containing this file — or, since the wipe described
+// above, overwrite one either. `scripts/lib/patch-merge.mjs` is its single declared exception.
 const OUT = resolve(ROOT, 'docs/wordlist-patch.xlsx')
 const LIST_ONLY = process.argv.includes('--list')
-
-if (existsSync(OVERRIDES)) {
-  console.error('wordlist-overrides.json already exists — refusing to clobber a queue someone is')
-  console.error('part-way through. Export or clear it in the dictionary editor first.')
-  process.exit(1)
-}
 
 // ── 1. what the route walk saw ──
 const fromScan = new Map()
@@ -100,39 +106,28 @@ if (LIST_ONLY) {
   process.exit(0)
 }
 
-// ── 3. stage them as blank-row requests and let the plugin build the workbook ──
-const at = new Date().toISOString()
-writeFileSync(OVERRIDES, `${JSON.stringify(
-  Object.fromEntries(keys.map((k) => [k, { lsd: '', at, newRow: true }])), null, 2,
-)}\n`)
-
-let server
-try {
-  const PORT = await new Promise((ok) => {
-    const s = createServer()
-    s.listen(0, '127.0.0.1', () => { const pt = s.address().port; s.close(() => ok(pt)) })
-  })
-  server = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
-    cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-  })
-  await new Promise((ok, fail) => {
-    const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
-    const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1200) } }
-    server.stdout.on('data', w); server.stderr.on('data', w)
-    server.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-  })
-
-  const res = await fetch(`http://localhost:${PORT}/__lsd/patch.xlsx`)
-  if (!res.ok) throw new Error(`patch endpoint returned ${res.status}: ${await res.text()}`)
-  const buf = Buffer.from(await res.arrayBuffer())
-  mkdirSync(dirname(OUT), { recursive: true })
-  writeFileSync(OUT, buf)
-  console.log(`\nwrote ${OUT.replace(ROOT, '.')} (${buf.length} bytes)`)
-  console.log('Every LSD cell in it is empty. Paste the rows into the wordlist, fill them there,')
-  console.log('and run `npm run build:lsd`.')
-} finally {
-  server?.kill()
-  // Always — a staged queue fails `vite build` on purpose, and this script did not stage it on
-  // anyone's behalf.
-  if (existsSync(OVERRIDES)) unlinkSync(OVERRIDES)
+// ── 3. merge them in as blank rows ──
+//
+// A run with nothing to add says so and writes nothing. "0 rows added" and "the sources
+// returned nothing" are different facts and the first one alone reads as success.
+if (!keys.length) {
+  console.log('\nnothing to add — both sources came back empty.')
+  console.log('that is either a finished queue or a broken scan; check the two counts above.')
+  process.exit(0)
 }
+
+const wordlist = JSON.parse(readFileSync(resolve(ROOT, 'src/i18n/lsd.json'), 'utf8'))
+const r = mergeIntoPatch(OUT, keys, wordlist)
+
+console.log(`\n${OUT.replace(ROOT, '.')}: ${r.rowsBefore} -> ${r.rowsAfter} rows (+${r.added.length})`)
+console.log(`  ${r.filled} translated, ${r.blank} awaiting translation`)
+if (r.alreadyPresent.length) console.log(`  ${r.alreadyPresent.length} already in the file, left untouched`)
+if (r.inWordlist.length) {
+  console.log(`  ${r.inWordlist.length} skipped — the wordlist already has them, so a blank row`)
+  console.log('    would overwrite a real translation on paste. Usually a stale routes-final.json:')
+  for (const k of r.inWordlist) console.log(`      ${JSON.stringify(k)}`)
+}
+for (const k of r.added) console.log(`  + ${JSON.stringify(k)}`)
+console.log('\nEvery row this ADDED has an empty LSD cell, and nothing already in the file was')
+console.log('changed. Paste the new rows into the wordlist, fill them there, and run')
+console.log('`npm run build:lsd`.')

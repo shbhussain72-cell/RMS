@@ -16,5 +16,57 @@
   "paths": [
     "RMS_Mumineen_LSD_wordlist_v4.xlsx",
     "docs/"
+  ],
+
+  "overwriteNote": [
+    "A WHOLE-FILE WRITE is destructive too, and it is how a deliverable was actually lost.",
+    "",
+    "emit-blank-rows.mjs rebuilt docs/wordlist-patch.xlsx from scratch and wrote it over the",
+    "wordlist owner's copy. Nothing was unlinked, so the delete guard above stayed green; 91",
+    "authored translations were gone and the run printed its usual success line.",
+    "",
+    "This list is NARROWER than `paths`, deliberately, and the difference is the point:",
+    "",
+    "  - `paths` is about DELETION and covers docs/ wholesale, because deleting a directory of",
+    "    documentation is never right. It fails closed: a delete whose target the resolver cannot",
+    "    read is reported, since an unanalysable delete is the one that matters.",
+    "",
+    "  - `neverOverwrite` is about CONTENT A HUMAN TYPED. Most of docs/ is regenerated —",
+    "    lsd-gaps.md is rewritten by two different scripts by design — so covering docs/ wholesale",
+    "    would report those as violations and the guard would be deleted within a week. It also",
+    "    only judges FULLY RESOLVED targets: a codemod's `writeFileSync(file)` inside a loop over",
+    "    src/ resolves to `*` and is not evidence of anything.",
+    "",
+    "That narrowing is a real gap and is written down rather than hidden: a script that computes",
+    "the path to the wordlist at runtime can still overwrite it and this will not catch it."
+  ],
+  "neverOverwrite": [
+    {
+      "path": "RMS_Mumineen_LSD_wordlist_v4.xlsx",
+      "why": "The source of truth. Every LSD value in the app is generated from it."
+    },
+    {
+      "path": "docs/wordlist-patch.xlsx",
+      "why": "The wordlist owner's queue. Translations typed into it exist nowhere else until they are pasted into the wordlist."
+    }
+  ],
+
+  "mayOverwriteNote": [
+    "The exemptions, and what earns one: the module READS the file, computes the new content from",
+    "what was there, writes, and then RE-READS and verifies — asserting the outcome rather than",
+    "the intention that produced it. A failure leaves the original in place.",
+    "",
+    "An exemption list is a real cost, because this is the file someone edits when they want their",
+    "script to be special. Two entries, and each one is a verifier."
+  ],
+  "mayOverwrite": [
+    {
+      "module": "scripts/lib/patch-merge.mjs",
+      "why": "Merges blank rows into the patch, then re-reads the written file and asserts no row was dropped, no existing LSD value changed, and every added row is blank — restoring the original bytes if any of the three fails. scripts/lib/patch-merge.test.mjs asserts all three fire, including on a deliberately destructive merge."
+    },
+    {
+      "module": "scripts/repair-kanz.ts",
+      "why": "Rewrites Kanz doubles in the wordlist in place. Re-reads the patched workbook and checks every row cell by cell against the value it computed, refusing to write on any mismatch or row-count change. Its own comment: 'the outcome, not the intention that produced it'."
+    }
   ]
 }

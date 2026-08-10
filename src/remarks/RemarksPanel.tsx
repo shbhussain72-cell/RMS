@@ -19,6 +19,7 @@ import { CHROME_ATTR } from './selector'
 import { useRemarks } from './RemarksProvider'
 import { download, toJson, toMarkdown } from './export'
 import { markExported, readExported, unexportedOf } from './storage'
+import { DEFAULT_FILTER, filterRemarks, type LangFilter, type RemarkFilter, type Scope, type StatusFilter } from './filter'
 import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { hasAuthor } from '../shared/identity'
 import { pushLocalRemarks, readLocalRemarks, unpushedLocal } from '../shared/remarksApi'
@@ -29,10 +30,6 @@ import { REVIEW_TOOLS, REVIEW_TOOLS_DEPLOYED } from '../reviewTools'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const chromeProps = { [CHROME_ATTR]: '', [SCANNER_IGNORE_ATTR]: '' }
-
-type Scope = 'route' | 'all'
-type StatusFilter = 'all' | 'open' | 'resolved'
-type LangFilter = 'all' | 'en' | 'lsd'
 
 export default function RemarksPanel() {
   if (!REVIEW_TOOLS) return null
@@ -48,10 +45,13 @@ function RemarksPanelInner() {
   } = useRemarks()
   const navigate = useNavigate()
 
-  const [scope, setScope] = useState<Scope>('all')
-  const [status, setStatus] = useState<StatusFilter>('all')
-  const [langF, setLangF] = useState<LangFilter>('all')
-  const [orphanOnly, setOrphanOnly] = useState(false)
+  const [scope, setScope] = useState<Scope>(DEFAULT_FILTER.scope)
+  const [status, setStatus] = useState<StatusFilter>(DEFAULT_FILTER.status)
+  const [langF, setLangF] = useState<LangFilter>(DEFAULT_FILTER.lang)
+  const [orphanOnly, setOrphanOnly] = useState(DEFAULT_FILTER.orphanOnly)
+  const filter = useMemo<RemarkFilter>(
+    () => ({ scope, status, lang: langF, orphanOnly }), [scope, status, langF, orphanOnly],
+  )
   const [focusId, setFocusId] = useState<string | null>(null)
   const { t, tx } = useT()
 
@@ -67,12 +67,6 @@ function RemarksPanelInner() {
   const [localToPush, setLocalToPush] = useState(() => unpushedLocal(readLocalRemarks()).length)
   const [exported, setExported] = useState<Record<string, string>>(() => readExported())
   const unexported = useMemo(() => unexportedOf(remarks, exported), [remarks, exported])
-
-  const exportAs = (kind: 'md' | 'json') => {
-    if (kind === 'md') download('remarks.md', toMarkdown(remarks, resolutions), 'text/markdown')
-    else download('remarks.json', toJson(remarks), 'application/json')
-    setExported(markExported(remarks))
-  }
 
   /**
    * Scroll a remark's element into view once it resolves.
@@ -93,13 +87,33 @@ function RemarksPanelInner() {
     return () => window.clearTimeout(t)
   }, [focusId, resolutions])
 
-  const filtered = useMemo(() => remarks.filter((r) => {
-    if (scope === 'route' && r.route !== route) return false
-    if (status !== 'all' && r.status !== status) return false
-    if (langF !== 'all' && r.lang !== langF) return false
-    if (orphanOnly && !resolutions.get(r.id)?.orphaned) return false
-    return true
-  }), [remarks, resolutions, scope, status, langF, orphanOnly, route])
+  const filtered = useMemo(
+    () => filterRemarks(remarks, resolutions, filter, route), [remarks, resolutions, filter, route],
+  )
+
+  /**
+   * WHAT THE PANEL SHOWS IS WHAT EXPORTS.
+   *
+   * This took `remarks` — the whole store — while the list beside it rendered `filtered`. With
+   * the panel on "This route · Open · EN" showing 2 rows, the button read (8) and the file held
+   * 28 remarks across 3 routes. Both variables were one word apart in this function and both
+   * looked right; an export is a file you open somewhere else, so the disagreement only ever
+   * surfaced in the tracker.
+   *
+   * `markExported` takes the same set for the same reason, one layer down. Marking all 28 after
+   * exporting 2 clears the unexported badge for 26 remarks nobody has seen — a stranded remark
+   * reporting itself as delivered, which is the opposite of the error that badge exists to make.
+   */
+  const exportAs = (kind: 'md' | 'json') => {
+    if (kind === 'md') download('remarks.md', toMarkdown(filtered, resolutions), 'text/markdown')
+    else download('remarks.json', toJson(filtered), 'application/json')
+    setExported(markExported(filtered))
+  }
+
+  // The unexported subset of what is about to be exported. Only ever shown in the button's
+  // title: the LABEL has to be the filtered count, because that is the number the reviewer is
+  // checking against the rows.
+  const unexportedHere = useMemo(() => unexportedOf(filtered, exported), [filtered, exported])
 
   const counts = useMemo(() => ({
     open: remarks.filter((r) => r.status === 'open').length,
@@ -144,11 +158,11 @@ function RemarksPanelInner() {
             </div>
 
             <div className="mt-[8px] flex flex-wrap gap-[4px]" style={{ fontFamily: FONT_SANS }}>
-              <Seg value={scope} set={setScope} opts={[['route', 'This route'], ['all', 'All']]} />
-              <Seg value={status} set={setStatus} opts={[['all', 'All'], ['open', 'Open'], ['resolved', 'Done']]} />
-              <Seg value={langF} set={setLangF} opts={[['all', 'Any'], ['en', 'EN'], ['lsd', 'LSD']]} />
+              <Seg group="scope" value={scope} set={setScope} opts={[['route', 'This route'], ['all', 'All']]} />
+              <Seg group="status" value={status} set={setStatus} opts={[['all', 'All'], ['open', 'Open'], ['resolved', 'Done']]} />
+              <Seg group="lang" value={langF} set={setLangF} opts={[['all', 'Any'], ['en', 'EN'], ['lsd', 'LSD']]} />
               <button
-                type="button" onClick={() => setOrphanOnly(!orphanOnly)}
+                type="button" data-rmk="filter-orphan" onClick={() => setOrphanOnly(!orphanOnly)}
                 className={`rounded-[5px] px-[6px] py-[2px] text-[10px] font-bold ${orphanOnly ? 'bg-[#b23b3b] text-white' : 'bg-[#f0ece1] text-[#5a6660]'}`}
               >
                 Orphaned {counts.orphaned ? `(${counts.orphaned})` : ''}
@@ -239,17 +253,23 @@ function RemarksPanelInner() {
                 type="button"
                 data-rmk="export-md"
                 onClick={() => exportAs('md')}
-                disabled={remarks.length === 0}
+                disabled={filtered.length === 0}
                 className="flex-1 rounded-[6px] bg-[#1f5a44] px-[8px] py-[6px] text-[11px] font-bold text-white disabled:opacity-40"
-                title={t('Readable as-is — paste it straight into a message.')}
+                title={unexportedHere.length === filtered.length
+                  ? t('Exports the {n} remark(s) listed above — paste it straight into a message.', { n: filtered.length })
+                  : t('Exports the {n} remark(s) listed above; {u} of them have not been exported before.', { n: filtered.length, u: unexportedHere.length })}
               >
-                {t('Export Markdown')}{unexported.length > 0 ? ` (${unexported.length})` : ''}
+                {/* The count is the FILTERED count, and it is the same number as the rows above
+                    it. It used to be the store-wide unexported count, which is a different
+                    question, sitting on the control that answers this one. The store-wide
+                    unexported figure still has a home — the chip, where nothing is filtered. */}
+                {t('Export Markdown')} <span data-rmk="export-count">({filtered.length})</span>
               </button>
               <button
                 type="button"
                 data-rmk="export-json"
                 onClick={() => exportAs('json')}
-                disabled={remarks.length === 0}
+                disabled={filtered.length === 0}
                 className="rounded-[6px] border border-[#d8cfb8] bg-white px-[8px] py-[6px] text-[11px] font-bold text-[#23302a] disabled:opacity-40"
                 title={t('Round-trips back into the tool.')}
               >
@@ -293,12 +313,17 @@ function RemarksPanelInner() {
   )
 }
 
-function Seg<T extends string>({ value, set, opts }: { value: T; set: (v: T) => void; opts: [T, string][] }) {
+/**
+ * `group` exists for the harness, not the UI. Two of these segmented controls carry an option
+ * labelled "All", so a test that clicks by visible text picks whichever comes first in the DOM
+ * and silently exercises the wrong filter — passing, on the wrong thing.
+ */
+function Seg<T extends string>({ group, value, set, opts }: { group: string; value: T; set: (v: T) => void; opts: [T, string][] }) {
   return (
     <div className="flex overflow-hidden rounded-[5px] border border-[#e7dfc9]">
       {opts.map(([v, label]) => (
         <button
-          key={v} type="button" onClick={() => set(v)}
+          key={v} type="button" onClick={() => set(v)} data-rmk={`filter-${group}-${v}`}
           className={`px-[6px] py-[2px] text-[10px] font-bold ${value === v ? 'bg-[#1f5a44] text-white' : 'bg-white text-[#5a6660]'}`}
         >
           {label}

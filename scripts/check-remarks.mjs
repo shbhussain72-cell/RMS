@@ -47,6 +47,13 @@ async function freePort() {
 async function serve(port) {
   const proc = spawn('npx', ['vite', '--port', String(port), '--strictPort'], {
     cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
+    // The tool under test is gated on VITE_REVIEW_TOOLS, and this spawned its dev server
+    // WITHOUT it — inheriting whatever the developer happened to have exported. With the flag
+    // unset the whole panel returns null, and the suite's first interaction fails as
+    // `Timeout 30000ms exceeded waiting for locator('[data-rmk="chip"]')`, which reads as a
+    // flaky selector rather than "the feature was never mounted". `class-a-census.mjs` sets it
+    // explicitly for the same reason; this did not.
+    env: { ...process.env, VITE_REVIEW_TOOLS: 'true' },
   })
   await new Promise((ok, fail) => {
     const t = setTimeout(() => fail(new Error('dev server did not start')), 90_000)
@@ -62,8 +69,22 @@ const TOUR_KEYS = [...new Set(
   [...readFileSync(resolve(ROOT, 'src/tour/steps.ts'), 'utf8').matchAll(/key: '([a-zA-Z0-9_-]+)'/g)].map((m) => m[1]),
 )]
 
+/**
+ * The identity is seeded, and that is not a convenience.
+ *
+ * Without an author the panel opens with `IdentityPrompt` at the top, and that prompt
+ * AUTOFOCUSES its name field. The Ctrl/Cmd+Shift+M handler exits when the event target is an
+ * INPUT — correctly, so the shortcut cannot fire while someone is typing — so remark mode never
+ * turned on, the click on a fixture target went to the page instead of the composer, and the
+ * suite died on `waiting for locator('[data-rmk="composer"]')`.
+ *
+ * That failure arrived with the identity prompt and reads as a broken selector rather than as
+ * an unseeded precondition. Every remark also has to carry an author, so seeding it is what the
+ * tool actually requires rather than a way around the gate.
+ */
 const seed = (lang) => `
   try {
+    localStorage.setItem('rms-remark-author', 'harness');
     localStorage.setItem('rms-lang', ${JSON.stringify(lang)});
     const prev = JSON.parse(localStorage.getItem('miqaat-flow') || '{}');
     localStorage.setItem('miqaat-flow', JSON.stringify({
@@ -108,6 +129,40 @@ async function ensureFixture(page) {
   await page.locator('[data-rmk="targets"]').waitFor({ state: 'visible' })
 }
 
+/**
+ * Click an export button and return WHAT WAS DOWNLOADED.
+ *
+ * The blob handed to URL.createObjectURL is captured rather than the saved file, because
+ * export.ts revokes the object URL on the line after a.click() and a download racing that
+ * revoke is the flakiest thing in this suite. The blob IS the file's bytes — the browser has
+ * nothing else to write — so this reads the artefact, not a re-implementation of it.
+ *
+ * The download EVENT is awaited alongside, because "produced the right bytes" and "actually
+ * downloaded" are two claims and the blob alone only makes the first.
+ */
+async function captureExport(page, which) {
+  await page.evaluate(() => {
+    if (window.__rmkGrabPatched) return
+    window.__rmkGrabPatched = true
+    const real = URL.createObjectURL.bind(URL)
+    URL.createObjectURL = (blob) => { window.__rmkGrab = blob.text(); return real(blob) }
+  })
+  const dl = page.waitForEvent('download', { timeout: 10000 }).catch(() => null)
+  await page.locator('[data-rmk="' + which + '"]').click()
+  const downloaded = await dl
+  const text = await page.evaluate(() => window.__rmkGrab)
+  await page.evaluate(() => { window.__rmkGrab = null })
+  return { text, filename: downloaded ? downloaded.suggestedFilename() : null }
+}
+
+/**
+ * How many remark records a Markdown export contains.
+ *
+ * One function, so the FORMAT can change without the equality assertion changing with it: the
+ * claim under test is "as many records as rows", never "the records look like this".
+ */
+const mdRecordCount = (md) => (md.match(/^### /gm) || []).length
+
 /** Create a remark on a fixture target by its visible text. */
 async function addRemarkOn(page, targetText, body) {
   await page.keyboard.press('Control+Shift+M')             // enter remark mode
@@ -120,6 +175,7 @@ async function addRemarkOn(page, targetText, body) {
 }
 
 async function runLang(browser, lang, port) {
+  const BASE = `http://localhost:${port}`
   console.log(`\n─── ${lang} (${lang === 'lsd' ? 'RTL' : 'LTR'}) ───`)
   const ctx = await browser.newContext({
     viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
@@ -133,6 +189,22 @@ async function runLang(browser, lang, port) {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.evaluate(() => document.fonts?.ready)
   await settle(page)
+
+  // Before anything else: is the tool even here? Every assertion below is about the remarks
+  // chrome, so with the flag off they do not fail — they time out one locator at a time, and a
+  // timeout reads as flakiness. Said once, plainly, at the top.
+  const mounted = await page.locator('[data-rmk="chip"]').count()
+  check(`${lang}: the review tooling is mounted (VITE_REVIEW_TOOLS)`, mounted > 0,
+    mounted ? '' : 'no [data-rmk="chip"] — the dev server was started without the flag')
+  if (!mounted) { await ctx.close(); return }
+
+  // The other precondition, asserted rather than assumed. An unseeded identity puts an
+  // autofocused input at the top of the panel, which swallows the keyboard shortcut that is the
+  // only way into remark mode — and every failure downstream then looks like a bad selector.
+  await openPanel(page)
+  const prompting = await page.locator('[data-rmk="identity-prompt"]').count()
+  check(`${lang}: identity is seeded, so the panel is not asking for a name`, prompting === 0,
+    prompting ? 'IdentityPrompt is open and its input has focus' : '')
 
   const dir = await page.evaluate(() => document.documentElement.getAttribute('dir'))
   check(`${lang}: document dir is ${lang === 'lsd' ? 'rtl' : 'ltr'}`, dir === (lang === 'lsd' ? 'rtl' : 'ltr'), `got ${dir}`)
@@ -354,14 +426,73 @@ async function runLang(browser, lang, port) {
   check(`${lang}: real app controls still receive clicks with remark mode off`, clickable === true)
   void before
 
-  // ── export ─────────────────────────────────────────────────────────────────────
-  const md = await page.evaluate(async () => {
-    const mod = await import('/src/remarks/export.ts')
-    const all = JSON.parse(localStorage.getItem('rms-remarks') || '[]')
-    return mod.toMarkdown(all)
-  })
-  check(`${lang}: Markdown export groups by route pattern`,
-    md.includes('## `/miqaats/:id/city`') && md.includes('# Review remarks'))
+  // ── EXPORT RESPECTS THE FILTERS ────────────────────────────────────────────────
+  //
+  // The bug: the panel rendered the filtered list and the export handed the whole store to the
+  // exporter. On "This route · Open · EN" the list showed 2, the button read (8), and the
+  // downloaded file held 28 remarks across 3 routes.
+  //
+  // A test on the DEFAULT filter would have passed throughout — with nothing filtered out,
+  // `remarks` and `filtered` are the same array. So the filter has to actually EXCLUDE
+  // something, and that exclusion is asserted BEFORE the equality is, or this reduces to the
+  // vacuous check it replaces.
+  await openPanel(page)
+
+  // One resolved (excluded by status) and one on another route (excluded by scope).
+  await page.locator('[data-rmk="row"]').first().getByText('Resolve', { exact: true }).click()
+  await settle(page)
+
+  await page.goto(BASE + OTHER_ROUTE, { waitUntil: 'domcontentloaded' })
+  await settle(page)
+  await ensureFixture(page)
+  await settle(page)
+  await addRemarkOn(page, 'Target with id', 'off-route remark (' + lang + ')')
+  await page.goto(BASE + ROUTE, { waitUntil: 'domcontentloaded' })
+  await settle(page)
+  await ensureFixture(page)
+  await settle(page)
+  await openPanel(page)
+
+  // Non-default on every axis the panel has: scope, status and language.
+  await page.locator('[data-rmk="filter-scope-route"]').click()
+  await page.locator('[data-rmk="filter-status-open"]').click()
+  await page.locator('[data-rmk="filter-lang-' + lang + '"]').click()
+  await settle(page)
+
+  const total = await page.evaluate(() => JSON.parse(localStorage.getItem('rms-remarks') || '[]').length)
+  const rows = await page.locator('[data-rmk="row"]').count()
+  const buttonCount = Number(((await page.locator('[data-rmk="export-count"]').textContent()) || '').replace(/[^0-9]/g, ''))
+
+  check(lang + ': the filter actually excludes something (else the rest is vacuous)',
+    rows > 0 && rows < total, rows + ' rendered of ' + total + ' stored')
+  check(lang + ": the export button's count is the rendered row count",
+    buttonCount === rows, 'button ' + buttonCount + ', rows ' + rows)
+
+  const json = await captureExport(page, 'export-json')
+  const records = JSON.parse(json.text)
+  check(lang + ': JSON export holds exactly the rendered rows',
+    Array.isArray(records) && records.length === rows, 'exported ' + records.length + ', rows ' + rows)
+  check(lang + ': JSON export really downloads', json.filename === 'remarks.json', 'got ' + json.filename)
+
+  // Every exported record must be one the filter admits — a count can match by coincidence.
+  const wrongRoute = records.filter((r) => r.route !== ROUTE)
+  const wrongStatus = records.filter((r) => r.status !== 'open')
+  const wrongLang = records.filter((r) => r.lang !== lang)
+  check(lang + ': every exported record satisfies the filter',
+    !wrongRoute.length && !wrongStatus.length && !wrongLang.length,
+    'route ' + wrongRoute.length + ', status ' + wrongStatus.length + ', lang ' + wrongLang.length)
+
+  // JSON is the RECORD. Markdown gets simplified; this must not cost JSON a field.
+  const FIELDS = ['id', 'route', 'routePattern', 'identifiers', 'capturedStrategy', 'remark',
+    'author', 'status', 'lang', 'dir', 'viewportWidth', 'createdAt', 'updatedAt']
+  const missing = FIELDS.filter((f) => records.some((r) => r[f] === undefined))
+  check(lang + ': JSON export keeps every field', missing.length === 0, 'missing ' + missing.join(', '))
+
+  const md = await captureExport(page, 'export-md')
+  check(lang + ': Markdown export holds exactly the rendered rows',
+    mdRecordCount(md.text) === rows, mdRecordCount(md.text) + ' records, ' + rows + ' rows')
+  check(lang + ': Markdown export really downloads', md.filename === 'remarks.md', 'got ' + md.filename)
+
 
   await ctx.close()
 }

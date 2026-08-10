@@ -160,14 +160,61 @@ and only touch column C", which is what it sounds like and is not the same thing
 ## 3. What never changes
 
 - `src/i18n/lsd.json` is **generated**. Never hand-edited, never written by an API.
-- Sentinel values (`remove`) are not editable and are never sync candidates — a sentinel is an
-  instruction about a string, not a translation of it.
+- Sentinel values (`remove`) are never sync candidates — a sentinel is an instruction about a
+  string, not a translation of it. They **are** typeable in the panel, and the row says in words
+  that the sync will not overwrite the instruction; see §3a.
 - Mojibake rows stay read-only; legacy-font paste (ثث سس طط ضض صص ظظ) is refused at the input and
   refused again server-side at 422.
-- Class B2 loanword identity values are marked "no action needed", not offered for editing.
+- Class B2 loanword identity values are marked "no action needed". The badge says so; the box is
+  open like every other row's.
 - Tool chrome is English, carries `SCANNER_IGNORE_ATTR`, and goes through `t()`/`tx()`.
 - **You never author Lisan al-Dawat.** The editor stores exactly the characters a human typed, or
   refuses them.
+
+---
+
+## 3a. Every row on the Page tab is typeable, and opens prefilled
+
+The class badge is **information about the string**. It is not a statement about who may type,
+and for two categories it used to be exactly that:
+
+- **class C** — no wordlist row, so `inspectKey().value` is `''` and the box opened **empty**, on
+  a string the reviewer was looking at on screen;
+- **sentinel** — no edit control at all.
+
+The rule is now one function, `prefill()` in `src/dev/DictionaryPanel.tsx`, and it never consults
+the class:
+
+    the wordlist's value, if it has one   →  otherwise the text this page is rendering
+
+The wordlist wins where it has a value because a **class A** row shows English on screen while
+the wordlist holds a finished translation — the string is simply not wired to the lookup, and
+prefilling the screen's English there invites saving English over a real value.
+
+Two cases still open empty, both named and both reported by `check-dictionary.mjs`:
+
+| case | why |
+|---|---|
+| a parameterised key | `Close in {time}` renders as `Close in 00:42:11`. That is the string at one instant, not a translation of it; saving it writes a timestamp into the wordlist and loses the placeholder. The row is editable — you type the pattern. |
+| a Master-tab row this page does not render | there is no screen text to take. The Page tab cannot produce one. |
+
+### Saving a class-C row creates the row
+
+`commit()` sends `kind: 'new-row'` when the key has no wordlist row. That kind used to mean *and
+no value*: `api/dictionary/[key].ts` overwrote `value` with `''` on the kind alone, answered 201,
+and stored a revision of nothing. It now means only **"there is no row for this key yet"**; the
+value rides along, `syncPlan` appends the row, and `isMerged` retires it once the build has baked
+it. The blank form still exists and still means "create the row, I have nothing for it yet" —
+that is what `scripts/emit-blank-rows.mjs` sends — and the sync still declines to write a blank
+cell, which would be indistinguishable from an untranslated row.
+
+### The one row that can be typed into and cannot land
+
+A **sentinel** row. `syncPlan` refuses to overwrite a sentinel with a translation, because the
+wordlist owner has written a question into that cell and answering it is theirs to do. The panel
+opens the box anyway and states the constraint on the row, which is the honest form of the same
+fact: a missing control teaches nothing, and the reviewer's only way to discover what the tool
+refuses to do is to notice their edit never reaching the sheet.
 
 ---
 

@@ -8,8 +8,9 @@
  */
 import { describe, expect, it } from 'vitest'
 import { bakedValue, normKey } from '../i18n/wordlistNorm.mjs'
+import { KANZ_PAIRS, kanzNormalised } from '../i18n/kanzNorm.mjs'
 import { REVIEW_TOOLS } from '../reviewTools'
-import { baselineValue } from '../i18n'
+import { allEntries, baselineValue } from '../i18n'
 import { isMerged } from './dictionaryApi'
 
 const rev = (key: string, value: string, kind: 'edit' | 'new-row' = 'edit') => ({
@@ -78,6 +79,43 @@ describe('isMerged, against the real generated dictionary', () => {
     // normal case, and it is the one a raw comparison gets wrong.
     const unbaked = (committed as string).replace(/^[‎‏]/, '')
     expect(isMerged(rev(KEY, unbaked))).toBe(true)
+  })
+
+  // ── AND WHEN IT HOLDS THE UNCONVERTED FORM ──────────────────────────────────────────
+  //
+  // Same shape as the unbaked case above and the same consequence, one layer over: the
+  // generator converts Kanz doubles on the way into lsd.json, so a revision still holding them
+  // can never equal the baseline by raw comparison. It therefore never retires — and an
+  // unretired override is an APPLIED override, so `applySharedOverrides` writes the doubled
+  // value over the converted one on every reload, forever. The sync repaired the sheet each
+  // night and the store put them straight back.
+  //
+  // syncPlan already compared this way when deciding "already merged". Retirement did not, and
+  // the two disagreeing about the same question is what made it survive.
+  it('retires an override whose value differs from the baseline only by Kanz doubles', () => {
+    // A REAL key whose committed value contains a character the conversion produces, found by
+    // searching the wordlist rather than assumed of `KEY` — 'Register now' contains none of the
+    // seven, so writing this against it would have asserted nothing. Its doubled form is built
+    // by running the pairs backwards, which is exactly the text a Kanz keyboard emits.
+    const target = allEntries().find((e) => e.lsd && KANZ_PAIRS.some((p) => e.lsd.includes(p.single)))
+    expect(target, 'no wordlist value contains a Kanz-produced character — this test is vacuous').toBeTruthy()
+    const base = baselineValue(target!.english) as string
+    // Built from the baked value WITH its direction mark left on. Stripping it first made this
+    // test fail against a correct fix: `bakedValue` is a no-op on a value that already carries
+    // the mark, but it does not ADD one to a pure-Arabic value, so a stripped baseline never
+    // comes back. The store holds what the reviewer typed, doubles and all — not a de-marked
+    // variant of it — so this is also the more faithful input.
+    const doubled = KANZ_PAIRS.reduce((v, p) => v.split(p.single).join(p.doubled), base)
+    expect(doubled).not.toBe(base)              // the input really is doubled
+    expect(kanzNormalised(doubled)).toBe(base)  // and converts back exactly
+
+    expect(isMerged(rev(target!.english, doubled))).toBe(true)
+  })
+
+  it('does not retire a value that merely LOOKS similar', () => {
+    // The control. Retirement must not become "close enough" — it compares converted forms,
+    // not shapes.
+    expect(isMerged(rev(KEY, `${committed} extra`))).toBe(false)
   })
 
   it('keeps an override whose value differs', () => {

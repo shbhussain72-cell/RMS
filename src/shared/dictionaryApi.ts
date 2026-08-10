@@ -18,6 +18,7 @@ import { enqueue } from './outbox'
 import { apiFetch, ConflictError } from './transport'
 import { getAuthor } from './identity'
 import { bakedValue } from '../i18n/wordlistNorm.mjs'
+import { kanzNormalised } from '../i18n/kanzNorm.mjs'
 
 export type RevisionKind = 'edit' | 'revert' | 'new-row'
 
@@ -69,7 +70,15 @@ export const isMerged = (rev: Revision): boolean => {
   // implied an empty value, and wrong the moment it stopped: the class-C edits the Page tab
   // exists to collect would have counted as pending forever, in a number whose whole job is
   // to go down.
-  return bakedValue(rev.value) === bakedValue(base)
+  // THROUGH `kanzNormalised`, for the same reason it goes through `bakedValue`: the two sides
+  // are not written by the same code path. `syncPlan` compares this way already (it normalises
+  // the revision AND the sheet cell before deciding "already merged"), and retirement did not —
+  // so a revision holding Kanz doubles could never equal a baseline the generator had converted,
+  // and stayed pending, and stayed APPLIED, reintroducing the doubles on every reload.
+  //
+  // The endpoint now normalises at entry, so new revisions arrive converted. This is what lets
+  // the ones already in the store retire rather than needing a migration to be reachable.
+  return bakedValue(kanzNormalised(rev.value)) === bakedValue(base)
 }
 
 /** Overrides whose value is not yet in the committed wordlist. This is the count the UI shows. */

@@ -236,6 +236,51 @@ describe('dictionary revisions', () => {
     expect(body.revisions[0].value).toBe('كرو')
     expect(body.revisions[0].kind).toBe('new-row')
   })
+
+  // ── THE STORE MUST NEVER HOLD KANZ DOUBLES ──────────────────────────────────────────
+  //
+  // kanzNorm.mjs was documented as having three entry points — generator, editor, sync. This,
+  // the write into the shared store, was a fourth with none, and the editor only converts on
+  // PASTE, so a TYPED value went in raw. That is what made the doubles come back after a sync
+  // instead of merely appearing before one: the sheet got the converted value, the store kept
+  // the raw one, and the store wins on reload.
+  //
+  // Read back from the store rather than trusted from the response: what the sync and the page
+  // both consume is what was persisted.
+  it('normalises Kanz doubles at entry, so the store holds the converted value', async () => {
+    const { POST, GET } = await dictKeyApi()
+    const key = encodeKey('Register now')
+    const res = await POST(req('POST', `/api/dictionary/${key}`, { value: 'كك', author: 'Z', revisionId: 'k1' }))
+    expect(res.status).toBe(201)
+
+    const body = await (await GET(req('GET', `/api/dictionary/${key}`))).json()
+    expect(body.revisions).toHaveLength(1)
+    // U+06AF, not U+0643 U+0643.
+    expect(body.revisions[0].value).toBe('گ')
+    expect([...body.revisions[0].value].map((c: string) => c.codePointAt(0))).toEqual([0x06af])
+  })
+
+  it('tells the caller what it converted, rather than changing the value silently', async () => {
+    const { POST } = await dictKeyApi()
+    const res = await POST(req('POST', `/api/dictionary/${encodeKey('Register now')}`, {
+      value: 'مظظمان', author: 'Z', revisionId: 'k2',
+    }))
+    const body = await res.json()
+    expect(body.revision.value).toBe('مہمان')
+    expect(body.converted).toContain('ہ')
+  })
+
+  it('leaves a value with no doubles exactly as typed', async () => {
+    const { POST } = await dictKeyApi()
+    const res = await POST(req('POST', `/api/dictionary/${encodeKey('Register now')}`, {
+      value: 'مہمان', author: 'Z', revisionId: 'k3',
+    }))
+    const body = await res.json()
+    expect(body.revision.value).toBe('مہمان')
+    // No conversion happened, so nothing is reported. A field that always appears would train
+    // the reader to ignore it.
+    expect(body.converted).toBeUndefined()
+  })
 })
 
 describe('mojibake', () => {

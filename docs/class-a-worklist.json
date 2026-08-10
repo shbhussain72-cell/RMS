@@ -2,39 +2,25 @@
   {
     "english": "11:59 PM (before City Selection opens)",
     "where": "span < p.mt-[3px] < div.mt-[11px]",
+    "count": 1,
+    "via": "identity",
     "dictValue": "11:59 اختيار الشہر كهلوا پہلا",
+    "rendered": "11:59 PM (before City Selection opens)",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats"
     ]
   },
   {
-    "english": "Go Home",
-    "where": "button.cursor-pointer < div.flex < div[Breadcrumb].flex",
-    "dictValue": "Home",
-    "routes": [
-      "/miqaats/ashara-1448",
-      "/miqaats/ashara-1448/questionnaire",
-      "/miqaats/ashara-1448/people",
-      "/miqaats/ashara-1448/invite",
-      "/miqaats/ashara-1448/review",
-      "/miqaats/ashara-1448/preferred-city",
-      "/miqaats/ashara-1448/arrange",
-      "/miqaats/ashara-1448/city",
-      "/miqaats/ashara-1448/araz",
-      "/miqaats/ashara-1448/zone",
-      "/miqaats/ashara-1448/manage",
-      "/miqaats/ashara-1448/manage/host",
-      "/miqaats/ashara-1448/manage/relay",
-      "/miqaats/ashara-1448/city-allocation",
-      "/miqaats/ashara-1448/zone-allocation",
-      "/miqaats/ashara-1448/roster",
-      "/miqaats/ashara-1448/raza"
-    ]
-  },
-  {
     "english": "Max",
     "where": "span.text-[11px] < button.mt-[8px] < div",
+    "count": 1,
+    "via": "identity",
     "dictValue": "ميكس",
+    "rendered": "Max",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/questionnaire",
       "/miqaats/ashara-1448/people",
@@ -44,7 +30,12 @@
   {
     "english": "terms and conditions",
     "where": "span.inline-flex < span.text-[14px] < button.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "شروط انے احكام",
+    "rendered": "terms and conditions",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/questionnaire",
       "/miqaats/ashara-1448/people",
@@ -54,7 +45,12 @@
   {
     "english": "3 family members",
     "where": "p.truncate < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "3 اهل نا ممبرو",
+    "rendered": "3 family members",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/people"
     ]
@@ -62,7 +58,12 @@
   {
     "english": "Not confirmed",
     "where": "p.mt-[6px] < div < div.grid",
+    "count": 2,
+    "via": "identity",
     "dictValue": "confirm نتهي",
+    "rendered": "Not confirmed",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review",
       "/miqaats/ashara-1448/city-allocation",
@@ -74,7 +75,12 @@
   {
     "english": "members",
     "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "count": 2,
+    "via": "identity",
     "dictValue": "ممبرو",
+    "rendered": "members",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review",
       "/miqaats/ashara-1448/roster"
@@ -83,7 +89,12 @@
   {
     "english": "Headcount",
     "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "count": 1,
+    "via": "identity",
     "dictValue": "كل ممبرو",
+    "rendered": "Headcount",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review"
     ]
@@ -91,7 +102,12 @@
   {
     "english": "My family",
     "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "count": 1,
+    "via": "identity",
     "dictValue": "مارا اهل",
+    "rendered": "My family",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review"
     ]
@@ -99,7 +115,12 @@
   {
     "english": "None selected",
     "where": "p.mt-[6px] < div < div.mt-[16px]",
+    "count": 1,
+    "via": "identity",
     "dictValue": "كئي select نتهي",
+    "rendered": "None selected",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review",
       "/miqaats/ashara-1448/city-allocation",
@@ -111,7 +132,12 @@
   {
     "english": "Total",
     "where": "bdi < p.whitespace-nowrap < div.absolute",
+    "count": 1,
+    "via": "identity",
     "dictValue": "كل",
+    "rendered": "Total",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review"
     ]
@@ -119,7 +145,12 @@
   {
     "english": "You're all set",
     "where": "p.truncate < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "تمام",
+    "rendered": "You're all set",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/review"
     ]
@@ -127,7 +158,12 @@
   {
     "english": "Male",
     "where": "bdi < p.mt-[2px] < div.min-w-0",
+    "count": 2,
+    "via": "identity",
     "dictValue": "مرد",
+    "rendered": "Male",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/arrange",
       "/miqaats/ashara-1448/city",
@@ -138,7 +174,12 @@
   {
     "english": "Female",
     "where": "bdi < p.mt-[2px] < div.min-w-0",
+    "count": 1,
+    "via": "identity",
     "dictValue": "بئيرو",
+    "rendered": "Female",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/arrange",
       "/miqaats/ashara-1448/city",
@@ -149,7 +190,12 @@
   {
     "english": "Host city",
     "where": "p.text-[14px] < div.min-w-0 < div.mt-[12px]",
+    "count": 1,
+    "via": "identity",
     "dictValue": "موضع الفصل",
+    "rendered": "Host city",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/arrange",
       "/miqaats/ashara-1448/city",
@@ -159,7 +205,12 @@
   {
     "english": "Other Cities (",
     "where": "p.text-[20px] < div.flex < div.rounded-[16px]",
+    "count": 1,
+    "via": "identity",
     "dictValue": "بيجا شہر",
+    "rendered": "Other Cities (",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/arrange",
       "/miqaats/ashara-1448/city",
@@ -169,7 +220,12 @@
   {
     "english": "city",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "شہر",
+    "rendered": "city",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/city",
       "/miqaats/ashara-1448/manage/host",
@@ -179,7 +235,12 @@
   {
     "english": "host",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "موضع الفصل",
+    "rendered": "host",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/city",
       "/miqaats/ashara-1448/manage/host"
@@ -188,7 +249,12 @@
   {
     "english": "members below",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "اْ سگلا مہمانو",
+    "rendered": "members below",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/city"
     ]
@@ -196,7 +262,12 @@
   {
     "english": "request",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "عرض",
+    "rendered": "request",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/city"
     ]
@@ -204,7 +275,12 @@
   {
     "english": "Action",
     "where": "th.px-[16px] < tr < thead",
+    "count": 1,
+    "via": "identity",
     "dictValue": "اعمل",
+    "rendered": "Action",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/araz",
       "/miqaats/ashara-1448/zone"
@@ -213,7 +289,12 @@
   {
     "english": "Save Preferences",
     "where": "span.whitespace-nowrap < button.flex < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "تفاضيل save كريئے",
+    "rendered": "Save Preferences",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/araz"
     ]
@@ -221,7 +302,12 @@
   {
     "english": "Submit your preferences",
     "where": "p.truncate < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "تفاضيل submit كريئے",
+    "rendered": "Submit your preferences",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/araz"
     ]
@@ -229,7 +315,12 @@
   {
     "english": "Request",
     "where": "button.inline-flex < td.px-[14px] < tr.cursor-pointer",
+    "count": 3,
+    "via": "identity",
     "dictValue": "عرض",
+    "rendered": "Request",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/zone"
     ]
@@ -237,7 +328,12 @@
   {
     "english": "Switch to Colombo",
     "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "count": 2,
+    "via": "identity",
     "dictValue": "كولمبو ما بدلو",
+    "rendered": "Switch to Colombo",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/host"
     ]
@@ -245,7 +341,12 @@
   {
     "english": "CURRENT",
     "where": "th.px-[12px] < tr < thead",
+    "count": 1,
+    "via": "identity",
     "dictValue": "في الحال",
+    "rendered": "CURRENT",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/host",
       "/miqaats/ashara-1448/manage/relay"
@@ -254,7 +355,12 @@
   {
     "english": "Request to",
     "where": "span.truncate < button.inline-flex < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "عرض كرو",
+    "rendered": "Request to",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/host",
       "/miqaats/ashara-1448/manage/relay"
@@ -263,7 +369,12 @@
   {
     "english": "Submit request",
     "where": "span.whitespace-nowrap < button.flex < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "عرض موكليے",
+    "rendered": "Submit request",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/host",
       "/miqaats/ashara-1448/manage/relay"
@@ -272,7 +383,12 @@
   {
     "english": "— select members below",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "ممبر چنو",
+    "rendered": "— select members below",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/host",
       "/miqaats/ashara-1448/manage/relay"
@@ -281,7 +397,12 @@
   {
     "english": "Change Relay City",
     "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "count": 2,
+    "via": "identity",
     "dictValue": "ريلے موضع بدلو",
+    "rendered": "Change Relay City",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/relay"
     ]
@@ -289,7 +410,12 @@
   {
     "english": "relay",
     "where": "bdi < span.text-[14px] < span.inline-flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "ريلے",
+    "rendered": "relay",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/manage/relay"
     ]
@@ -297,7 +423,12 @@
   {
     "english": "Registered",
     "where": "span.whitespace-nowrap < div.flex < div[Breadcrumb].flex",
+    "count": 2,
+    "via": "identity",
     "dictValue": "مواقيت Registered",
+    "rendered": "Registered",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/roster"
     ]
@@ -305,7 +436,12 @@
   {
     "english": "Raza Status",
     "where": "th.px-[16px] < tr < thead",
+    "count": 1,
+    "via": "identity",
     "dictValue": "رزا حال",
+    "rendered": "Raza Status",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/roster"
     ]
@@ -313,7 +449,12 @@
   {
     "english": "Raza Pending",
     "where": "p.text-[14px] < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "رزا باقي",
+    "rendered": "Raza Pending",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/raza"
     ]
@@ -321,7 +462,12 @@
   {
     "english": "Raza has not been issued yet for your group.",
     "where": "p.text-[12px] < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "هجي اْپ نا گروپ نے رزا نتهي ملي",
+    "rendered": "Raza has not been issued yet for your group.",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/raza"
     ]
@@ -329,7 +475,12 @@
   {
     "english": "The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.",
     "where": "p.mt-[8px] < div.mt-[14px] < div.w-full",
+    "count": 1,
+    "via": "identity",
     "dictValue": "اْپ ني ميقات ني تمام سفر يہاں ديكهيئے",
+    "rendered": "The complete journey at a glance — registration, city and zone selection, Raza, and the day of Miqaat.",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/miqaats/ashara-1448/timeline"
     ]
@@ -337,7 +488,12 @@
   {
     "english": "Request received",
     "where": "p.text-[15px] < div.min-w-0 < div.flex",
+    "count": 2,
+    "via": "identity",
     "dictValue": "عرض تهئي گئي",
+    "rendered": "Request received",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/join-group"
     ]
@@ -345,7 +501,12 @@
   {
     "english": "Murtaza bhai Moiz bhai Gheewala has invited you to join their group",
     "where": "p.mt-[3px] < div.min-w-0 < div.flex",
+    "count": 1,
+    "via": "identity",
     "dictValue": "مرتضى بهائي معز بهائي گهي ولا يھ اْپ نے اهنا گروپ ما اذن اْپو ؛",
+    "rendered": "Murtaza bhai Moiz bhai Gheewala has invited you to join their group",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/join-group"
     ]
@@ -353,7 +514,12 @@
   {
     "english": "Sat, 21 Jun, 2026",
     "where": "span.text-[12px] < div.flex < div.mt-[6px]",
+    "count": 1,
+    "via": "identity",
     "dictValue": "يوم السبت ، june 21",
+    "rendered": "Sat, 21 Jun, 2026",
+    "translated": false,
+    "renderedIsLatin": true,
     "routes": [
       "/join-group"
     ]

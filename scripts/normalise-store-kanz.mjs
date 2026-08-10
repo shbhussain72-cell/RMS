@@ -69,7 +69,14 @@ if (process.argv[1] && process.argv[1].endsWith('normalise-store-kanz.mjs')) {
   const { overrides = [] } = await res.json()
   const doubled = doubledHeads(overrides)
 
+  // The store size is printed FIRST and always, because "0 carry doubles" on its own cannot be
+  // told apart from a run that read nothing. A reachable store with work already done says
+  // "N override(s)" with N > 0; an empty or wrongly-read one says 0 and is called out.
   console.log(`${overrides.length} override(s) in the store`)
+  if (!overrides.length) {
+    console.log('the store returned NO overrides at all — that is not the same as nothing to do.')
+    console.log('check the --base URL and that the request was authorised before reading this as clean.')
+  }
   console.log(`${doubled.length} carry Kanz doubles`)
   for (const d of doubled) {
     console.log(`  ${JSON.stringify(d.key).slice(0, 56)}`)

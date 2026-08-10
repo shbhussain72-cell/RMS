@@ -1,4 +1,4 @@
-import { useT } from '../../i18n'
+import { lookupLsd, useLang, useT } from '../../i18n'
 import { isolateRuns } from '../Bidi'
 /**
  * Breadcrumb — pixel-exact from Figma (node 29:3078).
@@ -21,8 +21,38 @@ export type Crumb = { label: string; to?: string };
  * RTL span, leaving the Latin run at the mercy of the bidi algorithm. Isolating HERE fixes every
  * breadcrumb in the app at once; `isolateRuns` returns the bare string when there is nothing to
  * isolate, so English mode adds no DOM node and is unchanged.
+ *
+ * ── AND TRANSLATING HERE, FOR THE SAME REASON ────────────────────────────────────────
+ *
+ * "Call sites build the trail with `t('…')`" was the rule and it was not kept: 25 of them pass
+ * `{ label: 'Home' }` raw. The wordlist has a translation for Home, so in LSD those rendered
+ * English on 17 routes — the single largest class-A wiring defect in the app, and the same one
+ * repeated 25 times because the rule lived in a comment and nothing enforced it.
+ *
+ * A rule every call site must remember is a rule that decays. The component translates now, so
+ * a crumb is correct whether or not the call site remembered.
+ *
+ * ── WHY `lookupLsd` AND NOT `t` ───────────────────────────────────────────────────
+ *
+ * Because both kinds of call site have to keep working, and they pass different things.
+ *
+ *   `{ label: 'Home' }`      an English KEY. Needs translating.
+ *   `{ label: t('Home') }`   already the LSD value. Must not be looked up again.
+ *
+ * `t()` on the second would miss — an Arabic string is not a key — and `resolve()` records
+ * every miss, so the coverage report would fill with gaps whose "untranslated string" is a
+ * finished translation. `lookupLsd` returns `undefined` instead of recording, so a
+ * pre-translated label falls through unchanged and files nothing.
+ *
+ * It also means coverage recording is untouched in both directions: the pre-translated sites
+ * still call `t()` themselves and still report their own gaps, and the raw ones never reported
+ * anything to begin with. This changes what is RENDERED, not what is counted.
+ *
+ * Gated on LSD. `lookupLsd` reads the wordlist whatever the language, so calling it
+ * unconditionally would put Arabic crumbs on the English site.
  */
-const crumbText = (label: string) => isolateRuns(label);
+const crumbText = (label: string, lsd: boolean) =>
+  isolateRuns(lsd ? lookupLsd(label) ?? label : label);
 
 /**
  * Separator between crumbs. It points along the reading direction, so it has to flip in RTL —
@@ -83,6 +113,8 @@ export default function Breadcrumb({
   backOnMobile?: boolean;
 }) {
      const { tx } = useT()
+  const { lang } = useLang()
+  const lsd = lang === 'lsd'
   const textSize = dense ? "text-[13px]" : "text-[14px]";
   return (
     <div
@@ -120,14 +152,14 @@ export default function Breadcrumb({
                 className={`cursor-pointer whitespace-nowrap text-start ${textSize} leading-[1.5] text-[#8a938e] underline-offset-[3px] transition-colors duration-150 hover:text-[#15402f] hover:underline focus-visible:text-[#15402f] focus-visible:outline-none`}
                 style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 400 }}
               >
-                {crumbText(item.label)}
+                {crumbText(item.label, lsd)}
               </button>
             ) : (
               <span
                 className={`whitespace-nowrap ${textSize} leading-[1.5]`}
                 style={{ fontFamily: "Mulish, system-ui, sans-serif", fontWeight: 400, color: isLast ? activeColor : "#8a938e" }}
               >
-                {crumbText(item.label)}
+                {crumbText(item.label, lsd)}
               </span>
             )}
             {!isLast && <Chevron />}

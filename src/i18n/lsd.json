@@ -41,7 +41,7 @@
     "list": "permanent"
   },
   "Use your ITS credentials to access the portal": {
-    "lsd": "‏portal ما داخل تھاوا واسطے تمارا ITS نا تفاصيل نو استعمال كرو",
+    "lsd": "‏داخل تھاوا واسطے اْپ نا ITS نا تفاصيل نو استعمال كرو",
     "page": "1",
     "list": "permanent"
   },
@@ -4166,7 +4166,7 @@
     "list": "permanent"
   },
   "Are you sure you want to log out of your Miqaat Registration account?": {
-    "lsd": "‏اْپ واقعي اْپنا ميقات ‏Registration نا account ما سي باهر نكلوا چاهو چھو؟",
+    "lsd": "اْپ ميقات سي باهر نكلوا چاهو چھو؟",
     "page": "added",
     "list": "permanent"
   },
@@ -5912,6 +5912,11 @@
   },
   "Zone selection has closed.": {
     "lsd": "اختيار الموضع بند تهئي گيو ؛",
+    "page": "",
+    "list": "permanent"
+  },
+  "Zone closes in {date}": {
+    "lsd": "‏Thu, 25 Jun 2026 · 11:59 PM IST نے زون بند تهاسے",
     "page": "",
     "list": "permanent"
   }

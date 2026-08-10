@@ -18,6 +18,14 @@ import { createServer } from 'node:net'
 import { waitForApp } from './arrival.mjs'
 
 const JSON_OUT = process.argv.includes('--json')
+
+/** Routes whose whole page is under waitForApp's default floor. Measured, not guessed. */
+const SHORT_ROUTES = new Set(['/login', '/miqaats/ashara-1448/raza-letter'])
+
+// A batch filter, so a fix can be verified against the routes it touched in about a minute
+// instead of re-sweeping all 24 in eight. Verifying only at the end is how a batch that made
+// things worse gets found three batches later.
+const ONLY = (() => { const i = process.argv.indexOf('--routes'); return i > -1 ? process.argv[i + 1].split(',') : null })()
 const log = (...a) => { if (!JSON_OUT) console.log(...a) }
 
 const ROUTES = [
@@ -71,10 +79,15 @@ const page = await ctx.newPage()
 const perRoute = {}
 const byString = new Map()
 
-for (const route of ROUTES) {
+for (const route of (ONLY ? ROUTES.filter((r) => ONLY.some((o) => r === o)) : ROUTES)) {
   try {
     await page.goto(`http://localhost:${port}${route}`, { waitUntil: 'domcontentloaded', timeout: 25_000 })
-    await waitForApp(page)
+    // `waitForApp` defaults to a 300-character floor, which /login (160) and /raza-letter (127)
+    // never reach — they are SHORT, not broken. Both rendered fine and carried a devdock when
+    // probed directly; the census reported them as 30s timeouts and counted 0, which is no data
+    // wearing the same shape as a clean route. The floor is per-route now, and a route that
+    // still fails is recorded as an error rather than as a zero.
+    await waitForApp(page, { minChars: SHORT_ROUTES.has(route) ? 100 : 300 })
   } catch (err) {
     perRoute[route] = { error: String(err).split('\n')[0], A: 0, hits: [] }
     continue

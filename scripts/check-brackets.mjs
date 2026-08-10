@@ -96,7 +96,7 @@ for (const width of NARROW_WIDTHS) {
     try {
       await page.goto(`http://localhost:${port}${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
       await page.evaluate(() => document.fonts?.ready)
-      await page.waitForTimeout(320)
+      await page.waitForTimeout(320)   // sleep: React mounts and lays out the route after fonts resolve, and nothing signals that it has
     } catch { continue }
     for (const r of await page.evaluate(EVAL)) {
       seen++

@@ -1320,8 +1320,8 @@ export default function ZoneSelection() {
 
     const successFooter = (
       <StickyFooter
-        caption={t('Zone confirmed')}
-        title={t(plural(totalMembers, '{city} · {n} member', '{city} · {n} members'), { city: tdText(cityName), n: totalMembers })}
+        caption={tx('Zone confirmed')}
+        title={tx(plural(totalMembers, '{city} · {n} member', '{city} · {n} members'), { city: tdText(cityName), n: totalMembers })}
         button={t('Done')}
         onButton={() => nav('/miqaats')}
       />
@@ -1338,7 +1338,7 @@ export default function ZoneSelection() {
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
             title={t('Zone Confirmed')}
-            footerCaption="Zone confirmed"
+            footerCaption={tx('Zone confirmed')}
             reference={flow.referenceNumber ?? 'MIQ-23106'}
             infoLabel={t('Raza issues on')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
@@ -1457,7 +1457,7 @@ export default function ZoneSelection() {
   const browseFooter = (
     <StickyFooter
       dataTour="reserve-confirm"
-      caption={t('Allocate')}
+      caption={tx('Allocate')}
       title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
       button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
       onButton={handleReserve}
@@ -1837,7 +1837,7 @@ export default function ZoneSelection() {
             <div className="shrink-0">
               <StickyFooter
                 dataTour="reserve-confirm"
-                caption={t('Allocation')}
+                caption={tx('Allocation')}
                 title={<>{t('Close in')} <span style={{ color: '#b8821e' }}>{fmtHHMMSS(timer)}</span></>}
                 button={isRequest ? t('Request') : totalAllocated > 0 ? t('Confirm ({n})', { n: totalAllocated }) : t('Confirm')}
                 onButton={handleReserve}

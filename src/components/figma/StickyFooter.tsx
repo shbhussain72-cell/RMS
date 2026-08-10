@@ -1,5 +1,31 @@
-import type { ReactNode } from 'react'
-import { useT } from '../../i18n'
+import { isValidElement, type ReactNode } from 'react'
+import { useT, type TxProps } from '../../i18n'
+
+/**
+ * A slot that may be handed either finished JSX or the props `tx()`/`td()` returns.
+ *
+ * The caption and title are rendered into `<p class="truncate">` elements this component owns,
+ * so a call site cannot put `dir`/`lang` on them — it can only pass children. Every one of them
+ * therefore reached for `t()`, the STRING form, which deliberately skips `isolateRuns`: it
+ * exists for attributes like `placeholder`, which cannot carry direction at all.
+ *
+ * The result was a single mixed-script text node wherever a translation embeds a Latin token.
+ * `check-mirror`'s bidi census names two — `Ready for Registration` and
+ * `People in your reservation` — and they are the two whose CURRENT wordlist values happen to
+ * embed one. The other fifteen callers were the same defect waiting on a translation.
+ *
+ * Accepting TxProps and spreading it onto the <p> fixes the class at the component instead of
+ * at the call sites, and adds no DOM node — which matters here, because the caption sits in a
+ * `truncate` box whose width is load-bearing (see the LSD clip rule in src/index.css).
+ */
+type Slot = ReactNode | TxProps
+
+/** TxProps is a plain object with `children`; JSX is an element; everything else is children. */
+const isTx = (v: Slot): v is TxProps =>
+  typeof v === 'object' && v !== null && !isValidElement(v) && !Array.isArray(v) && 'children' in v
+
+/** Props for the <p> that renders a slot: spread TxProps, or pass anything else as children. */
+const slotProps = (v: Slot) => (isTx(v) ? v : { children: v })
 
 const FONT = 'Mulish, system-ui, sans-serif'
 
@@ -22,8 +48,8 @@ export default function StickyFooter({
   secondary,
   back,
 }: {
-  caption: ReactNode
-  title: ReactNode
+  caption: Slot
+  title: Slot
   /** Primary CTA — omit to render only the secondary action (e.g. an empty-state "Skip"-only footer). */
   button?: ReactNode
   onButton?: () => void
@@ -43,12 +69,8 @@ export default function StickyFooter({
       {children}
       <div className="flex items-center justify-between gap-[12px] rounded-[18px] border border-[#e7dfc9] bg-[#fffdf8] px-4 py-[10px] shadow-[0px_22px_50px_-18px_rgba(21,64,47,0.3),0px_8px_20px_-10px_rgba(21,64,47,0.16)]">
         <div className="min-w-0">
-          <p className="truncate text-[11px] font-bold uppercase leading-[16px] tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }}>
-            {caption}
-          </p>
-          <p className="truncate text-[15px] font-extrabold leading-[22px] text-[#15402f]" style={{ fontFamily: FONT }}>
-            {title}
-          </p>
+          <p className="truncate text-[11px] font-bold uppercase leading-[16px] tracking-[0.5px] text-[#8a938e]" style={{ fontFamily: FONT }} {...slotProps(caption)} />
+          <p className="truncate text-[15px] font-extrabold leading-[22px] text-[#15402f]" style={{ fontFamily: FONT }} {...slotProps(title)} />
         </div>
         <div className="flex shrink-0 items-center gap-[10px]">
           {back && (

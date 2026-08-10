@@ -7,6 +7,7 @@
     "build:lsd": "node scripts/build-lsd-dict.mjs",
     "check:lsd": "node scripts/check-lsd-coverage.mjs",
     "check:bidi": "node scripts/check-bidi.mjs",
+    "check:brackets": "node scripts/check-brackets.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "npm run build:lsd && vite",

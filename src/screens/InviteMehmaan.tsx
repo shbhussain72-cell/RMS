@@ -352,7 +352,7 @@ export default function InviteMehmaan() {
   const inviteFooterCta = mehmaanInvites.length > 0 ? (
     <StickyFooter
       caption={<bdi {...tdAuthored(miqaat.title)} />}
-      title={t(plural(mehmaanInvites.length, '{n} invited', '{n} invited'), { n: mehmaanInvites.length })}
+      title={tx(plural(mehmaanInvites.length, '{n} invited', '{n} invited'), { n: mehmaanInvites.length })}
       button={t('Confirm')}
       // Invite Mehmaan is opened from the event's detail-page card, so Confirm returns there (the
       // card then reads "Edit") — not the Add People / registration flow.

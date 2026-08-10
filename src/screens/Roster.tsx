@@ -224,7 +224,7 @@ export default function Roster() {
       footer={(
         <StickyFooter
           caption={<bdi {...tdAuthored(miqaat.title)} />}
-          title={t(plural(total, '{n} Member', '{n} Members'), { n: total })}
+          title={tx(plural(total, '{n} Member', '{n} Members'), { n: total })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

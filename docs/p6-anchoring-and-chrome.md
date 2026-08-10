@@ -48,7 +48,7 @@ left alone.
 | §4.6 Documents card gradient | **yes** | fixed |
 | §4.7 Duplicate instruction rows | **yes** — 4 of the 5 rows twice, in 10 of 10 views | fixed |
 | §4.8 Sticky footers cover content | **no** | measured below |
-| §4.9 `مرحلو 1 · LIVE` info popover | **no** | `CitySelection.tsx` already routes both info popovers through `components/Popover` (lines 363, 1163). `check:anchor` 0 failing at 390 and 1440, both languages. |
+| §4.9 `مرحلو 1 · LIVE` info popover | **no** | `CitySelection.tsx` already routes both info popovers through `components/Popover` (lines 363, 1163). ~~`check:anchor` 0 failing at 390 and 1440, both languages.~~ **CORRECTION: that zero says nothing about these two.** `check:anchor` never loads `/city` — see "Suites that pass because they never looked" below. Routing through the primitive is not the same as being exercised. |
 | §4.10 Ask Help dock | **no** | `AskHelpChat.tsx` is a `fixed inset-0` drawer with `min-h-0 flex-1 overflow-y-auto`. `inset-0` plus padding bounds it to the viewport more strictly than `max-h-[85dvh]` would, and it already scrolls internally. Nothing runs off the bottom at 833px. |
 | §4.11 Success has no AppBar | **yes** | fixed |
 
@@ -207,3 +207,71 @@ The "Request all to Mumbai" pill on `/manage/relay` at 768 is sheared by the lef
 | `check:bidi` | **not re-run to completion** — exceeded a 500s cap; no bidi-related code changed |
 
 Screenshots: **250** — 25 routes x 5 widths x 2 languages, one run, at the end.
+
+---
+
+## Transforms are never only transforms — and an identity transform still counts
+
+Two findings in this repo have the same root, and both were invisible in a screenshot.
+
+| | `-translate-x-1/2` on `Success.tsx` | `transition-transform` on `MiqaatList`'s sticky header |
+|---|---|---|
+| what the transform also did | created a **stacking context** | created a **containing block for `position: fixed`** |
+| what broke | paint and hit-test order — the clipped ornament began hit-testing above the heading | the popovers' `fixed` coordinates resolved against the header, not the viewport |
+| how it looked | pixel-identical, 8 new log-only OVERLAY findings | a panel 137px (account) and 40px (bell) from where the arithmetic said |
+| what was measured and correct anyway | every box | every `getBoundingClientRect` that fed the placement |
+| caught by | `check-layout.mjs` | `check-anchor.mjs` |
+
+**The trap is that the transform does not have to do anything.** The sticky header's computed
+transform is `matrix(1, 0, 0, 1, 0, 0)` — an identity. It moves nothing, and it establishes a
+containing block exactly as a real translation would, because the spec keys off *any value other
+than `none`* (CSS Transforms §3), not off whether the matrix is the identity. Reading a computed
+style, seeing `matrix(1, 0, 0, 1, 0, 0)` and concluding "no transform here" is the specific
+mistake; the only value that means no transform is `none`.
+
+`transform` is not the only property that does this. `filter`, `backdrop-filter`,
+`will-change` naming either of them, `contain: paint` / `contain: layout` and `perspective` all
+establish a containing block for fixed descendants too, and most of them establish a stacking
+context as well.
+
+**Why the popover is portalled.** `components/Popover.tsx` renders through `createPortal` to
+`document.body` so that no consumer's wrapper can reach it. That is not a stylistic choice and it
+should not be "simplified" back to an in-place render — the next person to wrap a trigger in a
+sticky, animated or filtered container will reintroduce this, and the failure will look like a
+placement bug in the popover rather than a containing block in their wrapper. The mechanism is
+recorded beside the portal in `Popover.tsx` as well, so it is found from the code and not only
+from here.
+
+## Suites that pass because they never looked
+
+`check:anchor` was green for months while driving exactly one consumer of `Popover` — the `/araz`
+relay dropdown — and reporting on the contract in general. Both AppBar popovers were broken the
+whole time. Two more instances of the same shape are open, found by audit rather than by failure:
+
+**1. `check-anchor.mjs` covers 3 of 6 `<Popover>` call sites.** Exercised: `Araz.tsx:232`,
+`AppBar.tsx:218`, `NotificationPanel.tsx:275`. Never opened: `CitySelection.tsx:363` and
+`:1163` (the zone and relay pickers on `/city`) and `ArrangeCities.tsx:300` (`/arrange`). The
+suite visits `/miqaats` and `/miqaats/:id/araz` and no other route.
+
+  §4.9 above states that CitySelection "already routes both info popovers through
+  `components/Popover` (lines 363, 1163). `check:anchor` 0 failing at 390 and 1440, both
+  languages." **The first half is true and the second does not follow** — the suite never loads
+  that route, so its zero says nothing about those two consumers. Routing through the primitive
+  is not the same as being exercised, and this is what that distinction looks like written down
+  as though it had been measured.
+
+  The fix is not more cases. It is deriving the consumer list from source — count `<Popover`
+  call sites in `src/`, require every one to be claimed by an exercised case, fail on any that
+  is not — so a new consumer cannot be added without either covering it or failing the check.
+  `check-dev-only.mjs` already does this shape for the route table.
+
+**2. `check-mirror.mjs` skips its third section silently.** The bidi census reads
+`artifacts/audit/bidi.json` and, when the file is absent, calls `skip()` and exits 0.
+`artifacts/` is gitignored, so on a fresh clone — and on any CI runner — that file never exists
+unless `check:bidi` happened to run first in the same job. The check reports success having run
+two of its three sections. `skip()` for "this route has no sticky footer, nothing to reserve" is
+a legitimate skip; `skip()` for "my input is missing" is a failure wearing a skip's clothes.
+
+The general rule these keep re-teaching: **a suite must assert what it covered, not only what it
+found.** `check-anchor.mjs` and `check-brackets.mjs` both now end with a coverage assertion that
+fails on zero exercised cases, which is the cheapest version of it.

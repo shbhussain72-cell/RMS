@@ -222,10 +222,21 @@ html[data-lang='lsd'] [dir='rtl'] {
    node is ever rendered LTR — notably an untranslated English fallback, which
    `tx()` deliberately marks dir="ltr".
 
-   `:where()` contributes ZERO specificity, so the selector weighs (0,0,1) and any
-   Tailwind alignment utility on the element (`text-center` on a hero heading)
-   still wins. Centred copy stays centred in both languages. */
-html[data-lang='lsd'] :where([dir]) {
+   THE WHOLE SELECTOR IS WRAPPED, not just its last compound. That was the bug:
+   `:where()` zeroes only what it contains, so `html[data-lang='lsd'] :where([dir])`
+   still weighed (0,1,1) — the type selector `html` plus the ATTRIBUTE selector
+   `[data-lang='lsd']` — and out-specified Tailwind's `.text-center` at (0,1,0). The
+   comment here used to claim (0,0,1) and conclude "centred copy stays centred in both
+   languages". It did not. Measured: `/login`'s heading and `/success`'s heading both
+   carry `text-center`, and both computed `text-align: start` in LSD while English
+   showed them centred. Two separately-reported defects, one rule.
+
+   At (0,0,0) the rule still does the job it exists for. `text-align` is initially
+   `start` anyway, so the only value it changes is one INHERITED from an ancestor — a
+   translated node inside a centred block — and any matching declaration beats an
+   inherited value regardless of specificity. What it no longer does is override an
+   alignment the element asked for itself. */
+:where(html[data-lang='lsd']) :where([dir]) {
   text-align: start;
 }
 

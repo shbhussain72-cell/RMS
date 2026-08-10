@@ -3054,8 +3054,8 @@ export default function CitySelection() {
 
     const successFooter = (
       <StickyFooter
-        caption={t('City confirmed')}
-        title={t('{n} members allocated', { n: totalAllocated })}
+        caption={tx('City confirmed')}
+        title={tx('{n} members allocated', { n: totalAllocated })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3069,7 +3069,7 @@ export default function CitySelection() {
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
             title={t('City Confirmed')}
-            footerCaption={t('City confirmed')}
+            footerCaption={tx('City confirmed')}
             infoLabel={t('Zone selection open')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
             membersAllocated={totalAllocated}
@@ -3290,8 +3290,8 @@ export default function CitySelection() {
 
     const successZoneFooter = (
       <StickyFooter
-        caption={t('Zone confirmed')}
-        title={t('{n} members allocated', { n: totalAllocated || totalMembers })}
+        caption={tx('Zone confirmed')}
+        title={tx('{n} members allocated', { n: totalAllocated || totalMembers })}
         button="Go home"
         onButton={() => nav('/miqaats')}
       />
@@ -3305,7 +3305,7 @@ export default function CitySelection() {
         <div className="hidden sm:block sm-full-bleed">
           <ConfirmedView
             title={t('Zone Confirmed')}
-            footerCaption="Zone confirmed"
+            footerCaption={tx('Zone confirmed')}
             reference={flow.referenceNumber ?? 'MIQ-23106'}
             infoLabel={t('Raza issues on')}
             infoValue={<><DateLine value="15 June 2026" hijri={false} />{', '}<TimeLine value="09:00 AM IST" /></>}
@@ -3448,8 +3448,8 @@ export default function CitySelection() {
   const browseFooter = (
     <StickyFooter
       dataTour="city-confirm"
-      caption={isRequest ? t('Request') : t('Allocation')}
-      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
+      caption={isRequest ? tx('Request') : tx('Allocation')}
+      title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
@@ -3482,8 +3482,8 @@ export default function CitySelection() {
   const desktopFooter = (
     <StickyFooter
       dataTour="city-confirm"
-      caption={isRequest ? t('Request') : t('Allocation')}
-      title={isRequest ? t('Submit for approval') : t('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
+      caption={isRequest ? tx('Request') : tx('Allocation')}
+      title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
       button={isRequest ? 'Request' : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}

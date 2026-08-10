@@ -43,7 +43,7 @@ export default function CityAllocation() {
       footer={(
         <StickyFooter
           caption={<bdi {...tdAuthored(miqaat.title)} />}
-          title={t(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
+          title={tx(plural(memberTotal, '{n} Member', '{n} Members'), { n: memberTotal })}
           button={t('Go Home')}
           onButton={() => nav('/miqaats')}
         />

@@ -33,6 +33,34 @@ import { createPortal } from 'react-dom'
  * these lists vary from three rows to a scrolling twenty. It renders hidden for one layout pass,
  * `useLayoutEffect` places it, and the browser paints it once — placed. Hence `visibility`, not a
  * conditional render: a panel that is not in the DOM has no height to measure.
+ *
+ * ── 5. IT IS PORTALLED TO <body>, AND THAT IS LOAD-BEARING ───────────────────────
+ *
+ * `position: fixed` resolves against the viewport ONLY while no ancestor establishes a
+ * containing block for it. A `transform` other than `none` does establish one (CSS Transforms
+ * §3, "any value other than none"), and so do `filter`, `backdrop-filter`, `will-change` naming
+ * either, `contain: paint/layout`, and `perspective`.
+ *
+ * THE TRAP: an IDENTITY transform counts. `MiqaatList` wraps the header in
+ * `sticky top-0 z-50 transition-transform`, which computes to `matrix(1, 0, 0, 1, 0, 0)` —
+ * visually nothing, semantically "transformed". Reading the computed style and seeing an
+ * identity matrix is not evidence of absence; the only value that is `none` is `none`. With the
+ * panel rendered inside that header, every `fixed` coordinate was measured from the header's box
+ * instead of the viewport: the account dropdown landed 137px out and the notification panel 40px
+ * out, in BOTH languages, while `getBoundingClientRect` on the trigger read correctly and the
+ * arithmetic here was right.
+ *
+ * Portalling to `document.body` puts the panel outside every such ancestor, which is the only
+ * fix that does not depend on knowing what wrappers a consumer happens to have. It also means a
+ * consumer may freely add a sticky, filtered or animated wrapper without silently breaking
+ * placement — and the next person to add one WILL, because the wrapper is the obvious thing and
+ * this consequence of it is not.
+ *
+ * Same class as the `-translate-x-1/2` finding in docs/centring-exceptions.md: a transform is
+ * never only a transform. There it created a stacking context and changed paint order while
+ * every box stayed pixel-identical; here it created a containing block and moved a fixed box
+ * while every rect that fed into it was correct. `scripts/check-anchor.mjs` is what fails if
+ * either is reintroduced.
  */
 
 /** Gap between the trigger and the panel, and the minimum breathing room at a viewport edge. */

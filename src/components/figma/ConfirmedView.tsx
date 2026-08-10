@@ -3,7 +3,7 @@ import { memberMeta } from '../MemberMeta'
 import RoleBadge from './RoleBadge'
 import { bandLabel, type Group } from '../../lib/group'
 import { genderByIts } from '../../data/seed'
-import { useT, tNow } from '../../i18n'
+import { useT, tNow, type TxProps } from '../../i18n'
 import { notLanguage } from '../NotLanguage'
 
 const FONT = 'Mulish, system-ui, sans-serif'
@@ -232,7 +232,8 @@ export default function ConfirmedView({
   statusRowLabel = 'Registration status', statusPill = 'Allocated', countLabel = 'Members allocated', footerNoun = 'members allocated',
 }: {
   title: string
-  footerCaption: string
+  /** Routed text, not a string — see the Slot note in StickyFooter. */
+  footerCaption: TxProps
   reference?: string
   infoLabel: string
   /** ReactNode, not string: dates/times arrive pre-formatted and bidi-isolated. */

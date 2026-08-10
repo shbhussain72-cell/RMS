@@ -472,8 +472,8 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
   const footer = !empty ? (
     <div className="sm:hidden">
       <StickyFooter
-        caption={t(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
-        title={t('1st choice {city}', { city: tdText(cities[0]?.name ?? '') })}
+        caption={tx(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
+        title={tx('1st choice {city}', { city: tdText(cities[0]?.name ?? '') })}
         button={t('Confirm')}
         onButton={handleConfirm}
       />
@@ -700,7 +700,7 @@ export default function PreferredCity({ backdrop = false }: { backdrop?: boolean
                 clicking it while no city is picked just surfaces the validation toast below. */}
             <div className="shrink-0">
               <StickyFooter
-                caption={empty ? t('No cities added yet') : t(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
+                caption={empty ? tx('No cities added yet') : tx(plural(cities.length, '{n} city selected', '{n} cities selected'), { n: cities.length })}
                 title={empty ? 'Add a city, or skip to continue' : `1st choice ${cities[0]?.name ?? ''}`}
                 button={t('Confirm')}
                 onButton={handleConfirm}

@@ -1946,8 +1946,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // "Request all"/"Request to {city}" action wording used everywhere else once the window is closed.
   const footer = (
     <StickyFooter
-      caption={t('Allocation')}
-      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
+      caption={tx('Allocation')}
+      title={tx('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? (movedCount > 0 ? t('Confirm ({n})', { n: movedCount }) : t('Confirm')) : (movedCount > 0 ? t('Submit request ({n})', { n: movedCount }) : t('Submit request'))}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
@@ -1955,8 +1955,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   )
   const desktopFooter = (
     <StickyFooter
-      caption={t('Allocation')}
-      title={t('Close in {time}', { time: fmtHHMMSS(secs) })}
+      caption={tx('Allocation')}
+      title={tx('Close in {time}', { time: fmtHHMMSS(secs) })}
       button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}

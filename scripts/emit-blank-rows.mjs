@@ -123,9 +123,13 @@ console.log(`\n${OUT.replace(ROOT, '.')}: ${r.rowsBefore} -> ${r.rowsAfter} rows
 console.log(`  ${r.filled} translated, ${r.blank} awaiting translation`)
 if (r.alreadyPresent.length) console.log(`  ${r.alreadyPresent.length} already in the file, left untouched`)
 if (r.inWordlist.length) {
+  // Capped: a stale routes-final.json produces a hundred of these, and a hundred lines of
+  // "nothing happened" is how the lines that DID something get scrolled away. `--list` prints
+  // the full union.
   console.log(`  ${r.inWordlist.length} skipped — the wordlist already has them, so a blank row`)
   console.log('    would overwrite a real translation on paste. Usually a stale routes-final.json:')
-  for (const k of r.inWordlist) console.log(`      ${JSON.stringify(k)}`)
+  for (const k of r.inWordlist.slice(0, 6)) console.log(`      ${JSON.stringify(k)}`)
+  if (r.inWordlist.length > 6) console.log(`      … and ${r.inWordlist.length - 6} more`)
 }
 for (const k of r.added) console.log(`  + ${JSON.stringify(k)}`)
 console.log('\nEvery row this ADDED has an empty LSD cell, and nothing already in the file was')

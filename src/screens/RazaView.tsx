@@ -24,11 +24,11 @@ function RazaIssuedBanner({ issued }: { issued: boolean }) {
       <span className="size-[8px] shrink-0 rounded-full" style={{ background: issued ? '#1f7a4d' : '#c8951f' }} />
       <div className="min-w-0">
         <p className="text-[14px] font-bold" style={{ fontFamily: FONT, color: issued ? '#1f7a4d' : '#c8951f' }}>
-          {issued ? 'Raza Issued' : t('Raza Pending')}
+          {issued ? t('Raza Issued') : t('Raza Pending')}
         </p>
         <p className="text-[12px] text-[#5a6660]" style={{ fontFamily: FONT }}>
           {issued
-            ? 'Your group has been allocated as shown below.'
+            ? t('Your group has been allocated as shown below.')
             : t('Raza has not been issued yet for your group.')}
         </p>
       </div>

@@ -13,51 +13,30 @@
     "routesErrored": 0
   },
   "remaining": [],
-  "notRouted": [
+  "notRouted": [],
+  "routedWithoutARow": {
+    "why": "These are the sibling branches of strings fixed above — `isRequest ? A : B` where only B had a wordlist row. Holding them back kept them invisible: an unrouted branch is in no queue and no report. They are routed now, so the gate names them as NO_ROW and blank rows are staged in docs/wordlist-patch.xlsx. The wordlist owner accepted the baseline growth this causes.",
+    "reBaselineWith": "node scripts/check-lsd-coverage.mjs --baseline",
+    "keys": [
+      { "english": "Ready to send", "where": "src/screens/Review.tsx", "sibling": "You're all set" },
+      { "english": "Relay city", "where": "CitySelection.tsx x2, ArrangeCities.tsx", "sibling": "Host city" },
+      { "english": "Select", "where": "ZoneSelection.tsx ReserveZoneButton, CitySelection.tsx aria-label", "sibling": "Request", "note": "was already NO_ROW in the baseline from CitySelection.tsx:947" },
+      { "english": "Switch to", "where": "HostCityMove.tsx ReserveCityButton", "sibling": "Request to", "note": "the gate's FRAGMENT filter drops any string ending in ' to', so this one never appears in its report — the xlsx row is the only thing that surfaces it" },
+      { "english": "Switch all", "where": "HostCityMove.tsx x3", "sibling": "Request all" },
+      { "english": "Switch to a Relay City", "where": "HostCityMove.tsx screenTitle", "sibling": "Change Relay City" },
+      { "english": "Change Host City Zone", "where": "HostCityMove.tsx screenTitle", "sibling": "Switch to Colombo" },
+      { "english": "REQUESTED", "where": "HostCityMove.tsx requested table header", "sibling": "CURRENT" },
+      { "english": "Role", "where": "CitySelection.tsx roster table header", "sibling": "Raza Status" },
+      { "english": "Raza Issued", "where": "RazaView.tsx", "sibling": "Raza Pending" },
+      { "english": "Your group has been allocated as shown below.", "where": "RazaView.tsx", "sibling": "Raza has not been issued yet for your group." },
+      { "english": "Update your preferences", "where": "Araz.tsx", "sibling": "Submit your preferences" },
+      { "english": "Update preferences", "where": "Araz.tsx", "sibling": "Save Preferences" }
+    ]
+  },
+  "knownAndNotFixed": [
     {
-      "english": "Ready to send",
-      "where": "src/screens/Review.tsx — the isRequest branch of footerHint",
-      "why": "No wordlist row. Routing it through t() would create a NO_ROW problem the coverage gate has never seen and fail the build. The sibling branch, You're all set, HAS a row and is routed. Add the xlsx row, then route this."
-    },
-    {
-      "english": "Relay city",
-      "where": "CitySelection.tsx x2, ArrangeCities.tsx — the else branch of the Host city pill",
-      "why": "No wordlist row; Host city has one and is routed."
-    },
-    {
-      "english": "Select",
-      "where": "ZoneSelection.tsx ReserveZoneButton, CitySelection.tsx aria-label",
-      "why": "No wordlist row; the Request branch beside it has one and is routed."
-    },
-    {
-      "english": "Switch to",
-      "where": "HostCityMove.tsx ReserveCityButton verb",
-      "why": "No wordlist row; the Request to branch has one and is routed."
-    },
-    {
-      "english": "Switch all",
-      "where": "HostCityMove.tsx switchAllLabel",
-      "why": "No wordlist row; the Request all branch has one and is routed."
-    },
-    {
-      "english": "Raza Issued",
-      "where": "src/screens/RazaView.tsx",
-      "why": "No wordlist row; Raza Pending has one and is routed."
-    },
-    {
-      "english": "Update preferences / Update your preferences",
-      "where": "src/screens/Araz.tsx",
-      "why": "No wordlist rows; Save Preferences and Submit your preferences have them and are routed."
-    },
-    {
-      "english": "Role",
-      "where": "src/screens/CitySelection.tsx roster table header",
-      "why": "No wordlist row; Member and Raza Status beside it have rows and are routed."
-    },
-    {
-      "english": "REQUESTED",
-      "where": "src/screens/HostCityMove.tsx requested table header",
-      "why": "No wordlist row; CURRENT and ACTION beside it have rows and are routed."
+      "what": "src/screens/CitySelection.tsx:3665 — `{isRequest ? 'Choose' : 'Select'} a city above to start {isRequest ? 'requesting' : 'allocating'} your members`",
+      "why": "A sentence assembled from fragments, not a string with a key. Routing the word `Select` here would translate a mid-sentence verb against a standalone dictionary row and produce nonsense in either language. It needs four whole-sentence keys, which is a copy decision rather than a wiring one."
     }
   ]
 }

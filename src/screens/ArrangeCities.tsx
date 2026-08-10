@@ -105,7 +105,7 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (el: HTMLE
           {/* The label follows the OCCUPYING city's real type, not the slot's position — a relay
               city placed here should read as a relay city, not "Host city", to avoid confusion. */}
           <p className="text-[14px] font-bold leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            {city.type === 'host' ? t('Host city') : 'Relay city'}
+            {city.type === 'host' ? t('Host city') : t('Relay city')}
           </p>
           <p className="truncate text-[20px] font-bold leading-[26px] text-[#a8843e]" style={{ fontFamily: FONT }} {...td(city.name)} />
         </div>

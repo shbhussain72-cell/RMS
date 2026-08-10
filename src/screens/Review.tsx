@@ -253,17 +253,11 @@ export default function Review() {
   // "My family members" tile counts the immediate family only; the "Group members" tile counts the
   // people added via Add People (group: true). The participant breakdown already shows in the tiles
   // above, so the footer carries an action hint instead of repeating the count.
-  // ONE BRANCH IS ROUTED AND THE OTHER IS NOT, deliberately.
-  //
-  // `You're all set` HAS a wordlist entry and rendered English anyway — the class-A wiring
-  // defect — so it goes through `t()` now. `Ready to send` has NO row, and routing it would
-  // turn it into a NO_ROW problem the coverage gate has never seen, failing the build. The
-  // baseline may only grow by someone deliberately running `check-lsd-coverage --baseline`,
-  // and that is the wordlist owner's call rather than a side effect of a layout branch.
-  //
-  // So the branch that can be fixed is fixed, and the branch that needs an xlsx row keeps the
-  // behaviour it already had. Route it the moment `Ready to send` gets a row.
-  const footerHint = isRequest ? 'Ready to send' : t("You're all set")
+  // BOTH branches are routed. `Ready to send` has no wordlist row, so it reports as a NO_ROW
+  // gap — which is the point: an unrouted branch is invisible, and a routed one without a row is
+  // a queue item. The row is staged blank in docs/wordlist-patch.xlsx and the wordlist owner
+  // accepted the baseline growth that comes with it.
+  const footerHint = isRequest ? t('Ready to send') : t("You're all set")
 
   const doSubmit = () => {
     if (id) setActiveMiqaat(id)

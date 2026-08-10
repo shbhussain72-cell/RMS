@@ -656,8 +656,9 @@ function UpdatedPopup({ kind, onDone }: { kind: 'city' | 'zone'; onDone: () => v
  *  effectively a swap — labeled with the destination city name, mirroring the bulk "Swap all to
  *  {city}" action. Falls back to plain "Reserve" when no destination city name applies (e.g. the
  *  fixed single-destination host-only stage). */
-function ReserveCityButton({ active, cityName, onClick, verb = 'Switch to' }: { active: boolean; cityName?: string; onClick: () => void; verb?: string }) {
-  const { tx, td } = useT()
+function ReserveCityButton({ active, cityName, onClick, verb }: { active: boolean; cityName?: string; onClick: () => void; verb?: string }) {
+  const { t, tx, td } = useT()
+  const label = verb ?? t('Switch to')
   if (cityName) {
     // Same teal outlined "Switch to {city}" pill + arrows icon as City/Zone Selection's per-row swap
     // action, instead of a solid green fill with no icon. Verb becomes "Request to" while the window
@@ -667,7 +668,7 @@ function ReserveCityButton({ active, cityName, onClick, verb = 'Switch to' }: { 
         className="inline-flex h-[34px] min-w-0 items-center gap-[7px] rounded-full border border-[#2e6a7d] bg-white px-[16px] text-[13px] font-bold text-[#2e6a7d] transition-colors hover:bg-[#eef5f7] active:scale-[0.97]"
         style={{ fontFamily: FONT, opacity: active ? 1 : 0.55 }}>
         <svg viewBox="0 0 18 18" fill="none" className="size-[15px] shrink-0"><path d="M5 7h9l-2.3-2.4M13 11H4l2.3 2.4" stroke="#2e6a7d" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        <span className="truncate">{verb} <bdi {...td(cityName)} /></span>
+        <span className="truncate">{label} <bdi {...td(cityName)} /></span>
       </button>
     )
   }
@@ -864,7 +865,7 @@ function MoveSidebarCard({
         onSelect={() => {}}
         onSwapAll={swapAll?.onClick}
         anySwappable={!!swapAll}
-        swapAllLabel={swapAll?.verb ?? 'Switch all'}
+        swapAllLabel={swapAll?.verb ?? t('Switch all')}
       />
     )
   }
@@ -887,7 +888,7 @@ function MoveSidebarCard({
           topLabel={t('Top preferred city')}
           onSwapAll={activeInHost ? swapAll?.onClick : undefined}
           anySwappable={activeInHost && !!swapAll}
-          swapAllLabel={swapAll?.verb ?? 'Switch all'}
+          swapAllLabel={swapAll?.verb ?? t('Switch all')}
         />
       )}
       {/* Independent of `showHostOption` — a registrant already in the Host City still has their own
@@ -1274,7 +1275,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
         </colgroup>
         <thead>
           <tr style={{ background: '#fdf8ec' }}>
-            {[t('Member'), '', t('CURRENT'), 'REQUESTED', t('ACTION')].map((h, i) => (
+            {[t('Member'), '', t('CURRENT'), t('REQUESTED'), t('ACTION')].map((h, i) => (
               <th key={i} className="px-[12px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#9a8f7a] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -1503,7 +1504,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // The move action's verb depends on the window: open → it applies immediately, so it reads
   // "Switch"; closed → clicking Done files an approval request, so it reads "Request" (same signal
   // as the amber "Requested" pill and the request sheet used once the window is closed).
-  const switchAllLabel = windowOpen ? 'Switch all' : t('Request all')
+  const switchAllLabel = windowOpen ? t('Switch all') : t('Request all')
 
   // Manage reservation used to be scoped to the REGISTRANT + the dependents tagged to them, which
   // couldn't reach any other group in a split reservation. It now targets whichever group the
@@ -1660,8 +1661,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // covers more than one destination type. Only a direct/demo nav (no option clicked) falls back to
   // the old computed wording.
   const screenTitle = optionTitle ?? (destType === 'relay'
-    ? (isSwitch ? 'Switch to a Relay City' : t('Change Relay City'))
-    : (isSwitch ? t(`Switch to ${HOST_CITY.name}`) : 'Change Host City Zone'))
+    ? (isSwitch ? t('Switch to a Relay City') : t('Change Relay City'))
+    : (isSwitch ? t(`Switch to ${HOST_CITY.name}`) : t('Change Host City Zone')))
 
   const allocOf = (mid: string): Allocation | null => assign[mid] ?? null
   const movedCount = Object.keys(assign).length

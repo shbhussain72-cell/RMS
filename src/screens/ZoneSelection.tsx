@@ -291,7 +291,7 @@ function ReservedZonePill({ onRemove, full = false, isRequest = false }: { onRem
  *  whole group to the active zone (same interaction as City Selection's Reserve). */
 function ReserveZoneButton({ activeZone, onReserve, full = false, isRequest = false }: { activeZone: Zone | null; onReserve: () => void; full?: boolean; isRequest?: boolean }) {
   const { t } = useT()
-  const verb = isRequest ? t('Request') : 'Select'
+  const verb = isRequest ? t('Request') : t('Select')
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onReserve() }}
       className={`inline-flex items-center justify-center gap-[6px] rounded-full text-[13px] font-bold transition-colors ${full ? 'w-full' : 'px-[22px]'}`}

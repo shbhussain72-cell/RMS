@@ -562,7 +562,7 @@ function AllocateGroupCard({
           // desktop table's Action-column look instead of a small pill crammed into the status row.
           <div className="flex items-center justify-between gap-[8px]">
             <div className="min-w-0">
-              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? t('Host city') : 'Relay city'}</p>
+              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? t('Host city') : t('Relay city')}</p>
               <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
             </div>
             <div className="flex shrink-0 items-center gap-[10px]">
@@ -816,7 +816,7 @@ export function HostCityCard({
                 painted over by the action group beside it. Truncating matches the city name
                 directly below, which has always truncated for the same reason. */}
             <p className="truncate text-[13px] leading-[17px] sm:text-[14px] sm:leading-[18px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>
-              {city.type === 'host' ? t('Host city') : 'Relay city'}
+              {city.type === 'host' ? t('Host city') : t('Relay city')}
             </p>
             {preferred && (
               <span className="inline-flex items-center gap-[3px] rounded-full bg-[#f7efd6] px-[8px] py-[2px] text-[10px] font-bold uppercase tracking-[0.3px] text-[#a8843e]" style={{ fontFamily: FONT }}>
@@ -866,7 +866,7 @@ export function HostCityCard({
           {!isCurrentCity && <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect() }}
-            aria-label={selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? t('Request') : 'Select')}
+            aria-label={selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? t('Request') : t('Select'))}
             aria-pressed={selected}
             className="flex size-[22px] shrink-0 items-center justify-center rounded-full transition-colors duration-200"
             style={{ border: selected ? 'none' : '1.5px solid #c2a04e', background: selected ? '#1f5a44' : 'white' }}
@@ -3153,7 +3153,7 @@ export default function CitySelection() {
                     </colgroup>
                     <thead>
                       <tr style={{ background: '#faf8f2' }}>
-                        {[t('Member'), 'Role', t('Raza Status')].map((h) => (
+                        {[t('Member'), t('Role'), t('Raza Status')].map((h) => (
                           <th key={h} className="px-[16px] py-[12px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>

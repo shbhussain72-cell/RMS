@@ -764,11 +764,11 @@ export default function Araz() {
   ) : (
     <StickyFooter
       caption={tx('Araz · Preferred City')}
-      // CLASS A, NOT FIXED HERE — `Submit your preferences` HAS a wordlist entry and this
-      // renders English anyway. Same trade as Review.tsx's footerHint: routing it also
-      // exposes `Update your preferences` as a NO_ROW gap and grows the coverage baseline.
-      title={submitted ? 'Update your preferences' : t('Submit your preferences')}
-      button={submitted ? 'Update preferences' : t('Save Preferences')}
+      // Both branches routed. The `Update…` pair has no wordlist row and reports as NO_ROW,
+      // which is how they reach the queue instead of staying invisible; blank rows for them are
+      // staged in docs/wordlist-patch.xlsx.
+      title={submitted ? t('Update your preferences') : t('Submit your preferences')}
+      button={submitted ? t('Update preferences') : t('Save Preferences')}
       onButton={handleSave}
     />
   )

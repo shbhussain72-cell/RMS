@@ -13,8 +13,8 @@ const initials = (name: string) =>
 
 function familyMeta(relation: string, age: number, its: string) {
   const g = genderByIts(its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
-  return isolateRuns(relation ? `${relation} · ${base}` : base)
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
+  return isolateRuns(relation ? `${tNow(relation)} · ${base}` : base)
 }
 
 function Avatar({ name, size = 48 }: { name: string; size?: number }) {

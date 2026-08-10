@@ -128,7 +128,7 @@ export function VisaUploadCard({ miqaatId, compact = false }: { miqaatId: string
             {busy ? 'Uploading…' : 'Tap to upload visa (PDF)'}
           </span>
           <span className="text-[11px] leading-[15px] text-[#8a938e]" style={{ fontFamily: MUL }}>
-            Max {formatBytes(MAX_VISA_BYTES)}
+            {t(`Max ${formatBytes(MAX_VISA_BYTES)}`)}
           </span>
         </button>
       )}

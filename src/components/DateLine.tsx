@@ -25,6 +25,7 @@
  * before. The primitives must be a no-op there, and this is where that is guaranteed.
  */
 import { useT } from '../i18n/index'
+import { lookupLsd, type Lang } from '../i18n/index'
 import { Iso, Ltr, formatGregorian, formatGregorianText, formatHijri, formatHijriText, formatTime, parseDateLabel } from './Bidi'
 import { notLanguage } from './NotLanguage'
 
@@ -132,6 +133,26 @@ export function LtrData({ children }: { children: React.ReactNode }) {
  * is deliberate: these come from authored fixture text, and a parser that guesses is worse than
  * one that declines.
  */
+/**
+ * The time half of a deadline — USUALLY a clock reading, occasionally a sentence.
+ *
+ * `11:59 PM (before City Selection opens)` is one string in `seed.ts`. `parseTimeLabel`
+ * declines it, so `formatTimeText` handed it straight back and it reached the DOM verbatim, in
+ * English, while the wordlist held an authored translation for exactly that text. That is the
+ * class-A wiring defect: a row exists and the page shows English anyway.
+ *
+ * Looked up with `lookupLsd`, which does NOT record a miss, because nearly every other value
+ * here is a clock reading. This file argues at length that a time is not language — it carries
+ * the `notLanguage` marker to say so — and routing these through `t()` would file every
+ * distinct time on every screen as an untranslated string and bury the real prose among them.
+ *
+ * So: a row that exists is used; anything else falls through to the formatter, unchanged.
+ */
+const deadlineTime = (value: string, lang: Lang) => {
+  const authored = lang === 'lsd' ? lookupLsd(value) : undefined
+  return authored ? <Iso>{authored}</Iso> : formatTime(value, lang)
+}
+
 export function DeadlineLine({ value, compact = false }: { value: string; compact?: boolean }) {
   const { isLsd, t, lang } = useT()
   const m = /^(?:(\w{3}),\s*)?(\d{1,2}\s+\w{3}\s+\d{4})(?:\s*·\s*(.+))?$/.exec(value.trim())
@@ -149,7 +170,7 @@ export function DeadlineLine({ value, compact = false }: { value: string; compac
         // the TEXT, and the marker has to travel with it.
         ? <span dir="ltr" style={{ unicodeBidi: 'isolate' }} {...notLanguage}>{formatGregorianText(parsed.date).replace(/\s\d{4}$/, '')}</span>
         : formatGregorian(parsed.date, lang)}
-      {timePart ? <> · {formatTime(timePart.replace(' IST', ''), lang)}</> : null}
+      {timePart ? <> · {deadlineTime(timePart.replace(' IST', ''), lang)}</> : null}
     </>
   )
 }

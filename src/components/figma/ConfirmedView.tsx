@@ -55,7 +55,7 @@ function PinIcon({ size = 16 }: { size?: number }) {
  *  When `statusText` is set the rows show that "… – Not Allocated" status instead of the Raza pill. */
 function ConfirmedMemberTable({ groups, statusText }: { groups: Group[]; statusText?: string }) {
   const { t, td } = useT()
-  const statusHeader = statusText ? 'Status' : 'Raza Status'
+  const statusHeader = statusText ? tNow('Status') : tNow('Raza Status')
   return (
     <div className="overflow-hidden rounded-[14px] border border-[#e7dfc9] bg-white">
       <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>

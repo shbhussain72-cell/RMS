@@ -41,7 +41,7 @@ function familyMeta(m: FamilyMember) {
   // Prefer the member's own gender (invited Mehmaan/Others carry it); genderByIts knows only family.
   // Invited primaries have a blank relation, so omit the leading tag for them.
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
   return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
@@ -290,7 +290,8 @@ function ReservedZonePill({ onRemove, full = false, isRequest = false }: { onRem
 /** "Reserve" button — filled green once a zone is picked (active), faded until then. Allocates the
  *  whole group to the active zone (same interaction as City Selection's Reserve). */
 function ReserveZoneButton({ activeZone, onReserve, full = false, isRequest = false }: { activeZone: Zone | null; onReserve: () => void; full?: boolean; isRequest?: boolean }) {
-  const verb = isRequest ? 'Request' : 'Select'
+  const { t } = useT()
+  const verb = isRequest ? t('Request') : 'Select'
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onReserve() }}
       className={`inline-flex items-center justify-center gap-[6px] rounded-full text-[13px] font-bold transition-colors ${full ? 'w-full' : 'px-[22px]'}`}
@@ -769,7 +770,7 @@ function ZoneBrowseDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {[t('Member'), '', t('Zone'), 'Action'].map((h, i) => (
+            {[t('Member'), '', t('Zone'), t('Action')].map((h, i) => (
               <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
@@ -1608,7 +1609,7 @@ export default function ZoneSelection() {
                 an <Iso> turns it into a scanner-visible UNROUTED string that fails check:lsd. It
                 is not a reported bidi violation either — the zone name and trailing phrase beside
                 it are what needed bounding. Routing it needs an xlsx row first. */}
-            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>— select members below</Iso>
+            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>{t('— select members below')}</Iso>
           </p>
         ) : (
           <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }} {...tx('Select a zone above to start allocating your members')} />
@@ -1755,7 +1756,7 @@ export default function ZoneSelection() {
                 an <Iso> turns it into a scanner-visible UNROUTED string that fails check:lsd. It
                 is not a reported bidi violation either — the zone name and trailing phrase beside
                 it are what needed bounding. Routing it needs an xlsx row first. */}
-            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>— select members below</Iso>
+            Selected zone <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /> <Iso>{t('— select members below')}</Iso>
                     </span>
                   </span>
                 )}

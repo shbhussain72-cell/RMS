@@ -3,7 +3,7 @@ import type { FamilyMember } from '../../data/seed'
 import { Iso, isolateRuns, toArabicDigits } from '../Bidi'
 import type { QuestionnaireAnswers } from '../../store'
 import { VisaUploadCard } from '../figma/VisaUploadCard'
-import { useT } from '../../i18n'
+import { tNow, useT } from '../../i18n'
 
 const RADIO_ON = '/figma/radio-checked.svg'
 const RADIO_OFF = '/figma/radio-unchecked.svg'
@@ -249,7 +249,7 @@ function optionLabel<T extends string>(options: Array<{ value: T; label: string 
   return options.find((o) => o.value === value)?.label ?? '—'
 }
 function optionLabels<T extends string>(options: Array<{ value: T; label: string }>, values: T[]) {
-  return values.length ? values.map((v) => options.find((o) => o.value === v)?.label ?? v).join(', ') : 'None selected'
+  return values.length ? values.map((v) => options.find((o) => o.value === v)?.label ?? v).join(', ') : tNow('None selected')
 }
 
 /** Read-only rendering of the questionnaire — same section shape/numbering as `QuestionnaireSections`,
@@ -358,8 +358,8 @@ export function QuestionnaireSummary({ q, idPrefix = '', hideIntro = false, clas
 
       <Section id={sid(10)} number={nextNo()} title={t('Confirmation')}>
         <div className="grid grid-cols-2 gap-[12px]">
-          <AnswerRow label={t('Information accurate')} value={q.confirmAccurate ? t('Confirmed') : 'Not confirmed'} />
-          <AnswerRow label={t('Agreed to guidelines')} value={q.confirmGuidelines ? t('Confirmed') : 'Not confirmed'} />
+          <AnswerRow label={t('Information accurate')} value={q.confirmAccurate ? t('Confirmed') : t('Not confirmed')} />
+          <AnswerRow label={t('Agreed to guidelines')} value={q.confirmGuidelines ? t('Confirmed') : t('Not confirmed')} />
         </div>
       </Section>
     </div>
@@ -638,7 +638,7 @@ export function QuestionnaireSections({ q, onChange, registrant, idPrefix = '', 
 
       <Section id={sid(10)} number={nextNo()} title={t('Confirmation')}>
         <CheckRow label={t('I confirm that all the information provided is accurate.')} checked={q.confirmAccurate} onClick={() => set({ confirmAccurate: !q.confirmAccurate })} invalid={err(!q.confirmAccurate)} />
-        <CheckRow label={<>{t('I agree to follow the Miqaat guidelines and event regulations.')} <span role="link" tabIndex={0} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-[3px] cursor-pointer text-[#a8843e] underline hover:text-[#8a6c30]">terms and conditions<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg></span></>} checked={q.confirmGuidelines} onClick={() => set({ confirmGuidelines: !q.confirmGuidelines })} invalid={err(!q.confirmGuidelines)} />
+        <CheckRow label={<>{t('I agree to follow the Miqaat guidelines and event regulations.')} <span role="link" tabIndex={0} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-[3px] cursor-pointer text-[#a8843e] underline hover:text-[#8a6c30]">{t('terms and conditions')}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg></span></>} checked={q.confirmGuidelines} onClick={() => set({ confirmGuidelines: !q.confirmGuidelines })} invalid={err(!q.confirmGuidelines)} />
       </Section>
     </div>
     </SectionLayoutCtx.Provider>

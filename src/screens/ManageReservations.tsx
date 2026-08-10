@@ -35,8 +35,8 @@ function familyMeta(relation: string, age: number, its: string, gender?: string)
   // Gender prefers an explicit value (invited Mehmaan/Others carry it) over the family-only lookup.
   // A blank relation (an invited primary) drops the leading tag instead of showing a stray "·".
   const g = gender ?? genderByIts(its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
-  return isolateRuns(relation ? `${relation} · ${base}` : base)
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(age).padStart(2, '0')} · ${tNow('ITS')} ${its}`
+  return isolateRuns(relation ? `${tNow(relation)} · ${base}` : base)
 }
 
 /** Returns the under-10 dependent this member guards, if any (drives the "can't be left" flow). */

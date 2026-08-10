@@ -524,7 +524,7 @@ export default function EventJourney() {
         <div className="mt-[14px] px-[16px] sm:px-0">
           <h1 className="text-[28px] leading-[34px] text-[#15402f] sm:text-[40px] sm:leading-[46px]" style={{ fontFamily: SERIF }} {...tdAuthored(m.title)} />
           <p className="mt-[8px] max-w-[640px] text-[14px] leading-[22px] text-[#5a6660] sm:text-[15px]" style={{ fontFamily: MUL }}>
-            {DESCRIPTION}
+            {t(DESCRIPTION)}
           </p>
         </div>
 

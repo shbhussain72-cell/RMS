@@ -34,7 +34,7 @@ const initials = (name: string) =>
 
 function familyMeta(m: FamilyMember) {
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
   return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
@@ -79,7 +79,7 @@ function LinkGlyph({ color = '#2e6a7d' }: { color?: string }) {
 /** Host City slot card — mirrors City Selection's Host card look, but the only action is "Change"
  *  (which city should occupy this card). No selection/reservation happens here. */
 function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (el: HTMLElement) => void }) {
-  const { tx, td } = useT()
+  const { tx, t, td } = useT()
   return (
     <div
       className="w-full rounded-[14px] bg-white px-[18px] py-[16px]"
@@ -105,7 +105,7 @@ function HostSlotCard({ city, onChange }: { city: LiveCity; onChange: (el: HTMLE
           {/* The label follows the OCCUPYING city's real type, not the slot's position — a relay
               city placed here should read as a relay city, not "Host city", to avoid confusion. */}
           <p className="text-[14px] font-bold leading-[18px] text-[#5a6660]" style={{ fontFamily: FONT }}>
-            {city.type === 'host' ? 'Host city' : 'Relay city'}
+            {city.type === 'host' ? t('Host city') : 'Relay city'}
           </p>
           <p className="truncate text-[20px] font-bold leading-[26px] text-[#a8843e]" style={{ fontFamily: FONT }} {...td(city.name)} />
         </div>
@@ -225,7 +225,7 @@ function RelayOrderCard({ cities, search, onSearch }: {
         <svg viewBox="0 0 24 24" fill="none" className="size-[22px] shrink-0">
           <path d="M20.5 13.2A8.5 8.5 0 1110.8 3.5a6.7 6.7 0 109.7 9.7z" stroke="#c2a04e" strokeWidth="1.7" strokeLinejoin="round" />
         </svg>
-        <p className="text-[20px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>Other Cities ({cities.length})</p>
+        <p className="text-[20px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>{t('Other Cities')} ({cities.length})</p>
       </div>
       <div className="mt-[14px] flex h-[48px] items-center gap-[10px] rounded-[12px] border border-[#e7dfc9] bg-[#fbfbfb] px-[14px] transition-all duration-200 focus-within:border-[#1f5a44] focus-within:bg-white focus-within:ring-[3px] focus-within:ring-[#1f5a44]/12">
         <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={t('Search city names...')} className="flex-1 bg-transparent text-[15px] text-[#23302a] outline-none placeholder:text-[#9aa39d]" style={{ fontFamily: FONT }} />

@@ -27,7 +27,7 @@ const initials = (name: string) =>
 
 function familyMeta(m: FamilyMember) {
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
   return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
@@ -402,7 +402,7 @@ function ArazMemberTable({ members, hostCityName, hostCheckedOf, relayCheckedOf,
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {[t('Member'), t('Host City'), t('Relay City'), 'Action'].map((h, i) => (
+            {[t('Member'), t('Host City'), t('Relay City'), t('Action')].map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
@@ -767,8 +767,8 @@ export default function Araz() {
       // CLASS A, NOT FIXED HERE — `Submit your preferences` HAS a wordlist entry and this
       // renders English anyway. Same trade as Review.tsx's footerHint: routing it also
       // exposes `Update your preferences` as a NO_ROW gap and grows the coverage baseline.
-      title={submitted ? 'Update your preferences' : 'Submit your preferences'}
-      button={submitted ? 'Update preferences' : 'Save Preferences'}
+      title={submitted ? 'Update your preferences' : t('Submit your preferences')}
+      button={submitted ? 'Update preferences' : t('Save Preferences')}
       onButton={handleSave}
     />
   )

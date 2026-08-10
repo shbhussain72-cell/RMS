@@ -72,6 +72,8 @@ const SCENARIOS = {
 }
 
 /** The pending-request label shown in the bottom CTA bar — identical for both scenarios. */
+// An English KEY, translated where it is rendered: this is read at module-eval time, before
+// <LangProvider> exists, so translating it here would freeze one language in place.
 const FOOTER_TITLE = 'Request received'
 
 function inits(name: string) {
@@ -80,7 +82,7 @@ function inits(name: string) {
 
 /** Dark event banner (image + date/time) — shared by the mobile column and the desktop sidebar. */
 function EventBanner() {
-  const { tx } = useT()
+  const { t, tx } = useT()
   return (
     <div className="relative h-[180px] w-full overflow-hidden rounded-[16px]">
       <img src={CARD_BG} alt="" className="absolute inset-0 size-full object-cover" />
@@ -93,7 +95,7 @@ function EventBanner() {
               <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.25"/>
               <path d="M2 7h12M5.5 1.5V4M10.5 1.5V4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/>
             </svg>
-            <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}>Sat, 21 Jun, 2026</span>
+            <span className="text-[12px] text-[rgba(255,255,255,0.9)]" style={FMU}>{t('Sat, 21 Jun, 2026')}</span>
           </div>
           <div className="flex items-center gap-[5px]">
             <svg viewBox="0 0 16 16" fill="none" className="size-[13px] text-[rgba(255,255,255,0.8)]">
@@ -249,7 +251,7 @@ export default function JoinGroup() {
         {/* Desktop-only context label */}
         <div className="hidden sm:flex sm:min-w-0 sm:flex-1 sm:flex-col sm:gap-[2px]">
           <p className="text-[11px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#8a938e]" style={FMU} {...tx('Eid-e-Ghadeer 1447H')} />
-          <p className="text-[15px] font-bold leading-[20px] text-[#1a2a23]" style={FMU}>{FOOTER_TITLE}</p>
+          <p className="text-[15px] font-bold leading-[20px] text-[#1a2a23]" style={FMU}>{t(FOOTER_TITLE)}</p>
         </div>
         {/* Decline */}
         <button
@@ -291,7 +293,7 @@ export default function JoinGroup() {
           <div className="mt-[16px]"><EventBanner /></div>
 
           {/* Invitation / guardian info card */}
-          <div className="mt-[16px]"><InfoCard type={type} title={s.cardTitle} body={s.cardBody} /></div>
+          <div className="mt-[16px]"><InfoCard type={type} title={t(s.cardTitle)} body={t(s.cardBody)} /></div>
 
           {/* GROUP MEMBERS divider */}
           <div className="mt-[24px] flex items-center gap-[12px]">
@@ -349,7 +351,7 @@ export default function JoinGroup() {
             <div className="mt-[22px]"><EventBanner /></div>
 
             {/* Invitation / guardian info card */}
-            <div className="mt-[14px]"><InfoCard type={type} title={s.cardTitle} body={s.cardBody} /></div>
+            <div className="mt-[14px]"><InfoCard type={type} title={t(s.cardTitle)} body={t(s.cardBody)} /></div>
           </aside>
 
           {/* ───────── RIGHT group panel ───────── */}

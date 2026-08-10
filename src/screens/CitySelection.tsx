@@ -80,7 +80,7 @@ function familyMeta(m: FamilyMember) {
   // Prefer the member's own gender (invited Mehmaan/Others carry it); genderByIts knows only family
   // members. Invited primaries have a blank relation, so omit the leading tag for them.
   const g = m.gender ?? genderByIts(m.its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${String(m.age).padStart(2, '0')} · ${tNow('ITS')} ${m.its}`
   return isolateRuns(m.relation ? `${tNow(m.relation)} · ${base}` : base)
 }
 
@@ -562,7 +562,7 @@ function AllocateGroupCard({
           // desktop table's Action-column look instead of a small pill crammed into the status row.
           <div className="flex items-center justify-between gap-[8px]">
             <div className="min-w-0">
-              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? 'Host city' : 'Relay city'}</p>
+              <p className="text-[13px] text-[#8a938e]" style={{ fontFamily: FONT }}>{assignedCity!.type === 'host' ? t('Host city') : 'Relay city'}</p>
               <p className="mt-[2px] text-[16px] font-bold leading-[20px] text-[#23302a]" style={{ fontFamily: FONT }} {...td(assignedCity!.name)} />
             </div>
             <div className="flex shrink-0 items-center gap-[10px]">
@@ -816,7 +816,7 @@ export function HostCityCard({
                 painted over by the action group beside it. Truncating matches the city name
                 directly below, which has always truncated for the same reason. */}
             <p className="truncate text-[13px] leading-[17px] sm:text-[14px] sm:leading-[18px] font-bold text-[#5a6660]" style={{ fontFamily: FONT }}>
-              {city.type === 'host' ? 'Host city' : 'Relay city'}
+              {city.type === 'host' ? t('Host city') : 'Relay city'}
             </p>
             {preferred && (
               <span className="inline-flex items-center gap-[3px] rounded-full bg-[#f7efd6] px-[8px] py-[2px] text-[10px] font-bold uppercase tracking-[0.3px] text-[#a8843e]" style={{ fontFamily: FONT }}>
@@ -866,7 +866,7 @@ export function HostCityCard({
           {!isCurrentCity && <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect() }}
-            aria-label={selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? 'Request' : 'Select')}
+            aria-label={selected ? (isRequest ? t('Requested') : t('Selected')) : (isRequest ? t('Request') : 'Select')}
             aria-pressed={selected}
             className="flex size-[22px] shrink-0 items-center justify-center rounded-full transition-colors duration-200"
             style={{ border: selected ? 'none' : '1.5px solid #c2a04e', background: selected ? '#1f5a44' : 'white' }}
@@ -1304,7 +1304,7 @@ function AllocateDesktopTable({
                 against `t('Zone')` — it is correct only while both sides go through the same
                 call, and silently selects nothing the moment one of them stops. MiqaatDetail had
                 three of those and the walkthrough lost an anchor in LSD without any error. */}
-            {(showZoneColumn ? ['Member', '', 'Status', 'City', 'Zone'] : ['Member', '', 'Status', 'Allocation', 'Action']).map((h, i) => (
+            {(showZoneColumn ? [t('Member'), '', t('Status'), t('City'), t('Zone')] : [t('Member'), '', t('Status'), t('Allocation'), t('Action')]).map((h, i) => (
               <th key={i} className="px-[16px] py-[11px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>
                 {/* The ZONE column's bulk action — the zone counterpart of the city card's "Select
                     all". Without it, putting a whole party in one zone meant opening the per-row
@@ -1650,7 +1650,7 @@ function HostDesktopTable({
                 <Checkbox checked={allChecked} onClick={onSelectAll} />
               </span>
             </th>
-            {[t('Member'), '', t('Status'), 'Action'].map((h, i) => (
+            {[t('Member'), '', t('Status'), t('Action')].map((h, i) => (
               <th key={i} className="px-[14px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
@@ -2064,7 +2064,7 @@ function RelaySidebarCard({ cities, activeCityId, addedOf, unavailableOf, search
         <svg viewBox="0 0 24 24" fill="none" className="size-[22px] shrink-0">
           <path d="M20.5 13.2A8.5 8.5 0 1110.8 3.5a6.7 6.7 0 109.7 9.7z" stroke="#c2a04e" strokeWidth="1.7" strokeLinejoin="round" />
         </svg>
-        <p className="text-[20px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>Other Cities ({cities.length})</p>
+        <p className="text-[20px] leading-[24px] text-[#15402f]" style={{ fontFamily: SERIF }}>{t('Other Cities')} ({cities.length})</p>
         {showInlineReserveAll && (
           <button
             type="button"
@@ -3153,7 +3153,7 @@ export default function CitySelection() {
                     </colgroup>
                     <thead>
                       <tr style={{ background: '#faf8f2' }}>
-                        {[t('Member'), 'Role', 'Raza Status'].map((h) => (
+                        {[t('Member'), 'Role', t('Raza Status')].map((h) => (
                           <th key={h} className="px-[16px] py-[12px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e]" style={{ fontFamily: FONT, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
@@ -3450,7 +3450,7 @@ export default function CitySelection() {
       dataTour="city-confirm"
       caption={isRequest ? tx('Request') : tx('Allocation')}
       title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
-      button={isRequest ? 'Request' : t('Done')}
+      button={isRequest ? t('Request') : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
     >
@@ -3484,7 +3484,7 @@ export default function CitySelection() {
       dataTour="city-confirm"
       caption={isRequest ? tx('Request') : tx('Allocation')}
       title={isRequest ? tx('Submit for approval') : tx('Close in {time}', { time: fmtHHMMSS(allocationTimer) })}
-      button={isRequest ? 'Request' : t('Done')}
+      button={isRequest ? t('Request') : t('Done')}
       onButton={handleDone}
       buttonDisabled={false}
     />
@@ -3658,7 +3658,7 @@ export default function CitySelection() {
           </svg>
           {activeCity ? (
             <p className="text-[13px] font-semibold leading-[18px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              {isRequest ? t('Requested') : t('Selected')} <Iso>{activeCity.type === 'host' ? 'host' : 'relay'} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> <Iso>— {isRequest ? 'request' : 'select'} members below</Iso>
+              {isRequest ? t('Requested') : t('Selected')} <Iso>{activeCity.type === 'host' ? t('host') : t('relay')} {t('city')}</Iso> <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> <Iso>{isRequest ? `— ${t('request')} ${t('members below')}` : t('— select members below')}</Iso>
             </p>
           ) : (
             <p className="text-[13px] font-bold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
@@ -3799,7 +3799,7 @@ export default function CitySelection() {
                         <path d="M9 16.4995C7.675 16.4995 6.59375 16.2901 5.75625 15.8714C4.91875 15.4526 4.5 14.912 4.5 14.2495C4.5 14.012 4.55313 13.7933 4.65938 13.5933C4.76563 13.3933 4.925 13.2058 5.1375 13.0308C5.3125 12.9058 5.50313 12.8558 5.70938 12.8808C5.91563 12.9058 6.08125 13.0058 6.20625 13.1808C6.33125 13.3558 6.37813 13.5464 6.34688 13.7526C6.31563 13.9589 6.2125 14.1245 6.0375 14.2495C6.2 14.4495 6.575 14.6245 7.1625 14.7745C7.75 14.9245 8.3625 14.9995 9 14.9995C9.6375 14.9995 10.25 14.9245 10.8375 14.7745C11.425 14.6245 11.8 14.4495 11.9625 14.2495C11.7875 14.1245 11.6844 13.9589 11.6531 13.7526C11.6219 13.5464 11.6688 13.3558 11.7938 13.1808C11.9188 13.0058 12.0844 12.9058 12.2906 12.8808C12.4969 12.8558 12.6875 12.9058 12.8625 13.0308C13.075 13.2058 13.2344 13.3933 13.3406 13.5933C13.4469 13.7933 13.5 14.012 13.5 14.2495C13.5 14.912 13.0813 15.4526 12.2438 15.8714C11.4063 16.2901 10.325 16.4995 9 16.4995ZM9.01875 12.3745C10.2563 11.462 11.1875 10.5464 11.8125 9.62764C12.4375 8.70889 12.75 7.78701 12.75 6.86201C12.75 5.58701 12.3438 4.62451 11.5313 3.97451C10.7188 3.32451 9.875 2.99951 9 2.99951C8.125 2.99951 7.28125 3.32451 6.46875 3.97451C5.65625 4.62451 5.25 5.58701 5.25 6.86201C5.25 7.69951 5.55625 8.57139 6.16875 9.47764C6.78125 10.3839 7.73125 11.3495 9.01875 12.3745ZM8.55 13.8183C8.4 13.7683 8.2625 13.6933 8.1375 13.5933C6.6625 12.4183 5.5625 11.2714 4.8375 10.1526C4.1125 9.03389 3.75 7.93701 3.75 6.86201C3.75 5.97451 3.90937 5.19639 4.22813 4.52764C4.54688 3.85889 4.95625 3.29951 5.45625 2.84951C5.95625 2.39951 6.51875 2.06201 7.14375 1.83701C7.76875 1.61201 8.3875 1.49951 9 1.49951C9.6125 1.49951 10.2313 1.61201 10.8563 1.83701C11.4813 2.06201 12.0438 2.39951 12.5438 2.84951C13.0438 3.29951 13.4531 3.85889 13.7719 4.52764C14.0906 5.19639 14.25 5.97451 14.25 6.86201C14.25 7.93701 13.8875 9.03389 13.1625 10.1526C12.4375 11.2714 11.3375 12.4183 9.8625 13.5933C9.7375 13.6933 9.6 13.7683 9.45 13.8183C9.3 13.8683 9.15 13.8933 9 13.8933C8.85 13.8933 8.7 13.8683 8.55 13.8183ZM9 8.24951C9.4125 8.24951 9.76563 8.10264 10.0594 7.80889C10.3531 7.51514 10.5 7.16201 10.5 6.74951C10.5 6.33701 10.3531 5.98389 10.0594 5.69014C9.76563 5.39639 9.4125 5.24951 9 5.24951C8.5875 5.24951 8.23438 5.39639 7.94063 5.69014C7.64688 5.98389 7.5 6.33701 7.5 6.74951C7.5 7.16201 7.64688 7.51514 7.94063 7.80889C8.23438 8.10264 8.5875 8.24951 9 8.24951Z" fill="#c8842a" />
                       </svg>
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        {isRequest ? t('Requested') : t('Selected')} <Iso>{activeCity.type === 'host' ? 'host' : 'relay'} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> <Iso>— {isRequest ? 'request' : 'select'} members below</Iso>
+                        {isRequest ? t('Requested') : t('Selected')} <Iso>{activeCity.type === 'host' ? t('host') : t('relay')} {t('city')}</Iso> <strong className="font-bold text-[#1f5a44]" {...td(activeCity.name)} /> <Iso>{isRequest ? `— ${t('request')} ${t('members below')}` : t('— select members below')}</Iso>
                       </span>
                     </span>
                   )}

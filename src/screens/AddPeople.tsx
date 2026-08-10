@@ -358,9 +358,9 @@ export default function AddPeople() {
   const acceptedMehmaanCount = miqaat.hideInviteMehmaan ? 0 : flow.invites.filter((i) => !i.group && i.status === 'accepted').length
   const effectiveSelectedCount = validFamilyCount + othersCount + acceptedMehmaanCount
   // Footer summary — the header already shows the event name, so surface the running headcount instead.
-  const footerSummary = othersCount > 0
+  const footerSummary = t(othersCount > 0
     ? `${validFamilyCount} family · ${othersCount} group`
-    : `${validFamilyCount} family ${validFamilyCount === 1 ? 'member' : 'members'}`
+    : `${validFamilyCount} family ${validFamilyCount === 1 ? 'member' : 'members'}`)
 
   /** Guarded selection — a dependent can't be selected until its guardian/caregiver is assigned. */
   const tryToggleMember = (m: FamilyMember) => {
@@ -1035,7 +1035,7 @@ export default function AddPeople() {
                           <DesktopRow
                             key={inv.its}
                             name={inv.name}
-                            meta={`${gender ? `${gender} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
+                            meta={`${gender ? `${t(gender)} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
                             isLast={idx === otherInvites.length - 1}
                             status={
                               <div className="flex items-center justify-end gap-[10px]">
@@ -1063,7 +1063,7 @@ export default function AddPeople() {
                           <DesktopRow
                             key={inv.its}
                             name={inv.name}
-                            meta={`${gender ? `${gender} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
+                            meta={`${gender ? `${t(gender)} · ` : ''}${t('Age')} ${age2(inv.age)} · ${t('ITS')} ${inv.its}${inv.dependentOf ? ' · Dependent' : ''}`}
                             isLast={idx === mehmaanInvites.length - 1}
                             status={<div className="flex justify-end"><StatusPill status={inv.status} /></div>}
                           />

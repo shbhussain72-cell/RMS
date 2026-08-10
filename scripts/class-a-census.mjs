@@ -22,10 +22,37 @@ const JSON_OUT = process.argv.includes('--json')
 /** Routes whose whole page is under waitForApp's default floor. Measured, not guessed. */
 const SHORT_ROUTES = new Set(['/login', '/miqaats/ashara-1448/raza-letter'])
 
-// A batch filter, so a fix can be verified against the routes it touched in about a minute
-// instead of re-sweeping all 24 in eight. Verifying only at the end is how a batch that made
-// things worse gets found three batches later.
-const ONLY = (() => { const i = process.argv.indexOf('--routes'); return i > -1 ? process.argv[i + 1].split(',') : null })()
+const die = (msg, ...hint) => {
+  console.error(`class-a-census: ${msg}`)
+  for (const h of hint) console.error(h)
+  process.exit(2)
+}
+
+/**
+ * `--routes` — a batch filter, so a fix can be verified against the routes it touched in about a
+ * minute instead of re-sweeping all 24 in eight. Verifying only at the end is how a batch that
+ * made things worse gets found three batches later.
+ *
+ * -- AND WHY AN EMPTY SELECTION IS AN ERROR ------------------------------------------
+ *
+ * Git Bash rewrites any argument that looks like a Unix path, so `--routes /miqaats` arrives as
+ * `C:/Program Files/Git/miqaats`. That equals no known route, the filter selected NOTHING, and
+ * the census then printed a complete-looking summary over zero routes -- "0 DISTINCT class-A
+ * strings", exit 0. A clean sweep and a run that measured nothing produced the same output.
+ *
+ * This is the same defect as a 30s timeout recording as `A: 0`: absence of data wearing the
+ * shape of a pass, and a note in a commit message does not reach whoever re-runs this at 2am.
+ * So it refuses to run rather than report. A named route matching nothing is the same error
+ * arriving one route at a time -- a typo quietly narrowing the batch -- so it is refused too,
+ * instead of being dropped.
+ */
+const ONLY = (() => {
+  const i = process.argv.indexOf('--routes')
+  if (i === -1) return null
+  const raw = process.argv[i + 1]
+  if (!raw || raw.startsWith('--')) die('--routes needs a comma-separated list of routes after it')
+  return raw.split(',').map((r) => r.trim()).filter(Boolean)
+})()
 const log = (...a) => { if (!JSON_OUT) console.log(...a) }
 
 const ROUTES = [
@@ -55,6 +82,31 @@ const ROUTES = [
   '/login',
 ]
 
+/**
+ * Refuse before the dev server is spawned. Every requested route must name a real one; an empty
+ * selection is unreachable once that holds, and is checked anyway because the cost of the check
+ * is a line and the cost of being wrong is a silent zero.
+ */
+const SELECTED = ONLY ? ROUTES.filter((r) => ONLY.includes(r)) : ROUTES
+if (ONLY) {
+  // A route that arrived as `C:/Program Files/Git/...` was rewritten on the way in, so the hint
+  // is about the shell rather than about the route.
+  const mangled = ONLY.filter((o) => /^[A-Za-z]:|[\\]/.test(o))
+  const unmatched = ONLY.filter((o) => !ROUTES.includes(o))
+  if (unmatched.length) {
+    die(
+      `--routes named ${unmatched.length} route(s) that do not exist, so nothing would have been measured for them:`,
+      ...unmatched.map((u) => `    ${JSON.stringify(u)}`),
+      mangled.length
+        ? '\n  Those are Windows paths: Git Bash rewrote the leading slash. Re-run with\n    MSYS_NO_PATHCONV=1 node scripts/class-a-census.mjs --routes ...'
+        : `\n  Routes must match exactly, e.g. ${ROUTES[9]}`,
+    )
+  }
+}
+if (!SELECTED.length) die('no routes selected -- refusing to report a census of nothing')
+log(`measuring ${SELECTED.length} route(s)
+`)
+
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
 // The dev server, and with the review flag ON: `inventoryDom` and the dictionary it consults
 // are both compiled out otherwise, and the census would report zero of everything.
@@ -79,7 +131,7 @@ const page = await ctx.newPage()
 const perRoute = {}
 const byString = new Map()
 
-for (const route of (ONLY ? ROUTES.filter((r) => ONLY.some((o) => r === o)) : ROUTES)) {
+for (const route of SELECTED) {
   try {
     await page.goto(`http://localhost:${port}${route}`, { waitUntil: 'domcontentloaded', timeout: 25_000 })
     // `waitForApp` defaults to a 300-character floor, which /login (160) and /raza-letter (127)
@@ -95,7 +147,7 @@ for (const route of (ONLY ? ROUTES.filter((r) => ONLY.some((o) => r === o)) : RO
   const r = await page.evaluate(async () => {
     const scan = await import('/src/i18n/domScan.ts')
     const inv = scan.inventoryDom()
-    const counts = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0 }
+    const counts = { A: 0, B1: 0, B2: 0, C: 0, sentinel: 0, ok: 0 }
     for (const h of inv.hits) counts[h.detail]++
     return {
       counts,
@@ -122,7 +174,9 @@ const distinct = [...byString.values()].sort((a, b) => b.routes.length - a.route
 if (JSON_OUT) {
   console.log(JSON.stringify({ perRoute, distinct }, null, 2))
 } else {
-  log(`\n${distinct.length} DISTINCT class-A strings across ${ROUTES.length} routes`)
+  // SELECTED, not ROUTES: a three-route batch reported "across 24 routes", which reads as a full
+  // sweep. The same failure the empty-set guard above exists to prevent, one line further down.
+  log(`\n${distinct.length} DISTINCT class-A strings across ${SELECTED.length} measured route(s)`)
   log(`total class-A row instances: ${Object.values(perRoute).reduce((n, r) => n + r.A, 0)}\n`)
   for (const d of distinct) {
     log(`${String(d.routes.length).padStart(2)}x  ${JSON.stringify(d.english)}`)
@@ -134,3 +188,14 @@ if (JSON_OUT) {
 
 await browser.close()
 dev.kill()
+
+// Same rule one level down: a route that never loaded recorded `A: 0`, which reads exactly like
+// a clean route. The per-route error is in the JSON, but nothing made a caller look at it, and
+// a verify chain reads the exit code.
+const broken = Object.entries(perRoute).filter(([, r]) => r.error)
+if (broken.length) {
+  console.error(`
+class-a-census: ${broken.length} of ${SELECTED.length} route(s) did not load. Their 0 is NO DATA, not a pass:`)
+  for (const [route, r] of broken) console.error(`    ${route}  ${r.error}`)
+  process.exit(1)
+}

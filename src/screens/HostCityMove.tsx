@@ -70,8 +70,8 @@ function familyMeta(relation: string, age: number, its: string, gender?: string)
   // Gender prefers an explicit value (invited Mehmaan/Others carry it) over the family-only lookup.
   // A blank relation (an invited primary) drops the leading tag instead of showing a stray "·".
   const g = gender ?? genderByIts(its)
-  const base = `${g ? `${g} · ` : ''}${tNow('Age')} ${age2(age)} · ${tNow('ITS')} ${its}`
-  return isolateRuns(relation ? `${relation} · ${base}` : base)
+  const base = `${g ? `${tNow(g)} · ` : ''}${tNow('Age')} ${age2(age)} · ${tNow('ITS')} ${its}`
+  return isolateRuns(relation ? `${tNow(relation)} · ${base}` : base)
 }
 
 function fmtHHMMSS(s: number) {
@@ -925,7 +925,7 @@ function MoveSidebarCard({
         <>
           <div className="flex items-center gap-[7px]">
             <PinIcon color="#c5912f" size={18} />
-            <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>Other Cities ({cities.length})</p>
+            <p className="text-[16px] font-bold text-[#23302a]" style={{ fontFamily: FONT }}>{t('Other Cities')} ({cities.length})</p>
             {/* Only when a relay city alone is the complete destination (no zone step) — otherwise
                 the button belongs on the zones header below, the step that actually finishes it. Also
                 only when the active destination is actually one of THESE cities — Host / My Preferred
@@ -1086,7 +1086,7 @@ function MoveDesktopTable({
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f2' }}>
-            {[t('Member'), '', 'CURRENT', t('NEW'), t('ACTION')].map((h, i) => (
+            {[t('Member'), '', t('CURRENT'), t('NEW'), t('ACTION')].map((h, i) => (
               <th key={i} className="px-[12px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -1195,7 +1195,7 @@ function MoveDesktopTable({
                                 ? <ReservedPill onRemove={() => onChooseDest(gi)} pending={!windowOpen} />
                                 : rowAlreadyAtDest
                                   ? <span className="text-[13px] text-[#c2ccc6]" style={{ fontFamily: FONT }} {...tx('Already in {city}', { city: tdText(destCityName ?? '') })} />
-                                  : <ReserveCityButton active={cityOnly ? (!isRelay || !!destCityName) : !!hasActiveDest} cityName={destCityName} onClick={() => onChooseDest(gi)} verb={windowOpen ? 'Switch to' : 'Request to'} />
+                                  : <ReserveCityButton active={cityOnly ? (!isRelay || !!destCityName) : !!hasActiveDest} cityName={destCityName} onClick={() => onChooseDest(gi)} verb={windowOpen ? 'Switch to' : t('Request to')} />
                           )}
                         </div>
                       </td>
@@ -1274,7 +1274,7 @@ function RequestedTable({ entries, currentAllocOf, cityOnly, dependentOf, reques
         </colgroup>
         <thead>
           <tr style={{ background: '#fdf8ec' }}>
-            {[t('Member'), '', 'CURRENT', 'REQUESTED', t('ACTION')].map((h, i) => (
+            {[t('Member'), '', t('CURRENT'), 'REQUESTED', t('ACTION')].map((h, i) => (
               <th key={i} className="px-[12px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#9a8f7a] whitespace-nowrap" style={{ fontFamily: FONT }}>{h}</th>
             ))}
           </tr>
@@ -1503,7 +1503,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // The move action's verb depends on the window: open → it applies immediately, so it reads
   // "Switch"; closed → clicking Done files an approval request, so it reads "Request" (same signal
   // as the amber "Requested" pill and the request sheet used once the window is closed).
-  const switchAllLabel = windowOpen ? 'Switch all' : 'Request all'
+  const switchAllLabel = windowOpen ? 'Switch all' : t('Request all')
 
   // Manage reservation used to be scoped to the REGISTRANT + the dependents tagged to them, which
   // couldn't reach any other group in a split reservation. It now targets whichever group the
@@ -1660,8 +1660,8 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
   // covers more than one destination type. Only a direct/demo nav (no option clicked) falls back to
   // the old computed wording.
   const screenTitle = optionTitle ?? (destType === 'relay'
-    ? (isSwitch ? 'Switch to a Relay City' : 'Change Relay City')
-    : (isSwitch ? `Switch to ${HOST_CITY.name}` : 'Change Host City Zone'))
+    ? (isSwitch ? 'Switch to a Relay City' : t('Change Relay City'))
+    : (isSwitch ? t(`Switch to ${HOST_CITY.name}`) : 'Change Host City Zone'))
 
   const allocOf = (mid: string): Allocation | null => assign[mid] ?? null
   const movedCount = Object.keys(assign).length
@@ -1957,7 +1957,7 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
     <StickyFooter
       caption={tx('Allocation')}
       title={tx('Close in {time}', { time: fmtHHMMSS(secs) })}
-      button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : 'Submit request'}
+      button={allMembersPending ? t('Go back') : windowOpen ? t('Done') : t('Submit request')}
       onButton={allMembersPending ? () => nav(`/miqaats/${id}/manage`) : handleChangeClick}
       back={allMembersPending ? undefined : { onClick: () => nav(-1) }}
     />
@@ -2092,9 +2092,9 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                 needs its own isolate; `destCity` goes through `td` like the zone name beside it,
                 which both resolves it and isolates it (it was a raw string in a bare <strong>). */}
             <span className="text-[13.5px] font-semibold leading-[19px]" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-              {t('Selected')} <Iso>{destType} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
+              {t('Selected')} <Iso>{t(destType)} {t('city')}</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
               {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
-              {' '}<Iso>— select members below</Iso>
+              {' '}<Iso>{t('— select members below')}</Iso>
             </span>
           </div>
         )}
@@ -2221,9 +2221,9 @@ export default function HostCityMove({ mode = 'host' }: { mode?: 'host' | 'relay
                     <span className="inline-flex h-[36px] items-center gap-[8px] rounded-full border px-[15px]" style={{ background: '#fdf1e2', borderColor: '#f1d7b6' }}>
                       <PinIcon color="#c8842a" size={16} />
                       <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: '#9a6a1e' }}>
-                        {t('Selected')} <Iso>{destType} city</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
+                        {t('Selected')} <Iso>{t(destType)} {t('city')}</Iso> <strong className="font-bold text-[#1f5a44]" {...td(destCity)} />
                         {!cityOnlyStage && activeZone && <> · <strong className="font-bold text-[#1f5a44]" {...td(activeZone.name)} /></>}
-                        {' '}<Iso>— select members below</Iso>
+                        {' '}<Iso>{t('— select members below')}</Iso>
                       </span>
                     </span>
                   )}

@@ -253,13 +253,17 @@ export default function Review() {
   // "My family members" tile counts the immediate family only; the "Group members" tile counts the
   // people added via Add People (group: true). The participant breakdown already shows in the tiles
   // above, so the footer carries an action hint instead of repeating the count.
-  // CLASS A, NOT FIXED HERE. `You're all set` HAS a wordlist entry and this renders English
-  // anyway, because the strings are literals the scanner cannot see. Routing both branches
-  // through tx() is the fix and is two lines — but it also makes `Ready to send` visible as
-  // a NO_ROW gap, which grows scripts/lsd-baseline.json. That file may only grow by someone
-  // deliberately running `check-lsd-coverage --baseline`, and that is the wordlist owner's
-  // call, not a side effect of a layout branch. Pair it with an xlsx row for the new key.
-  const footerHint = isRequest ? 'Ready to send' : "You're all set"
+  // ONE BRANCH IS ROUTED AND THE OTHER IS NOT, deliberately.
+  //
+  // `You're all set` HAS a wordlist entry and rendered English anyway — the class-A wiring
+  // defect — so it goes through `t()` now. `Ready to send` has NO row, and routing it would
+  // turn it into a NO_ROW problem the coverage gate has never seen, failing the build. The
+  // baseline may only grow by someone deliberately running `check-lsd-coverage --baseline`,
+  // and that is the wordlist owner's call rather than a side effect of a layout branch.
+  //
+  // So the branch that can be fixed is fixed, and the branch that needs an xlsx row keeps the
+  // behaviour it already had. Route it the moment `Ready to send` gets a row.
+  const footerHint = isRequest ? 'Ready to send' : t("You're all set")
 
   const doSubmit = () => {
     if (id) setActiveMiqaat(id)
@@ -334,9 +338,9 @@ export default function Review() {
 
         <h2 className="mt-[24px] ps-[16px] text-[20px] leading-[28px] tracking-[0.2px] text-[#15402f]" style={FM} {...tx('Participant Count')} />
         <div data-tour="review-section" className="mt-[12px] flex flex-wrap gap-[15px] ps-[16px] pe-[16px]">
-          <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
-          <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
-          <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />
+          <StatTile value={total} numColor="#1f5a44" line1={t('Total')} line2={t('Headcount')} />
+          <StatTile value={familyCount} numColor="#a8843e" line1={t('My family')} line2={t('members')} />
+          <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2={t('members')} />
         </div>
 
         <div className="mt-[24px]"><SectionDivider {...tx('YOUR FAMILY')} /></div>
@@ -407,9 +411,9 @@ export default function Review() {
 
             {/* Stat cards */}
             <div data-tour="review-section" className="mt-[4px] flex flex-wrap gap-[12px]">
-              <StatTile value={total} numColor="#1f5a44" line1="Total" line2="Headcount" />
-              <StatTile value={familyCount} numColor="#a8843e" line1="My family" line2="members" />
-              <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2="members" />
+              <StatTile value={total} numColor="#1f5a44" line1={t('Total')} line2={t('Headcount')} />
+              <StatTile value={familyCount} numColor="#a8843e" line1={t('My family')} line2={t('members')} />
+              <StatTile value={otherInvites.length} numColor="#a8843e" line1={t('Group')} line2={t('members')} />
             </div>
           </aside>
 

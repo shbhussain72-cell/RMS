@@ -122,7 +122,7 @@ function InviteTableSection({ label, invites }: { label: string; invites: Invite
           </colgroup>
           <thead>
             <tr style={{ background: '#faf8f2' }}>
-              {([t('Member'), 'Raza Status'] as const).map((h) => (
+              {([t('Member'), t('Raza Status')] as const).map((h) => (
                 <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                   style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                   {h}
@@ -239,7 +239,7 @@ export default function Roster() {
           items={[
             { label: 'Home', to: '/miqaats' },
             { label: t('Miqaat detail page'), to: `/miqaats/${id}` },
-            { label: pending ? t('Requested') : 'Registered' },
+            { label: pending ? t('Requested') : t('Registered') },
           ]}
           onNavigate={(to) => nav(to)}
           onBack={() => nav(-1)}
@@ -248,7 +248,7 @@ export default function Roster() {
 
       <h1 className="mx-[16px] sm:mx-0 mt-[20px] text-[20px] leading-[28px] text-[#15402f]"
         style={{ fontFamily: 'Marcellus, Georgia, serif', fontWeight: 400, letterSpacing: '0.2px' }}>
-        {total} {pending ? t('Requested') : 'Registered'} members
+        {total} {pending ? t('Requested') : t('Registered')} {t('members')}
       </h1>
 
       {/* Pending-approval banner — when opened from a registration request that admin hasn't approved. */}
@@ -284,7 +284,7 @@ export default function Roster() {
             </colgroup>
             <thead>
               <tr style={{ background: '#faf8f2' }}>
-                {([t('Member'), 'Raza Status'] as const).map((h) => (
+                {([t('Member'), t('Raza Status')] as const).map((h) => (
                   <th key={h} className="px-[16px] py-[10px] text-start text-[11px] font-bold uppercase tracking-[0.6px] text-[#8a938e] whitespace-nowrap"
                     style={{ fontFamily: 'Mulish, system-ui, sans-serif' }}>
                     {h}

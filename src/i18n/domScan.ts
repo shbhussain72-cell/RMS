@@ -488,7 +488,17 @@ export function inventoryDom(root: ParentNode = document.body): InventoryResult 
     // Came out of the dictionary. `data-lsd-key` alone does not say that — `tx()` stamps it
     // on an interpolated MISS too, and that node is still English under `lang="en"`.
     // Hoisted out of the object literal because the CLASS now depends on it: see `renderedDetail`.
-    const translatedNow = via === 'reverse-lookup'
+    //
+    // `data-lsd-run` is the third way, and it is an ASSERTION rather than an inference: the
+    // renderer stamps it on a Latin run that `isolateRuns` cut OUT of a translated value. The
+    // wordlist value for `Registered` is `‏مواقيت Registered` — the loanword is part of the
+    // finished LSD text — so the bdi holding it is the translation being rendered, not English
+    // standing in for it. `scanDom` already drops these nodes for exactly this reason; the
+    // inventory lists them, because it lists everything, but must not call them wiring defects.
+    // Without it the class-A count keeps a floor no amount of wiring can remove — the same
+    // false positive as the seventeen `Go Home` crumbs whose wordlist value IS `‏Home`.
+    const translatedNow = !!el.closest?.(`[${ISOLATED_RUN_ATTR}]`)
+      || via === 'reverse-lookup'
       || (via === 'data-lsd-key' && keyed?.getAttribute('lang') === LSD_BCP47)
     byKey.set(english, {
       english,

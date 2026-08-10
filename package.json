@@ -20,6 +20,7 @@
     "check:remarks": "node scripts/check-remarks.mjs",
     "check:devonly": "node scripts/check-dev-only.mjs",
     "check:anchor": "node scripts/check-anchor.mjs",
+    "check:popover": "node scripts/check-popover.mjs",
     "check:chrome": "node scripts/check-chrome.mjs",
     "check:devdock": "node scripts/check-devdock.mjs",
     "check:dictionary": "node scripts/check-dictionary.mjs",

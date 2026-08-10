@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { account } from '../../data/seed'
 import { unreadCount, visibleNotifications } from '../../data/notifications'
@@ -63,20 +63,37 @@ export default function AppBar({
   const [chipEl, setChipEl] = useState<HTMLElement | null>(null)
   const [bellEl, setBellEl] = useState<HTMLElement | null>(null)
   const [showLogout, setShowLogout] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const confirmLogout = () => { setShowLogout(false); logout(); nav('/login') }
 
-  useEffect(() => {
-    if (!dropdownOpen && !notifOpen) return
-    const handle = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-        setNotifOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [dropdownOpen, notifOpen])
+  /*
+   * THERE IS NO OUTSIDE-CLICK HANDLER HERE, AND THERE MUST NOT BE ONE.
+   *
+   * There was: a `document` mousedown listener that closed both panels whenever the event target
+   * fell outside `dropdownRef` — the bar's own <div>. It predates `Popover`, which portals its
+   * panel to `document.body` so the panel can be positioned in viewport coordinates. A portaled
+   * panel is not inside the bar's subtree, so `contains()` said "outside" for every click on the
+   * panel's own contents, including Logout.
+   *
+   * It closed on MOUSEDOWN, so the consequence was not a stray close after the fact — the panel
+   * unmounted between mousedown and mouseup, and a `click` needs both on the same target. No
+   * click event was dispatched at all. Measured on the account dropdown:
+   *
+   *     pointerdown -> BUTTON (Logout)   mousedown -> BUTTON (Logout)
+   *     mouseup     -> DIV (page content, where the panel had been)
+   *     click       -> never fired
+   *
+   * Logout was unusable, and so was every row of the notification panel, in both languages. The
+   * panel was placed perfectly throughout — `check-anchor` was green, and `elementFromPoint` at
+   * the button returned the button. Nothing was wrong with WHERE it was.
+   *
+   * Closing on an outside click is `Popover`'s job and it already does it, with a backdrop
+   * element under the panel rather than a document listener: a click on the panel lands on the
+   * panel, a click anywhere else lands on the backdrop, and the z-order decides — no containment
+   * test, so nothing to get wrong about portals. Escape is handled there too. Two mechanisms for
+   * one behaviour is what produced this; the second one is gone rather than repaired.
+   *
+   * `scripts/check-popover.mjs` fails if any popover's children stop receiving their clicks.
+   */
 
   /* Signed-in identity — one definition, used by both breakpoints and by both positions
      of the mobile cluster. The ITS ID label is translated; the digits are not (an ID is
@@ -147,7 +164,6 @@ export default function AppBar({
 
       {/* ── Desktop: green identity header — crest · bell · avatar + identity + account menu ── */}
       <div
-        ref={dropdownRef}
         className="relative hidden h-[60px] w-full shrink-0 sm:flex sm:items-center sm-full-bleed"
         style={{ paddingLeft: 'var(--content-px)', paddingRight: 'var(--content-px)', background: 'linear-gradient(220deg, #0E2D21 0%, #15402F 50%, #1F5A44 100%)' }}
         data-name="AppBar-desktop"

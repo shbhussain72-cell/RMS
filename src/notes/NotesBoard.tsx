@@ -28,7 +28,7 @@
  *
  * DEV ONLY, behind `REVIEW_TOOLS`.
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Iso } from '../components/Bidi'
 import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
 import { useT } from '../i18n'
@@ -36,7 +36,8 @@ import DevDock from '../dev/DevDock'
 import { REVIEW_TOOLS } from '../reviewTools'
 import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { getAuthor, hasAuthor } from '../shared/identity'
-import { addNote, newNoteId, removeNote, updateNote, useBoard } from './store'
+import { addNote, newNoteId, readBoard, removeNote, updateNote, useBoard, writeBoard } from './store'
+import { describeImport, planImport } from './import'
 import { DEFAULT_FILTER, filterNotes, type LangFilter, type NoteFilter, type Scope, type StatusFilter } from './filter'
 import { download, exportName, MONTHS, toJson, toMarkdown } from './export'
 import { useRoutePattern } from './useRoutePattern'
@@ -82,6 +83,25 @@ function NotesBoardInner() {
   const openHere = board.notes.filter((n) => n.route === route && n.status === 'open').length
 
   const [busy, setBusy] = useState<string | null>(null)
+  const [importNote, setImportNote] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  const runImport = async (file: File) => {
+    setBusy('import')
+    setImportNote(null)
+    try {
+      const result = planImport(readBoard().notes, JSON.parse(await file.text()))
+      const current = readBoard()
+      writeBoard({ ...current, notes: [...current.notes, ...result.added] })
+      setImportNote(describeImport(result))
+    } catch (err) {
+      // Shown, never swallowed. "0 added" for a file that was never a notes export is the one
+      // outcome somebody would read as "the import works and the file was empty".
+      setImportNote((err as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
 
   /**
    * WHAT THE BOARD SHOWS IS WHAT EXPORTS.
@@ -207,6 +227,35 @@ function NotesBoardInner() {
               >
                 {t('JSON')} <span data-notes="count-json">({shown.length})</span>
               </button>
+            </div>
+
+            <div className="mt-[6px] flex items-center gap-[6px]">
+              {/* The counterpart to the JSON export, beside it rather than in a menu: a backup
+                  you cannot restore is not a backup. */}
+              <input
+                ref={fileInput} data-notes="import-input" type="file" accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  // Cleared so choosing the SAME file twice fires change again — otherwise the
+                  // second import silently does nothing and reads as "no duplicates found".
+                  e.target.value = ''
+                  if (f) void runImport(f)
+                }}
+              />
+              <button
+                type="button" data-notes="import" disabled={busy !== null}
+                onClick={() => fileInput.current?.click()}
+                className="rounded-[6px] border border-[#d8cfb8] bg-white px-[8px] py-[5px] text-[11px] font-bold text-[#23302a] disabled:opacity-40"
+                title={t('Load a JSON export back. Nothing is replaced.')}
+              >
+                {busy === 'import' ? t('Reading…') : t('Import JSON')}
+              </button>
+              {importNote && (
+                <span data-notes="import-note" className="text-[10px] leading-[13px] text-[#5a6660]">
+                  {importNote}
+                </span>
+              )}
             </div>
           </div>
 

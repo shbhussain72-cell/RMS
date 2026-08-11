@@ -15,6 +15,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DEFAULT_FILTER, filterNotes } from '../src/notes/filter.ts'
 import { exportName, toJson, toMarkdown } from '../src/notes/export.ts'
+import { describeImport, planImport } from '../src/notes/import.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SEED = JSON.parse(readFileSync(resolve(ROOT, 'docs/sticky-notes-seed.json'), 'utf8'))
@@ -218,5 +219,79 @@ describe('exportName', () => {
     // An all-screens file named after whichever page you happened to be on is a file that lies
     // in the one place people read without opening it.
     expect(exportName('json', undefined, WHEN)).toBe('review-notes_all_2026-08-11.json')
+  })
+})
+
+describe('import merges on createdAt', () => {
+  const existing = [
+    note({ id: 'local-1', createdAt: '2026-08-10T01:00:00.000Z', text: 'already here' }),
+    note({ id: 'local-2', createdAt: '2026-08-10T02:00:00.000Z', text: 'also already here' }),
+  ]
+
+  it('adds what is new and counts what was already present', () => {
+    const file = [
+      { text: 'already here', route: '/miqaats/:id/city', createdAt: '2026-08-10T01:00:00.000Z' },
+      { text: 'brand new', route: '/login', createdAt: '2026-08-10T09:00:00.000Z' },
+    ]
+    const r = planImport(existing, file)
+    expect(r.added.map((n) => n.text)).toEqual(['brand new'])
+    expect(r.alreadyPresent).toBe(1)
+    expect(r.skipped).toBe(0)
+  })
+
+  it('importing the same file twice adds nothing the second time', () => {
+    // The property the whole function exists for, asserted end to end rather than by inspecting
+    // the matching rule.
+    const file = [
+      { text: 'one', route: '/login', createdAt: '2026-08-10T09:00:00.000Z' },
+      { text: 'two', route: '/login', createdAt: '2026-08-10T09:01:00.000Z' },
+    ]
+    const first = planImport([], file)
+    expect(first.added).toHaveLength(2)
+    const second = planImport(first.added, file)
+    expect(second.added).toHaveLength(0)
+    expect(second.alreadyPresent).toBe(2)
+  })
+
+  it('matches on createdAt and NOT on id', () => {
+    // A file from another browser carries ids this board has never seen. Matching on them would
+    // duplicate every note on every import.
+    const file = [{ id: 'a-completely-different-id', text: 'already here', route: '/miqaats/:id/city', createdAt: '2026-08-10T01:00:00.000Z' }]
+    expect(planImport(existing, file).added).toHaveLength(0)
+  })
+
+  it('does not duplicate a note the FILE contains twice', () => {
+    const twice = [
+      { text: 'dup', route: '/login', createdAt: '2026-08-10T09:00:00.000Z' },
+      { text: 'dup', route: '/login', createdAt: '2026-08-10T09:00:00.000Z' },
+    ]
+    const r = planImport([], twice)
+    expect(r.added).toHaveLength(1)
+    expect(r.alreadyPresent).toBe(1)
+  })
+
+  it('skips unusable entries instead of taking the file down', () => {
+    const messy = [
+      { text: 'good', route: '/login', createdAt: '2026-08-10T09:00:00.000Z' },
+      { text: '   ', route: '/login', createdAt: '2026-08-10T09:01:00.000Z' },
+      { text: 'no route', createdAt: '2026-08-10T09:02:00.000Z' },
+      null,
+      'not an object',
+    ]
+    const r = planImport([], messy)
+    expect(r.added.map((n) => n.text)).toEqual(['good'])
+    expect(r.skipped).toBe(4)
+  })
+
+  it('throws on a file that is not a notes export', () => {
+    // The one case where saying nothing would leave somebody reading "0 added" and concluding
+    // their file was empty.
+    expect(() => planImport([], { notes: [] })).toThrow(/not a notes export/)
+    expect(() => planImport([], 'hello')).toThrow(/not a notes export/)
+  })
+
+  it('reports all three numbers, and only the ones that happened', () => {
+    expect(describeImport({ added: [1, 2], alreadyPresent: 0, skipped: 0 })).toBe('2 added')
+    expect(describeImport({ added: [1], alreadyPresent: 3, skipped: 2 })).toBe('1 added, 3 already here, 2 unreadable')
   })
 })

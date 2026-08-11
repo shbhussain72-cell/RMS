@@ -127,6 +127,37 @@ const walk = (dir, out = []) => {
     //
     // This is the static twin of `SCANNER_IGNORE_ATTR`, which keeps the same chrome out of
     // the runtime DOM scan for the same reason.
+    //
+    // ── THIS EXCLUSION HAS BEEN ASKED FOR AND REFUSED. DO NOT GRANT IT. ──────────────
+    //
+    // On 11 Aug 2026 the sticky-note and hide-control work added six new strings under
+    // `remarks/` and `dev/` — "Sticky note", "No open remarks on this screen", "Turn on a
+    // language to see remarks", "Hide", "Show", and the note button's title. The brief said,
+    // as briefs here normally should, that every new user-visible string goes through t()/tx()
+    // and into `docs/wordlist-patch.xlsx` with an empty LSD cell.
+    //
+    // Doing that would have shipped all six. The chain is the one written above and it has no
+    // weak link: a row in the patch becomes a row in the wordlist, the wordlist generates
+    // `lsd.json`, and `lsd.json` is imported by the app — so a dev-tool string routed for
+    // translation reaches every user's bundle. `src/shared` is the proof; it is on this list
+    // for exactly that reason.
+    //
+    // It would also have contradicted itself inside one commit. Three of those six strings
+    // were added to `check-dev-only.mjs`'s REVIEW_ONLY list in the same change, which asserts
+    // they are ABSENT from a production `dist/`. Routing them puts them in `lsd.json` and
+    // `lsd.json` is in every bundle, so the build would have failed on the strings the same
+    // commit had just promised to keep out.
+    //
+    // The instruction was withdrawn once the chain was stated, and the exclusion list was
+    // deliberately left alone. The six went through `t()` with an English fallback and no
+    // wordlist rows, which is what every other string in that panel already does — "Export
+    // Markdown", "Refresh" and "Enter remark mode" are all `t()` calls and none of them has a
+    // row.
+    //
+    // So: a request to route a string under one of these four directories is not an oversight
+    // to be helpfully fixed. Translating dev chrome means shipping dev chrome. If the tooling's
+    // own copy ever genuinely has to be translated, the thing to change is that `lsd.json`
+    // reaches the client bundle at all — not this line.
     if (e.isDirectory()) { if (!DEV_ONLY_DIRS.has(e.name)) walk(p, out) }
     // .ts as well as .tsx: the tour/guide content lives in src/tour/steps.ts and the
     // notification copy in src/data/notifications.ts — both are user-visible strings that

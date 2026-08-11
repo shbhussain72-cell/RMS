@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { DEFAULT_FILTER, filterNotes } from '../src/notes/filter.ts'
 import { exportName, toJson, toMarkdown } from '../src/notes/export.ts'
 import { describeImport, planImport } from '../src/notes/import.ts'
+import { planSeed, SEED_COUNT, seedCountsByRoute } from '../src/notes/seed.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SEED = JSON.parse(readFileSync(resolve(ROOT, 'docs/sticky-notes-seed.json'), 'utf8'))
@@ -293,5 +294,59 @@ describe('import merges on createdAt', () => {
   it('reports all three numbers, and only the ones that happened', () => {
     expect(describeImport({ added: [1, 2], alreadyPresent: 0, skipped: 0 })).toBe('2 added')
     expect(describeImport({ added: [1], alreadyPresent: 3, skipped: 2 })).toBe('1 added, 3 already here, 2 unreadable')
+  })
+})
+
+describe('seeding', () => {
+  const EMPTY = { v: 1, seeded: false, notes: [] }
+
+  it('places every seeded note on a fresh board', () => {
+    const next = planSeed(EMPTY)
+    expect(next.notes).toHaveLength(SEED_COUNT)
+    expect(next.notes).toHaveLength(48)
+    expect(next.seeded).toBe(true)
+  })
+
+  it('puts them on the routes the file says', () => {
+    // Against the FILE, not against a list of numbers typed here — a hard-coded table is a table
+    // that goes out of date the next time the seed is regenerated.
+    const next = planSeed(EMPTY)
+    const got = {}
+    for (const n of next.notes) got[n.route] = (got[n.route] ?? 0) + 1
+    expect(got).toEqual(seedCountsByRoute())
+    expect(Object.keys(got)).toHaveLength(10)
+  })
+
+  it('does nothing once the board has been seeded', () => {
+    // The behaviour that makes the board trustworthy: a note somebody deleted must stay deleted.
+    const seeded = planSeed(EMPTY)
+    expect(planSeed(seeded)).toBeNull()
+    const afterDeleting = { ...seeded, notes: seeded.notes.slice(0, 5) }
+    expect(planSeed(afterDeleting)).toBeNull()
+  })
+
+  it('keeps notes written before the seed existed, and does not duplicate them', () => {
+    const prior = { v: 1, seeded: false, notes: [note({ id: 'mine', text: 'written earlier', createdAt: '2026-01-01T00:00:00.000Z' })] }
+    const next = planSeed(prior)
+    expect(next.notes.filter((n) => n.text === 'written earlier')).toHaveLength(1)
+    expect(next.notes).toHaveLength(SEED_COUNT + 1)
+  })
+
+  it('marks them so a later import of the same notes adds nothing', () => {
+    // Seed and import agree by using the SAME key, not by both being careful.
+    const seeded = planSeed(EMPTY)
+    const asFile = JSON.parse(JSON.stringify(seeded.notes))
+    const r = planImport(seeded.notes, asFile)
+    expect(r.added).toHaveLength(0)
+    expect(r.alreadyPresent).toBe(SEED_COUNT)
+  })
+
+  it('carries the recovered element as context, and the collapsed-duplicate counts', () => {
+    const next = planSeed(EMPTY)
+    // 44 of the 48 recovered notes recorded what they were pinned to; 4 never had it.
+    expect(next.notes.filter((n) => n.element)).toHaveLength(44)
+    expect(next.notes.filter((n) => n.source === 'seed')).toHaveLength(48)
+    // The collapsed copies are kept rather than thrown away.
+    expect(next.notes.reduce((t, n) => t + (n.duplicates ?? 1), 0)).toBe(52)
   })
 })

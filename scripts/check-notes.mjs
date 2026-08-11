@@ -96,6 +96,9 @@ const seed = (lang) => `
 
 const NOTES_KEY = 'rms-notes.v1'
 
+/** The seed as the app will read it — the source the per-route counts are checked against. */
+const SEED = JSON.parse(readFileSync(resolve(ROOT, 'docs/sticky-notes-seed.json'), 'utf8'))
+
 async function openBoard(page) {
   if (!(await page.locator('[data-notes="board"]').count())) {
     await page.locator('[data-notes="chip"]').click()
@@ -161,13 +164,14 @@ async function runLang(browser, lang, port) {
   const arrival = createArrival({ expected: ROUTES.length * NARROW_WIDTHS.length })
 
   const ctx = await browser.newContext({
-    viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata', reducedMotion: 'reduce',
+    viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata',
+    reducedMotion: 'reduce', acceptDownloads: true,
   })
   await ctx.addInitScript(seed(lang))
   const page = await ctx.newPage()
 
   await page.goto(BASE + CITY_A, { waitUntil: 'domcontentloaded' })
-  await page.evaluate((k) => localStorage.removeItem(k), NOTES_KEY)
+  await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ v: 1, seeded: true, notes: [] })), NOTES_KEY)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await waitForApp(page)
 
@@ -291,7 +295,7 @@ async function runLang(browser, lang, port) {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(BASE + CITY_A, { waitUntil: 'domcontentloaded' })
   await waitForApp(page)
-  await page.evaluate((k) => localStorage.removeItem(k), NOTES_KEY)
+  await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ v: 1, seeded: true, notes: [] })), NOTES_KEY)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await waitForApp(page)
 
@@ -398,12 +402,128 @@ async function runLang(browser, lang, port) {
   await ctx.close()
 }
 
+/**
+ * Seeding and import, in a browser that has never seen this tool.
+ *
+ * A SEPARATE CONTEXT, not a cleared key in the one above. The seed runs when the stored board is
+ * absent, and every earlier section deliberately starts from `{seeded: true, notes: []}` so that
+ * 48 notes do not land in the middle of a fixture about two. Sharing a context would mean either
+ * this section or those cannot test what they are for.
+ */
+async function runSeedAndImport(browser, lang, port) {
+  const BASE = `http://localhost:${port}`
+  console.log(`\n─── ${lang}: seeding and import (fresh browser) ───`)
+
+  const ctx = await browser.newContext({
+    viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata',
+    reducedMotion: 'reduce', acceptDownloads: true,
+  })
+  await ctx.addInitScript(seed(lang))
+  const page = await ctx.newPage()
+
+  // Nothing is written to NOTES_KEY here. That absence IS the precondition.
+  await page.goto(BASE + LIST, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  const stored = await storedNotes(page)
+  check(`${lang}: a fresh browser is seeded with all ${SEED.length} recovered notes`,
+    stored?.length === SEED.length, `${stored?.length ?? 'null'} placed`)
+
+  // PER ROUTE, against the file — not against a table of numbers typed into this suite, which
+  // would go out of date the next time the seed is regenerated and would then be asserting the
+  // old file.
+  const expected = {}
+  for (const n of SEED) expected[n.route] = (expected[n.route] ?? 0) + 1
+  const got = {}
+  for (const n of stored ?? []) got[n.route] = (got[n.route] ?? 0) + 1
+  const wrongRoutes = Object.keys(expected).filter((r) => expected[r] !== got[r])
+  check(`${lang}: every seeded note is on the route the file gives it`, wrongRoutes.length === 0,
+    wrongRoutes.map((r) => `${r}: file ${expected[r]}, board ${got[r] ?? 0}`).join(' | ')
+    || `${Object.keys(expected).length} routes match`)
+  console.log(`    per-route: ${Object.entries(expected).sort((a, b) => b[1] - a[1])
+    .map(([r, c]) => `${r} ${got[r] ?? 0}/${c}`).join(', ')}`)
+
+  // And they are actually ON the page, not merely in storage. `/miqaats` carries the most.
+  await openBoard(page)
+  await page.locator('[data-notes="filter-status-all"]').click()
+  await page.waitForTimeout(200)   // sleep: the filter re-renders off a store subscription with no completion event
+  const shownHere = await page.locator('[data-notes="row"]').count()
+  check(`${lang}: the seeded notes for this screen are rendered on it`,
+    shownHere === expected[LIST], `${shownHere} rows, file says ${expected[LIST]}`)
+
+  // The recovered context line, where the file had one.
+  const withElement = await page.locator('[data-notes="element"]').count()
+  check(`${lang}: recovered notes show what they were pinned to`, withElement > 0,
+    `${withElement} of ${shownHere} rows carry a "was on" line`)
+
+  // ── the seed does not come back ────────────────────────────────────────────────────
+  //
+  // The behaviour that makes the board trustworthy. A delete that does not stay deleted means
+  // nothing on the board can be relied on.
+  const before = (await storedNotes(page)).length
+  await page.locator('[data-notes="delete"]').first().click()
+  await page.waitForTimeout(200)   // sleep: the delete writes through the store subscription, which has no completion event
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+  const after = (await storedNotes(page)).length
+  check(`${lang}: a deleted note stays deleted across a reload — the seed does not re-run`,
+    after === before - 1, `${before} -> ${after}`)
+
+  // ── import: the same file twice adds nothing the second time ───────────────────────
+  await openBoard(page)
+  await page.locator('[data-notes="filter-scope-all"]').click()
+  await page.locator('[data-notes="filter-status-all"]').click()
+  await page.waitForTimeout(200)   // sleep: two filter writes settle through the same subscription
+  const exported = await captureDownload(page, 'export-json')
+  const file = JSON.parse(exported.text)
+  check(`${lang}: the JSON export holds the whole board to import back`,
+    file.length === after, `${file.length} exported, ${after} on the board`)
+
+  // The file is handed to the real <input type=file>, so the assertion covers the reader and the
+  // handler rather than the pure planner the unit tests already cover.
+  const setFile = async (contents) => {
+    await page.locator('[data-notes="import-input"]').setInputFiles({
+      name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(contents)),
+    })
+    await page.locator('[data-notes="import-note"]').waitFor({ timeout: 10_000 })
+    return page.locator('[data-notes="import-note"]').textContent()
+  }
+
+  const again = await setFile(file)
+  check(`${lang}: re-importing the same file adds nothing and says so`,
+    /0 added/.test(again) && new RegExp(`${file.length} already here`).test(again), again)
+  check(`${lang}: re-importing the same file did not change the board`,
+    (await storedNotes(page)).length === after, `${(await storedNotes(page)).length} notes`)
+
+  // One genuinely new note in an otherwise-identical file.
+  const mixed = [...file, {
+    text: `imported from elsewhere (${lang})`, route: LIST, lang, status: 'open',
+    createdAt: '2026-01-02T03:04:05.678Z', author: 'someone else',
+  }]
+  const mixedNote = await setFile(mixed)
+  check(`${lang}: a file with one new note adds exactly one`,
+    /1 added/.test(mixedNote) && new RegExp(`${file.length} already here`).test(mixedNote), mixedNote)
+  check(`${lang}: the imported note is on the board`,
+    (await page.locator(`[data-notes="row"]:has-text(${JSON.stringify(`imported from elsewhere (${lang})`)})`).count()) === 1)
+  check(`${lang}: import merged rather than replaced`,
+    (await storedNotes(page)).length === after + 1, `${(await storedNotes(page)).length} notes, expected ${after + 1}`)
+
+  // A file that is not a notes export must SAY so. "0 added" would read as "your file was empty".
+  const wrongFile = await setFile({ notes: [] })
+  check(`${lang}: a file that is not a notes export is reported, not silently ignored`,
+    /not a notes export/i.test(wrongFile), wrongFile)
+
+  await ctx.close()
+}
+
 const port = await freePort()
 const server = await serve(port)
 const browser = await chromium.launch()
 try {
   await runLang(browser, 'en', port)
+  await runSeedAndImport(browser, 'en', port)
   await runLang(browser, 'lsd', port)
+  await runSeedAndImport(browser, 'lsd', port)
 } finally {
   await browser.close()
   server.kill()

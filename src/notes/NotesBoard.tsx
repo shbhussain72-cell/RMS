@@ -28,7 +28,7 @@
  *
  * DEV ONLY, behind `REVIEW_TOOLS`.
  */
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Iso } from '../components/Bidi'
 import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
 import { useT } from '../i18n'
@@ -38,6 +38,7 @@ import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { getAuthor, hasAuthor } from '../shared/identity'
 import { addNote, newNoteId, readBoard, removeNote, updateNote, useBoard, writeBoard } from './store'
 import { describeImport, planImport } from './import'
+import { planSeed } from './seed'
 import { DEFAULT_FILTER, filterNotes, type LangFilter, type NoteFilter, type Scope, type StatusFilter } from './filter'
 import { download, exportName, MONTHS, toJson, toMarkdown } from './export'
 import { useRoutePattern } from './useRoutePattern'
@@ -85,6 +86,23 @@ function NotesBoardInner() {
   const [busy, setBusy] = useState<string | null>(null)
   const [importNote, setImportNote] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+
+  /**
+   * SEEDING, ONCE, BEFORE THE BOARD IS EVER SHOWN.
+   *
+   * In an effect rather than during render because it writes to localStorage, and in THIS
+   * component because it is the only thing that reads the board — a seed that ran from
+   * `main.tsx` would run on every page of the app whether or not the tooling was ever opened.
+   *
+   * `readBoard()` and not the `board` from the hook: under StrictMode this effect runs twice on
+   * mount, and the hook's value is a snapshot from before the first pass wrote. Reading through
+   * gives the second pass the `seeded: true` the first one just set, so it does nothing —
+   * without it, the seed would apply twice and 48 notes would arrive as 96.
+   */
+  useEffect(() => {
+    const next = planSeed(readBoard())
+    if (next) writeBoard(next)
+  }, [])
 
   const runImport = async (file: File) => {
     setBusy('import')

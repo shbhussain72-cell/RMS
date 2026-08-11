@@ -37,6 +37,7 @@ import { fileURLToPath } from 'node:url'
 import { CANONICAL_WIDTHS } from './widths.mjs'
 import { installProbeDom } from './probe-dom.mjs'
 import { createArrival } from './arrival.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT_ID = 'ashara-1448'
@@ -75,6 +76,12 @@ const PORT = await new Promise((ok) => {
   const s = createServer()
   s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) })
 })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-overlap' })) process.exit(2)
+
 const dev = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
   cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
 })

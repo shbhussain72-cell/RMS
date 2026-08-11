@@ -30,6 +30,7 @@ import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MIQAAT = 'ashara-1448'
@@ -41,6 +42,12 @@ const TOUR = [...new Set([...readFileSync(resolve(ROOT, 'src/tour/steps.ts'), 'u
 const seed = `try{localStorage.setItem('rms-lang','lsd');const p=JSON.parse(localStorage.getItem('miqaat-flow')||'{}');localStorage.setItem('miqaat-flow',JSON.stringify({...p,state:{...(p.state||{}),loggedIn:true},version:p.version??0}));localStorage.setItem('rms-tour-seen',JSON.stringify(${JSON.stringify(TOUR)}))}catch{}`
 
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-brackets' })) process.exit(2)
+
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 await new Promise((ok, fail) => { const t = setTimeout(() => fail(new Error('no start')), 90000)
   const w = (b) => { if (String(b).includes(String(port))) { clearTimeout(t); setTimeout(ok, 900) } }

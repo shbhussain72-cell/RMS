@@ -59,6 +59,7 @@ import { join } from 'node:path'
 import { installProbeDom } from './probe-dom.mjs'
 import { NARROW_WIDTHS } from './widths.mjs'
 import { createCoverage } from './coverage-floor.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const LANGS = ['en', 'lsd']
 /** Below this the AppBar renders its mobile cluster and the chip/bell do not exist. */
@@ -148,6 +149,12 @@ for (const c of unreachable) console.log(`  note  ${c.id}: not driven — ${c.un
 
 // ── the harness ──────────────────────────────────────────────────────────────────────
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-popover' })) process.exit(2)
+
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 await new Promise((ok, fail) => {
   const t = setTimeout(() => fail(new Error('preview did not start')), 60_000)

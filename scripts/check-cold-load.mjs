@@ -39,11 +39,11 @@
  *   stale roster        a party naming member ids that are not in `family` any more
  */
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
-import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
+import { freePort, startPreview, finish } from './lib/preview-server.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -90,17 +90,14 @@ const seed = (lang, flow) => `try{
   }));
 }catch(e){}`
 
-const PORT = await new Promise((ok) => {
-  const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) })
-})
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
-  cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-})
-await new Promise((ok, bad) => {
-  const t = setTimeout(() => bad(new Error('vite preview did not start')), 90_000)
-  const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1200) } }
-  server.stdout.on('data', w); server.stderr.on('data', w)
-})
+const PORT = await freePort()
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-cold-load' })) process.exit(2)
+
+const server = await startPreview(PORT, { cwd: ROOT })
 
 let failures = 0
 const fail = (msg) => { console.error(`  FAIL  ${msg}`); failures++ }
@@ -155,8 +152,25 @@ for (const save of SAVES) {
 }
 
 await browser.close()
-server.kill()
 
 console.log('')
-if (failures) { console.error(`${failures} failing assertion(s)\n`); process.exit(1) }
-console.log('every route survives a saved session from an older build\n')
+if (failures) console.error(`${failures} failing assertion(s)\n`)
+else console.log('every route survives a saved session from an older build\n')
+
+/**
+ * ── THIS SUITE PRINTED ITS VERDICT AND THEN HUNG FOR FIFTEEN MINUTES ─────────────────
+ *
+ * On the 11 Aug completion sweep it was killed at the 900-second cap, having already printed
+ * its success line. The teardown was a bare server.kill().
+ *
+ * vite is spawned through a shell, so that killed the shell and orphaned the node server, whose
+ * piped stdout kept the event loop alive with no work left to do. check-bidi had the identical
+ * bug and was fixed in place; the fix now lives in lib/preview-server.mjs so it is one
+ * implementation rather than one per suite.
+ *
+ * IT MATTERS MORE HERE THAN ANYWHERE ELSE. This suite is the CONTROL for the arrival audit in
+ * docs/assertion-discipline.md — the one that had to go red with the auth gate shut for the
+ * other sixteen verdicts to mean anything. A control that cannot be put in a harness, and that
+ * reports as a timeout when it has in fact passed, undermines every row that rests on it.
+ */
+finish(server, failures ? 1 : 0)

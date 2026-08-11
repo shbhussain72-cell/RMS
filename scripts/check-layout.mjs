@@ -59,6 +59,7 @@ import { spawn } from 'node:child_process'
 import { CANONICAL_WIDTHS } from './widths.mjs'
 import { installProbeDom } from './probe-dom.mjs'
 import { createArrival } from './arrival.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -395,6 +396,12 @@ async function freePort() {
 }
 
 async function serve(port) {
+  // The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+  // four days against a dist/ built before the commit that broke it — see the arrival audit's
+  // third column. Builds one when it is not, because a suite that stops with a message nobody
+  // reads is the same as a suite that guesses.
+  if (!ensureDist({ suite: 'check-layout' })) process.exit(2)
+
   const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], {
     cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
   })

@@ -43,9 +43,61 @@
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
+/**
+ * The aria-label to look for, in both languages, READ FROM THE DICTIONARY.
+ *
+ * This suite used to carry the LSD spellings as literals:
+ *
+ *     { LOGOUT_SRC: 'logout|<the LSD string>', ACCOUNT_SRC: 'account menu|<the LSD string>' }
+ *
+ * Commit 5af517d changed the Logout translation. The suite went on printing ok for four days,
+ * because it reads dist/ and nobody rebuilt; the moment one was built it failed twice with
+ * "could not find the AppBar logout control" — a message that names the control and not the
+ * cause, so it reads as an app regression.
+ *
+ * A test that hard-codes a translation breaks every time that translation is edited, and the
+ * person editing it is the one least able to predict which suite they have broken. The value is
+ * in lsd.json under a key this can read, so it reads it.
+ *
+ * A MISSING KEY IS A HARD FAILURE, not a fall back to English. Falling back would leave the
+ * English alternative matching nothing in LSD, and the suite would fail with the same
+ * control-not-found message it already fails with — a wrong diagnosis in the place this is
+ * fixing one.
+ */
+const DICT = (() => {
+  const raw = JSON.parse(readFileSync(resolve(ROOT, 'src/i18n/lsd.json'), 'utf8'))
+  return raw.entries ?? raw
+})()
+
+const rx = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+function label(key, english) {
+  const entry = DICT[key]
+  // Bidi control marks are stored with the value and are not in the rendered aria-label.
+  const lsd = String(entry?.lsd ?? '').replace(/[\u200e\u200f\u061c]/g, '').trim()
+  if (!lsd) {
+    console.error(`  FAIL  src/i18n/lsd.json has no LSD value for "${key}" — this suite matches`)
+    console.error('        the AppBar control by its translated aria-label and cannot do so without one')
+    process.exit(2)
+  }
+  return `${english}|${rx(lsd)}`
+}
 
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-chrome' })) process.exit(2)
+
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 await new Promise((ok, fail) => { const t = setTimeout(() => fail(new Error('no start')), 60000)
   const w = (b) => { if (String(b).includes(String(port))) { clearTimeout(t); setTimeout(ok, 800) } }
@@ -85,9 +137,10 @@ for (const lang of ['en', 'lsd']) {
     // Mobile puts Logout straight on the AppBar; desktop hides it behind the account menu. Both
     // are driven here rather than skipping the wide case — the sheet is centred at >=640px, so
     // that width is the regression guard for the alignment that is being changed on mobile.
-    // The aria-labels are translated, so both spellings are named here rather than matched loosely
-    // — `account` alone also hits the LSD string for the menu, and a fuzzy match on the wrong
-    // control fails silently as "no sheet opened".
+    // The aria-labels are translated, so both spellings are used rather than a loose match —
+    // `account` alone also hits the LSD string for the menu, and a fuzzy match on the wrong
+    // control fails silently as "no sheet opened". The LSD halves come from lsd.json rather
+    // than from literals here; see `label()` for what that cost when they were literals.
     const opened = await page.evaluate(async ({ LOGOUT_SRC, ACCOUNT_SRC }) => {
       const LOGOUT = new RegExp(LOGOUT_SRC, 'i')
       const ACCOUNT = new RegExp(ACCOUNT_SRC, 'i')
@@ -106,7 +159,7 @@ for (const lang of ['en', 'lsd']) {
       if (!b) return false
       b.click()
       return true
-    }, { LOGOUT_SRC: 'logout|باهر نكلو', ACCOUNT_SRC: 'account menu|account ني فهرست' })
+    }, { LOGOUT_SRC: label('Logout', 'logout'), ACCOUNT_SRC: label('Account menu', 'account menu') })
     if (!opened) { say(false, 'could not find the AppBar logout control to open a sheet'); await ctx.close(); continue }
     await page.waitForTimeout(200)   // sleep: bottom-sheet open transition, no completion event
 

@@ -19,6 +19,7 @@ import { createServer } from 'node:net'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 /**
@@ -40,6 +41,12 @@ const check = (name, ok, detail = '') => {
 }
 
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ reviewTools: true, suite: 'check-review-tools' })) process.exit(2)
+
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 await new Promise((ok, fail) => {
   const t = setTimeout(() => fail(new Error('preview did not start')), 60_000)
@@ -49,7 +56,24 @@ await new Promise((ok, fail) => {
 
 const browser = await chromium.launch()
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true })
-await ctx.addInitScript(`try{localStorage.setItem('rms-lang','en');localStorage.setItem('miqaat-flow',JSON.stringify({state:{loggedIn:true},version:0}));localStorage.setItem('rms-tour-seen',JSON.stringify(${JSON.stringify(TOUR_KEYS)}))}catch{}`)
+/**
+ * TWO PRECONDITIONS THIS SUITE DID NOT SEED, BOTH OF WHICH IT NEEDS.
+ *
+ * It could not run at all between 9 and 11 Aug, so neither had ever failed visibly.
+ *
+ * The ADAPTER. The default store is the shared one, and `vite preview` serves static files —
+ * it answers /api/remarks with index.html, apiFetch throws NotJson, and save rethrows before
+ * the remark reaches state. "a remark created through the UI persists — 0 stored" is that,
+ * and it is the same defect that made remarks vanish under `vite dev`. Selecting the local
+ * adapter is what a store-less server actually requires, not a way around the assertion.
+ *
+ * The AUTHOR. Unseeded, the panel opens with IdentityPrompt at the top, and that prompt
+ * autofocuses its name field. The Ctrl+Shift+M handler correctly refuses to fire from inside
+ * an input, so remark mode never turns on and the click lands on the page instead of the
+ * composer — surfacing as a timeout on `[data-rmk="composer-input"]`, which reads as a bad
+ * selector. check-remarks was fixed for exactly this on 11 Aug; this suite has it too.
+ */
+await ctx.addInitScript(`try{localStorage.setItem('rms-lang','en');localStorage.setItem('rms-remarks-adapter','local');localStorage.setItem('rms-remark-author','harness');localStorage.setItem('miqaat-flow',JSON.stringify({state:{loggedIn:true},version:0}));localStorage.setItem('rms-tour-seen',JSON.stringify(${JSON.stringify(TOUR_KEYS)}))}catch{}`)
 const page = await ctx.newPage()
 const url = `http://localhost:${port}`
 
@@ -90,11 +114,17 @@ try {
   check('pill shows an unexported count', (await badge.count()) === 1 && (await badge.innerText()).includes('1'),
     `badge count ${await badge.count()}`)
 
-  // The "this browser only" notice is deployed-build only. `vite preview` of a flag-on build
-  // is exactly that case — DEV is false — so it must be showing here. On a dev server the
-  // reviewer IS the developer and the line would be noise.
-  const notice = await page.locator('[data-rmk="panel"] p', { hasText: 'this browser only' }).count()
-  check('the deployed build explains that remarks go nowhere until exported', notice === 1,
+  // The deployed-build notice, matched on a SUBSTRING OF THE CURRENT COPY.
+  //
+  // This looked for "this browser only", which was the wording when remarks were per-browser.
+  // The store is shared now and the panel says so instead; the old phrase would be a false
+  // statement to show a reviewer, so its absence is correct and this assertion was the stale
+  // half. It went unnoticed because the suite could not reach this line.
+  //
+  // `vite preview` of a flag-on build is the deployed case — REVIEW_TOOLS on, DEV false — so
+  // the notice must be showing here. On a dev server the reviewer IS the developer.
+  const notice = await page.locator('[data-rmk="panel"] p', { hasText: 'shared with every reviewer' }).count()
+  check('the deployed build explains who else can see these remarks', notice === 1,
     `${notice} notices found`)
 
   // ── 4. both exports, and what is IN them ───────────────────────────────────────────
@@ -106,8 +136,13 @@ try {
     return out
   }
   const md = await grab('[data-rmk="export-md"]')
-  check('Markdown export is readable as-is', md.includes('# Review remarks') && md.includes('## `/miqaats`') && md.includes(TEXT),
-    'missing heading, route group or the remark text')
+  // ONE route in this export, so there is deliberately no `## /route` heading — the format
+  // changed on 11 Aug from a heading-plus-table per remark to a numbered list, precisely
+  // because the old shape was unreadable where it gets pasted. Asserted as the outcome a
+  // reader cares about: the text is there, on a numbered line, and no table came with it.
+  check('Markdown export is readable as-is',
+    md.includes('# Review remarks') && md.includes(`1. ${TEXT}`) && !md.includes('|---|'),
+    'missing header, numbered line, or still carrying a table')
   const json = await grab('[data-rmk="export-json"]')
   let parsed = null
   try { parsed = JSON.parse(json) } catch { /* reported below */ }

@@ -46,6 +46,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = resolve(ROOT, 'dist')
@@ -184,6 +185,20 @@ const REVIEW_ONLY = [
 
 /** The flag the bundle under test was built with. */
 const TOOLS_ON = process.env.VITE_REVIEW_TOOLS === 'true'
+
+/**
+ * The bundle being grepped must be the bundle this source produces, and it must have been built
+ * in the flag state these assertions are about.
+ *
+ * Standalone, this read whatever `dist/` happened to be on disk. Run after any other build it
+ * asserted "review tooling absent" against a bundle whose provenance it had not established —
+ * which is a gate that passes for a reason unrelated to the thing it gates.
+ *
+ * `build: false` and not a rebuild: this script is the LAST STEP of `npm run build`, so
+ * building here would re-enter the build that invoked it.
+ */
+if (!ensureDist({ reviewTools: TOOLS_ON, build: false, suite: 'check-dev-only' })) process.exit(2)
+
 /** Must be present. Proves the search is actually looking at the built app. */
 const CONTROL = 'Ashara'
 

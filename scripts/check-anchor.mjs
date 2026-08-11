@@ -29,8 +29,15 @@ import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
 
 const port = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
+// The bundle under test must be the bundle this source produces. `check-chrome` printed ok for
+// four days against a dist/ built before the commit that broke it — see the arrival audit's
+// third column. Builds one when it is not, because a suite that stops with a message nobody
+// reads is the same as a suite that guesses.
+if (!ensureDist({ suite: 'check-anchor' })) process.exit(2)
+
 const proc = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 await new Promise((ok, fail) => { const t = setTimeout(() => fail(new Error('no start')), 60000)
   const w = (b) => { if (String(b).includes(String(port))) { clearTimeout(t); setTimeout(ok, 800) } }

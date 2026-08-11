@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useDevHidden, type DevWidgetId } from './hidden'
+import { useT } from '../i18n'
 
 /**
  * DevDock — the floating shell every dev-only panel sits in, draggable and remembered.
@@ -36,8 +38,24 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Pointer
  * it — and the recovery is to clear localStorage, which also throws away everything else the
  * dev tools remember.
  *
- * DEV ONLY. Both call sites are behind `import.meta.env.DEV`, and `devtools.pos.v1` is on
- * `check-dev-only.mjs`'s forbidden list so the build fails if this reaches `dist/`.
+ * ── HIDING ───────────────────────────────────────────────────────────────────────────
+ *
+ * Every dock carries its own eye, and hiding one says nothing about the others — see
+ * `hidden.ts` for why that is a map rather than a switch.
+ *
+ * Hidden means `display:none` on a wrapper that STAYS IN THE TREE. The children of these docks
+ * are not passive: the coverage badge runs the DOM scan, the dictionary panel holds edits that
+ * have not reached the shared store, and the remarks dock resolves every anchor on the page.
+ * Rendering `null` instead would have been one character shorter and would silently discard a
+ * queue the reviewer cannot see and did not know they were carrying.
+ *
+ * The grip and the eye are OUTSIDE that wrapper, so a hidden dock is still a visible pair of
+ * ~16px controls in its corner: draggable, and clickable back into existence by someone who
+ * does not know a shortcut and should not have to.
+ *
+ * DEV ONLY. Both call sites are behind `import.meta.env.DEV`; `devtools.pos.v1` and
+ * `devtools.hidden.v1` are on `check-dev-only.mjs`'s review-only list, so the build fails if
+ * either reaches a production `dist/`.
  */
 
 /** One key for every dock, keyed by dock id inside. Versioned: the shape may need to change. */
@@ -78,8 +96,8 @@ export default function DevDock({
   children,
   ...rest
 }: {
-  /** Stable per-panel key inside the stored map. */
-  id: string
+  /** Stable per-panel key, in the stored position map and in the stored hidden map. */
+  id: DevWidgetId
   className: string
   children: ReactNode
 } & Record<string, unknown>) {
@@ -87,6 +105,8 @@ export default function DevDock({
   const [pos, setPos] = useState<Pos | null>(null)
   const [dragging, setDragging] = useState(false)
   const grab = useRef<Pos | null>(null)
+  const [hidden, setHidden] = useDevHidden(id)
+  const { t } = useT()
 
   const clamp = useCallback((p: Pos): Pos => {
     const el = ref.current
@@ -168,15 +188,32 @@ export default function DevDock({
       {/* Applied to the panels, not the wrapper: the wrapper is `pointer-events: none`, so a
           cursor set on it is never the one the browser shows. */}
       {dragging && <style>{'[data-devdock] *{cursor:grabbing!important;user-select:none!important}'}</style>}
-      {children}
-      <div
-        data-devdock-grip=""
-        title="Drag to move"
-        aria-hidden="true"
-        className="pointer-events-auto select-none rounded-[5px] border border-[#d8cfb8] bg-white/90 px-[7px] text-[11px] leading-[15px] tracking-[2px] text-[#8a938e] shadow-[0_2px_8px_-2px_rgba(21,64,47,0.3)]"
-        style={{ cursor: dragging ? 'grabbing' : 'grab' }}
-      >
-        ⠿
+      {/* STAYS MOUNTED. `display:none`, never `null` — see the header. */}
+      <div className={hidden ? 'hidden' : 'contents'} data-devdock-body="" data-devdock-hidden={hidden ? '1' : '0'}>
+        {children}
+      </div>
+      <div className="pointer-events-none flex items-center gap-[4px]">
+        <div
+          data-devdock-grip=""
+          title="Drag to move"
+          aria-hidden="true"
+          className="pointer-events-auto select-none rounded-[5px] border border-[#d8cfb8] bg-white/90 px-[7px] text-[11px] leading-[15px] tracking-[2px] text-[#8a938e] shadow-[0_2px_8px_-2px_rgba(21,64,47,0.3)]"
+          style={{ cursor: dragging ? 'grabbing' : 'grab' }}
+        >
+          ⠿
+        </div>
+        {/* The way back. A hidden dock is these two controls and nothing else. */}
+        <button
+          type="button"
+          data-devdock-eye={id}
+          data-devdock-eye-on={hidden ? '1' : '0'}
+          onClick={() => setHidden(!hidden)}
+          title={hidden ? t('Show') : t('Hide')}
+          aria-label={hidden ? t('Show') : t('Hide')}
+          className="pointer-events-auto select-none rounded-[5px] border border-[#d8cfb8] bg-white/90 px-[5px] text-[11px] leading-[15px] text-[#8a938e] shadow-[0_2px_8px_-2px_rgba(21,64,47,0.3)]"
+        >
+          {hidden ? '◉' : '⊘'}
+        </button>
       </div>
     </div>
   )

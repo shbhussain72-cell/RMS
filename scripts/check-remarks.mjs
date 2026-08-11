@@ -567,6 +567,68 @@ async function runLang(browser, lang, port) {
     numbered + ' numbered lines, ' + rows + ' rows')
 
 
+  // ── HIDE CONTROLS — ONE PER WIDGET ─────────────────────────────────────────────
+  //
+  // The claim is INDEPENDENCE, so every assertion here reads all three docks and not just the
+  // one being acted on. A single shared flag would pass any test that only looked at its own
+  // widget, and would be discovered by a reviewer who hid the coverage badge and lost the
+  // remarks pill they were about to write into.
+  await openPanel(page)
+  const eyes = ['coverage', 'dictionary', 'remarks']
+  const hiddenState = async () => {
+    const out = {}
+    for (const w of eyes) {
+      out[w] = await page.locator(`[data-devdock-eye="${w}"]`).evaluate(
+        (el) => el.closest('[data-devdock]')?.querySelector('[data-devdock-body]')?.getAttribute('data-devdock-hidden') === '1',
+      )
+    }
+    return out
+  }
+
+  const eyePresent = []
+  for (const w of eyes) eyePresent.push(await page.locator(`[data-devdock-eye="${w}"]`).count())
+  check(lang + ': all three dev widgets carry their own hide control',
+    eyePresent.every((n) => n === 1), 'counts ' + eyePresent.join(','))
+
+  const hiddenBefore = await hiddenState()
+  check(lang + ': nothing is hidden to begin with (else the next check is vacuous)',
+    !hiddenBefore.coverage && !hiddenBefore.dictionary && !hiddenBefore.remarks, JSON.stringify(hiddenBefore))
+
+  await page.locator('[data-devdock-eye="remarks"]').click()
+  await page.locator('[data-devdock-eye="remarks"][data-devdock-eye-on="1"]').waitFor()
+  const afterOne = await hiddenState()
+  check(lang + ': hiding one widget hides that widget',
+    afterOne.remarks === true, JSON.stringify(afterOne))
+  check(lang + ': hiding one widget leaves the other two alone',
+    afterOne.coverage === false && afterOne.dictionary === false, JSON.stringify(afterOne))
+
+  // NOT UNMOUNTED. The chip is still in the tree with its live count on it — the panel's data,
+  // the resolution pass and the dictionary's queued edits all live inside these subtrees, and
+  // rendering null to hide would throw them away and silently re-run on unhide.
+  const chipStillThere = await page.locator('[data-rmk="chip"]').count()
+  const chipVisible = await page.locator('[data-rmk="chip"]').isVisible()
+  check(lang + ': a hidden widget is still mounted, only not shown',
+    chipStillThere === 1 && chipVisible === false, 'in DOM ' + chipStillThere + ', visible ' + chipVisible)
+
+  const stubVisible = await page.locator('[data-devdock-eye="remarks"]').isVisible()
+  check(lang + ': a hidden widget leaves a visible control to bring it back',
+    stubVisible === true, 'eye visible ' + stubVisible)
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await settle(page)
+  const hideSurvived = await hiddenState()
+  check(lang + ': the hidden state survives a reload',
+    hideSurvived.remarks === true && hideSurvived.coverage === false, JSON.stringify(hideSurvived))
+
+  await page.locator('[data-devdock-eye="remarks"]').click()
+  await page.locator('[data-devdock-eye="remarks"][data-devdock-eye-on="0"]').waitFor()
+  const hideRestored = await hiddenState()
+  check(lang + ': clicking the stub brings the widget back',
+    hideRestored.remarks === false, JSON.stringify(hideRestored))
+  const hiddenKey = await page.evaluate(() => localStorage.getItem('devtools.hidden.v1'))
+  check(lang + ': unhiding clears the stored entry rather than storing false',
+    !JSON.parse(hiddenKey || '{}').remarks, String(hiddenKey))
+
 
   await ctx.close()
 }

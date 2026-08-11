@@ -154,6 +154,10 @@ const REVIEW_ONLY = [
   '__lsdScan',
   'devtools.pos.v1',
   'data-devdock',
+  // Per-widget hide state, and the control that sets it. One key for all three docks; a widget
+  // that could be hidden in a production build is a widget a visitor can lose.
+  'devtools.hidden.v1',
+  'data-devdock-eye',
   // Dictionary editor, now on the review flag: its chrome, and the mojibake detector it calls.
   'not yet in the wordlist',
   'lone-surrogate',

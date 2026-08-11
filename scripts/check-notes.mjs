@@ -3,11 +3,33 @@
  *
  *   npm run check:notes
  *
- * Runs against `vite dev` with `VITE_REVIEW_TOOLS=true`, because the board does not exist
- * without the flag and a suite that forgets to set it fails as a locator timeout on
- * `[data-notes="chip"]` — which reads as a flaky selector rather than "the feature was never
- * mounted". `check-remarks` lost two days to exactly that; the flag is set in `serve()` below
- * and the mount is asserted before anything else is attempted.
+ * ── IT SERVES THE PRODUCTION BUNDLE, NOT `vite dev` ──────────────────────────────────
+ *
+ * It ran against the dev server until 11 Aug, and the report that changed it was: on the
+ * deployed site the board only appears on /login. Every assertion here was green, and every
+ * one of them was about a bundle nobody ships.
+ *
+ * A dev server transforms modules on demand, keeps React's development build, and never runs
+ * Rollup — so minification, the tree-shaking of the `REVIEW_TOOLS` branch, chunk splitting and
+ * the production React runtime were all outside anything this suite could see. That is the same
+ * class of gap as the stale `dist/` `check-chrome` sat on for four days: a true verdict about
+ * the wrong artefact. The bundle a reviewer opens is the one worth asserting on.
+ *
+ * `ensureDist({ reviewTools: true })` therefore builds or refuses before anything starts.
+ * Flag-ON because the board does not exist without it, and a suite that forgets fails as a
+ * locator timeout on `[data-notes="chip"]` — which reads as a flaky selector rather than "the
+ * feature was never mounted"; `check-remarks` lost two days to exactly that. The flag now lives
+ * in the BUILD rather than in the server's environment, and it has to: `vite preview` serves
+ * bytes, and no environment variable can put a compile-time constant into bytes already written.
+ *
+ * ── WHAT MOVING OFF THE DEV SERVER GIVES UP, STATED ──────────────────────────────────
+ *
+ * StrictMode double-invokes effects in React's development build and NOT in its production one,
+ * so the seeding effect runs once here where it used to run twice. What that protected — the
+ * effect reading through `readBoard()` rather than through a hook snapshot taken before its own
+ * write — is asserted in `scripts/notes.test.mjs` against `planSeed`, which answers "would a
+ * second call add anything" without needing a browser to invoke it twice. That is its right
+ * home: idempotence is a property of the function, not of the render that calls it.
  *
  * ── WHAT IS WORTH ASSERTING HERE RATHER THAN IN VITEST ───────────────────────────────
  *
@@ -19,14 +41,14 @@
  * navigation and a real page load.
  */
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
-import { createServer } from 'node:net'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
 import { createArrival } from './arrival.mjs'
 import { waitForApp } from './arrival.mjs'
+import { ensureDist } from './lib/dist-precondition.mjs'
+import { freePort, startPreview, finish } from './lib/preview-server.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -55,27 +77,6 @@ const check = (name, pass, detail = '') => {
   console.log(`  ${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  — ${detail}` : ''}`)
 }
 
-async function freePort() {
-  return new Promise((ok) => {
-    const s = createServer()
-    s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => ok(port)) })
-  })
-}
-
-async function serve(port) {
-  const proc = spawn('npx', ['vite', '--port', String(port), '--strictPort'], {
-    cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, VITE_REVIEW_TOOLS: 'true' },
-  })
-  await new Promise((ok, fail) => {
-    const t = setTimeout(() => fail(new Error('dev server did not start')), 90_000)
-    const w = (b) => { if (String(b).includes(String(port))) { clearTimeout(t); setTimeout(ok, 1200) } }
-    proc.stdout.on('data', w)
-    proc.stderr.on('data', w)
-    proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-  })
-  return proc
-}
 
 /**
  * The author is seeded, and that is a precondition rather than a convenience: unseeded, the
@@ -579,8 +580,13 @@ async function runSeedAndImport(browser, lang, port) {
   await ctx.close()
 }
 
+// BEFORE THE BROWSER AND BEFORE THE PORT. A rebuild takes tens of seconds and a stale bundle
+// invalidates every assertion below it, so the one thing that can make the whole run meaningless
+// is settled first — and it either builds or stops, never carries on with a warning.
+if (!ensureDist({ reviewTools: true, suite: 'check-notes' })) process.exit(2)
+
 const port = await freePort()
-const server = await serve(port)
+const server = await startPreview(port, { cwd: ROOT })
 const browser = await chromium.launch()
 try {
   await runLang(browser, 'en', port)
@@ -589,7 +595,6 @@ try {
   await runSeedAndImport(browser, 'lsd', port)
 } finally {
   await browser.close()
-  server.kill()
 }
 
 const failed = results.filter((r) => !r.pass)
@@ -598,4 +603,8 @@ if (failed.length) {
   console.log('\nFAILURES:')
   failed.forEach((f) => console.log(`  ${f.name}  — ${f.detail}`))
 }
-process.exit(failed.length ? 1 : 0)
+// `finish` and not `server.kill()`: vite runs behind a shell, so kill() takes the shell and
+// orphans the server, whose piped stdout then holds the event loop open with no work left to do.
+// check-bidi and check-cold-load were each recorded as a timeout AFTER finishing their work for
+// that exact reason — see scripts/lib/preview-server.mjs.
+finish(server, failed.length ? 1 : 0)

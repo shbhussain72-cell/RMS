@@ -93,12 +93,27 @@ describe('every suite that reads dist/ declares the precondition', () => {
    */
   const SERVES_DIST = /spawn\(\s*'npx',\s*\[\s*'vite',\s*'preview'/
   const READS_DIST = /resolve\(\s*ROOT\s*,\s*'dist'\s*\)/
-  const readsDist = files.filter(({ src }) => SERVES_DIST.test(src) || READS_DIST.test(src))
+  /**
+   * A THIRD signature, because the first two only saw suites that spawn the server INLINE.
+   *
+   * `check-cold-load` and `check-notes` both serve dist/ through `lib/preview-server.mjs`, so
+   * neither contains the literal spawn this file was matching on — and the detector could not
+   * see either of them. It happened to matter for neither, since both import the precondition
+   * anyway; it would have mattered the moment one of them stopped.
+   *
+   * The pattern that goes stale is the one written against how the code looked once. Extracting
+   * a helper is the normal thing to do to a suite, and a wiring check that a refactor makes
+   * blind is a wiring check that reports "all clear" for the suites most recently worked on.
+   */
+  const USES_PREVIEW_LIB = /lib\/preview-server\.mjs/
+  const readsDist = files.filter(({ src }) =>
+    SERVES_DIST.test(src) || READS_DIST.test(src) || USES_PREVIEW_LIB.test(src))
 
   it('finds the suites — without this the assertion is vacuous', () => {
-    // Ten on 11 Aug: nine spawn a preview server and check-dev-only greps the directory. The
-    // floor is deliberately below that — this must not become a count nobody can change — but
-    // it must be high enough that a broken pattern reads as broken rather than as "all clear".
+    // Eleven on 11 Aug: eight spawn a preview server inline, two go through the shared helper,
+    // and check-dev-only greps the directory. The floor is deliberately below that — this must
+    // not become a count nobody can change — but it must be high enough that a broken pattern
+    // reads as broken rather than as "all clear".
     expect(readsDist.length).toBeGreaterThanOrEqual(8)
   })
 

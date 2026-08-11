@@ -974,6 +974,36 @@ A suite that consumes a build artefact answers the third question about whatever
 none of them builds one and none of them checks its age. `check-gate` is the exception and builds
 both ways itself, which is why it is the only one of the five that cannot go stale.
 
+**Fixed on 11 Aug, and not one suite at a time.** `scripts/lib/dist-precondition.mjs` answers it
+once: `ensureDist({ reviewTools })` compares the oldest emitted asset against the newest file
+under `src/` and the three configs, greps the bundle for the review-tools marker, and either
+builds or exits with the command to run. What is deliberately not on offer is carrying on with a
+warning — a warning in the middle of forty lines of `ok` is the same as no warning. Eleven suites
+declare it, and `dist-precondition.test.mjs` finds them **by reading the suites** rather than from
+a list somebody maintains, because a hand-kept list goes stale on exactly the day a suite starts
+serving `dist/`.
+
+Two later corrections to that detector are worth recording, because both were the pattern being
+right about how the code looked once:
+
+- The marker was `data-remark-chrome`. Retiring remarks removed that literal from a flag-ON
+  build, so every review build began reporting as flag-off and `check-gate` failed with "dist/
+  was built without VITE_REVIEW_TOOLS" — a true sentence about a false premise. It is
+  `data-devdock` now: the shell every dev dock mounts into, so it outlives any one feature.
+- The detector matched a literal inline `spawn('npx', ['vite', 'preview'`, so it could not see
+  `check-cold-load` or `check-notes`, which serve `dist/` through the shared helper. Extracting a
+  helper is the ordinary thing to do to a suite, and a wiring check that a refactor blinds reports
+  "all clear" for the suites most recently worked on. It matches the helper import too now.
+
+**`check-notes` was the eleventh, and it joined for a different reason than the other ten.** It
+was not reading a stale `dist/` — it was not reading `dist/` at all. It ran against `vite dev`,
+which transforms modules on demand, keeps React's development build and never runs Rollup, so
+minification, tree-shaking of the `REVIEW_TOOLS` branch and the production React runtime were all
+outside anything it could observe. A reviewer reported the notes board appearing on one screen of
+the deployed app while every assertion about it was green. Staleness and never-built are the same
+defect wearing different clothes: **the verdict is about an artefact, and the artefact is not the
+one anybody opens.**
+
 **A suite that asserts a translation by literal will break every time that translation is
 edited, and the editor is the person least able to predict it.** The label is in `lsd.json`
 under a key the suite could read. Recorded here rather than fixed: it is a live failure on

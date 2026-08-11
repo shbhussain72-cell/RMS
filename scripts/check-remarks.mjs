@@ -165,8 +165,7 @@ async function captureExport(page, which) {
  * One function, so the FORMAT can change without the equality assertion changing with it: the
  * claim under test is "as many records as rows", never "the records look like this".
  */
-const mdRecordCount = (md) => (md.match(/^### /gm) || []).length
-
+const mdRecordCount = (md) => (md.match(/^\d+\. /gm) || []).length
 /**
  * Put remark mode into a known state, by INSPECTION rather than by counting keystrokes.
  *
@@ -534,6 +533,39 @@ async function runLang(browser, lang, port) {
   check(lang + ': Markdown export holds exactly the rendered rows',
     mdRecordCount(md.text) === rows, mdRecordCount(md.text) + ' records, ' + rows + ' rows')
   check(lang + ': Markdown export really downloads', md.filename === 'remarks.md', 'got ' + md.filename)
+
+  /**
+   * THE MARKDOWN IS A LIST YOU CAN PASTE.
+   *
+   * Asserted on the real export rather than in the unit test alone, because the unit test calls
+   * `toMarkdown` directly and cannot see whether the PANEL hands it the filter. It did not: the
+   * header would have read `# Review remarks` with no context on a heavily filtered export, and
+   * every unit test would still have passed.
+   */
+  const mdLines = md.text.split('\n')
+  check(lang + ': the Markdown header states the filter the panel is showing',
+    mdLines[0].includes(ROUTE) && mdLines[0].includes(lang === 'lsd' ? 'LSD' : 'EN') && mdLines[0].includes('open'),
+    JSON.stringify(mdLines[0]))
+  check(lang + ': the header states it ONCE, not per remark',
+    md.text.split(ROUTE).length - 1 === 1, (md.text.split(ROUTE).length - 1) + ' occurrences')
+
+  // Each of these was in the old output. The remark bodies are still there — checked next — so
+  // this cannot pass by exporting nothing.
+  // Row labels from the old six-row table, plus its heading and blockquote. Every one of
+  // these was in the previous output and none of them can occur in a remark somebody wrote.
+  const noise = ['|---|', '### ', '| Anchor', '| Context', '| Author', '| Created', '> ']
+    .filter((n) => md.text.includes(n))
+  check(lang + ': no tables, headings per remark, selectors or timestamps', noise.length === 0,
+    'still carries ' + noise.join(', '))
+
+  const texts = records.map((r) => r.remark)
+  const dropped = texts.filter((tx) => !md.text.includes(tx))
+  check(lang + ': every exported remark text is in the Markdown', dropped.length === 0,
+    dropped.length + ' of ' + texts.length + ' missing')
+  const numbered = (md.text.match(/^\d+\. /gm) || []).length
+  check(lang + ': every line of the list is numbered text', numbered === rows,
+    numbered + ' numbered lines, ' + rows + ' rows')
+
 
 
   await ctx.close()

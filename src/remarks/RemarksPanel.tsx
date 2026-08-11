@@ -105,7 +105,7 @@ function RemarksPanelInner() {
    * reporting itself as delivered, which is the opposite of the error that badge exists to make.
    */
   const exportAs = (kind: 'md' | 'json') => {
-    if (kind === 'md') download('remarks.md', toMarkdown(filtered, resolutions), 'text/markdown')
+    if (kind === 'md') download('remarks.md', toMarkdown(filtered, resolutions, { filter, route }), 'text/markdown')
     else download('remarks.json', toJson(filtered), 'application/json')
     setExported(markExported(filtered))
   }

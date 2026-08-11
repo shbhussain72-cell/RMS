@@ -189,6 +189,11 @@ const REVIEW_ONLY = [
   // shown by accident: a production visitor told "these notes are saved in this browser only"
   // would be reading about a tool that is not there.
   'rms-notes.v1',
+  // html2canvas, reached only through a dynamic import inside the PNG export. ~200kB, and it
+  // has no business in a bundle a phone downloads. A static import would keep it alive through
+  // tree-shaking and look entirely correct doing it — the same shape as the default parameter
+  // that once shipped the whole remarks tool.
+  'html2canvas',
   'data-notes',
   'These notes are saved in this browser only',
   'A note about this page',

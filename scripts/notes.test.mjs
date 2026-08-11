@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DEFAULT_FILTER, filterNotes } from '../src/notes/filter.ts'
+import { exportName, toJson, toMarkdown } from '../src/notes/export.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SEED = JSON.parse(readFileSync(resolve(ROOT, 'docs/sticky-notes-seed.json'), 'utf8'))
@@ -113,5 +114,109 @@ describe('filterNotes', () => {
     expect(list.length).toBe(4)
     expect(filterNotes(list, { scope: 'all', status: 'all', lang: 'all' }, HERE)).toHaveLength(4)
     expect(filterNotes(list, DEFAULT_FILTER, HERE).length).toBeLessThan(list.length)
+  })
+})
+
+describe('export — JSON is the backup', () => {
+  it('round-trips every field, including the ones the board never shows', () => {
+    const list = [
+      note({ id: 'a', element: '`p` — "ITS ID"', duplicates: 3, source: 'seed', updatedAt: '2026-08-11T00:00:00.000Z' }),
+      note({ id: 'b', lang: null }),
+    ]
+    expect(JSON.parse(toJson(list))).toEqual(list)
+  })
+
+  it('keeps element, duplicates and source, which Markdown drops', () => {
+    // Named individually rather than compared to a snapshot: a snapshot updated to match a
+    // regression is still green, and each of these is something the import needs back.
+    const [got] = JSON.parse(toJson([note({ element: '`input`', duplicates: 2, source: 'seed' })]))
+    for (const key of ['id', 'text', 'route', 'element', 'lang', 'status', 'createdAt', 'author', 'duplicates', 'source']) {
+      expect(got, `JSON dropped ${key}`).toHaveProperty(key)
+    }
+  })
+})
+
+describe('export — Markdown is for pasting', () => {
+  const FIXED = new Date('2026-08-11T09:00:00.000Z')
+  const md = (list, meta = {}) => toMarkdown(list, { now: FIXED, ...meta })
+  const HERE = '/miqaats/:id/city'
+
+  it('is the shape the brief asked for', () => {
+    const out = md([
+      note({ id: 'a', text: 'Request should be allowed for only one member', createdAt: '2026-08-10T01:00:00.000Z' }),
+      note({ id: 'b', text: 'not necessary - full box', createdAt: '2026-08-10T02:00:00.000Z' }),
+    ], { filter: { scope: 'route', status: 'all', lang: 'all' }, route: HERE })
+    const lines = out.split('\n')
+    expect(lines[0]).toBe('# Review notes — /miqaats/:id/city')
+    expect(lines[1]).toBe('11 August 2026')
+    expect(out).toContain('1. Request should be allowed for only one member')
+    expect(out).toContain('2. not necessary - full box')
+    expect(out).toContain('## Screens covered: 1   Notes: 2')
+  })
+
+  it('states the route and date ONCE, not per note', () => {
+    const out = md([note({ id: 'a' }), note({ id: 'b' })],
+      { filter: { scope: 'route', status: 'all', lang: 'all' }, route: HERE })
+    expect(out.match(/\/miqaats\/:id\/city/g)).toHaveLength(1)
+    expect(out.match(/11 August 2026/g)).toHaveLength(1)
+  })
+
+  it('names only the axes that are actually filtering', () => {
+    const out = md([note()], { filter: { scope: 'all', status: 'all', lang: 'all' }, route: HERE })
+    expect(out.split('\n')[0]).toBe('# Review notes')
+  })
+
+  it('carries no metadata block per note', () => {
+    // The fixture note HAS an author, a date, an element and a language, so each of these would
+    // find something if a block were being emitted. Without that, these pass on an empty string.
+    const out = md([note({ element: '`p` — "ITS ID"', author: 'shabbir' })])
+    expect(out).toContain('Align to left')
+    for (const gone of ['|---|', '### ', 'shabbir', 'ITS ID', '2026-08-10T09']) {
+      expect(out, `Markdown still carries ${gone}`).not.toContain(gone)
+    }
+  })
+
+  it('groups under route headings only when there is more than one route', () => {
+    const one = md([note({ id: 'a' }), note({ id: 'b' })])
+    expect(one.match(/^## \//gm)).toBeNull()
+
+    const two = md([note({ id: 'a' }), note({ id: 'b', route: '/login' })])
+    expect(two.match(/^## \//gm)).toHaveLength(2)
+    expect(two).toContain('## /login')
+    // Numbering restarts inside each section: they are separate lists to read.
+    expect(two.match(/^1\. /gm)).toHaveLength(2)
+    expect(two).toContain('## Screens covered: 2   Notes: 2')
+  })
+
+  it('flattens a multi-line note onto its one line', () => {
+    // A newline mid-note would end the list item and orphan the rest of the sentence.
+    const out = md([note({ text: 'first line\nsecond line' })])
+    expect(out).toContain('1. first line second line')
+    expect(out.match(/^\d+\. /gm)).toHaveLength(1)
+  })
+
+  it('never emits a run of blank lines and ends with exactly one newline', () => {
+    const out = md([note({ id: 'a' }), note({ id: 'b', route: '/login' }), note({ id: 'c' })])
+    expect(out).not.toMatch(/\n\n\n/)
+    expect(out.endsWith('\n')).toBe(true)
+    expect(out.endsWith('\n\n')).toBe(false)
+  })
+})
+
+describe('exportName', () => {
+  const WHEN = new Date('2026-08-11T09:00:00.000Z')
+
+  it('flattens a route into something a filesystem accepts', () => {
+    // A colon is illegal in a Windows filename and a slash is illegal everywhere; a download
+    // that silently fails to save is worse than an ugly name.
+    const name = exportName('md', '/miqaats/:id/city', WHEN)
+    expect(name).toBe('review-notes_miqaats-id-city_2026-08-11.md')
+    expect(name).not.toMatch(/[:/\\]/)
+  })
+
+  it('says "all" when the export is not pinned to one route', () => {
+    // An all-screens file named after whichever page you happened to be on is a file that lies
+    // in the one place people read without opening it.
+    expect(exportName('json', undefined, WHEN)).toBe('review-notes_all_2026-08-11.json')
   })
 })

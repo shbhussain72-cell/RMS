@@ -38,16 +38,20 @@ import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { getAuthor, hasAuthor } from '../shared/identity'
 import { addNote, newNoteId, removeNote, updateNote, useBoard } from './store'
 import { DEFAULT_FILTER, filterNotes, type LangFilter, type NoteFilter, type Scope, type StatusFilter } from './filter'
+import { download, exportName, MONTHS, toJson, toMarkdown } from './export'
 import { useRoutePattern } from './useRoutePattern'
 import type { Note } from './types'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const chromeProps = { [SCANNER_IGNORE_ATTR]: '' }
 
-/** `11 August 2026` — the export's format, so a note reads the same in both places. */
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December']
-export const longDate = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+/**
+ * `10 Aug` on a row — short because it sits in a metadata line that must not wrap at 390px.
+ *
+ * The month names come from `export.ts` rather than a second array here: two lists of twelve
+ * strings is two things to get wrong, and they would drift in the direction of a note reading
+ * `10 Aug` on the board and `10 August` in the file it exports to.
+ */
 const shortDate = (iso: string) => {
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '—' : `${d.getDate()} ${MONTHS[d.getMonth()]?.slice(0, 3)}`
@@ -76,6 +80,44 @@ function NotesBoardInner() {
   // The chip's number is THIS PAGE's outstanding work, whatever the board's filters are set to —
   // it has to mean the same thing on every screen you walk past.
   const openHere = board.notes.filter((n) => n.route === route && n.status === 'open').length
+
+  const [busy, setBusy] = useState<string | null>(null)
+
+  /**
+   * WHAT THE BOARD SHOWS IS WHAT EXPORTS.
+   *
+   * Every one of these takes `shown` — the same array the list above renders and the same one
+   * the button's count is the length of. There is no path here that reaches the store, which is
+   * the only arrangement in which the three cannot disagree.
+   *
+   * `filenameRoute` is the route only when the export is pinned to one; an "all screens" file
+   * named after whichever page you happened to be on when you pressed it is a file that lies in
+   * the one place people read without opening.
+   */
+  const filenameRoute = scope === 'route' ? route : undefined
+  const exportAs = async (kind: 'json' | 'md' | 'png') => {
+    if (kind === 'json') {
+      download(exportName('json', filenameRoute), toJson(shown), 'application/json')
+      return
+    }
+    if (kind === 'md') {
+      download(exportName('md', filenameRoute), toMarkdown(shown, { filter, route }), 'text/markdown')
+      return
+    }
+    // The PNG rasterises the live page, so the board has to be out of the way first — and the
+    // capture cannot start until the browser has actually painted without it.
+    setBusy('png')
+    setOpen(false)
+    try {
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const { capturePage } = await import('./png')
+      const { blob } = await capturePage(shown, scope === 'route' ? route : 'all screens')
+      download(exportName('png', filenameRoute), blob)
+    } finally {
+      setBusy(null)
+      setOpen(true)
+    }
+  }
 
   const submit = () => {
     const text = draft.trim()
@@ -134,6 +176,38 @@ function NotesBoardInner() {
             ) : shown.map((n) => (
               <Row key={n.id} n={n} showRoute={scope === 'all'} />
             ))}
+          </div>
+
+          {/* Export is the ONLY way one of these notes reaches another person, so it is a row
+              of primary controls rather than a menu. Each count is `shown.length` — the same
+              number as the rows above and the same number that lands in the file. */}
+          <div className="border-t border-[#eee6d4] px-[8px] pt-[8px]">
+            <div className="flex flex-wrap gap-[6px]">
+              <button
+                type="button" data-notes="export-md" disabled={shown.length === 0 || busy !== null}
+                onClick={() => { void exportAs('md') }}
+                className="flex-1 rounded-[6px] bg-[#1f5a44] px-[8px] py-[6px] text-[11px] font-bold text-white disabled:opacity-40"
+                title={t('A numbered list you can paste into a message.')}
+              >
+                {t('Markdown')} <span data-notes="count-md">({shown.length})</span>
+              </button>
+              <button
+                type="button" data-notes="export-png" disabled={shown.length === 0 || busy !== null}
+                onClick={() => { void exportAs('png') }}
+                className="flex-1 rounded-[6px] bg-[#8a6a1e] px-[8px] py-[6px] text-[11px] font-bold text-white disabled:opacity-40"
+                title={t('The page itself, with these notes drawn on it.')}
+              >
+                {busy === 'png' ? t('Capturing…') : <>{t('PNG')} <span data-notes="count-png">({shown.length})</span></>}
+              </button>
+              <button
+                type="button" data-notes="export-json" disabled={shown.length === 0 || busy !== null}
+                onClick={() => { void exportAs('json') }}
+                className="rounded-[6px] border border-[#d8cfb8] bg-white px-[8px] py-[6px] text-[11px] font-bold text-[#23302a] disabled:opacity-40"
+                title={t('Everything, and it imports back.')}
+              >
+                {t('JSON')} <span data-notes="count-json">({shown.length})</span>
+              </button>
+            </div>
           </div>
 
           <div className="border-t border-[#eee6d4] p-[8px]">

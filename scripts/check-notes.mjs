@@ -111,6 +111,42 @@ async function addNote(page, text) {
   await page.locator(`[data-notes="row"]:has-text(${JSON.stringify(text)})`).waitFor({ timeout: 5000 })
 }
 
+/**
+ * Click a download control and return WHAT WAS DOWNLOADED.
+ *
+ * The blob handed to `URL.createObjectURL` is captured rather than the saved file, because
+ * `export.ts` revokes the object URL on the line after `a.click()` and a download racing that
+ * revoke is the flakiest thing a suite like this can contain. The blob IS the file's bytes — the
+ * browser has nothing else to write.
+ *
+ * The download EVENT is awaited alongside, because "produced the right bytes" and "actually
+ * downloaded, under the right name" are two claims and the blob alone only makes the first.
+ *
+ * `binary` returns a data URL instead of text, so the PNG can be decoded back into pixels.
+ */
+async function captureDownload(page, which, { binary = false } = {}) {
+  await page.evaluate(() => {
+    if (window.__grabPatched) return
+    window.__grabPatched = true
+    const real = URL.createObjectURL.bind(URL)
+    URL.createObjectURL = (blob) => {
+      window.__grab = blob.type === 'image/png' || blob.type === ''
+        ? new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(blob) })
+        : blob.text()
+      return real(blob)
+    }
+  })
+  const dl = page.waitForEvent('download', { timeout: 30_000 }).catch(() => null)
+  await page.locator(`[data-notes="${which}"]`).click()
+  const downloaded = await dl
+  const payload = await page.evaluate(() => window.__grab)
+  await page.evaluate(() => { window.__grab = null })
+  return {
+    [binary ? 'dataUrl' : 'text']: payload,
+    filename: downloaded ? downloaded.suggestedFilename() : null,
+  }
+}
+
 const storedNotes = (page) => page.evaluate((k) => {
   try { return JSON.parse(localStorage.getItem(k) || '{}').notes || [] } catch { return null }
 }, NOTES_KEY)
@@ -246,6 +282,118 @@ async function runLang(browser, lang, port) {
   const problems = arrival.verify()
   check(`${lang}: every route the board was measured on actually rendered`,
     problems.length === 0, problems.slice(0, 2).join(' | '))
+
+  // ── 8. EXPORT RESPECTS THE FILTERS ─────────────────────────────────────────────────
+  //
+  // Under a NON-DEFAULT combination on every axis, because the unfiltered case is the one that
+  // agrees by accident. The remarks export shipped for weeks exporting 28 while showing 2, and
+  // an unfiltered test would have passed throughout.
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(BASE + CITY_A, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+  await page.evaluate((k) => localStorage.removeItem(k), NOTES_KEY)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  // A store that spans two routes, two statuses and both languages, so every axis has something
+  // to exclude.
+  await page.evaluate(([k, lg]) => {
+    const other = lg === 'lsd' ? 'en' : 'lsd'
+    const at = (n) => new Date(Date.UTC(2026, 7, 10, 1, n)).toISOString()
+    localStorage.setItem(k, JSON.stringify({ v: 1, seeded: true, notes: [
+      { id: 'k1', text: 'keep me one', route: '/miqaats/:id/city', lang: lg, status: 'open', createdAt: at(1), author: 'harness' },
+      { id: 'k2', text: 'keep me two', route: '/miqaats/:id/city', lang: lg, status: 'open', createdAt: at(2), author: 'harness' },
+      { id: 'x1', text: 'wrong status', route: '/miqaats/:id/city', lang: lg, status: 'resolved', createdAt: at(3), author: 'harness' },
+      { id: 'x2', text: 'wrong language', route: '/miqaats/:id/city', lang: other, status: 'open', createdAt: at(4), author: 'harness' },
+      { id: 'x3', text: 'wrong route', route: '/login', lang: lg, status: 'open', createdAt: at(5), author: 'harness' },
+      { id: 'x4', text: 'wrong route and status', route: '/login', lang: lg, status: 'resolved', createdAt: at(6), author: 'harness' },
+    ] }))
+  }, [NOTES_KEY, lang])
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+  await openBoard(page)
+  await page.locator(`[data-notes="filter-lang-${lang}"]`).click()
+  await page.waitForTimeout(150)   // sleep: the filter re-renders off a store subscription with no completion event
+
+  const total = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).notes.length, NOTES_KEY)
+  const rows = await page.locator('[data-notes="row"]').count()
+  check(`${lang}: the filter actually excludes something (else the rest is vacuous)`,
+    rows > 0 && rows < total, `${rows} rendered of ${total} stored`)
+
+  for (const kind of ['md', 'png', 'json']) {
+    const n = Number(((await page.locator(`[data-notes="count-${kind}"]`).textContent()) || '').replace(/[^0-9]/g, ''))
+    check(`${lang}: the ${kind} button's count is the rendered row count`, n === rows, `button ${n}, rows ${rows}`)
+  }
+
+  const json = await captureDownload(page, 'export-json')
+  const records = JSON.parse(json.text)
+  check(`${lang}: the JSON file holds exactly the rendered rows`,
+    Array.isArray(records) && records.length === rows, `${records.length} exported, ${rows} rows`)
+  const wrong = records.filter((r) => r.route !== CITY_PATTERN || r.status !== 'open' || r.lang !== lang)
+  check(`${lang}: every exported record satisfies the filter`, wrong.length === 0,
+    `${wrong.length} records do not: ${wrong.map((r) => r.id).join(',')}`)
+  check(`${lang}: the JSON filename names the route and the date`,
+    /^review-notes_miqaats-id-city_\d{4}-\d{2}-\d{2}\.json$/.test(json.filename), json.filename)
+
+  const md = await captureDownload(page, 'export-md')
+  const numbered = (md.text.match(/^\d+\. /gm) || []).length
+  check(`${lang}: the Markdown file holds exactly the rendered rows`, numbered === rows,
+    `${numbered} numbered lines, ${rows} rows`)
+  check(`${lang}: the Markdown header states the filter the board is showing`,
+    md.text.split('\n')[0].includes(CITY_PATTERN) && md.text.split('\n')[0].includes(lang === 'lsd' ? 'LSD' : 'EN')
+    && md.text.split('\n')[0].includes('open'), JSON.stringify(md.text.split('\n')[0]))
+  check(`${lang}: the Markdown summary counts the same notes`,
+    md.text.includes(`## Screens covered: 1   Notes: ${rows}`),
+    (md.text.match(/## Screens covered.*/) || ['(no summary line)'])[0])
+  const excluded = ['wrong status', 'wrong language', 'wrong route']
+    .filter((t) => md.text.includes(t))
+  check(`${lang}: nothing the filter excluded is in the Markdown`, excluded.length === 0,
+    `still present: ${excluded.join(', ')}`)
+
+  // ── 9. THE PNG IS THE PAGE, NOT THE BOARD ──────────────────────────────────────────
+  //
+  // Measured on the pixels. "It produced a PNG" is not the claim — the claim is that somebody
+  // can forward it and see the screen, so the image has to be page-width, taller than the page
+  // (the note strip is added below it), carry the AppBar's colour near the top, and carry the
+  // strip's colour at the bottom. A board-only capture is ~360px wide and fails the first.
+  const png = await captureDownload(page, 'export-png', { binary: true })
+  const shot = await page.evaluate(async (dataUrl) => {
+    const img = await createImageBitmap(await (await fetch(dataUrl)).blob())
+    const c = document.createElement('canvas')
+    c.width = img.width; c.height = img.height
+    const cx = c.getContext('2d')
+    cx.drawImage(img, 0, 0)
+    const at = (x, y) => {
+      const d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data
+      return { r: d[0], g: d[1], b: d[2] }
+    }
+    return {
+      w: img.width, h: img.height,
+      top: at(img.width / 2, img.height * 0.02),
+      strip: at(img.width / 2, img.height - 12),
+      viewport: { w: innerWidth, h: document.documentElement.scrollHeight },
+    }
+  }, png.dataUrl)
+
+  check(`${lang}: the PNG is as wide as the page, not as wide as the board`,
+    shot.w >= shot.viewport.w * 0.9, `image ${shot.w}px, viewport ${shot.viewport.w}px`)
+  check(`${lang}: the PNG is taller than the page it captured — the notes are appended below it`,
+    shot.h > shot.w * 0.2 && shot.h > 200, `${shot.w}x${shot.h}`)
+  // The AppBar is a dark green gradient; white here would mean an empty capture.
+  const dark = shot.top.r < 200 && shot.top.g < 200 && shot.top.b < 200
+  check(`${lang}: the top of the PNG is the app, not blank`, dark,
+    `rgb(${shot.top.r},${shot.top.g},${shot.top.b}) at 2% height`)
+  // #fff8cf, the note strip.
+  const isStrip = Math.abs(shot.strip.r - 255) < 12 && Math.abs(shot.strip.g - 248) < 14 && Math.abs(shot.strip.b - 207) < 20
+  check(`${lang}: the bottom of the PNG is the note strip`, isStrip,
+    `rgb(${shot.strip.r},${shot.strip.g},${shot.strip.b}) at the last row`)
+  check(`${lang}: the PNG filename names the route and the date`,
+    /^review-notes_miqaats-id-city_\d{4}-\d{2}-\d{2}\.png$/.test(png.filename), png.filename)
+
+  // The board comes back after the capture. It is closed to get out of the shot, and a tool that
+  // disappears when you use it is a tool people stop using.
+  check(`${lang}: the board reopens after the capture`,
+    (await page.locator('[data-notes="board"]').count()) === 1)
 
   await ctx.close()
 }

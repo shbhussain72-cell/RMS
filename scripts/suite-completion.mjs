@@ -26,12 +26,12 @@
  * PASS/FAIL is reported alongside but is NOT the point. A suite that runs and fails is
  * working; a suite that never finishes is not, whatever colour its last line was.
  *
- *   node scripts/suite-completion.mjs                # every check:* script
- *   node scripts/suite-completion.mjs --only a,b     # a subset, by npm script name
+ *   node scripts/suite-completion.mjs                # every scripts/check-*.mjs, npm script or not
+ *   node scripts/suite-completion.mjs --only a,b     # a subset, by npm script or file name
  *   node scripts/suite-completion.mjs --cap 600      # per-suite seconds (default 900)
  */
 import { spawn } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -41,11 +41,37 @@ const CAP = Number(arg('--cap') ?? 900) * 1000
 const ONLY = arg('--only')?.split(',').map((s) => s.trim()).filter(Boolean)
 
 const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'))
-const ALL = Object.keys(pkg.scripts).filter((k) => k.startsWith('check:'))
-const suites = ONLY ? ALL.filter((k) => ONLY.includes(k) || ONLY.includes(k.replace('check:', ''))) : ALL
+const NPM = Object.keys(pkg.scripts).filter((k) => k.startsWith('check:'))
+
+/**
+ * EVERY suite, not every suite someone remembered to add to package.json.
+ *
+ * The first version of this listed `check:*` npm scripts and called that "every suite". There
+ * are 25 `scripts/check-*.mjs` files and 19 npm scripts, so six suites — including
+ * `check-layout`, which the arrival audit records other suites deferring to — were invisible to
+ * a tool whose entire purpose is finding suites nobody runs. A roster built from the runner can
+ * only ever report on what the runner already knows about.
+ *
+ * So the roster is the FILES, and an npm script is used when one exists because that is how the
+ * suite is meant to be invoked (some carry flags).
+ */
+const byScript = new Map(NPM.map((k) => [pkg.scripts[k].trim().replace(/^node\s+/, '').split(/\s+/)[0], k]))
+const FILES = readdirSync(resolve(ROOT, 'scripts'))
+  .filter((n) => /^check-.*\.mjs$/.test(n) && !/\.test\.mjs$/.test(n))
+  .map((n) => `scripts/${n}`)
+
+const ALL = []
+for (const f of FILES) ALL.push({ name: byScript.get(f) ?? f, file: f, npm: byScript.get(f) ?? null })
+// npm scripts whose target is not a scripts/check-*.mjs file (check:api-target and friends run
+// other files) are still suites and still have to be recorded.
+for (const k of NPM) if (!ALL.some((s) => s.npm === k)) ALL.push({ name: k, file: null, npm: k })
+
+const matches = (s, q) => s.name === q || s.name === `check:${q}` || s.file === q
+  || s.file === `scripts/${q}` || s.file === `scripts/check-${q}.mjs`
+const suites = ONLY ? ALL.filter((s) => ONLY.some((q) => matches(s, q))) : ALL
 
 if (!suites.length) {
-  console.error(`--only matched no check:* script. Available: ${ALL.join(', ')}`)
+  console.error(`--only matched no suite. Available: ${ALL.map((s) => s.name).join(', ')}`)
   process.exit(2)
 }
 
@@ -66,9 +92,10 @@ if (!suites.length) {
  */
 const crashed = (out) => /node:internal[/]|triggerUncaughtException|Unhandled(Promise)?Rejection|^[ \t]+at \S+ [(]|^[ \t]+at (async )?(file:|[/]|[A-Za-z]:)/m.test(out)
 
-const run = (name) => new Promise((done) => {
+const run = ({ name, file, npm }) => new Promise((done) => {
   const started = Date.now()
-  const proc = spawn('npm', ['run', '--silent', name], {
+  const [cmd, args] = npm ? ['npm', ['run', '--silent', npm]] : ['node', [file]]
+  const proc = spawn(cmd, args, {
     cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, VITE_REVIEW_TOOLS: process.env.VITE_REVIEW_TOOLS ?? 'true' },
   })
@@ -81,16 +108,16 @@ const run = (name) => new Promise((done) => {
     if (finished) return
     finished = true
     clearTimeout(timer)
-    done({ name, outcome, code, seconds: Math.round((Date.now() - started) / 1000), out })
+    done({ name, npm: !!npm, outcome, code, seconds: Math.round((Date.now() - started) / 1000), out })
   }
   proc.on('exit', (code) => settle(crashed(out) ? 'crashed' : 'completed', code))
   proc.on('error', () => settle('crashed', null))
 })
 
 const rows = []
-for (const name of suites) {
-  process.stdout.write(`  ${name} … `)
-  const r = await run(name)
+for (const suite of suites) {
+  process.stdout.write(`  ${suite.name}${suite.npm ? '' : '  (no npm script)'} … `)
+  const r = await run(suite)
   rows.push(r)
   console.log(`${r.outcome}  exit=${r.code}  ${r.seconds}s`)
 }

@@ -818,29 +818,77 @@ each one does on a blank page. If they are all negatives, arrival is a precondit
 check, and the suite needs `scripts/arrival.mjs` whatever else it does. The table is how this was
 found; the rule is how the next one is predicted.
 
+**And it is the LIMIT of what reading can tell you.** Classifying by reading answers a question
+about the assertions; it cannot answer whether the process reaches them. Those are separate
+properties and this rule can only see the first, so the table carries a second column that is
+measured rather than read. Worked example 14 is what it cost to learn that: this table said
+`check-remarks` was sound on 10 Aug, correctly, while the suite had been dying on line one since
+9 Aug — and the correctness of the left column is exactly why nobody looked.
+
 ## The result
 
-| suite | verdict | why |
-|---|---|---|
-| `check-anchor` | noticed | positive assertions — a named trigger must exist and be clickable |
-| `check-chrome` | noticed | same |
-| `check-cold-load` | noticed | **control**; URL + distinctness, added in the fix that started this |
-| `check-deeplink` | noticed | the only suite that already asserted `location.pathname` |
-| `check-devdock` | noticed | positive assertions |
-| `check-mirror` | noticed | positive — "no 7-column weekday row found" is a failure, not a skip |
-| `check-remarks` | noticed | positive assertions |
-| `check-review-tools` | noticed | positive assertions |
-| `check-tour` | noticed | 18 failures, and 1716s against 563s on the real app |
-| `check-bidi` | **hole** | *and* it never terminated — see below |
-| `check-centred` | **hole** | `off.length ? 1 : 0` |
-| `check-dictionary` | **hole** | 13/13 green; asserted through module imports, never the DOM |
-| `check-font-fallback` | **hole** | walked `document.body` and measured the login page's Arabic |
-| `check-layout` | **hole** | `failures.length === 0 ? 0 : 1` — and the suite others deferred to |
-| `check-lsd-clip` | **hole** | `clips.length ? 1 : 0` |
-| `check-numerals` | **hole** | `mixed.length ? 1 : 0` |
-| `check-overlap` | **hole** | every assertion a negative |
+**Two columns, because they are two different properties.** *Assertion shape* is what the
+original audit measured, by reading: would this suite pass vacuously on a page it never reached.
+*Completes* is whether the process runs to a verdict at all, measured on 11 Aug 2026 by
+`scripts/suite-completion.mjs` — every `scripts/check-*.mjs`, once, end to end. Nothing about
+one column can be inferred from the other, which is the whole reason there are two: on 10 Aug
+`check-remarks` was recorded as sound in the left column while it was dying thirty seconds into
+every run, and had been for two days. See worked example 14.
 
-**Nine noticed, eight holes.**
+A suite that runs and reports FAILURES is completing. `exit 1` in the right column is a suite
+working; it is the left column and the failures themselves that say whether it is working *well*.
+
+| suite | assertion shape | why | completes (11 Aug) |
+|---|---|---|---|
+| `check-anchor` | noticed | positive assertions — a named trigger must exist and be clickable | yes · 24s |
+| `check-chrome` | noticed | same | yes · 17s |
+| `check-cold-load` | noticed | **control**; URL + distinctness, added in the fix that started this | **NO — hangs.** Prints its final success line, then never exits. Killed at the 900s cap |
+| `check-deeplink` | noticed | the only suite that already asserted `location.pathname` | yes · 45s — **no npm script** |
+| `check-devdock` | noticed | positive assertions | yes · 18s |
+| `check-mirror` | noticed | positive — "no 7-column weekday row found" is a failure, not a skip | yes · 26s, exit 1 |
+| `check-remarks` | noticed | positive assertions | yes · 178s — **and it did not, from 9 to 11 Aug.** Four causes; see worked example 14 |
+| `check-review-tools` | noticed | positive assertions | **NO — crashes.** Needs a `dist/` built with `VITE_REVIEW_TOOLS=true` and neither builds one nor says so; dies on a preview-start TimeoutError |
+| `check-tour` | noticed | 18 failures, and 1716s against 563s on the real app | yes · 383s |
+| `check-bidi` | **hole** | *and* it never terminated — see below | yes · 50s, exit 1 — the hang is fixed |
+| `check-centred` | **hole** | `off.length ? 1 : 0` | yes · 50s — **no npm script** |
+| `check-dictionary` | **hole** | 13/13 green; asserted through module imports, never the DOM | yes · 38s |
+| `check-font-fallback` | **hole** | walked `document.body` and measured the login page's Arabic | yes · 17s — **no npm script** |
+| `check-layout` | **hole** | `failures.length === 0 ? 0 : 1` — and the suite others deferred to | yes · 44s — **no npm script** |
+| `check-lsd-clip` | **hole** | `clips.length ? 1 : 0` | yes · 40s, exit 1 — **no npm script** |
+| `check-numerals` | **hole** | `mixed.length ? 1 : 0` | yes · 27s — **no npm script** |
+| `check-overlap` | **hole** | every assertion a negative | yes · 208s |
+
+**Nine noticed, eight holes** — and, on the second column, **two of the seventeen do not run at
+all**, both of them in the "noticed" half. The eight suites not in the original audit
+(`api`, `api-load`, `api-target`, `brackets`, `dev-only`, `gate`, `lsd-coverage`, `popover`) all
+complete; `dev-only` exits 1 for the same reason `review-tools` crashes.
+
+### What the second column found
+
+**`check-cold-load` finishes its work and then hangs forever.** Its last line is `every route
+survives a saved session from an older build`; it was killed at 900 seconds. The cause is
+already written down in this file, one section below: vite is spawned with `shell: true`, so
+`server.kill()` kills the shell and orphans the node server, whose piped stdout holds the event
+loop open. `check-bidi` had exactly this and was fixed with a `taskkill /F /T` on the tree.
+`check-cold-load` still does a bare `server.kill()`.
+
+That suite was **the control for this audit.** The table above rests on it going red when the
+gate was shut, and it cannot terminate under a runner.
+
+**`check-review-tools` crashes on an unstated precondition.** Its header says "requires a `dist/`
+built with `VITE_REVIEW_TOOLS=true`" and its npm script builds nothing, so run on its own it
+starts `vite preview` against whatever `dist/` happens to be on disk — usually the flag-OFF one
+`npm run build` left there — and dies on a start timeout. `check:devonly` reads the same `dist/`
+and exits 1 for the same reason. A precondition that lives in a comment is a precondition the
+runner cannot honour.
+
+**Six suites are in no runner at all.** `check-deeplink`, `check-centred`, `check-font-fallback`,
+`check-layout`, `check-lsd-clip` and `check-numerals` have no `check:*` npm script and are
+reachable only as `node scripts/<name>.mjs`. All six run clean, so this is not a second dead
+suite — but `check-layout` is the one the audit records *three other suites deferring to*, and
+nothing invokes it. The first version of `suite-completion.mjs` had the same blind spot: it
+enumerated npm scripts and called that "every suite", which is a roster that can only ever
+report on what the runner already knows about. It reads the directory now.
 
 ## Two shapes the rule does not cover
 
@@ -861,7 +909,9 @@ receive it is a swallow with a citation.**
 | a distinct-site floor | `centred` | **done** — 11 declared sites, 8 reached, 3 declared unreachable |
 | a hard failure on a missing artefact | `mirror` (bidi census) | **done** |
 | a skip floor | `anchor`, `chrome`, `mirror` (back arrow) | **outstanding** — `scripts/coverage-floor.mjs` exists, not yet wired |
-| nothing | `deeplink`, `cold-load`, `devdock`, `remarks`, `review-tools`, `tour` | sound as written |
+| nothing | `deeplink`, `devdock`, `tour` | sound as written, and they run |
+| **to run at all** | `cold-load`, `review-tools` | **outstanding** — sound as written and unable to reach a verdict; see the second column above |
+| **to run at all** | `remarks` | **done** — dead 9–11 Aug on four independent causes, fixed in `684febd` |
 
 ## Three things the audit found by opening gates
 

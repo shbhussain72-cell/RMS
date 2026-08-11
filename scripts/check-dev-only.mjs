@@ -143,6 +143,10 @@ const FORBIDDEN = [
 const REVIEW_ONLY = [
   'remark',
   'rms-remarks',
+  // The harness's store selector. A `localStorage.getItem` argument, so the minifier cannot
+  // touch it — and it must not exist in a production bundle, because a key that selects a
+  // browser-local store for remarks is a way to strand a reviewer's notes silently.
+  'rms-remarks-adapter',
   'data-remark-chrome',
   'data-rmk',
   'Orphan fixture',

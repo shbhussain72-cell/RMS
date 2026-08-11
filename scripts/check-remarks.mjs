@@ -84,6 +84,10 @@ const TOUR_KEYS = [...new Set(
  */
 const seed = (lang) => `
   try {
+    // The suite runs against vite dev, which answers /api/* with index.html — so every shared
+    // write throws NotJson and the remark is lost before it reaches state. This selects the
+    // localStorage adapter, which is what the capture assertions below read.
+    localStorage.setItem('rms-remarks-adapter', 'local');
     localStorage.setItem('rms-remark-author', 'harness');
     localStorage.setItem('rms-lang', ${JSON.stringify(lang)});
     const prev = JSON.parse(localStorage.getItem('miqaat-flow') || '{}');
@@ -163,14 +167,34 @@ async function captureExport(page, which) {
  */
 const mdRecordCount = (md) => (md.match(/^### /gm) || []).length
 
+/**
+ * Put remark mode into a known state, by INSPECTION rather than by counting keystrokes.
+ *
+ * Every remark this suite creates used to begin with a bare `keyboard.press('Control+Shift+M')`
+ * and no check that anything happened. When the shortcut did not land — the identity prompt
+ * autofocuses an input, and the handler correctly refuses to fire from inside one — the next
+ * line clicked a fixture target with the mode still off, and the failure surfaced 30 seconds
+ * later as `waiting for locator('[data-rmk="composer"]')`. The suite reported a missing
+ * composer; the actual fact was that it had never entered the mode that creates one.
+ *
+ * The button carries the state, so this reads it and clicks only if it disagrees. Idempotent,
+ * and it cannot drift out of step the way a toggle-counting helper does.
+ */
+async function setRemarkMode(page, on) {
+  await openPanel(page)
+  const btn = page.locator('[data-rmk="mode-toggle"]')
+  if (((await btn.getAttribute('data-rmk-on')) === '1') !== on) await btn.click()
+  await page.locator(`[data-rmk="mode-toggle"][data-rmk-on="${on ? '1' : '0'}"]`).waitFor()
+}
+
 /** Create a remark on a fixture target by its visible text. */
 async function addRemarkOn(page, targetText, body) {
-  await page.keyboard.press('Control+Shift+M')             // enter remark mode
+  await setRemarkMode(page, true)
   await page.locator('[data-rmk="targets"]').getByText(targetText, { exact: true }).click()
   await page.locator('[data-rmk="composer"]').waitFor({ state: 'visible' })
   await page.locator('[data-rmk="composer-input"]').fill(body)
   await page.locator('[data-rmk="composer-save"]').click()
-  await page.keyboard.press('Escape')                       // leave remark mode
+  await setRemarkMode(page, false)
   await settle(page)
 }
 
@@ -205,6 +229,24 @@ async function runLang(browser, lang, port) {
   const prompting = await page.locator('[data-rmk="identity-prompt"]').count()
   check(`${lang}: identity is seeded, so the panel is not asking for a name`, prompting === 0,
     prompting ? 'IdentityPrompt is open and its input has focus' : '')
+
+  /**
+   * The keyboard shortcut, asserted ONCE and on its own.
+   *
+   * It is described in the source as "the only way in", and it was the implicit mechanism
+   * behind every remark this suite creates — so when it silently stopped working, six
+   * assertions failed as timeouts on unrelated selectors and none of them named it. Everything
+   * below drives the mode through its button instead; this is the one place the shortcut itself
+   * is the claim.
+   */
+  const modeBtn = page.locator('[data-rmk="mode-toggle"]')
+  const wasOn = (await modeBtn.getAttribute('data-rmk-on')) === '1'
+  await page.locator('[data-rmk="panel"]').click({ position: { x: 5, y: 5 } })  // focus off any input
+  await page.keyboard.press('Control+Shift+M')
+  await settle(page)
+  const nowOn = (await modeBtn.getAttribute('data-rmk-on')) === '1'
+  check(`${lang}: Ctrl/Cmd+Shift+M toggles remark mode`, nowOn !== wasOn, `${wasOn} -> ${nowOn}`)
+  await setRemarkMode(page, false)
 
   const dir = await page.evaluate(() => document.documentElement.getAttribute('dir'))
   check(`${lang}: document dir is ${lang === 'lsd' ? 'rtl' : 'ltr'}`, dir === (lang === 'lsd' ? 'rtl' : 'ltr'), `got ${dir}`)

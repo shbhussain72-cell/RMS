@@ -142,7 +142,7 @@ function RemarksPanelInner() {
           <div className="border-b border-[#eee6d4] p-[10px]">
             <div className="flex items-center gap-[6px]">
               <button
-                type="button" onClick={() => setEnabled(!enabled)}
+                type="button" data-rmk="mode-toggle" data-rmk-on={enabled ? "1" : "0"} onClick={() => setEnabled(!enabled)}
                 className={`rounded-[6px] px-[8px] py-[4px] text-[11px] font-bold ${enabled ? 'bg-[#b23b3b] text-white' : 'bg-[#1f5a44] text-white'}`}
                 style={{ fontFamily: FONT_SANS }}
               >

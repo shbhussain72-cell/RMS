@@ -110,7 +110,44 @@ export function RemarksProvider({
   // `sharedAdapter` is the default now: remarks live in the shared store so every reviewer
   // sees them. `localStorageAdapter` is still exported and still what the outbox falls back
   // through — it is no longer the destination, it is the queue.
-  return <RemarksProviderInner adapter={adapter ?? sharedAdapter}>{children}</RemarksProviderInner>
+  return <RemarksProviderInner adapter={adapter ?? defaultAdapter()}>{children}</RemarksProviderInner>
+}
+
+/**
+ * Which store a plain page load writes to.
+ *
+ * `sharedAdapter` always, except when `rms-remarks-adapter` says `local`.
+ *
+ * ── WHY THAT ESCAPE HATCH EXISTS ─────────────────────────────────────────────────────
+ *
+ * `vite dev` serves `index.html` for every unmatched path, `/api/remarks` included. So a
+ * shared write gets HTML back, `apiFetch` throws `NotJson`, and `sharedAdapter.save` rethrows
+ * it rather than queueing — correctly, because a sub-500 answer will fail identically forever
+ * and must be shown rather than retried. `addRemark` awaits that save, so the remark never
+ * reaches state and never reaches a store. Creating a remark under `vite dev` alone silently
+ * does nothing.
+ *
+ * `scripts/check-remarks.mjs` runs against `vite dev` — deliberately, since the whole suite is
+ * about anchoring, mirroring and layout, none of which needs a backend. It had been asserting
+ * on `localStorage['rms-remarks']` since before the store went shared, and once it did, every
+ * capture assertion in it read zero.
+ *
+ * This is the seam the adapter interface was built for — its own doc comment says swapping the
+ * store should be "a one-line change in the provider rather than a refactor". It is inside the
+ * `REVIEW_TOOLS` gate, so it does not exist in a production bundle, and `check-dev-only.mjs`
+ * asserts the key's absence from `dist/` with the flag off.
+ *
+ * It is opt-IN and never inferred. Deciding automatically — falling back to local when the API
+ * looks absent — would silently strand a real reviewer's remarks in their own browser on the
+ * day the deployed API had an outage, which is the failure the shared store exists to prevent.
+ */
+export const ADAPTER_KEY = 'rms-remarks-adapter'
+
+function defaultAdapter(): RemarksAdapter {
+  try {
+    if (localStorage.getItem(ADAPTER_KEY) === 'local') return localStorageAdapter
+  } catch { /* private mode — the shared store is the right default anyway */ }
+  return sharedAdapter
 }
 
 function RemarksProviderInner({ children, adapter }: { children: ReactNode; adapter: RemarksAdapter }) {

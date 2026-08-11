@@ -7,11 +7,11 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened thirteen times in this repo, in thirteen different places, to thirteen
+This has now happened fourteen times in this repo, in fourteen different places, to fourteen
 different kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
-The last seven are variants worth naming separately, because none is fixed by watching what you
+The last eight are variants worth naming separately, because none is fixed by watching what you
 assert:
 
 - **7 — the wrong subject.** The assertion was about the outcome, it was correct, and it was
@@ -34,8 +34,12 @@ assert:
 - **13 — the self-certifying number.** No assertion at all: a comment stating a computed
   specificity, sitting on the rule it described and wrong about it. Nothing could fail. *A
   number written in prose is a claim until something re-derives it from the running system.*
+- **14 — the unrun suite, classified as sound.** Every assertion in it was well shaped, and the
+  suite had not completed a run in two days. An audit read the assertions and filed it under
+  sound. *Assertion shape and runnability are different properties, and reading the source can
+  only see the first.*
 
-## The thirteen worked examples
+## The fourteen worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -589,6 +593,54 @@ The audit section exists now. The general form is worth more than the fix: **do 
 reference to something you have not written.** If it needs a placeholder, the placeholder should
 say so in a way a reader cannot mistake for a citation — and if a tool can check the link, that
 is better than either.
+
+### 14. An audit classified a suite as sound while it was dying on line one
+
+**Mechanism asserted:** "this suite's assertions are positives, so it cannot pass on a blank page."
+**Outcome wanted:** "this suite runs, and its assertions are positives."
+
+The arrival audit below classified seventeen suites by reading their assertions. It says so as a
+feature, and the reasoning is good: ask what each assertion does on a blank page, and a suite made
+only of negatives is one that reports success when the app never arrived. That rule found eight
+real holes.
+
+`check-remarks` was filed **sound**, on 10 Aug 2026. Two commits on 9 Aug had already broken it:
+
+| | commit | what it did |
+|---|---|---|
+| review tooling moved onto `VITE_REVIEW_TOOLS` | `06a8704` | the suite's dev server was spawned without the flag, so the whole panel rendered `null` |
+| identity prompt, and the shared remarks store | `467f971` | the prompt autofocuses its name input, and the Ctrl+Shift+M handler correctly refuses to fire from inside an `INPUT`; and the default adapter became the shared store, which `vite dev` answers with `index.html` |
+
+The verdict was **not wrong about what it measured**. Those assertions really are positives and
+really would fail on a blank page. The suite simply never reached them: it died thirty seconds in
+on `waiting for locator(...)`, having run four checks out of seventy-six.
+
+**And that is the point.** A suite that cannot run produces no false greens — it produces nothing.
+That is worse than a vacuous pass, because a vacuous pass is at least a line in the output that
+someone might interrogate. Here there was a table saying the suite was fine, and no output at all
+to contradict it. It went unnoticed for two days by a repo that had just finished auditing every
+suite it owns.
+
+Three of the four causes were invisible to any amount of reading:
+
+- the missing env var is in the SPAWN, not in the assertions
+- the autofocus is in a component the suite does not mention
+- the adapter default is in a provider the suite does not import
+
+Only the fourth was legible in the source, and it is the one that made the other three unreadable:
+`addRemarkOn` pressed the keyboard shortcut and never checked that the mode had changed. Six
+downstream assertions then failed as timeouts on unrelated selectors, and none of them named the
+shortcut. That is variant 1 wearing a harness: *the suite asserted the mechanism it was driving
+rather than the state it needed.*
+
+**The fix is a second column, not a footnote.** "Assertion shape" and "does it complete" are
+different properties of a suite and the table now carries both, because the first was being read
+as the second. `scripts/suite-completion.mjs` produces the second by running every suite once and
+recording whether the process reached its own summary — not whether its checks passed, which is a
+third question again. A suite that runs and reports failures is working.
+
+*An audit that classifies by reading has told you about the code it read. Whether that code runs
+is a separate claim, and it needs a separate column.*
 
 ## The shape they share
 

@@ -7,7 +7,7 @@ The two agree right up until the moment they don't, and the moment they don't is
 needed the test. A test that reads the mechanism cannot fail in the one situation it exists for,
 because the mechanism is exactly what you just changed.
 
-This has now happened fourteen times in this repo, in fourteen different places, to fourteen
+This has now happened fifteen times in this repo, in fifteen different places, to fifteen
 different kinds of claim. It is not a coincidence and it is not carelessness — asserting the mechanism is
 always the easier thing to write, and it always passes first try, which feels like success.
 
@@ -39,7 +39,7 @@ assert:
   sound. *Assertion shape and runnability are different properties, and reading the source can
   only see the first.*
 
-## The fourteen worked examples
+## The fifteen worked examples
 
 ### 1. `check-layout` read a stale `dist/`
 
@@ -641,6 +641,68 @@ third question again. A suite that runs and reports failures is working.
 
 *An audit that classifies by reading has told you about the code it read. Whether that code runs
 is a separate claim, and it needs a separate column.*
+
+### 15. A per-route count of `localStorage`, printed as if it were the page
+
+**Mechanism asserted:** "48 notes, tallied by route, are in the store."
+**Outcome wanted:** "each screen shows the notes that belong to it."
+
+`check-notes` seeded a fresh browser, read `localStorage['rms-notes.v1']`, tallied the notes by
+their `route` field, compared the tally with `docs/sticky-notes-seed.json`, and printed:
+
+```
+per-route: /miqaats 16/16, /login 10/10, /miqaats/:id/city 5/5, …
+```
+
+That line was then reported upward as evidence the seed had landed on its screens. It is not
+evidence of that. **The tally is the same ten numbers whether the board renders on ten screens or
+on one**, because it never looks at a screen — the notes carry their route as a field, so writing
+48 notes with the right `route` values satisfies it completely. The store is what the feature
+*uses*. The screen is what the feature is *for*.
+
+The reviewer read the line the way it was written — "16 notes appear on `/miqaats`" — and then
+found the deployed app showing notes on `/login` and nowhere else. The check had been green
+through all of it, and would have stayed green.
+
+One check in the section *did* read the DOM: it counted rendered rows on `/miqaats`. One route,
+the one the section had already navigated to for other reasons. Nine of the ten seeded screens
+were never looked at, in either language.
+
+**The fault injections matter more than the fix.** Two faults, each one a hypothesis the reviewer
+had raised, run against the seeding section:
+
+| fault | storage check | the replacement |
+|---|---|---|
+| `useRoutePattern` returns `/login` for every path — "route matching fails, every page resolves to one key" | **PASS** — 48 placed | **FAIL** — `/miqaats: file 16, rendered 10 \| also rendered /login \| pill says 9, file says 15 open`, and the same for eight more |
+| `NotesBoard` returns `null` off `/login` — "the board only mounts on /login" | FAIL, incidentally | **FAIL** — `the board is not mounted on this screen at all`, named per screen |
+
+The first row is the whole entry: **under a fault that hides the feature on nine screens out of
+ten, the storage assertion passes.** It is not a weak assertion about the right thing, it is a
+sound assertion about the wrong thing.
+
+The replacement visits every route the seed file places a note on and counts three numbers per
+screen, because they fail in different directions:
+
+- **rows** — under the `all` status filter, matching the file's total for that route
+- **each row's own `data-notes-route`** — so a screen showing *another* screen's notes fails
+  rather than passing on a count that happens to match
+- **the closed pill's count** — the only number visible to somebody who has not opened the board
+
+Two details worth keeping:
+
+**Arrival before counting.** The loop asserts the landed pathname is the one it asked for before
+it counts anything. A route that redirects would otherwise have its notes counted on whatever
+screen it landed on, and a per-route count that does not check the route is a per-*somewhere*
+count — variant 7, inside a loop.
+
+**The floor was measured, not guessed.** `waitForApp`'s 300-character default times out on the
+login screen, which is 177 characters in English and 142 in LSD. A default tuned for content
+screens fails on the shortest screen in the app, and it fails as a 30-second timeout — which
+reads as a broken suite rather than as a threshold that does not fit.
+
+*A count of what was written is not a count of what is shown. And a number derived from the
+mechanism, printed in the language of the outcome, is worse than no number: it is the outcome's
+own words attached to something that never checked it.*
 
 ## The shape they share
 

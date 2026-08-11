@@ -429,27 +429,90 @@ async function runSeedAndImport(browser, lang, port) {
   check(`${lang}: a fresh browser is seeded with all ${SEED.length} recovered notes`,
     stored?.length === SEED.length, `${stored?.length ?? 'null'} placed`)
 
-  // PER ROUTE, against the file — not against a table of numbers typed into this suite, which
-  // would go out of date the next time the seed is regenerated and would then be asserting the
-  // old file.
+  // ── PER ROUTE, COUNTED ON THE SCREEN — NOT IN THE STORE ────────────────────────────
+  //
+  // THIS CHECK USED TO TALLY `stored`, AND IT WAS WORTHLESS. A tally of the localStorage array
+  // is the same ten numbers whether the board renders on ten screens or on one, so it agreed
+  // with the file — and printed a per-route line that READ like "16 notes appear on /miqaats"
+  // while only ever having established "16 notes carrying route=/miqaats were written". The
+  // deployed app was reported showing notes on /login and nowhere else while this was green.
+  // That is the whole failure: it measured the mechanism the feature uses instead of the
+  // outcome the feature is for. See docs/assertion-discipline.md.
+  //
+  // So it now VISITS every route the file places a note on and counts the ROWS on each. The
+  // stored total above is kept, because "48 written" and "48 shown, across ten screens" are two
+  // different claims and both are worth making — but the per-route claim is made against the DOM.
+  //
+  // Three numbers per screen, because they fail in different directions:
+  //   rows   — under the "all" status filter, so resolved notes count, matching the file's total
+  //   routes — every row's own `data-notes-route`, so a screen showing ANOTHER screen's notes
+  //            fails rather than passing on a count that happens to match
+  //   chip   — the open count on the closed pill, which is the only number visible to somebody
+  //            who has not opened the board, and the one that says "there is something here"
   const expected = {}
-  for (const n of SEED) expected[n.route] = (expected[n.route] ?? 0) + 1
-  const got = {}
-  for (const n of stored ?? []) got[n.route] = (got[n.route] ?? 0) + 1
-  const wrongRoutes = Object.keys(expected).filter((r) => expected[r] !== got[r])
-  check(`${lang}: every seeded note is on the route the file gives it`, wrongRoutes.length === 0,
-    wrongRoutes.map((r) => `${r}: file ${expected[r]}, board ${got[r] ?? 0}`).join(' | ')
-    || `${Object.keys(expected).length} routes match`)
-  console.log(`    per-route: ${Object.entries(expected).sort((a, b) => b[1] - a[1])
-    .map(([r, c]) => `${r} ${got[r] ?? 0}/${c}`).join(', ')}`)
+  const expectedOpen = {}
+  for (const n of SEED) {
+    expected[n.route] = (expected[n.route] ?? 0) + 1
+    if (n.status !== 'resolved') expectedOpen[n.route] = (expectedOpen[n.route] ?? 0) + 1
+  }
 
-  // And they are actually ON the page, not merely in storage. `/miqaats` carries the most.
+  const rendered = {}
+  const wrongRoutes = []
+  for (const pattern of Object.keys(expected)) {
+    const url = pattern.replace(':id', 'ashara-1448')
+    await page.goto(BASE + url, { waitUntil: 'domcontentloaded' })
+    // 120 rather than the 300 default, and MEASURED rather than guessed: of the twenty screens
+    // this loop visits, the shortest is the login screen at 177 characters in English and 142
+    // in LSD — the default is a floor meant for content screens and times out on both. The
+    // chip is then waited for explicitly, and it is the stronger signal: a character count is a
+    // proxy for "the app rendered", whereas the chip is the very thing about to be counted.
+    await waitForApp(page, { minChars: 120 })
+    await page.locator('[data-notes="chip"]').waitFor({ timeout: 10_000 }).catch(() => {})
+
+    // A missing board is a FINDING, not a crash. "the board only mounts on /login" is one of
+    // the shapes this check exists to catch, and it should come out as a named screen in the
+    // failure line rather than as a locator timeout thirty seconds later.
+    if (!(await page.locator('[data-notes="chip"]').count())) {
+      wrongRoutes.push(`${pattern}: the board is not mounted on this screen at all`)
+      continue
+    }
+
+    // ARRIVAL BEFORE COUNTING. A route that redirected would otherwise have its notes counted on
+    // whatever screen it landed on, and a per-route count that does not check the route is a
+    // per-somewhere count. This is the rule arrival.mjs exists to enforce, applied inline
+    // because the loop navigates on its own.
+    const landed = new URL(page.url()).pathname
+    if (landed !== url) { wrongRoutes.push(`${pattern}: asked ${url}, landed ${landed}`); continue }
+
+    const chip = Number(await page.locator('[data-notes="chip-count"]').textContent())
+    await openBoard(page)
+    await page.locator('[data-notes="filter-status-all"]').click()
+    await page.waitForTimeout(200)   // sleep: the filter re-renders off a store subscription with no completion event
+    rendered[pattern] = await page.locator('[data-notes="row"]').count()
+    const stray = [...new Set(await page.locator('[data-notes="row"]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('data-notes-route'))))].filter((r) => r !== pattern)
+
+    if (rendered[pattern] !== expected[pattern]) {
+      wrongRoutes.push(`${pattern}: file ${expected[pattern]}, rendered ${rendered[pattern]}`)
+    }
+    if (stray.length) wrongRoutes.push(`${pattern}: also rendered ${stray.join(', ')}`)
+    if (chip !== (expectedOpen[pattern] ?? 0)) {
+      wrongRoutes.push(`${pattern}: pill says ${chip}, file says ${expectedOpen[pattern] ?? 0} open`)
+    }
+  }
+  check(`${lang}: every seeded note is RENDERED on the screen the file gives it`,
+    wrongRoutes.length === 0,
+    wrongRoutes.join(' | ') || `${Object.keys(expected).length} screens, each showing exactly its own`)
+  console.log(`    per-route rendered/file: ${Object.entries(expected).sort((a, b) => b[1] - a[1])
+    .map(([r, c]) => `${r} ${rendered[r] ?? 0}/${c}`).join(', ')}`)
+
+  // Back to the list screen, which the rest of this section works from.
+  await page.goto(BASE + LIST, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
   await openBoard(page)
   await page.locator('[data-notes="filter-status-all"]').click()
   await page.waitForTimeout(200)   // sleep: the filter re-renders off a store subscription with no completion event
   const shownHere = await page.locator('[data-notes="row"]').count()
-  check(`${lang}: the seeded notes for this screen are rendered on it`,
-    shownHere === expected[LIST], `${shownHere} rows, file says ${expected[LIST]}`)
 
   // The recovered context line, where the file had one.
   const withElement = await page.locator('[data-notes="element"]').count()

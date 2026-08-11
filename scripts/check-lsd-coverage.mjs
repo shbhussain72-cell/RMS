@@ -100,8 +100,18 @@ const looksLikeCopy = (s) =>
   (s.match(/[A-Za-z]/g) || []).length / s.length > 0.5 &&
   !NOISE.some((re) => re.test(s)) && !FRAGMENT.test(s)
 
-/** Directory names under src/ that hold tooling rather than product copy. */
-const DEV_ONLY_DIRS = new Set(['i18n', 'remarks', 'dev', 'shared'])
+/**
+ * Directory names under src/ that hold tooling rather than product copy.
+ *
+ * `notes` joined on 11 Aug 2026 with the page-level notes board that replaced remarks. Adding a
+ * directory HERE is the opposite action from routing its strings — see the long note below: the
+ * exclusion is what keeps dev chrome out of `lsd.json`, and out of every user's bundle with it.
+ * The test for whether a directory belongs on this list is not "is it new", it is "does anything
+ * in it reach a person who is not reviewing the app". Nothing in `src/notes` does; the whole
+ * board is behind `VITE_REVIEW_TOOLS` and `check-dev-only.mjs` asserts its strings are absent
+ * from a production build.
+ */
+const DEV_ONLY_DIRS = new Set(['i18n', 'remarks', 'dev', 'shared', 'notes'])
 
 const walk = (dir, out = []) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

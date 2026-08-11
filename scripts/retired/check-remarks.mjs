@@ -1,4 +1,23 @@
 /**
+ * RETIRED 11 Aug 2026. This suite is not run, and it is not deleted.
+ *
+ * It drives the Remarks tool, which `src/main.tsx` no longer mounts — see the block comment
+ * there for why page-level notes replaced element-anchored ones. Left where it was, every run
+ * would fail on a missing [data-rmk="chip"] and read as an app regression; made to pass
+ * trivially, it would be a green tick for a tool nobody can reach, which is the exact failure
+ * `docs/assertion-discipline.md` is about.
+ *
+ * SO IT IS OUT OF THE RUNNER, NOT OUT OF THE REPO. `scripts/retired/` is below the directory
+ * walks in `suite-completion.mjs`, `source-hygiene.test.mjs` and `dist-precondition.test.mjs`,
+ * and `check:remarks` is gone from package.json. The 140 assertions below are the thing that
+ * would make remounting remarks safe, and they took four separate bugs to get running at all
+ * (see the VITE_REVIEW_TOOLS block below, and commit 684febd). Deleting them would mean paying
+ * that again.
+ *
+ * To bring it back: mount the remarks tree in main.tsx, move this file up one directory, and
+ * restore the npm script.
+ */
+/**
  * check-remarks.mjs — drives the Remarks tool in a real browser, in both languages.
  *
  *   node scripts/check-remarks.mjs

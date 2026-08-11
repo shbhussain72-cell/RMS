@@ -96,6 +96,44 @@ const FORBIDDEN = [
   'WORDLIST_BRANCH',
   'WORDLIST_PATH',
   'CRON_SECRET',
+  // ── RETIRED WITH REMARKS, 11 Aug 2026 ─────────────────────────────────────────────
+  //
+  // These were on the REVIEW_ONLY list below — absent with the flag off, present with it on.
+  // `src/main.tsx` stopped mounting the remarks tree, so Rollup now drops those modules in BOTH
+  // flag states and every one of them went absent. Left where they were, the flag-on half of
+  // the gate would fail; deleted, nothing would notice a stray import putting the whole retired
+  // subsystem back into every bundle.
+  //
+  // So they move up here, which is the stronger claim and the true one: not "dev-only" but
+  // "unreachable, and must stay that way". This is the assertion that keeps the retirement real.
+  //
+  // MEASURED, not reasoned. A flag-on build was grepped for all seven remarks strings before
+  // this list was written. Two of the seven are still PRESENT and are deliberately still below:
+  //
+  //   remark        `rms-remark-author` — the identity key, still used by the notes board
+  //   data-rmk      `src/shared/IdentityPrompt.tsx` still names its hooks this way
+  //
+  // Both live in `src/shared`, which the notes board reuses. Renaming them to match the new
+  // tool would be tidier and would silently break the archived remarks suite's selectors, so
+  // they keep the name they have and this comment says why they are not up here.
+  'rms-remarks',
+  'rms-remarks-adapter',
+  'data-remark-chrome',
+  'Orphan fixture',
+  'capturedStrategy',
+  // The remarks-era sticky note went with it. It read the remarks store, so it could not
+  // outlive it.
+  //
+  // NOT TO BE CONFUSED WITH THE CURRENT BOARD, which is also called sticky notes and shares
+  // none of this: `src/notes` has its own key (`rms-notes.v1`), its own chrome attribute
+  // (`data-notes`) and its own copy, all on the review-only list below. If a future change
+  // makes `Sticky note` appear in a bundle again it is this dead component coming back, not
+  // the new one — the new one never used that string.
+  'rms-remark-note.v1',
+  'data-rmk-note',
+  'Sticky note',
+  'No open remarks on this screen',
+  'Turn on a language to see remarks',
   // The GitHub host, as a literal in `api/_lib/github.ts`. If that module ever followed an
   // import into the client bundle, the token-shaped code would come with it.
   'api.github.com',
@@ -143,30 +181,24 @@ const FORBIDDEN = [
  */
 const REVIEW_ONLY = [
   'remark',
-  'rms-remarks',
-  // The harness's store selector. A `localStorage.getItem` argument, so the minifier cannot
-  // touch it — and it must not exist in a production bundle, because a key that selects a
-  // browser-local store for remarks is a way to strand a reviewer's notes silently.
-  'rms-remarks-adapter',
-  'data-remark-chrome',
   'data-rmk',
-  'Orphan fixture',
-  'capturedStrategy',
   '__lsdScan',
+  // ── the notes board ───────────────────────────────────────────────────────────────
+  //
+  // The storage key, the chrome attribute, and the one line of copy a reviewer must not be
+  // shown by accident: a production visitor told "these notes are saved in this browser only"
+  // would be reading about a tool that is not there.
+  'rms-notes.v1',
+  'data-notes',
+  'These notes are saved in this browser only',
+  'A note about this page',
+  'Review notes for this page',
   'devtools.pos.v1',
   'data-devdock',
   // Per-widget hide state, and the control that sets it. One key for all three docks; a widget
   // that could be hidden in a production build is a widget a visitor can lose.
   'devtools.hidden.v1',
   'data-devdock-eye',
-  // The sticky note: its per-route store, its chrome, and the two strings only it renders.
-  // `data-rmk-note` would be caught by the `data-rmk` entry above, but only by prefix — an
-  // entry that passes because of another entry stops being an assertion about this feature.
-  'rms-remark-note.v1',
-  'data-rmk-note',
-  'Sticky note',
-  'No open remarks on this screen',
-  'Turn on a language to see remarks',
   // Dictionary editor, now on the review flag: its chrome, and the mojibake detector it calls.
   'not yet in the wordlist',
   'lone-surrogate',

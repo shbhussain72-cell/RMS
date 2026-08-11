@@ -115,16 +115,30 @@ export function distMtime() {
  *
  * A stamp file written at build time would be a claim about the bundle sitting next to the
  * bundle, and it would survive a hand-edit, a partial copy or a build that failed after writing
- * it. `data-remark-chrome` is a string literal in the review tooling: present exactly when that
- * code shipped. It is the same marker `check-dev-only` asserts on, which is what makes this
- * agree with the gate by construction rather than by both being maintained.
+ * it. This is a string literal that ships exactly when the review tooling does, and it is on
+ * `check-dev-only`'s review-only list — so the two agree by construction rather than by both
+ * being maintained.
+ *
+ * ── THE MARKER MUST BELONG TO THE GATE, NOT TO A FEATURE ─────────────────────────────
+ *
+ * It was `data-remark-chrome`. Remarks was retired on 11 Aug and stopped being mounted, so that
+ * literal vanished from a flag-ON build — and this function started reporting every review build
+ * as flag-off. `check-gate` then failed its flag-on half with "dist/ was built without
+ * VITE_REVIEW_TOOLS", which is a true sentence about a false premise and points at the build
+ * rather than at the marker.
+ *
+ * `data-devdock` is the shell EVERY dev dock mounts into — coverage, dictionary, notes — so it
+ * survives any one of them being replaced. A marker tied to one feature has the lifetime of that
+ * feature, which is not the lifetime of the flag it is standing in for.
  */
+const REVIEW_MARKER = 'data-devdock'
+
 export function distHasReviewTools() {
   const assets = resolve(DIST, 'assets')
   if (!existsSync(assets)) return false
   return readdirSync(assets)
     .filter((n) => n.endsWith('.js'))
-    .some((n) => readFileSync(join(assets, n), 'utf8').includes('data-remark-chrome'))
+    .some((n) => readFileSync(join(assets, n), 'utf8').includes(REVIEW_MARKER))
 }
 
 const iso = (ms) => new Date(ms).toISOString().replace('T', ' ').slice(0, 19)

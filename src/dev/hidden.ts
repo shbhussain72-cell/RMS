@@ -3,11 +3,10 @@
  *
  * ── ONE CONTROL PER WIDGET, NOT ONE FOR ALL OF THEM ──────────────────────────────────
  *
- * There are three floating dev docks: the dictionary panel, the LSD coverage badge and the
- * remarks pill. They occupy three of the four corners between them, and the reason you want one
- * gone is almost always that it is sitting on the one element you are trying to read. A single
- * "hide dev tools" switch answers that by taking away the tool you are using to record what you
- * found.
+ * There are three floating dev docks: the dictionary panel, the LSD coverage badge and the notes
+ * board. They occupy three of the four corners between them, and the reason you want one gone is
+ * almost always that it is sitting on the one element you are trying to read. A single "hide dev
+ * tools" switch answers that by taking away the tool you are using to record what you found.
  *
  * So the state is a MAP keyed by widget, and hiding one says nothing about the others.
  *
@@ -15,22 +14,23 @@
  *
  * Callers must keep the widget in the tree and hide it visually. These panels are not passive:
  * the coverage badge runs the DOM scan, the dictionary panel holds queued edits that have not
- * reached the shared store, and the remarks dock is what resolves every anchor on the page.
- * Unmounting to hide would throw that away and re-run it on unhide, which turns a "get this out
- * of my way" into a lost queue. `DevDock` implements this with `display:none` on a wrapper that
- * stays in the tree; the sticky note does the same.
+ * reached the shared store, and the notes board holds an unsubmitted draft. Unmounting to hide
+ * would throw that away and re-run it on unhide, which turns a "get this out of my way" into a
+ * lost queue and a half-typed note nobody can recover. `DevDock` implements this with
+ * `display:none` on a wrapper that stays in the tree.
  *
  * ── RECOVERABLE WITHOUT KNOWING A SHORTCUT ───────────────────────────────────────────
  *
  * A hidden widget always leaves a visible stub — here, the dock's grip and eye. A keyboard-only
  * unhide is not recoverable: the person who needs it is a reviewer who pressed something and is
- * now looking at a screen with no way back, and clearing localStorage takes their remarks with
- * it.
+ * now looking at a screen with no way back, and clearing localStorage takes their notes with it.
  *
- * The sticky note is NOT on this list. Its visibility is per route and lives with the rest of
- * that note's state in `remarks/note.ts` — a note that exists on one screen and not another
- * cannot be described by a single global flag, and splitting one widget's state across two
- * stores to reuse this hook would buy nothing.
+ * ── `remarks` IS STILL ON THE LIST ───────────────────────────────────────────────────
+ *
+ * That dock is retired and no longer mounted (see `main.tsx`). The id stays because an id NOT on
+ * this list is dropped on read — so removing it would silently discard a stored `hidden: true`
+ * left by anyone who had hidden the remarks panel before the retirement, and rewrite their
+ * stored value on the next toggle of anything else. It costs one string to not do that.
  *
  * DEV ONLY. `devtools.hidden.v1` is on `check-dev-only.mjs`'s review-only list, so it must be
  * absent from a production bundle and present with the flag on.
@@ -45,7 +45,7 @@ export const HIDDEN_KEY = 'devtools.hidden.v1'
  * on read rather than kept, so a renamed widget cannot leave a permanently-hidden orphan entry
  * that nothing renders a stub for.
  */
-export const DEV_WIDGETS = ['coverage', 'dictionary', 'remarks'] as const
+export const DEV_WIDGETS = ['coverage', 'dictionary', 'notes', 'remarks'] as const
 export type DevWidgetId = (typeof DEV_WIDGETS)[number]
 
 const known = (k: string): k is DevWidgetId => (DEV_WIDGETS as readonly string[]).includes(k)

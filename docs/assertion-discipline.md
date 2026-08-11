@@ -841,7 +841,7 @@ working; it is the left column and the failures themselves that say whether it i
 | suite | assertion shape | why | completes (11 Aug) |
 |---|---|---|---|
 | `check-anchor` | noticed | positive assertions — a named trigger must exist and be clickable | yes · 24s |
-| `check-chrome` | noticed | same | yes · 17s |
+| `check-chrome` | noticed | same | yes · 17s — **but green on a stale `dist/`.** Exit 1 the moment one was rebuilt; see below |
 | `check-cold-load` | noticed | **control**; URL + distinctness, added in the fix that started this | **NO — hangs.** Prints its final success line, then never exits. Killed at the 900s cap |
 | `check-deeplink` | noticed | the only suite that already asserted `location.pathname` | yes · 45s — **no npm script** |
 | `check-devdock` | noticed | positive assertions | yes · 18s |
@@ -881,6 +881,41 @@ starts `vite preview` against whatever `dist/` happens to be on disk — usually
 `npm run build` left there — and dies on a start timeout. `check:devonly` reads the same `dist/`
 and exits 1 for the same reason. A precondition that lives in a comment is a precondition the
 runner cannot honour.
+
+**A third failure mode: green against an artefact from before the change.** The sweep was run
+twice — once on 11 Aug morning, once that afternoon after a `npm run build` — and `check-chrome`
+came back exit 0 the first time and exit 1 the second. Nothing in the suite changed and nothing
+in the app it tests changed. What changed is that `dist/` was rebuilt in between.
+
+`check-chrome` runs `vite preview` against `dist/`, and it finds the AppBar logout control by a
+hard-coded literal of that control's LSD aria-label:
+
+```js
+{ LOGOUT_SRC: 'logout|باهر نكلو', ACCOUNT_SRC: 'account menu|account ني فهرست' }
+```
+
+Commit `5af517d` changed the `Logout` entry in the wordlist from `باهر نكلو` to `اخرج`.
+`باهر نكلو` is still in `lsd.json` — it is the value of a DIFFERENT key, `Log Out` — so the
+string had not disappeared from the bundle and no grep would have noticed. The suite had been
+broken from that commit onward and went on printing `ok` for as long as nobody rebuilt.
+
+Three properties, then, not two:
+
+|  |  |
+|---|---|
+| assertion shape | would it pass on a page it never reached |
+| completes | does the process reach a verdict at all |
+| **fresh** | is the verdict about the code as it is now |
+
+A suite that consumes a build artefact answers the third question about whatever was last built.
+`check-chrome`, `check-review-tools`, `check-cold-load` and `check-dev-only` all read `dist/`;
+none of them builds one and none of them checks its age. `check-gate` is the exception and builds
+both ways itself, which is why it is the only one of the five that cannot go stale.
+
+**A suite that asserts a translation by literal will break every time that translation is
+edited, and the editor is the person least able to predict it.** The label is in `lsd.json`
+under a key the suite could read. Recorded here rather than fixed: it is a live failure on
+`main` and it is not this session's work.
 
 **Six suites are in no runner at all.** `check-deeplink`, `check-centred`, `check-font-fallback`,
 `check-layout`, `check-lsd-clip` and `check-numerals` have no `check:*` npm script and are

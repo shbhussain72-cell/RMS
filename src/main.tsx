@@ -9,6 +9,7 @@ import DictionaryPanel from './dev/DictionaryPanel'
 import { RemarksProvider } from './remarks/RemarksProvider'
 import RemarksLayer from './remarks/RemarksLayer'
 import RemarksPanel from './remarks/RemarksPanel'
+import StickyNote from './remarks/StickyNote'
 import RemarksFixture from './remarks/RemarksFixture'
 import { miqaats } from './data/seed'
 import { REVIEW_TOOLS } from './reviewTools'
@@ -48,6 +49,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </TourProvider>
           <RemarksLayer />
           <RemarksPanel />
+          {/* Inside the provider and OUTSIDE the panel: it is pinned to the opposite corner and
+              must survive the panel being closed, which is the point of it. */}
+          <StickyNote />
           <RemarksFixture />
         </RemarksProvider>
         {/* Dev-only; both compile away entirely in a production build. The dictionary editor

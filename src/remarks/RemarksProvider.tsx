@@ -306,16 +306,31 @@ function RemarksProviderInner({ children, adapter }: { children: ReactNode; adap
   useEffect(() => subscribeAuthor(() => setAuthorState(getAuthor())), [])
   useEffect(() => startOutbox(), [])
 
+  /**
+   * Re-read the store NOW, through whichever adapter this provider was built with.
+   *
+   * It called `pull()` unconditionally — the SHARED store's read — no matter which adapter was
+   * in use. On the localStorage adapter that means the Refresh button fetched `/api/remarks`,
+   * failed, and left the list exactly as it was. The panel showed the same remarks and no new
+   * ones, which reads as "nothing has changed" — the one answer a refresh button must never
+   * fake. It is the same shape as the export bug: a control acting on a store other than the
+   * one beside it.
+   *
+   * The shared path keeps `pull()` rather than `sharedAdapter.list()` on purpose.
+   * `sharedAdapter.list()` catches and returns the last cache, which is right for a first paint
+   * — an empty panel would claim nobody has filed anything — and wrong for a button somebody
+   * pressed to find out. Here the throw is the answer, so it is left able to throw.
+   */
   const reload = useCallback(async () => {
     try {
-      setRemarks(await pull())
+      setRemarks(adapter === sharedAdapter ? await pull() : await adapter.list())
       setStoreError(null)
     } catch (err) {
       // Shown, never swallowed. An empty panel means "nobody has filed anything", which is a
       // very different claim from "the connection is down".
       setStoreError((err as Error).message)
     }
-  }, [])
+  }, [adapter])
 
   /**
    * Poll only while the panel is open — and `startPolling` additionally stops on a hidden tab

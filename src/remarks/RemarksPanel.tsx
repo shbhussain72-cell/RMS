@@ -11,7 +11,7 @@
  * app. Individual metadata rows are still forced LTR where they are Latin data (`390px`,
  * timestamps, selectors) rather than prose.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Iso } from '../components/Bidi'
 import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
@@ -20,6 +20,7 @@ import { useRemarks } from './RemarksProvider'
 import { download, toJson, toMarkdown } from './export'
 import { markExported, readExported, unexportedOf } from './storage'
 import { DEFAULT_FILTER, filterRemarks, type LangFilter, type RemarkFilter, type Scope, type StatusFilter } from './filter'
+import { NEW_NOTE, notesSnapshot, subscribeNotes, writeNote } from './note'
 import { IdentityPrompt, IdentityRow } from '../shared/IdentityPrompt'
 import { hasAuthor } from '../shared/identity'
 import { pushLocalRemarks, readLocalRemarks, unpushedLocal } from '../shared/remarksApi'
@@ -114,6 +115,12 @@ function RemarksPanelInner() {
   // title: the LABEL has to be the filtered count, because that is the number the reviewer is
   // checking against the rows.
   const unexportedHere = useMemo(() => unexportedOf(filtered, exported), [filtered, exported])
+
+  /**
+   * Whether THIS route already has a sticky note. Read from the same store the note reads, so
+   * the button and the note cannot disagree about whether one exists.
+   */
+  const hasNote = useSyncExternalStore(subscribeNotes, notesSnapshot, notesSnapshot)[route]?.on === true
 
   const counts = useMemo(() => ({
     open: remarks.filter((r) => r.status === 'open').length,
@@ -248,7 +255,7 @@ function RemarksPanelInner() {
               <p className="mb-[8px] rounded-[6px] bg-[#eef4f1] px-[8px] py-[6px] text-[10px] leading-[14px] text-[#2c5347]"
                 {...tx('Remarks are shared with every reviewer on this link. Export is for getting them into the tracker, not for sharing them.')} />
             )}
-            <div className="flex gap-[6px]">
+            <div className="flex flex-wrap gap-[6px]">
               <button
                 type="button"
                 data-rmk="export-md"
@@ -274,6 +281,18 @@ function RemarksPanelInner() {
                 title={t('Round-trips back into the tool.')}
               >
                 {t('JSON')}
+              </button>
+              {/* Pins what is still open on THIS screen to the reading-start corner, so the
+                  list stays readable while you work through it and the panel can be closed.
+                  It is the same query as this panel with the route and status fixed — see
+                  StickyNote.tsx. Per route: this button reflects and toggles only this one. */}
+              <button
+                type="button" data-rmk="note-toggle" data-rmk-note-on={hasNote ? '1' : '0'}
+                onClick={() => writeNote(route, hasNote ? null : NEW_NOTE)}
+                className={`rounded-[6px] px-[8px] py-[4px] text-[11px] font-bold ${hasNote ? 'bg-[#8a6a1e] text-white' : 'bg-[#f0ece1] text-[#23302a]'}`}
+                title={t('Open remarks on this screen, pinned to the page.')}
+              >
+                {t('Sticky note')}
               </button>
               {/* Opens the orphan-recovery board. Lives here rather than on its own chip so the
                   dev chrome stays to one corner. */}

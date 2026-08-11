@@ -166,6 +166,20 @@ async function captureExport(page, which) {
  * claim under test is "as many records as rows", never "the records look like this".
  */
 const mdRecordCount = (md) => (md.match(/^\d+\. /gm) || []).length
+
+/**
+ * Wait until the sticky note is SHOWING `n` items.
+ *
+ * The note re-renders off a store subscription with no completion event, so every assertion
+ * about it used to be preceded by a guessed delay. This waits for the rendered count marker,
+ * which is the same number the assertion then checks — so a slow machine makes the suite slower
+ * rather than red, and a genuinely wrong count still fails.
+ */
+const noteShows = (page, n) => page.waitForFunction(
+  (want) => document.querySelector('[data-rmk-note="count"]')?.textContent === '(' + want + ')',
+  n, { timeout: 8000 },
+).catch(() => {})   // swallowed on purpose: the assertion that follows is the one that reports
+
 /**
  * Put remark mode into a known state, by INSPECTION rather than by counting keystrokes.
  *
@@ -629,6 +643,131 @@ async function runLang(browser, lang, port) {
   check(lang + ': unhiding clears the stored entry rather than storing false',
     !JSON.parse(hiddenKey || '{}').remarks, String(hiddenKey))
 
+  // ── STICKY NOTE ────────────────────────────────────────────────────────────────
+  await openPanel(page)
+  check(lang + ': no sticky note until one is asked for',
+    (await page.locator('[data-rmk-note="note"]').count()) === 0)
+
+  const openHere = await page.evaluate((r) => JSON.parse(localStorage.getItem('rms-remarks') || '[]')
+    .filter((x) => x.route === r && x.status === 'open').length, ROUTE)
+  await page.locator('[data-rmk="note-toggle"]').click()
+  await page.locator('[data-rmk-note="note"]').waitFor({ state: 'visible' })
+  const noteCount = async () => page.locator('[data-rmk-note-item]').count()
+  check(lang + ': the note lists the open remarks on this route',
+    openHere > 0 && (await noteCount()) === openHere, (await noteCount()) + ' items, ' + openHere + ' open here')
+
+  // TEXT AND NOTHING ELSE. The fixture's remarks carry a route, a language, a width and an
+  // author, so each of these would appear if the note were rendering the panel's row.
+  const noteText = await page.locator('[data-rmk-note="note"]').innerText()
+  // The panel row prints "${route} · ${lang}/${dir} · ${width}px · ${author}" under every
+  // remark, and two action buttons beside it. If the note were rendering that row rather than
+  // the text, each of these would be here — and none of them is anything a reviewer types.
+  const noteCarries = [ROUTE, lang + (lang === 'lsd' ? '/rtl' : '/ltr'), '· harness', 'Resolve', 'Delete']
+    .filter((n) => noteText.includes(n))
+  check(lang + ': the note carries remark text and no metadata', noteCarries.length === 0,
+    'carries ' + noteCarries.join(', '))
+  const someRemark = await page.evaluate((r) => (JSON.parse(localStorage.getItem('rms-remarks') || '[]')
+    .find((x) => x.route === r && x.status === 'open') || {}).remark, ROUTE)
+  check(lang + ': the note really contains the remark text', noteText.includes(someRemark), someRemark)
+
+  // Reading-start corner, by MEASUREMENT — the note uses logical insets, so this is the one
+  // claim a class name cannot make on its own.
+  const noteBox = await page.locator('[data-rmk-note="note"]').boundingBox()
+  const startSide = lang === 'lsd'
+    ? noteBox.x + noteBox.width > 1440 / 2
+    : noteBox.x < 1440 / 2
+  check(lang + ': the note is pinned to the reading-start corner', startSide,
+    'x ' + Math.round(noteBox.x) + ' w ' + Math.round(noteBox.width))
+
+  // It must not cover the identity block: a screenshot of a bar with no name on it cannot be
+  // attributed to a session, which is the one thing that block is for.
+  const chipBox = await page.locator('.ix-chip').first().boundingBox()
+  const noteOverlapsChip = chipBox && !(noteBox.x + noteBox.width <= chipBox.x || chipBox.x + chipBox.width <= noteBox.x
+    || noteBox.y + noteBox.height <= chipBox.y || chipBox.y + chipBox.height <= noteBox.y)
+  check(lang + ': the note does not cover the AppBar identity block', chipBox && !noteOverlapsChip,
+    chipBox ? 'note y ' + Math.round(noteBox.y) + ', chip y ' + Math.round(chipBox.y) : 'no .ix-chip found')
+
+  // Resolved remarks are excluded, and the count is what proves it.
+  const firstId = await page.evaluate((r) => (JSON.parse(localStorage.getItem('rms-remarks') || '[]')
+    .find((x) => x.route === r && x.status === 'open') || {}).id, ROUTE)
+  await page.locator(`[data-rmk="row"][data-rmk-id="${firstId}"] >> text=Resolve`).click()
+  await noteShows(page, openHere - 1)
+  check(lang + ': resolving a remark takes it off the note',
+    (await noteCount()) === openHere - 1, (await noteCount()) + ' items, expected ' + (openHere - 1))
+
+  // The toggles filter by the language the remark was MADE in. Every remark in this run was
+  // made in `lang`, so turning that toggle off must empty the note and the other one must not
+  // refill it — and the two empty states say different things.
+  const otherLang = lang === 'lsd' ? 'en' : 'lsd'
+  await page.locator(`[data-rmk-note-lang="${lang}"]`).click()
+  await page.locator('[data-rmk-note="empty"]').waitFor()
+  check(lang + ': turning off the capture language empties the note',
+    (await noteCount()) === 0 && (await page.locator('[data-rmk-note="empty"]').count()) === 1)
+  await page.locator(`[data-rmk-note-lang="${otherLang}"]`).click()
+  await page.locator('[data-rmk-note="no-lang"]').waitFor()
+  check(lang + ': with both languages off the note says so rather than showing an empty list',
+    (await page.locator('[data-rmk-note="no-lang"]').count()) === 1)
+  await page.locator(`[data-rmk-note-lang="${lang}"]`).click()
+  await page.locator(`[data-rmk-note-lang="${otherLang}"]`).click()
+  await noteShows(page, openHere - 1)
+  check(lang + ': turning the languages back on restores the list',
+    (await noteCount()) === openHere - 1, (await noteCount()) + ' items')
+
+  // Refresh re-reads the store. Written straight into it, the way another reviewer's remark
+  // arrives — the note derives its list, so nothing else has to be told.
+  const noteItems = await noteCount()
+  await page.evaluate(([r, l]) => {
+    const all = JSON.parse(localStorage.getItem('rms-remarks') || '[]')
+    all.push({ ...all[0], id: 'injected-' + l, route: r, status: 'open', lang: l,
+      remark: 'arrived from somewhere else', createdAt: new Date().toISOString() })
+    localStorage.setItem('rms-remarks', JSON.stringify(all))
+  }, [ROUTE, lang])
+  await page.locator('[data-rmk-note="refresh"]').click()
+  await noteShows(page, noteItems + 1)
+  check(lang + ': refresh picks up a remark that arrived after the note was made',
+    (await noteCount()) === noteItems + 1 && (await page.locator('[data-rmk-note="note"]').innerText()).includes('arrived from somewhere else'),
+    (await noteCount()) + ' items, was ' + noteItems)
+
+  // Per route. Navigating away hides it; navigating back shows the same note.
+  await page.goto(BASE + OTHER_ROUTE, { waitUntil: 'domcontentloaded' })
+  await settle(page)
+  check(lang + ': the note is not carried onto another route',
+    (await page.locator('[data-rmk-note="note"]').count()) === 0)
+  await page.goto(BASE + ROUTE, { waitUntil: 'domcontentloaded' })
+  await settle(page)
+  check(lang + ': the note comes back on the route it belongs to, with its list',
+    (await page.locator('[data-rmk-note="note"]').count()) === 1 && (await noteCount()) === noteItems + 1,
+    (await noteCount()) + ' items')
+
+  // Hidden is not deleted: the eye leaves a dot, and the dot brings it back.
+  await page.locator('[data-rmk-note="hide"]').click()
+  await page.locator('[data-rmk-note="stub"]').waitFor({ state: 'visible' })
+  check(lang + ': the eye hides the note and leaves a visible dot',
+    (await page.locator('[data-rmk-note="note"]').count()) === 0
+    && (await page.locator('[data-rmk-note="stub"]').isVisible()) === true)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await settle(page)
+  check(lang + ': hidden survives a reload as hidden, not as gone',
+    (await page.locator('[data-rmk-note="stub"]').count()) === 1)
+  await page.locator('[data-rmk-note="stub"]').click()
+  await page.locator('[data-rmk-note="note"]').waitFor({ state: 'visible' })
+  check(lang + ': the dot brings the note back with its list intact',
+    (await page.locator('[data-rmk-note="note"]').count()) === 1 && (await noteCount()) === noteItems + 1,
+    (await noteCount()) + ' items')
+
+  // 390px: the note must stay inside the viewport and off the AppBar, which is the width every
+  // finding in this app gets re-checked at.
+  await page.setViewportSize({ width: NARROW_WIDTHS[0], height: 844 })
+  await page.waitForTimeout(400)   // sleep: viewport resize reflow plus the dock's ResizeObserver pass, neither of which fires an event this side can await
+  const narrowBox = await page.locator('[data-rmk-note="note"]').boundingBox()
+  check(lang + ': the note fits inside a ' + NARROW_WIDTHS[0] + 'px viewport',
+    narrowBox.x >= 0 && narrowBox.x + narrowBox.width <= NARROW_WIDTHS[0],
+    'x ' + Math.round(narrowBox.x) + ' w ' + Math.round(narrowBox.width))
+  const barBox = await page.locator('[data-name="AppBar"]').first().boundingBox()
+  check(lang + ': at ' + NARROW_WIDTHS[0] + 'px the note still clears the AppBar',
+    barBox && narrowBox.y >= barBox.y + barBox.height,
+    barBox ? 'note y ' + Math.round(narrowBox.y) + ', bar ends ' + Math.round(barBox.y + barBox.height) : 'no AppBar')
+  await page.setViewportSize({ width: 1440, height: 900 })
 
   await ctx.close()
 }

@@ -158,6 +158,14 @@ const REVIEW_ONLY = [
   // that could be hidden in a production build is a widget a visitor can lose.
   'devtools.hidden.v1',
   'data-devdock-eye',
+  // The sticky note: its per-route store, its chrome, and the two strings only it renders.
+  // `data-rmk-note` would be caught by the `data-rmk` entry above, but only by prefix — an
+  // entry that passes because of another entry stops being an assertion about this feature.
+  'rms-remark-note.v1',
+  'data-rmk-note',
+  'Sticky note',
+  'No open remarks on this screen',
+  'Turn on a language to see remarks',
   // Dictionary editor, now on the review flag: its chrome, and the mojibake detector it calls.
   'not yet in the wordlist',
   'lone-surrogate',

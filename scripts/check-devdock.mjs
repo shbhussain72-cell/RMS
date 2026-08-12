@@ -10,12 +10,50 @@
  * coordinates over a logical class is exactly where the two can end up pinning opposite edges of
  * the same element, and the failure is a panel stretched across the viewport rather than a panel
  * in the wrong place — which is why the width is asserted and not just the offset.
+ *
+ * ── THIS SUITE COULD NOT PASS UNTIL 12 Aug 2026, AND ONE ASSERTION STILL DOES NOT ───
+ *
+ * It spawned the dev server without `VITE_REVIEW_TOOLS`, so every widget rendered null and it
+ * reported "no dev dock rendered on the dev server" — the third suite in this repo to lose time
+ * to that exact omission. The spawn now goes through `lib/dev-server.mjs`, which will not start
+ * a dev server without being told which way the flag goes.
+ *
+ * With the flag, 11 of the 12 assertions pass. THE TWELFTH IS A REAL FAILURE AND IS LEFT
+ * FAILING. Whoever picks it up should start from the measurements, not from the symptom:
+ *
+ * WHAT WAS MEASURED
+ *
+ *   - RTL, 390px viewport: the dock lands at x=308 and measures 79 wide, so its far edge is at
+ *     387 with the viewport at 390 — a 3px gap where 8 is asserted. LTR at the same width
+ *     passes (296..382).
+ *   - 308 is exactly `390 - 74 - 8`. That is the clamp arithmetic run against a width of 74,
+ *     while the dock finally measures 79. So the position is not wrong for the width it was
+ *     computed from; the width changed afterwards.
+ *   - Not caused by the notes or pointing work: with the previous commit's `src/` and this
+ *     suite, the failure is identical, to the pixel.
+ *
+ * WHAT WAS NOT MEASURED — the hypotheses, untested, in the order worth testing
+ *
+ *   1. The suite is looking too early. It waits 200ms after `setViewportSize`, and that wait was
+ *      never shown to be enough for a reflow plus a ResizeObserver round-trip. If this is it,
+ *      the fix is HERE and not in `DevDock` — wait for the dock's own size to be stable across
+ *      two frames rather than for a fixed number of milliseconds.
+ *   2. The observer did not fire for the 74→79 change. `DevDock` observes the dock with a
+ *      `ResizeObserver` for exactly this, but RO reports the CONTENT box: a change confined to
+ *      border or padding does not fire it, and `clamp()` measures `offsetWidth`, which includes
+ *      both. Those two boxes disagreeing is a way for the observer to be correct and the clamp
+ *      to be stale at the same time.
+ *   3. The width settles late for a reason specific to RTL — LSD text metrics after the font
+ *      loads is the obvious candidate, and it would explain why only the RTL pass fails.
+ *
+ * Fixing it by adjusting the clamp without deciding between those three is how a 3px cosmetic
+ * gap in dev chrome becomes a repositioning bug in every dev widget.
  */
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { startDev } from './lib/dev-server.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PORT = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
@@ -27,16 +65,7 @@ const PORT = await new Promise((ok) => { const s = createServer(); s.listen(0, '
  * is actually a missing word in this line. It is the third suite in this repo to lose time to
  * exactly this; check-notes' header names the other two.
  */
-const proc = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
-  cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-  env: { ...process.env, VITE_REVIEW_TOOLS: 'true' },
-})
-await new Promise((ok, fail) => {
-  const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
-  const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }
-  proc.stdout.on('data', w); proc.stderr.on('data', w)
-  proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-})
+const proc = await startDev(PORT, { cwd: ROOT, reviewTools: true })
 
 const seed = (lang) => `try{localStorage.setItem('rms-lang',${JSON.stringify(lang)});const prev=JSON.parse(localStorage.getItem('miqaat-flow')||'{}');localStorage.setItem('miqaat-flow',JSON.stringify({...prev,state:{...(prev.state||{}),loggedIn:true},version:prev.version??0}))}catch{}`
 const ROUTE = '/miqaats'

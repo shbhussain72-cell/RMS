@@ -33,6 +33,7 @@ import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
 import { NARROW_WIDTHS } from './widths.mjs'
 import { createArrival } from './arrival.mjs'
+import { startDev } from './lib/dev-server.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, '..')
@@ -107,15 +108,7 @@ function freePort() {
 
 async function serve() {
   freePort()
-  const proc = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
-    cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-  })
-  await new Promise((ok, fail) => {
-    const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
-    const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }
-    proc.stdout.on('data', w); proc.stderr.on('data', w)
-    proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-  })
+  const proc = await startDev(PORT, { cwd: ROOT, reviewTools: false })
   return proc
 }
 

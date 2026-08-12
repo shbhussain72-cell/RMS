@@ -44,12 +44,12 @@
  * one and not the other.
  */
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NARROW_WIDTHS } from './widths.mjs'
+import { startDev } from './lib/dev-server.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const WIDTHS = NARROW_WIDTHS
@@ -97,15 +97,7 @@ const PORT = await new Promise((ok) => {
   const s = createServer()
   s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) })
 })
-const dev = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
-  cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
-})
-await new Promise((ok, fail) => {
-  const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
-  const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }
-  dev.stdout.on('data', w); dev.stderr.on('data', w)
-  dev.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-})
+const dev = await startDev(PORT, { cwd: ROOT, reviewTools: false })
 
 const browser = await chromium.launch()
 

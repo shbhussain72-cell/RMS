@@ -30,6 +30,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { startDev } from './lib/dev-server.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OVERRIDES = resolve(ROOT, 'wordlist-overrides.json')
@@ -48,16 +49,10 @@ const beforeLsd = sha(LSD_JSON)
 const beforeXlsx = sha(XLSX)
 
 const PORT = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
-// VITE_REVIEW_TOOLS is set for the dev server because the panels are gated on it now.
-// Without it the toolbar renders nothing and assertion 1 fails for a reason that has
-// nothing to do with the dictionary.
-const dev = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, VITE_REVIEW_TOOLS: 'true' } })
-await new Promise((ok, fail) => {
-  const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
-  const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }
-  dev.stdout.on('data', w); dev.stderr.on('data', w)
-  dev.on('exit', (c) => { clearTimeout(t); fail(new Error(`dev server exited (${c})`)) })
-})
+// reviewTools: true because the panels are gated on the flag. Without it the toolbar renders
+// nothing and assertion 1 fails for a reason that has nothing to do with the dictionary — which
+// is why startDev refuses to spawn without being told; see scripts/lib/dev-server.mjs.
+const dev = await startDev(PORT, { cwd: ROOT, reviewTools: true })
 
 const browser = await chromium.launch()
 try {

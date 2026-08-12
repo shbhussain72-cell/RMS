@@ -26,9 +26,18 @@
  * failure it prevents — writing twenty notes and assuming somebody received them — is silent,
  * and the reviewer has no way to notice it on their own.
  *
+ * ── POINTING IS OPTIONAL, AND IT IS NOT AN ANCHOR ────────────────────────────────────
+ *
+ * "Point at something" enters pick mode: hover outlines, click captures. What is stored is the
+ * element's visible text and its tag — never a selector — and it is resolved once, at capture
+ * time, by `src/notes/target.ts`. A note with no target is an ordinary note; most of the 48
+ * recovered ones are about the screen rather than about a control on it, and forcing those onto
+ * an arbitrary element would make every marker on the image worth less.
+ *
  * DEV ONLY, behind `REVIEW_TOOLS`.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Iso } from '../components/Bidi'
 import { SCANNER_IGNORE_ATTR } from '../i18n/domScan'
 import { useT } from '../i18n'
@@ -42,10 +51,45 @@ import { planSeed } from './seed'
 import { DEFAULT_FILTER, filterNotes, type LangFilter, type NoteFilter, type Scope, type StatusFilter } from './filter'
 import { download, exportName, MONTHS, toJson, toMarkdown } from './export'
 import { useRoutePattern } from './useRoutePattern'
-import type { Note } from './types'
+import { CHROME, labelOf, targetFrom } from './target'
+import type { Note, NoteTarget } from './types'
 
 const FONT_SANS = 'Mulish, system-ui, sans-serif'
 const chromeProps = { [SCANNER_IGNORE_ATTR]: '' }
+
+/**
+ * The outline under the cursor in pick mode.
+ *
+ * `pointer-events: none` and portalled to <body>, so it neither eats the click it is describing
+ * nor gets clipped by the dock it is rendered from. Carries the chrome attribute, which is what
+ * keeps it out of the capture and out of its own label lookup.
+ */
+function PickOutline({ el }: { el: HTMLElement }) {
+  const r = el.getBoundingClientRect()
+  const label = labelOf(el)
+  return createPortal(
+    <div
+      {...chromeProps}
+      data-notes="pick-outline"
+      className="pointer-events-none fixed z-[140] rounded-[3px]"
+      style={{
+        top: r.top, left: r.left, width: r.width, height: r.height,
+        outline: '2px solid #1f5a44', background: 'rgba(31,90,68,0.10)',
+      }}
+    >
+      {!!label && (
+        <span
+          className="absolute top-full mt-[2px] max-w-[240px] truncate rounded-[4px] bg-[#23302a] px-[5px] py-[2px] text-[10px] text-white"
+          style={{ insetInlineStart: 0 }}
+          dir="auto"
+        >
+          {label}
+        </span>
+      )}
+    </div>,
+    document.body,
+  )
+}
 
 /**
  * `10 Aug` on a row — short because it sits in a metadata line that must not wrap at 390px.
@@ -75,6 +119,8 @@ function NotesBoardInner() {
   const [langF, setLangF] = useState<LangFilter>(DEFAULT_FILTER.lang)
   const [draft, setDraft] = useState('')
   const [named, setNamed] = useState(() => hasAuthor())
+  const [picking, setPicking] = useState(false)
+  const [aim, setAim] = useState<NoteTarget | null>(null)
 
   const filter = useMemo<NoteFilter>(() => ({ scope, status, lang: langF }), [scope, status, langF])
   const shown = useMemo(() => filterNotes(board.notes, filter, route), [board.notes, filter, route])
@@ -84,7 +130,9 @@ function NotesBoardInner() {
   const openHere = board.notes.filter((n) => n.route === route && n.status === 'open').length
 
   const [busy, setBusy] = useState<string | null>(null)
+  const [hover, setHover] = useState<HTMLElement | null>(null)
   const [importNote, setImportNote] = useState<string | null>(null)
+  const [pngNote, setPngNote] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
   /**
@@ -103,6 +151,55 @@ function NotesBoardInner() {
     const next = planSeed(readBoard())
     if (next) writeBoard(next)
   }, [])
+
+  /**
+   * PICK MODE — window listeners in the CAPTURE phase, not an overlay.
+   *
+   * Taken from the retired `RemarksLayer`, which got this right and paid for it first. A
+   * full-screen catcher div is the obvious implementation and it breaks `elementFromPoint`, so
+   * every hit test in the app — and in the harness — starts returning the catcher. Capture-phase
+   * listeners leave the page exactly as it is; when pick mode is off there is nothing over it.
+   *
+   * mousedown and mouseup are swallowed as well as click. Blocking click alone still lets the app
+   * SEE the press: a button shows its active state, an `onMouseDown` handler runs, and a reviewer
+   * who only wanted to point at "Register now" has just submitted a registration.
+   */
+  useEffect(() => {
+    if (!picking) return
+    const mine = (t: EventTarget | null) => t instanceof HTMLElement && !t.closest(CHROME)
+
+    const onMove = (e: MouseEvent) => setHover(mine(e.target) ? (e.target as HTMLElement) : null)
+    const swallow = (e: MouseEvent) => {
+      if (!mine(e.target)) return
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.type !== 'click') return
+      const picked = targetFrom(e.target as HTMLElement)
+      // An element with no text cannot be matched later, so pointing at one is refused rather
+      // than stored as a target that can never resolve to anything.
+      if (picked) { setAim(picked); setPicking(false) }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); setPicking(false) }
+    }
+    window.addEventListener('mousemove', onMove, true)
+    window.addEventListener('mousedown', swallow, true)
+    window.addEventListener('mouseup', swallow, true)
+    window.addEventListener('click', swallow, true)
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      window.removeEventListener('mousemove', onMove, true)
+      window.removeEventListener('mousedown', swallow, true)
+      window.removeEventListener('mouseup', swallow, true)
+      window.removeEventListener('click', swallow, true)
+      window.removeEventListener('keydown', onKey, true)
+      setHover(null)
+    }
+  }, [picking])
+
+  // Leaving the screen cancels the aim with it: a target captured on one route would be stored
+  // against a note on another, and the label would then resolve on a page it was never about.
+  useEffect(() => { setAim(null); setPicking(false) }, [route])
 
   const runImport = async (file: File) => {
     setBusy('import')
@@ -145,12 +242,25 @@ function NotesBoardInner() {
     // The PNG rasterises the live page, so the board has to be out of the way first — and the
     // capture cannot start until the browser has actually painted without it.
     setBusy('png')
+    setPngNote(null)
     setOpen(false)
     try {
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-      const { capturePage } = await import('./png')
-      const { blob } = await capturePage(shown, scope === 'route' ? route : 'all screens')
+      const { capturePage, describeCapture } = await import('./png')
+      const { blob, summary } = await capturePage(shown, {
+        route: scope === 'route' ? route : 'all screens',
+        lang: lang === 'lsd' ? 'lsd' : 'en',
+        t,
+      })
       download(exportName('png', filenameRoute), blob)
+      // WHAT THE IMAGE SAYS, IN THE DOM. The strip states its own caveats and nobody can read a
+      // rasterised sentence back — including the person who just exported it, who is the one who
+      // can still do something about a target that no longer resolves.
+      setPngNote(describeCapture(summary, t))
+    } catch (err) {
+      // Said, not swallowed. A capture that fails silently leaves somebody waiting for a
+      // download that is never coming, with a board that looks like it worked.
+      setPngNote((err as Error).message || 'the capture failed')
     } finally {
       setBusy(null)
       setOpen(true)
@@ -169,8 +279,10 @@ function NotesBoardInner() {
       createdAt: new Date().toISOString(),
       author: getAuthor() || 'unknown',
       source: 'typed',
+      target: aim ?? undefined,
     })
     setDraft('')
+    setAim(null)
   }
 
   return (
@@ -269,6 +381,11 @@ function NotesBoardInner() {
               >
                 {busy === 'import' ? t('Reading…') : t('Import JSON')}
               </button>
+              {pngNote && (
+                <span data-notes="png-note" className="text-[10px] leading-[13px] text-[#5a6660]">
+                  {pngNote}
+                </span>
+              )}
               {importNote && (
                 <span data-notes="import-note" className="text-[10px] leading-[13px] text-[#5a6660]">
                   {importNote}
@@ -294,12 +411,40 @@ function NotesBoardInner() {
               >
                 {t('Add note')}
               </button>
+              <button
+                type="button" data-notes="point" onClick={() => { setPicking((v) => !v); setAim(null) }}
+                data-notes-picking={picking ? '1' : '0'}
+                className={`rounded-[6px] border px-[8px] py-[5px] text-[11px] font-bold ${picking
+                  ? 'border-[#1f5a44] bg-[#1f5a44] text-white'
+                  : 'border-[#d8cfb8] bg-white text-[#1f5a44]'}`}
+              >
+                {picking ? t('Click something…') : t('Point at something')}
+              </button>
               <span className="text-[10px] text-[#8a938e]" dir="ltr">Ctrl+Enter</span>
               <span className="ms-auto"><IdentityRow /></span>
             </div>
+            {aim && (
+              <div className="mt-[6px] flex items-center gap-[6px] rounded-[6px] bg-[#eef4f1] px-[8px] py-[5px]">
+                <span className="text-[10px] text-[#2c5347]">{t('Points at')}</span>
+                {/* The stored label, shown in full-ish so the reviewer can see they pointed at the
+                    thing they meant — a container whose text is four labels run together is the
+                    mistake worth catching here, before the note is saved rather than in the PNG. */}
+                <Iso className="min-w-0 flex-1 truncate text-[10px] font-bold text-[#23302a]">
+                  {aim.label}
+                </Iso>
+                <button
+                  type="button" data-notes="unpoint" onClick={() => setAim(null)}
+                  className="text-[11px] text-[#8a938e]" title={t('Remove the target')}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {picking && hover && <PickOutline el={hover} />}
 
       <button
         type="button"

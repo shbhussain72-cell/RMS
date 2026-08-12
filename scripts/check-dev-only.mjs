@@ -198,6 +198,16 @@ const REVIEW_ONLY = [
   'These notes are saved in this browser only',
   'A note about this page',
   'Review notes for this page',
+  // Pointing. `data-notes` above already covers the pick control and the hover outline, since
+  // both carry it — these are the COPY, which is what a bundle would leak if the tree-shake
+  // stopped working on the board while the attribute happened to survive somewhere else.
+  'Point at something',
+  'On the screen — numbered above',
+  'About this screen as a whole',
+  // The line the board shows after a capture. It lives in the PNG chunk, which is reached only
+  // through the dynamic import — so this is a second witness for the same tree-shake html2canvas
+  // above is the first for, and it fails from the app side rather than the library side.
+  '{n} marked on the page',
   'devtools.pos.v1',
   'data-devdock',
   // Per-widget hide state, and the control that sets it. One key for all three docks; a widget

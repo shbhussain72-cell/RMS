@@ -404,6 +404,346 @@ async function runLang(browser, lang, port) {
 }
 
 /**
+ * How many of the 48 recovered notes point at something that is still there.
+ *
+ * The brief asked for the number, and it is not a number this suite can hold: it depends on the
+ * app's current copy, which changes. So it is REPORTED, and what is ASSERTED is the invariant that
+ * makes the number trustworthy — every note the board showed is accounted for as exactly one of
+ * marked, page-level, or pointing at something no longer here. A resolver that quietly dropped
+ * notes would still print a plausible total; it could not keep that sum.
+ *
+ * English only, and deliberately. The seeded labels are mostly English strings captured from an
+ * English session, so the LSD figure measures how much of the app is translated rather than how
+ * well the resolver works — and ten more full-page captures is 25 seconds for a number that means
+ * something else.
+ */
+async function runSeedResolution(browser, port) {
+  const BASE = `http://localhost:${port}`
+  console.log('\n─── en: how much of the recovered seed still points at something ───')
+
+  const ctx = await browser.newContext({
+    viewport: { width: 1440, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata',
+    reducedMotion: 'reduce', acceptDownloads: true,
+  })
+  await ctx.addInitScript(seed('en'))
+  const page = await ctx.newPage()
+
+  const openBySeed = {}
+  for (const n of SEED) if (n.status !== 'resolved') openBySeed[n.route] = (openBySeed[n.route] ?? 0) + 1
+
+  const num = (text, re) => Number(re.exec(text)?.[1] ?? 0)
+  const totals = { marked: 0, missing: 0, pageLevel: 0, ambiguous: 0, shown: 0 }
+  const perRoute = []
+
+  for (const pattern of Object.keys(openBySeed)) {
+    const url = pattern.replace(':id', 'ashara-1448')
+    await page.goto(BASE + url, { waitUntil: 'domcontentloaded' })
+    await waitForApp(page, { minChars: 120 })
+    await page.locator('[data-notes="chip"]').waitFor({ timeout: 10_000 })
+    await openBoard(page)
+
+    const rows = await page.locator('[data-notes="row"]').count()
+    await page.locator('[data-notes="export-png"]').click()
+    await page.locator('[data-notes="png-note"]').waitFor({ timeout: 30_000 })
+    const said = (await page.locator('[data-notes="png-note"]').textContent()) ?? ''
+
+    const marked = num(said, /(\d+) marked on the page/)
+    const pageLevel = num(said, /(\d+) about the whole screen/)
+    const missing = num(said, /(\d+) pointed at something no longer here/)
+    const ambiguous = num(said, /(\d+) matched more than one thing/)
+    totals.marked += marked
+    totals.pageLevel += pageLevel
+    totals.missing += missing
+    totals.ambiguous += ambiguous
+    totals.shown += rows
+    perRoute.push(`${pattern} ${marked}/${rows}`)
+
+    check(`en: ${pattern} accounts for every note it showed`,
+      marked + pageLevel + missing === rows,
+      `${marked} marked + ${pageLevel} page-level + ${missing} gone = ${marked + pageLevel + missing}, board showed ${rows}`)
+  }
+
+  const openTotal = Object.values(openBySeed).reduce((a, b) => a + b, 0)
+  check('en: every open seeded note was reached on some screen', totals.shown === openTotal,
+    `${totals.shown} shown across ${perRoute.length} screens, ${openTotal} open in the file`)
+  console.log(`    marked per route: ${perRoute.join(', ')}`)
+  console.log(`    OF THE ${SEED.length} RECOVERED NOTES: ${totals.marked} resolve to a marker, `
+    + `${totals.pageLevel} are about the screen as a whole, ${totals.missing} point at text that has gone, `
+    + `${totals.ambiguous} matched more than one element (${SEED.length - openTotal} are resolved and were not shown)`)
+
+  await ctx.close()
+}
+
+/**
+ * Markers — a note points at something, and the PNG shows where.
+ *
+ * ── WHAT IS ASSERTED ON PIXELS, AND WHAT CANNOT BE ───────────────────────────────────
+ *
+ * The badge POSITIONS are read off the image: the expected centre is computed from the element's
+ * own rect, and the image is sampled there for the badge's ring-and-face pattern. That is the
+ * claim worth making — "a PNG was produced" says nothing about whether the numbers point at the
+ * right controls, and a marker two hundred pixels off is worse than no marker.
+ *
+ * What is NOT asserted on pixels is the strip's PROSE. Reading a rasterised sentence back needs
+ * OCR, which is a dependency and a new class of flake. The disclosures are asserted instead on
+ * the line the board renders after an export, which `capturePage` builds from the very same plan
+ * that drew the strip — one plan, two renderings, so they cannot drift apart — and the plan's own
+ * numbering and caveats are unit-tested in notes.test.mjs where a failure names the function.
+ */
+async function runMarkers(browser, lang, port, width) {
+  const BASE = `http://localhost:${port}`
+  console.log(`\n─── ${lang} @ ${width}px: pointing and markers ───`)
+
+  const ctx = await browser.newContext({
+    viewport: { width, height: 900 }, locale: 'en-GB', timezoneId: 'Asia/Kolkata',
+    reducedMotion: 'reduce', acceptDownloads: true,
+  })
+  await ctx.addInitScript(seed(lang))
+  const page = await ctx.newPage()
+  await page.goto(BASE + LIST, { waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  /**
+   * The targets are CHOSEN FROM THE PAGE, not typed into this suite.
+   *
+   * Hard-coding "Register now" would make this a test of the app's copy: the day somebody renames
+   * a button, a suite about marker geometry fails and names the wrong thing. The survey asks the
+   * live page for one element with a unique label, one label carried by several elements, and one
+   * unique label below the fold — which is also what keeps it honest when the screen changes.
+   */
+  const survey = () => page.evaluate(() => {
+    const CH = '[data-devdock], [data-notes]'
+    const label = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim()
+    const body = document.body.getBoundingClientRect()
+    const els = [...document.body.querySelectorAll('*')].filter((el) => {
+      if (el.closest(CH)) return false
+      const r = el.getBoundingClientRect()
+      return r.width > 24 && r.height > 12
+    })
+    const counts = new Map()
+    for (const el of els) { const l = label(el); if (l) counts.set(l, (counts.get(l) || 0) + 1) }
+    const info = (el) => {
+      const r = el.getBoundingClientRect()
+      return {
+        label: label(el), tag: el.tagName.toLowerCase(), count: counts.get(label(el)),
+        left: r.left - body.left, right: r.right - body.left, top: r.top - body.top,
+        width: r.width, height: r.height,
+      }
+    }
+    const usable = (l) => l.length > 3 && l.length < 40
+    const inView = (el) => {
+      const r = el.getBoundingClientRect()
+      return r.top > 60 && r.bottom < innerHeight - 40
+    }
+    const unique = els.find((el) => usable(label(el)) && counts.get(label(el)) === 1 && inView(el))
+    // THE AMBIGUOUS PAIR MUST SHARE A TAG. A label carried by a <div> and by the <h3> inside it
+    // is not ambiguous to the resolver — the stored tag decides between them, which is the whole
+    // job of the tag. Picking such a pair here asserted that the disclosure fires when it should
+    // not, and it did not fire, correctly, at 1440px where the first repeated label was of that
+    // shape. Two elements, same text, same tag is the case the reviewer needs telling about.
+    const byTag = new Map()
+    for (const el of els) {
+      const l = label(el)
+      if (l) byTag.set(l + '\u0000' + el.tagName.toLowerCase(), (byTag.get(l + '\u0000' + el.tagName.toLowerCase()) || 0) + 1)
+    }
+    const dupEntry = [...byTag.entries()].find(([k, c]) => c > 1 && usable(k.split('\u0000')[0]))
+    const dup = dupEntry
+      ? els.find((el) => label(el) + '\u0000' + el.tagName.toLowerCase() === dupEntry[0])
+      : null
+    const below = els.find((el) => usable(label(el)) && counts.get(label(el)) === 1
+      && el.getBoundingClientRect().top > innerHeight + 60)
+    return {
+      unique: unique ? info(unique) : null,
+      dup: dup ? { ...info(dup), count: dupEntry[1] } : null,
+      below: below ? info(below) : null,
+      viewportH: innerHeight,
+      clientW: document.documentElement.clientWidth,
+      scrollH: document.documentElement.scrollHeight,
+      rtl: document.documentElement.getAttribute('dir') === 'rtl',
+    }
+  })
+
+  const found = await survey()
+  const have = ['unique', 'dup', 'below'].filter((k) => found[k])
+  check(`${lang} @${width}: the screen offers a unique label, a repeated one and one below the fold`,
+    have.length === 3, `found: ${have.join(', ') || 'none'}`)
+  if (have.length !== 3) { await ctx.close(); return }
+
+  const MISSING = 'ZZ this text is not anywhere on this screen ZZ'
+  const fixture = [
+    { text: 'pointed at a unique thing', target: { label: found.unique.label, tag: found.unique.tag } },
+    { text: 'pointed at a repeated thing', target: { label: found.dup.label, tag: found.dup.tag } },
+    { text: 'pointed at something below the fold', target: { label: found.below.label, tag: found.below.tag } },
+    { text: 'pointed at something that has gone', target: { label: MISSING } },
+    { text: 'about the whole screen' },
+  ].map((n, i) => ({
+    id: `m${i}`, route: LIST, lang, status: 'open', author: 'harness',
+    createdAt: `2026-08-12T0${i}:00:00.000Z`, ...n,
+  }))
+  // A RESOLVED note that also points at something, to prove the image obeys the filter: the board
+  // defaults to open-only, so this one must not be counted, marked, or listed.
+  fixture.push({
+    id: 'mR', route: LIST, lang, status: 'resolved', author: 'harness',
+    createdAt: '2026-08-12T08:00:00.000Z',
+    text: 'resolved, and pointing at the same unique thing',
+    target: { label: found.unique.label, tag: found.unique.tag },
+  })
+
+  await page.evaluate(([key, board]) => localStorage.setItem(key, JSON.stringify(board)),
+    [NOTES_KEY, { v: 1, seeded: true, notes: fixture }])
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await waitForApp(page)
+
+  // Rects again AFTER the reload. The fixture was chosen from the previous load, and a rect from
+  // before a reload describes a layout that no longer exists — the badge is compared against where
+  // the element is NOW, which is what the capture saw.
+  const now = await survey()
+
+  await openBoard(page)
+  const rows = await page.locator('[data-notes="row"]').count()
+  check(`${lang} @${width}: the board shows the five open notes, not the resolved one`,
+    rows === 5, `${rows} rows`)
+
+  // ── the page must come back exactly as it was ──────────────────────────────────────
+  //
+  // THE PAGE, WITH THE DEV CHROME TAKEN OUT — the same subject the capture has. Counting the
+  // whole body made this fail for a true reason that was not the one being asked about: the
+  // board legitimately grows a status line after an export, so the tool changed and the page did
+  // not. An assertion that cannot tell those apart reports the feature working as a leak.
+  const pageDom = () => page.evaluate(() => {
+    const clone = document.body.cloneNode(true)
+    clone.querySelectorAll('[data-devdock], [data-notes]').forEach((el) => el.remove())
+    return {
+      elements: clone.querySelectorAll('*').length,
+      html: clone.innerHTML.length,
+      strays: document.querySelectorAll('[data-notes-badge]').length,
+    }
+  })
+  const domBefore = await pageDom()
+
+  const png = await captureDownload(page, 'export-png', { binary: true })
+  const summary = (await page.locator('[data-notes="png-note"]').textContent()) ?? ''
+  check(`${lang} @${width}: the board reports what the image drew, filter and all`,
+    /3 marked on the page/.test(summary) && /1 about the whole screen/.test(summary)
+    && /1 matched more than one thing/.test(summary) && /1 pointed at something no longer here/.test(summary),
+    summary)
+
+  const domAfter = await pageDom()
+  check(`${lang} @${width}: the page is unchanged by the capture — nothing was inserted for it`,
+    domAfter.elements === domBefore.elements && domAfter.html === domBefore.html && domAfter.strays === 0,
+    `${domBefore.elements}->${domAfter.elements} elements, ${domBefore.html}->${domAfter.html} chars`)
+
+  /**
+   * Badge detection: a ring of dark pixels around a light face.
+   *
+   * Two samples rather than one. A single centre pixel would be satisfied by any pale patch of the
+   * page — and the face IS pale by design — so the ring is what makes it a badge rather than the
+   * gap between two cards.
+   */
+  const shot = await page.evaluate(async ([dataUrl, probes, clientW]) => {
+    const img = await createImageBitmap(await (await fetch(dataUrl)).blob())
+    const c = document.createElement('canvas')
+    c.width = img.width; c.height = img.height
+    const cx = c.getContext('2d')
+    cx.drawImage(img, 0, 0)
+    const px = (x, y) => {
+      if (x < 0 || y < 0 || x >= img.width || y >= img.height) return null
+      const d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data
+      return { r: d[0], g: d[1], b: d[2] }
+    }
+    const dark = (p) => !!p && p.r < 90 && p.g < 90 && p.b < 90
+    const light = (p) => !!p && p.r > 200 && p.g > 200 && p.b > 200
+    const at = (x, y, r) => {
+      let ring = 0
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2
+        if (dark(px(x + Math.cos(a) * r * 0.92, y + Math.sin(a) * r * 0.92))) ring++
+      }
+      let face = 0
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2
+        if (light(px(x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.55))) face++
+      }
+      return { ring, face }
+    }
+    const scale = img.width / clientW
+    const out = {}
+    for (const [name, p] of Object.entries(probes)) {
+      out[name] = {
+        ...at(p.x * scale, p.y * scale, 15 * scale),
+        x: Math.round(p.x * scale), y: Math.round(p.y * scale),
+      }
+    }
+    return { w: img.width, h: img.height, scale, probes: out }
+  }, [png.dataUrl, badgeProbes(now, now.rtl), now.clientW])
+
+  const isBadge = (p) => p.ring >= 8 && p.face >= 3
+  const p = shot.probes
+  check(`${lang} @${width}: the badge is drawn beside the element it points at`,
+    isBadge(p.unique), `ring ${p.unique.ring}/12, face ${p.unique.face}/8 at ${p.unique.x},${p.unique.y}`)
+  check(`${lang} @${width}: the badge is beside the element on the reading-start side, not over it`,
+    !isBadge(p.centre), `the element's own centre reads ring ${p.centre.ring}/12, face ${p.centre.face}/8`)
+  check(`${lang} @${width}: a target below the fold is marked where it sits in the DOCUMENT`,
+    isBadge(p.below) && p.below.y > now.viewportH * shot.scale,
+    `ring ${p.below.ring}/12 at y=${p.below.y}, fold at ${Math.round(now.viewportH * shot.scale)}`)
+  check(`${lang} @${width}: the first of several identical labels is the one marked`,
+    isBadge(p.dup), `ring ${p.dup.ring}/12, ${now.dup.count} elements read "${now.dup.label}"`)
+
+  // ── a capture that throws must leave nothing behind either ────────────────────────
+  //
+  // The badges are drawn on the output canvas rather than inserted into the page, so this holds by
+  // construction — which is exactly why it is worth asserting rather than assuming. A future
+  // change that reaches for DOM insertion will pass every check above and fail this one.
+  await page.evaluate(() => {
+    const real = HTMLCanvasElement.prototype.toBlob
+    HTMLCanvasElement.prototype.toBlob = function broken() { throw new Error('capture exploded') }
+    window.__restoreToBlob = () => { HTMLCanvasElement.prototype.toBlob = real }
+  })
+  await openBoard(page)
+  await page.locator('[data-notes="export-png"]').click()
+  await page.locator('[data-notes="png-note"]').waitFor({ timeout: 15_000 })
+  const failNote = await page.locator('[data-notes="png-note"]').textContent()
+  const domFailed = await pageDom()
+  await page.evaluate(() => window.__restoreToBlob?.())
+  check(`${lang} @${width}: a capture that throws says so instead of failing silently`,
+    /exploded/.test(failNote ?? ''), failNote ?? 'nothing said')
+  check(`${lang} @${width}: a capture that throws leaves the page exactly as it was`,
+    domFailed.elements === domBefore.elements && domFailed.strays === 0,
+    `${domBefore.elements}->${domFailed.elements} elements, ${domFailed.strays} strays`)
+
+  await ctx.close()
+}
+
+/**
+ * Where each badge must be, computed from the element rects exactly as png.ts computes them.
+ *
+ * DELIBERATELY A SECOND IMPLEMENTATION of four lines of arithmetic. Importing the real one would
+ * make the assertion "the code agrees with itself", which is true of any code; writing the offset
+ * out again means an edit to either side has to be made twice, on purpose. The RTL case is where
+ * it earns its keep — the two directions differ only in which edge they start from, and that is
+ * the whole of the direction requirement.
+ */
+function badgeProbes(now, rtl) {
+  const R = 15
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+  // The clamp is not decoration. At 390px an element can span the full width, which puts the
+  // reading-start side off the image entirely — so the badge is pulled to the edge and ends up
+  // just inside the element instead of just outside it. Leaving it out of this copy is what made
+  // lsd @390 fail while the badge was drawn exactly where it should have been.
+  const beside = (el) => ({
+    x: clamp(rtl ? el.right + R + 6 : el.left - R - 6, R + 2, now.clientW - R - 2),
+    y: clamp(el.top + Math.min(el.height / 2, 20), R + 2, now.scrollH - R - 2),
+  })
+  return {
+    unique: beside(now.unique),
+    dup: beside(now.dup),
+    below: beside(now.below),
+    // The middle of the element itself: whatever is there, it must not be a badge.
+    centre: { x: now.unique.left + now.unique.width / 2, y: now.unique.top + now.unique.height / 2 },
+  }
+}
+
+/**
  * Seeding and import, in a browser that has never seen this tool.
  *
  * A SEPARATE CONTEXT, not a cleared key in the one above. The seed runs when the stored board is
@@ -593,6 +933,13 @@ try {
   await runSeedAndImport(browser, 'en', port)
   await runLang(browser, 'lsd', port)
   await runSeedAndImport(browser, 'lsd', port)
+  // Both directions and both widths. The side a badge sits on is the only part of this feature
+  // that depends on the writing direction, so a single-language run would assert half of it.
+  await runMarkers(browser, 'en', port, 1440)
+  await runMarkers(browser, 'lsd', port, 1440)
+  await runMarkers(browser, 'en', port, 390)
+  await runMarkers(browser, 'lsd', port, 390)
+  await runSeedResolution(browser, port)
 } finally {
   await browser.close()
 }

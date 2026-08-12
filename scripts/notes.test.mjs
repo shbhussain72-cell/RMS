@@ -17,6 +17,7 @@ import { DEFAULT_FILTER, filterNotes } from '../src/notes/filter.ts'
 import { exportName, toJson, toMarkdown } from '../src/notes/export.ts'
 import { describeImport, planImport } from '../src/notes/import.ts'
 import { planSeed, SEED_COUNT, seedCountsByRoute } from '../src/notes/seed.ts'
+import { planLines, targetFromElementNote, targetOf } from '../src/notes/target.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SEED = JSON.parse(readFileSync(resolve(ROOT, 'docs/sticky-notes-seed.json'), 'utf8'))
@@ -348,5 +349,108 @@ describe('seeding', () => {
     expect(next.notes.filter((n) => n.source === 'seed')).toHaveLength(48)
     // The collapsed copies are kept rather than thrown away.
     expect(next.notes.reduce((t, n) => t + (n.duplicates ?? 1), 0)).toBe(52)
+  })
+})
+
+
+/**
+ * Pointing — the pure half.
+ *
+ * Resolution itself needs a page and lives in check-notes. What is testable without one is the
+ * part that decides WHETHER there is anything to resolve, and the numbering the image and the
+ * list share. Both are where an off-by-one would be invisible in a screenshot.
+ */
+describe('targetFromElementNote', () => {
+  it('reads a tag and a label', () => {
+    expect(targetFromElementNote('`p` — "ITS ID"')).toEqual({ label: 'ITS ID', tag: 'p' })
+  })
+
+  it('gives no target for a tag with no label — there is nothing to match on', () => {
+    expect(targetFromElementNote('`input`')).toBeNull()
+  })
+
+  it('reads a bare label, which is 18 of the 44 recovered ones', () => {
+    expect(targetFromElementNote('`Manage City Layout`')).toEqual({ label: 'Manage City Layout' })
+  })
+
+  it('does not mistake a bare label for a tag name, or a tag name for a label', () => {
+    // 'Done' is not a tag; 'span' is. The distinction is the whole reason TAGS exists.
+    expect(targetFromElementNote('`Done`')).toEqual({ label: 'Done' })
+    expect(targetFromElementNote('`span`')).toBeNull()
+  })
+
+  it('collapses whitespace, because labelOf does and they have to agree', () => {
+    expect(targetFromElementNote('`div` — "Select   Zone A\n- Main Hall"'))
+      .toEqual({ label: 'Select Zone A - Main Hall', tag: 'div' })
+  })
+
+  it('returns null rather than throwing on anything else', () => {
+    expect(targetFromElementNote(undefined)).toBeNull()
+    expect(targetFromElementNote('')).toBeNull()
+    expect(targetFromElementNote('no backticks here')).toBeNull()
+  })
+
+  it('gives a target to 41 of the 48 recovered notes', () => {
+    // A COUNT AGAINST THE FILE, not a hand-typed number that survives the file changing: 44 carry
+    // an element line and 3 of those are a bare tag with no text. If the seed is regenerated this
+    // recomputes; what it asserts is that the parser still covers both shapes rather than one.
+    const withElement = SEED.filter((n) => n.element)
+    const parsed = withElement.filter((n) => targetFromElementNote(n.element))
+    expect(withElement.length).toBe(44)
+    expect(parsed.length).toBe(41)
+  })
+})
+
+describe('targetOf', () => {
+  it('prefers what was pointed at over what was recovered', () => {
+    const n = {"id":"n1","text":"a note","route":"/login","lang":"en","status":"open","createdAt":"2026-08-01T00:00:00.000Z","author":"me","element":"`p` — \"old\"","target":{"label":"new","tag":"button"}}
+    expect(targetOf(n)).toEqual({ label: 'new', tag: 'button' })
+  })
+
+  it('falls back to the recovered element line', () => {
+    const n = {"id":"n1","text":"a note","route":"/login","lang":"en","status":"open","createdAt":"2026-08-01T00:00:00.000Z","author":"me","element":"`p` — \"old\""}
+    expect(targetOf(n)).toEqual({ label: 'old', tag: 'p' })
+  })
+
+  it('is null for a note that points at nothing', () => {
+    expect(targetOf({"id":"n1","text":"a note","route":"/login","lang":"en","status":"open","createdAt":"2026-08-01T00:00:00.000Z","author":"me"})).toBeNull()
+  })
+})
+
+describe('planLines', () => {
+  const line = (id, found, matches = found ? 1 : 0, target = { label: 'L' }) =>
+    ({ note: { ...{"id":"n1","text":"a note","route":"/login","lang":"en","status":"open","createdAt":"2026-08-01T00:00:00.000Z","author":"me"}, id, text: id }, target, matches, found })
+
+  it('numbers marked notes first, in one unbroken sequence', () => {
+    const out = planLines([line('a', false), line('b', true), line('c', true), line('d', false)])
+    expect(out.map((l) => [l.note.id, l.n, l.marked]))
+      .toEqual([['b', 1, true], ['c', 2, true], ['a', 3, false], ['d', 4, false]])
+  })
+
+  it('keeps relative order inside each group', () => {
+    const out = planLines([line('a', true), line('b', true), line('c', true)])
+    expect(out.map((l) => l.note.id)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('says a label is missing rather than saying nothing', () => {
+    const [l] = planLines([line('a', false, 0, { label: 'Pending' })])
+    expect(l.caveat).toEqual({ kind: 'missing', label: 'Pending' })
+    expect(l.marked).toBe(false)
+  })
+
+  it('discloses an ambiguous match instead of picking one quietly', () => {
+    const [l] = planLines([line('a', true, 3, { label: 'Register now' })])
+    expect(l.caveat).toEqual({ kind: 'ambiguous', label: 'Register now', count: 3 })
+    expect(l.marked).toBe(true)
+  })
+
+  it('says nothing about a note that never pointed anywhere', () => {
+    const [l] = planLines([{ note: {"id":"n1","text":"a note","route":"/login","lang":"en","status":"open","createdAt":"2026-08-01T00:00:00.000Z","author":"me"}, target: null, matches: 0, found: false }])
+    expect(l.caveat).toEqual({ kind: 'none' })
+  })
+
+  it('numbers every note, so the count matches what the board showed', () => {
+    const out = planLines([line('a', true), line('b', false), line('c', false)])
+    expect(out.map((l) => l.n)).toEqual([1, 2, 3])
   })
 })

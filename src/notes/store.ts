@@ -24,7 +24,7 @@
  * the 48 recovered notes and nothing, and nothing helps no one.
  */
 import { useSyncExternalStore } from 'react'
-import type { Note } from './types'
+import type { Note, NoteTarget } from './types'
 
 /** Versioned: the shape will change, and a v1 reader must not choke on a v2 value. */
 export const NOTES_KEY = 'rms-notes.v1'
@@ -43,6 +43,20 @@ export interface Board {
 export const EMPTY: Board = { v: 1, seeded: false, notes: [] }
 
 const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined)
+
+/**
+ * A stored target, or undefined. Same tolerance as everything else here: a target that cannot be
+ * read costs the MARKER, never the note. `label` is the only field it cannot be without, since a
+ * target with no text to match on could never resolve to anything.
+ */
+export function readTarget(v: unknown): NoteTarget | undefined {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined
+  const r = v as Record<string, unknown>
+  const label = str(r.label)?.replace(/\s+/g, ' ').trim()
+  if (!label) return undefined
+  const tag = str(r.tag)?.toLowerCase()
+  return tag ? { label, tag } : { label }
+}
 
 /**
  * One stored note, or null if it cannot be understood.
@@ -64,6 +78,7 @@ function readNote(v: unknown, i: number): Note | null {
     text,
     route,
     element: str(r.element),
+    target: readTarget(r.target),
     lang,
     status: r.status === 'resolved' ? 'resolved' : 'open',
     createdAt,

@@ -39,6 +39,31 @@ export type NoteLang = 'en' | 'lsd' | null
 /** Where a note came from. Kept so the board can be honest about what it is showing. */
 export type NoteSource = 'typed' | 'seed' | 'exported' | 'queued' | 'imported'
 
+/**
+ * What a note points at, for the PNG export. OPTIONAL, and it is not a reference.
+ *
+ * ── THIS IS NOT THE THING REMARKS STORED ─────────────────────────────────────────────
+ *
+ * A remark stored a SELECTOR and resolved it whenever it was displayed, so the stored value had
+ * to go on being correct as the app changed underneath it — hence the capture strategies, the
+ * degradation levels and the orphan states. This stores what the element SAID, and resolves it
+ * exactly once, at capture time, against the page already on screen. Between those two moments
+ * nothing has to remain true, so there is nothing to orphan and nothing to repair.
+ *
+ * If a future change wants "a selector as a fallback", it is re-acquiring that whole problem —
+ * see the header of `src/notes/target.ts`.
+ */
+export interface NoteTarget {
+  /** The element's trimmed, whitespace-collapsed visible text at the moment of pointing. */
+  label: string
+  /**
+   * Lowercase tag name, and only a TIE-BREAKER: it decides between elements that share a label,
+   * and never narrows a search that would otherwise succeed. Absent on notes recovered from the
+   * old tool that recorded the label alone.
+   */
+  tag?: string
+}
+
 export interface Note {
   /** Stable across edits, for React keys and for the edit/resolve/delete controls. */
   id: string
@@ -54,6 +79,13 @@ export interface Note {
    * recovered ones that never had it.
    */
   element?: string
+  /**
+   * What this note points at, if it points at anything. See `NoteTarget`.
+   *
+   * Recovered notes do not carry one and do not need to: their `element` line already holds the
+   * label, and `targetOf()` reads it on the way past rather than migrating 48 stored records.
+   */
+  target?: NoteTarget
   lang: NoteLang
   status: NoteStatus
   /**

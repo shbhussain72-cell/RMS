@@ -26,7 +26,7 @@
  * different reactions from the person reading the line.
  */
 import type { Note } from './types'
-import { newNoteId } from './store'
+import { newNoteId, readTarget } from './store'
 
 export interface ImportResult {
   added: Note[]
@@ -56,6 +56,7 @@ function fromFile(v: unknown): Note | null {
     text,
     route,
     element: str(r.element),
+    target: readTarget(r.target),
     lang: r.lang === 'en' || r.lang === 'lsd' ? r.lang : null,
     status: r.status === 'resolved' ? 'resolved' : 'open',
     createdAt: str(r.createdAt) ?? new Date().toISOString(),

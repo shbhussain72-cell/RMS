@@ -19,7 +19,18 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PORT = await new Promise((ok) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)) }) })
-const proc = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
+/**
+ * VITE_REVIEW_TOOLS, without which this suite cannot pass and never could.
+ *
+ * The dock is dev-only. Spawned without the flag, every widget renders null and the suite
+ * reports "no dev dock rendered on the dev server" — which reads as a regression in the dock and
+ * is actually a missing word in this line. It is the third suite in this repo to lose time to
+ * exactly this; check-notes' header names the other two.
+ */
+const proc = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
+  cwd: ROOT, shell: true, stdio: ['ignore', 'pipe', 'pipe'],
+  env: { ...process.env, VITE_REVIEW_TOOLS: 'true' },
+})
 await new Promise((ok, fail) => {
   const t = setTimeout(() => fail(new Error('dev server did not start')), 60_000)
   const w = (b) => { if (String(b).includes(String(PORT))) { clearTimeout(t); setTimeout(ok, 1500) } }

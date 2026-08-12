@@ -73,7 +73,15 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, a
  * that `vite preview` cannot serve — a whole precondition that exists only because there was a
  * backend. There is not one now.
  */
-await ctx.addInitScript(`try{localStorage.setItem('rms-lang','en');localStorage.setItem('rms-remark-author','harness');localStorage.setItem('miqaat-flow',JSON.stringify({state:{loggedIn:true},version:0}));localStorage.setItem('rms-tour-seen',JSON.stringify(${JSON.stringify(TOUR_KEYS)}))}catch{}`)
+/**
+ * AN EMPTY BOARD THAT HAS ALREADY BEEN SEEDED.
+ *
+ * `{ seeded: true, notes: [] }` and not a cleared key: clearing it MEANS seeding, and the 48
+ * recovered notes would then arrive underneath the one note this suite writes. It asserts
+ * "exactly one note is stored", which went from true to `49 stored` the day the seed landed —
+ * a suite measuring something other than what it says, for a reason nothing in it mentions.
+ */
+await ctx.addInitScript(`try{localStorage.setItem('rms-lang','en');localStorage.setItem('rms-remark-author','harness');localStorage.setItem('rms-notes.v1',JSON.stringify({v:1,seeded:true,notes:[]}));localStorage.setItem('miqaat-flow',JSON.stringify({state:{loggedIn:true},version:0}));localStorage.setItem('rms-tour-seen',JSON.stringify(${JSON.stringify(TOUR_KEYS)}))}catch{}`)
 const page = await ctx.newPage()
 const url = `http://localhost:${port}`
 

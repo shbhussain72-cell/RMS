@@ -642,6 +642,24 @@ third question again. A suite that runs and reports failures is working.
 *An audit that classifies by reading has told you about the code it read. Whether that code runs
 is a separate claim, and it needs a separate column.*
 
+**It happened twice more, and the sweep is what found both.** On 12 Aug the completion sweep
+ran 25 suites; every one completed, and six exited non-zero. Two were about the notes board and
+neither was caused by the change being tested — measured, by running both against the previous
+commit's `src/` with the current suite code:
+
+- `check-devdock` spawned `vite` **without `VITE_REVIEW_TOOLS`**, so every widget rendered null
+  and it reported "no dev dock rendered on the dev server". The same missing word as `06a8704`,
+  in a different suite, found two days later. With the flag it runs 12 assertions, 11 of them
+  green — and the twelfth is a real RTL clamping defect that no one could have seen while the
+  suite could not render the thing it tests.
+- `check-review-tools` asserts that exactly one note is stored after writing one. That went from
+  true to `49 stored` the day the seed landed, and stayed green-looking in no output at all,
+  because nothing ran it. It needed the same precondition every section of `check-notes` uses:
+  a board that is empty AND already seeded.
+
+*Neither is a new kind of mistake. What is new is that a sweep exists to find them, and that it
+distinguishes "completed" from "passed" — all 25 completed, and six had something to say.*
+
 ### 15. A per-route count of `localStorage`, printed as if it were the page
 
 **Mechanism asserted:** "48 notes, tallied by route, are in the store."
